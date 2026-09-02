@@ -26,6 +26,17 @@ npm run dev
 
 The app will be available at `http://localhost:5173` (or your configured dev port).
 
+### Restore point (design fallback)
+
+Before large UI experiments, restore to the last known-good state:
+
+```bash
+git checkout fallback/pre-design-2026-09-02
+# or on main: git reset --hard fallback/pre-design-2026-09-02
+```
+
+Tag/branch: `fallback/pre-design-2026-09-02` · commit `8c32a94d` (`chore: checkpoint before design overhaul`).
+
 ### Build
 
 ```bash
