@@ -409,16 +409,7 @@ export function LandingPage({
                 className="h-full"
               >
                 <NoirPageScaffold title="Settings">
-                  <NoirSettingsView
-                    zenMode={zenMode}
-                    onZenModeChange={onZenModeChange || (() => {})}
-                    textureStyle={textureStyle}
-                    onTextureStyleChange={onTextureStyleChange || (() => {})}
-                    enable3DTilt={enable3DTilt}
-                    onEnable3DTiltChange={onEnable3DTiltChange || (() => {})}
-                    enableCustomLyrics={enableCustomLyrics}
-                    onEnableCustomLyricsChange={onEnableCustomLyricsChange}
-                  />
+                  <NoirSettingsView />
                 </NoirPageScaffold>
               </motion.div>
             )}

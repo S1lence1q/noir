@@ -325,6 +325,12 @@ export default function App() {
     }
   });
 
+  useEffect(() => {
+    const handleRecentlyPlayedCleared = () => setRecentlyPlayed([]);
+    window.addEventListener('elva-recently-played-cleared', handleRecentlyPlayedCleared);
+    return () => window.removeEventListener('elva-recently-played-cleared', handleRecentlyPlayedCleared);
+  }, []);
+
   const [isFirstVisit, setIsFirstVisit] = useState(() => !sessionStorage.getItem('elva_intro_seen'));
   const hasSelectedArtistOnce = useRef(false);
   const latestSelectedSongIdRef = useRef<string | null>(null);
