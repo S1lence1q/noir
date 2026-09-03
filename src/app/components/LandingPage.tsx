@@ -5,10 +5,18 @@ import { AccentColor } from './themeUtils';
 import { BrandingHeader } from './BrandingHeader';
 import { SearchSection } from './SearchSection';
 import { DiscoverView } from './DiscoverView';
+import { NoirDiscoverView } from './shell/noir/NoirDiscoverView';
 import { ProfileHubView } from './ProfileHubView';
 import { ArtistProfileView } from './ArtistProfileView';
 import { PlaylistDetailsView } from './PlaylistDetailsView';
 import { DetailOverlay } from './DetailOverlay';
+import { NoirDetailOverlay } from './shell/noir/NoirDetailOverlay';
+import { NoirArtistView } from './shell/noir/NoirArtistView';
+import { NoirPlaylistView } from './shell/noir/NoirPlaylistView';
+import { NoirHomeView } from './shell/noir/NoirHomeView';
+import { NoirLibraryView } from './shell/noir/NoirLibraryView';
+import { NoirPageScaffold } from './shell/noir/NoirPageScaffold';
+import { NoirSettingsView } from './shell/noir/NoirSettingsView';
 
 interface LandingPageProps {
   isIntroActive: boolean;
@@ -72,13 +80,14 @@ interface LandingPageProps {
   showVisualizer: boolean;
   onShowVisualizerChange: (show: boolean) => void;
 
-  activeTab: 'search' | 'discover' | 'myhub';
-  setActiveTab: (tab: 'search' | 'discover' | 'myhub') => void;
+  activeTab: 'search' | 'discover' | 'myhub' | 'settings';
+  setActiveTab: (tab: 'search' | 'discover' | 'myhub' | 'settings') => void;
 
   navMode: 'tabs' | 'scroll';
   onNavModeChange: (mode: 'tabs' | 'scroll') => void;
   navPosition: 'bottom' | 'top' | 'right';
   onNavPositionChange: (pos: 'bottom' | 'top' | 'right') => void;
+  shellMode?: boolean;
 }
 
 export function LandingPage({
@@ -146,7 +155,8 @@ export function LandingPage({
   navMode,
   onNavModeChange,
   navPosition,
-  onNavPositionChange
+  onNavPositionChange,
+  shellMode = false,
 }: LandingPageProps) {
   const renderSearchContent = () => (
     <>
@@ -258,6 +268,165 @@ export function LandingPage({
   );
 
   const isScrollMode = navMode === 'scroll';
+  const contentPadding = shellMode ? 'pt-8 pb-6' : 'pt-16 pb-24';
+  const hasDetailOverlay = selectedArtist !== null || selectedPlaylist !== null;
+
+  if (shellMode) {
+    return (
+      <div className="relative h-full w-full">
+        <AnimatePresence>
+          {selectedArtist && (
+            <NoirDetailOverlay
+              title={selectedArtist.name}
+              onClose={() => {
+                setSelectedArtist(null);
+                setArtistTracks([]);
+              }}
+            >
+              <NoirArtistView
+                artist={selectedArtist}
+                tracks={artistTracks}
+                isLoading={isLoadingArtist}
+                onSelectSong={handleSelectSong}
+                onAddToQueue={handleAddToQueue}
+                onPlayNext={handlePlayNext}
+                onPlayAll={() => {
+                  if (artistTracks.length > 0) {
+                    handlePlayPlaylist(artistTracks, selectedArtist.name);
+                  }
+                }}
+              />
+            </NoirDetailOverlay>
+          )}
+
+          {selectedPlaylist && (
+            <NoirDetailOverlay title={selectedPlaylist.name} onClose={() => setSelectedPlaylist(null)}>
+              <NoirPlaylistView
+                playlist={selectedPlaylist}
+                onSelectSong={handleSelectSong}
+                onAddToQueue={handleAddToQueue}
+                onPlayPlaylist={handlePlayPlaylist}
+                onPlayNext={handlePlayNext}
+              />
+            </NoirDetailOverlay>
+          )}
+        </AnimatePresence>
+
+        <motion.div
+          className="h-full w-full"
+          animate={{
+            opacity: hasDetailOverlay ? 0.35 : 1,
+          }}
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          style={{ pointerEvents: hasDetailOverlay ? 'none' : 'auto' }}
+        >
+          <AnimatePresence mode="wait">
+            {activeTab === 'search' && (
+              <motion.div
+                key="noir-home"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="h-full"
+              >
+                <NoirHomeView
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  lastSearchedQuery={lastSearchedQuery}
+                  isSearching={isSearching}
+                  searchResults={searchResults}
+                  recentArtists={recentArtists}
+                  recentlyPlayed={recentlyPlayed}
+                  verifiedArtist={verifiedArtist}
+                  focusedResultIndex={focusedResultIndex}
+                  loadingSongId={loadingSongId}
+                  handleViewArtistProfile={handleViewArtistProfile}
+                  handleUrlSubmit={handleUrlSubmit}
+                  handleSearch={handleSearch}
+                  handleSelectSong={handleSelectSong}
+                  handleAddToQueue={handleAddToQueue}
+                  handlePlayNext={handlePlayNext}
+                  handleFileSelect={handleFileSelect}
+                  theme={theme}
+                />
+              </motion.div>
+            )}
+
+            {activeTab === 'discover' && (
+              <motion.div
+                key="noir-discover"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="h-full"
+              >
+                <NoirPageScaffold title="Discover" titleSize="compact">
+                  <NoirDiscoverView
+                    onSelectSong={handleSelectSong}
+                    onAddToQueue={handleAddToQueue}
+                    onPlayPlaylist={handlePlayPlaylist}
+                    onPlayNext={handlePlayNext}
+                    onSelectPlaylist={setSelectedPlaylist}
+                  />
+                </NoirPageScaffold>
+              </motion.div>
+            )}
+
+            {activeTab === 'myhub' && (
+              <motion.div
+                key="noir-library"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="h-full"
+              >
+                <NoirPageScaffold
+                  title="Library"
+                  subtitle="Favorites and playlists"
+                >
+                  <NoirLibraryView
+                    favorites={favorites}
+                    onToggleFavorite={handleToggleFavorite}
+                    onSelectSong={handleSelectSong}
+                    onAddToQueue={handleAddToQueue}
+                    onPlayPlaylist={handlePlayPlaylist}
+                    onPlayNext={handlePlayNext}
+                  />
+                </NoirPageScaffold>
+              </motion.div>
+            )}
+
+            {activeTab === 'settings' && (
+              <motion.div
+                key="noir-settings"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="h-full"
+              >
+                <NoirPageScaffold title="Settings">
+                  <NoirSettingsView
+                    zenMode={zenMode}
+                    onZenModeChange={onZenModeChange || (() => {})}
+                    textureStyle={textureStyle}
+                    onTextureStyleChange={onTextureStyleChange || (() => {})}
+                    enable3DTilt={enable3DTilt}
+                    onEnable3DTiltChange={onEnable3DTiltChange || (() => {})}
+                    enableCustomLyrics={enableCustomLyrics}
+                    onEnableCustomLyricsChange={onEnableCustomLyricsChange}
+                  />
+                </NoirPageScaffold>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -267,10 +436,12 @@ export function LandingPage({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 1.08 }}
       transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
-      className="absolute inset-0 z-10 flex flex-col items-center px-0 w-full h-full justify-start"
+      className={`absolute inset-0 z-10 flex h-full w-full flex-col items-center justify-start px-0 ${
+        shellMode ? '' : 'px-0'
+      }`}
     >
       {/* Animated gradient orbs during intro */}
-      {isIntroActive && (
+      {!shellMode && isIntroActive && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: [0, 0.2, 0.3, 0], scale: [0.8, 1.25, 1.55, 2.1] }}
@@ -279,8 +450,8 @@ export function LandingPage({
         />
       )}
 
-      {/* Localized deep dark radial gradient vignette centered behind UI elements for razor-sharp readability */}
-      {selectedArtist === null && selectedPlaylist === null && searchQuery.trim() === '' && (
+      {/* Localized deep dark radial gradient vignette */}
+      {!shellMode && selectedArtist === null && selectedPlaylist === null && searchQuery.trim() === '' && (
         <div 
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[45%] w-[880px] h-[520px] rounded-full pointer-events-none z-0 opacity-[0.04]" 
           style={{
@@ -354,13 +525,13 @@ export function LandingPage({
       >
         {isScrollMode ? (
           <>
-            <section className="w-full h-full snap-start shrink-0 flex flex-col items-center justify-start relative px-0 pt-16 pb-24 overflow-y-auto scrollbar-none">
+            <section className={`w-full h-full snap-start shrink-0 flex flex-col items-center justify-start relative px-0 overflow-y-auto scrollbar-none ${contentPadding}`}>
               {renderSearchContent()}
             </section>
-            <section className="w-full h-full snap-start shrink-0 flex flex-col items-center justify-start relative px-0 pt-16 pb-24 overflow-y-auto scrollbar-none">
+            <section className={`w-full h-full snap-start shrink-0 flex flex-col items-center justify-start relative px-0 overflow-y-auto scrollbar-none ${contentPadding}`}>
               {renderDiscoverContent()}
             </section>
-            <section className="w-full h-full snap-start shrink-0 flex flex-col items-center justify-start relative px-0 pt-16 pb-24 overflow-y-auto scrollbar-none">
+            <section className={`w-full h-full snap-start shrink-0 flex flex-col items-center justify-start relative px-0 overflow-y-auto scrollbar-none ${contentPadding}`}>
               {renderMyHubContent()}
             </section>
           </>
@@ -373,7 +544,7 @@ export function LandingPage({
                 animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, scale: 0.985, filter: 'blur(4px)' }}
                 transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full h-full overflow-y-auto scrollbar-none flex flex-col pt-16 pb-24 px-0"
+                className={`w-full h-full overflow-y-auto scrollbar-none flex flex-col px-0 ${contentPadding}`}
               >
                 {renderSearchContent()}
               </motion.div>
@@ -386,7 +557,7 @@ export function LandingPage({
                 animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, scale: 0.985, filter: 'blur(4px)' }}
                 transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full h-full overflow-y-auto scrollbar-none flex flex-col pt-16 pb-24 px-0"
+                className={`w-full h-full overflow-y-auto scrollbar-none flex flex-col px-0 ${contentPadding}`}
               >
                 {renderDiscoverContent()}
               </motion.div>
@@ -399,7 +570,7 @@ export function LandingPage({
                 animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, scale: 0.985, filter: 'blur(4px)' }}
                 transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full h-full overflow-y-auto scrollbar-none flex flex-col pt-16 pb-24 px-0"
+                className={`w-full h-full overflow-y-auto scrollbar-none flex flex-col px-0 ${contentPadding}`}
               >
                 {renderMyHubContent()}
               </motion.div>
@@ -409,12 +580,14 @@ export function LandingPage({
       </motion.div>
 
       {/* Subtle grid overlay for depth */}
+      {!shellMode && (
       <div className="absolute inset-0 pointer-events-none opacity-[0.015] z-0">
         <div className="absolute inset-0" style={{
           backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
           backgroundSize: '100px 100px'
         }} />
       </div>
+      )}
     </motion.div>
   );
 }

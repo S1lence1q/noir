@@ -79,6 +79,11 @@ interface MusicPlayerProps {
   enableCustomLyrics?: boolean;
   onEnableCustomLyricsChange?: (enable: boolean) => void;
   onPlayingStateChange?: (playing: boolean) => void;
+  onShellPlaybackState?: (state: {
+    currentTime: number;
+    duration: number;
+    isPlaying: boolean;
+  }) => void;
   appState?: string;
   peekProgressStyle?: 'none' | 'line' | 'border';
   onPeekProgressStyleChange?: (style: 'none' | 'line' | 'border') => void;
@@ -151,6 +156,7 @@ export function MusicPlayer({
   enableCustomLyrics = false,
   onEnableCustomLyricsChange,
   onPlayingStateChange,
+  onShellPlaybackState,
   appState = 'ready',
   peekProgressStyle = 'border',
   onPeekProgressStyleChange
@@ -194,6 +200,10 @@ export function MusicPlayer({
     onSelectFromQueue,
     onPlayingStateChange,
   });
+
+  useEffect(() => {
+    onShellPlaybackState?.({ currentTime, duration, isPlaying });
+  }, [currentTime, duration, isPlaying, onShellPlaybackState]);
 
   usePlayStats(songData, isPlaying);
 

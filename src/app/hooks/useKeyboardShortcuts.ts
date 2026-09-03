@@ -20,8 +20,8 @@ interface KeyboardShortcutsParams {
   handleViewArtistProfile: (artist: any) => void;
   showShortcutMap: boolean;
   setShowShortcutMap: React.Dispatch<React.SetStateAction<boolean>>;
-  showSettings: boolean;
-  setShowSettings: React.Dispatch<React.SetStateAction<boolean>>;
+  activeTab: string;
+  setActiveTab: (tab: any) => void;
   selectedPlaylist: any;
   setSelectedPlaylist: React.Dispatch<React.SetStateAction<any>>;
 }
@@ -45,8 +45,8 @@ export function useKeyboardShortcuts({
   handleViewArtistProfile,
   showShortcutMap,
   setShowShortcutMap,
-  showSettings,
-  setShowSettings,
+  activeTab,
+  setActiveTab,
   selectedPlaylist,
   setSelectedPlaylist,
 }: KeyboardShortcutsParams) {
@@ -149,7 +149,7 @@ export function useKeyboardShortcuts({
       } else if (e.key === ',' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         if (appState === 'landing') {
-          setShowSettings((prev) => !prev);
+          setActiveTab(activeTab === 'settings' ? 'search' : 'settings');
         }
       }
     };
@@ -158,7 +158,7 @@ export function useKeyboardShortcuts({
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [
     showShortcutMap,
-    showSettings,
+    activeTab,
     appState,
     searchQuery,
     lastSearchedQuery,
@@ -176,6 +176,6 @@ export function useKeyboardShortcuts({
     handleSelectSong,
     handleViewArtistProfile,
     setShowShortcutMap,
-    setShowSettings,
+    setActiveTab,
   ]);
 }

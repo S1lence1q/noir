@@ -5,6 +5,7 @@ import { SearchResult } from '../types';
 import { AccentColor, ACCENT_THEMES } from './themeUtils';
 import { Playlist } from './PlaylistDetailsView';
 import { SongRowOptions } from './SongRowOptions';
+import { NoirSongRow } from './shell/noir/NoirSongRow';
 import { ElvaEmptyState } from './ElvaEmptyState';
 import { strings } from '../constants/strings';
 import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../utils/chartFeeds';
@@ -21,6 +22,7 @@ interface DiscoverViewProps {
   favorites: SearchResult[];
   onToggleFavorite: (song: SearchResult) => void;
   onSelectPlaylist: (playlist: Playlist) => void;
+  noir?: boolean;
 }
 
 export const DiscoverView: React.FC<DiscoverViewProps> = ({
@@ -31,7 +33,8 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
   accentColor,
   favorites,
   onToggleFavorite,
-  onSelectPlaylist
+  onSelectPlaylist,
+  noir = false,
 }) => {
   const theme = ACCENT_THEMES[accentColor];
 
@@ -156,23 +159,29 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: noir ? 0 : 10 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 10 }}
-      transition={{ duration: 0.45 }}
-      className="w-full max-w-[898px] mx-auto relative z-10 flex flex-col gap-10 px-6 pt-4 pb-24"
+      exit={{ opacity: 0, y: noir ? 0 : 10 }}
+      transition={{ duration: noir ? 0.2 : 0.45 }}
+      className={
+        noir
+          ? 'relative z-10 flex w-full flex-col gap-10'
+          : 'w-full max-w-[898px] mx-auto relative z-10 flex flex-col gap-10 px-6 pt-4 pb-24'
+      }
     >
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <Compass className={`w-4 h-4 ${theme.text}`} />
-            <h3 className="elva-section-label text-white/55 font-semibold">
-              Featured Charts
-            </h3>
-          </div>
+          {noir ? (
+            <h3 className="text-[15px] font-semibold text-[color:var(--noir-text-primary)]">Featured charts</h3>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Compass className={`w-4 h-4 ${theme.text}`} />
+              <h3 className="elva-section-label text-white/55 font-semibold">Featured Charts</h3>
+            </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className={noir ? 'grid grid-cols-1 gap-4 md:grid-cols-2' : 'grid grid-cols-1 md:grid-cols-2 gap-10'}>
           {isLoading ? (
             Array.from({ length: 2 }).map((_, idx) => (
               <div
@@ -194,6 +203,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                 <ChartCard
                   chart={playlistsConfig[0]}
                   idx={0}
+                  noir={noir}
                   onSelectPlaylist={onSelectPlaylist}
                   onPlayChart={handlePlayChart}
                 />
@@ -205,6 +215,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                 <ChartCard
                   chart={playlistsConfig[1]}
                   idx={1}
+                  noir={noir}
                   onSelectPlaylist={onSelectPlaylist}
                   onPlayChart={handlePlayChart}
                 />
@@ -219,13 +230,19 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
         </div>
       </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+      <div className={noir ? 'grid grid-cols-1 gap-10 md:grid-cols-2' : 'grid grid-cols-1 md:grid-cols-2 gap-10'}>
         <section className="flex flex-col gap-4">
           <div className="flex items-center gap-2 mb-2">
-            <Flame className={`w-4 h-4 ${theme.text}`} />
-            <h3 className="elva-section-label text-white/55 font-semibold">Trending Now</h3>
+            {noir ? (
+              <h3 className="text-[15px] font-semibold text-[color:var(--noir-text-primary)]">Trending now</h3>
+            ) : (
+              <>
+                <Flame className={`w-4 h-4 ${theme.text}`} />
+                <h3 className="elva-section-label text-white/55 font-semibold">Trending Now</h3>
+              </>
+            )}
           </div>
-          <div className="space-y-3.5">
+          <div className={noir ? 'flex flex-col gap-0.5' : 'space-y-3.5'}>
             {isLoading ? (
               Array.from({ length: 4 }).map((_, idx) => (
                 <div
@@ -234,19 +251,29 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                 />
               ))
             ) : trendingList.length > 0 ? (
-              trendingList.map((song, idx) => (
-                <SongRow
-                  key={song.id}
-                  song={song}
-                  idx={idx}
-                  direction="left"
-                  onSelectSong={onSelectSong}
-                  onPlayNext={onPlayNext}
-                  onAddToQueue={onAddToQueue}
-                  onToggleFavorite={onToggleFavorite}
-                  isFavorite={isFavorite(song.id)}
-                />
-              ))
+              trendingList.map((song, idx) =>
+                noir ? (
+                  <NoirSongRow
+                    key={song.id}
+                    track={song}
+                    onPlay={() => onSelectSong(song)}
+                    onAddToQueue={onAddToQueue}
+                    onPlayNext={onPlayNext}
+                  />
+                ) : (
+                  <SongRow
+                    key={song.id}
+                    song={song}
+                    idx={idx}
+                    direction="left"
+                    onSelectSong={onSelectSong}
+                    onPlayNext={onPlayNext}
+                    onAddToQueue={onAddToQueue}
+                    onToggleFavorite={onToggleFavorite}
+                    isFavorite={isFavorite(song.id)}
+                  />
+                )
+              )
             ) : (
               <ElvaEmptyState
                 icon={<Flame className="w-6 h-6" />}
@@ -260,10 +287,16 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
 
         <section className="flex flex-col gap-4">
           <div className="flex items-center gap-2 mb-2">
-            <Sparkles className={`w-4 h-4 ${theme.text}`} />
-            <h3 className="elva-section-label text-white/55 font-semibold">Daily Picks</h3>
+            {noir ? (
+              <h3 className="text-[15px] font-semibold text-[color:var(--noir-text-primary)]">Daily picks</h3>
+            ) : (
+              <>
+                <Sparkles className={`w-4 h-4 ${theme.text}`} />
+                <h3 className="elva-section-label text-white/55 font-semibold">Daily Picks</h3>
+              </>
+            )}
           </div>
-          <div className="space-y-3.5">
+          <div className={noir ? 'flex flex-col gap-0.5' : 'space-y-3.5'}>
             {isLoading ? (
               Array.from({ length: 4 }).map((_, idx) => (
                 <div
@@ -272,19 +305,29 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                 />
               ))
             ) : dailyPicks.length > 0 ? (
-              dailyPicks.map((song, idx) => (
-                <SongRow
-                  key={song.id}
-                  song={song}
-                  idx={idx}
-                  direction="right"
-                  onSelectSong={onSelectSong}
-                  onPlayNext={onPlayNext}
-                  onAddToQueue={onAddToQueue}
-                  onToggleFavorite={onToggleFavorite}
-                  isFavorite={isFavorite(song.id)}
-                />
-              ))
+              dailyPicks.map((song, idx) =>
+                noir ? (
+                  <NoirSongRow
+                    key={song.id}
+                    track={song}
+                    onPlay={() => onSelectSong(song)}
+                    onAddToQueue={onAddToQueue}
+                    onPlayNext={onPlayNext}
+                  />
+                ) : (
+                  <SongRow
+                    key={song.id}
+                    song={song}
+                    idx={idx}
+                    direction="right"
+                    onSelectSong={onSelectSong}
+                    onPlayNext={onPlayNext}
+                    onAddToQueue={onAddToQueue}
+                    onToggleFavorite={onToggleFavorite}
+                    isFavorite={isFavorite(song.id)}
+                  />
+                )
+              )
             ) : (
               <ElvaEmptyState
                 icon={<Flame className="w-6 h-6" />}
@@ -303,15 +346,52 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
 function ChartCard({
   chart,
   idx,
+  noir = false,
   onSelectPlaylist,
   onPlayChart,
 }: {
   chart: Playlist;
   idx: number;
+  noir?: boolean;
   onSelectPlaylist: (playlist: Playlist) => void;
   onPlayChart: (e: React.MouseEvent, name: string, tracks: SearchResult[]) => void;
 }) {
   const isLocal = chart.id === 'dk_hits';
+
+  if (noir) {
+    return (
+      <motion.div
+        key={chart.id}
+        onClick={() => onSelectPlaylist(chart)}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: idx * 0.08, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+        className="group relative h-[200px] cursor-pointer overflow-hidden rounded-[var(--noir-radius-xl)] text-left select-none"
+      >
+        <img
+          src={chart.thumbnail}
+          alt={chart.name}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/10" />
+        <div className="absolute inset-0 flex flex-col justify-end gap-2 p-5">
+          <h3 className="text-xl font-semibold leading-tight tracking-[-0.02em] text-white">{chart.name}</h3>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={(e) => onPlayChart(e, chart.name, chart.tracks)}
+              className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-white/15"
+            >
+              <Play className="h-3 w-3 fill-current" />
+              Play all
+            </button>
+            <span className="text-[12px] text-white/45">{chart.tracks.length} tracks</span>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       key={chart.id}

@@ -6,7 +6,7 @@ import 'sonner/dist/styles.css';
 import { MusicPlayer } from './components/MusicPlayer';
 import { OnboardingTour } from './components/OnboardingTour';
 import { AccentColor, ACCENT_THEMES } from './components/themeUtils';
-import { SettingsModal } from './components/SettingsModal';
+
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { FluidBackground } from './components/FluidBackground';
 import { showMiniHUD } from './utils/hudUtils';
@@ -27,18 +27,18 @@ import { useBackgroundColors } from './hooks/useBackgroundColors';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useSearchLogic } from './hooks/useSearchLogic';
 import { LandingPage } from './components/LandingPage';
-import { LandingTabNav } from './components/LandingTabNav';
 import { Playlist } from './components/PlaylistDetailsView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { GlobalVolumeHUD } from './components/app/GlobalVolumeHUD';
-import { LandingMiniPlayerPill } from './components/app/LandingMiniPlayerPill';
+import { AppShell } from './components/shell/AppShell';
+import { ShellPlaybackState } from './components/shell/types';
 import { useGlobalVolumeHUD } from './hooks/useGlobalVolumeHUD';
 
 type AppState = 'landing' | 'processing' | 'ready';
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>('landing');
-  const [showSettings, setShowSettings] = useState(false);
+  // Settings is now a tab in the shell, not a modal
 
   const [navMode, setNavMode] = useState<'tabs' | 'scroll'>(() => {
     return (localStorage.getItem('elva_nav_mode') as 'tabs' | 'scroll') || 'tabs';
@@ -71,8 +71,13 @@ export default function App() {
     }
   };
 
-  const [activeTab, setActiveTabState] = useState<'search' | 'discover' | 'myhub'>('search');
+  const [activeTab, setActiveTabState] = useState<'search' | 'discover' | 'myhub' | 'settings'>('search');
   const [isMiniPlaying, setIsMiniPlaying] = useState(true);
+  const [shellPlayback, setShellPlayback] = useState<ShellPlaybackState>({
+    currentTime: 0,
+    duration: 0,
+    isPlaying: true,
+  });
 
   const { globalVolume, showGlobalVolumeHUD } = useGlobalVolumeHUD();
 
@@ -97,9 +102,10 @@ export default function App() {
   const isAutoScrollingRef = useRef(false);
   const autoScrollTimeoutRef = useRef<any>(null);
 
-  const setActiveTab = (tab: 'search' | 'discover' | 'myhub') => {
+  const setActiveTab = (tab: 'search' | 'discover' | 'myhub' | 'settings') => {
     setActiveTabState(tab);
-    if (navMode === 'scroll') {
+    const shellActive = appState === 'landing' || appState === 'processing';
+    if (navMode === 'scroll' && !shellActive) {
       const container = scrollContainerRef.current;
       if (container) {
         isAutoScrollingRef.current = true;
@@ -118,9 +124,10 @@ export default function App() {
     }
   };
 
-  // Scroll spy for scroll-snap mode
+  // Scroll spy for scroll-snap mode (legacy landing only — shell uses sidebar tabs)
   useEffect(() => {
     if (navMode !== 'scroll') return;
+    if (appState === 'landing' || appState === 'processing') return;
     if (isAutoScrollingRef.current) return;
 
     let targetTab: 'search' | 'discover' | 'myhub' = 'search';
@@ -135,7 +142,7 @@ export default function App() {
     if (activeTab !== targetTab) {
       setActiveTabState(targetTab);
     }
-  }, [scrollProgress, navMode, activeTab]);
+  }, [scrollProgress, navMode, activeTab, appState]);
 
   const [favorites, setFavorites] = useState<SearchResult[]>(() => {
     try {
@@ -642,7 +649,7 @@ export default function App() {
           videoId: finalVideoId,
           channelId: result.channelId
         });
-        setAppState('ready');
+        setAppState('landing');
         setLoadingSongId(null);
       }, remainingTime);
     };
@@ -754,8 +761,8 @@ export default function App() {
     handleViewArtistProfile: searchLogic.handleViewArtistProfile,
     showShortcutMap,
     setShowShortcutMap,
-    showSettings,
-    setShowSettings,
+    activeTab,
+    setActiveTab,
     selectedPlaylist,
     setSelectedPlaylist
   });
@@ -1100,6 +1107,14 @@ export default function App() {
           }
         />
 
+        <motion.div
+          className="absolute inset-0 z-[1] pointer-events-none bg-[color:var(--noir-chrome)]"
+          animate={{
+            opacity: appState === 'ready' ? 0 : 0.9,
+          }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        />
+
         <AnimatePresence>
           {(appState === 'ready' || appState === 'processing' || (appState === 'landing' && songData)) && (
             <motion.div
@@ -1115,10 +1130,31 @@ export default function App() {
       </motion.div>
 
       <AnimatePresence>
-        {appState === 'landing' && (
-          <>
+        {(appState === 'landing' || appState === 'processing') && (
+          <AppShell
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            hasActiveSong={!!songData}
+            song={
+              songData
+                ? {
+                    title: songData.title,
+                    artist: songData.artist,
+                    artworkUrl: songData.artworkUrl,
+                  }
+                : undefined
+            }
+            playback={{
+              ...shellPlayback,
+              isPlaying: isMiniPlaying,
+            }}
+            onExpandPlayer={() => setAppState('ready')}
+            showCompactPlayer
+            favoritesCount={favorites.length}
+            onSelectPlaylist={setSelectedPlaylist}
+          >
             <ErrorBoundary>
-            <LandingPage
+              <LandingPage
               isIntroActive={isIntroActive}
               scrollProgress={scrollProgress}
               scrollContainerRef={scrollContainerRef}
@@ -1184,47 +1220,31 @@ export default function App() {
               onNavModeChange={handleSetNavMode}
               navPosition={navPosition}
               onNavPositionChange={setNavPosition}
+              shellMode
             />
             </ErrorBoundary>
 
-            {selectedArtist === null && selectedPlaylist === null && (
-              <LandingTabNav
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-                accentColor={accentColor}
-                hasActiveSong={!!songData}
-                navPosition={navPosition}
-              />
+            {appState === 'processing' && !songData && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-6 bg-[color:var(--noir-canvas)]/90">
+                <div className="relative flex h-12 w-12 items-center justify-center">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    className="h-8 w-8 rounded-full border border-white/10"
+                    style={{ borderTopColor: 'rgba(255, 255, 255, 0.7)' }}
+                  />
+                </div>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.4 }}
+                  transition={{ delay: 0.1 }}
+                  className="text-xs font-light uppercase tracking-[0.2em] text-white"
+                >
+                  Loading
+                </motion.p>
+              </div>
             )}
-          </>
-        )}
-
-        {appState === 'processing' && !songData && (
-          <motion.div
-            key="processing"
-            initial={{ opacity: 0, scale: 0.98, filter: 'blur(4px)' }}
-            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, scale: 1.02, filter: 'blur(4px)' }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 bg-transparent"
-          >
-            <div className="relative w-12 h-12 flex items-center justify-center">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="w-8 h-8 rounded-full border border-white/10"
-                style={{ borderTopColor: 'rgba(255, 255, 255, 0.7)' }}
-              />
-            </div>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.4 }}
-              transition={{ delay: 0.1 }}
-              className="text-white text-xs tracking-[0.2em] uppercase font-light"
-            >
-              Loading
-            </motion.p>
-          </motion.div>
+          </AppShell>
         )}
 
         {songData && (
@@ -1285,6 +1305,7 @@ export default function App() {
               enableCustomLyrics={enableCustomLyrics}
               onEnableCustomLyricsChange={setEnableCustomLyrics}
               onPlayingStateChange={setIsMiniPlaying}
+              onShellPlaybackState={setShellPlayback}
               peekProgressStyle={peekProgressStyle}
               onPeekProgressStyleChange={setPeekProgressStyle}
               onFileSelect={(file) => {
@@ -1296,46 +1317,13 @@ export default function App() {
                   clearTimeout(backToHomeTimeoutRef.current);
                 }
                 setAppState('landing');
-                setShowSettings(false);
+                setActiveTab('search');
                 searchLogic.setSearchQuery('');
                 searchLogic.setSearchResults([]);
               }}
             />
             </ErrorBoundary>
           </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Settings Modal (only for landing state; active player handles its own) */}
-      <AnimatePresence>
-        {showSettings && appState === 'landing' && (
-          <SettingsModal
-            onClose={() => setShowSettings(false)}
-            accentColor={accentColor}
-            onAccentColorChange={setAccentColor}
-            textureStyle={textureStyle}
-            onTextureStyleChange={setTextureStyle}
-            backgroundStyle={backgroundStyle}
-            onBackgroundStyleChange={setBackgroundStyle}
-            showVisualizer={showVisualizer}
-            onShowVisualizerChange={setShowVisualizer}
-            zenMode={zenMode}
-            onZenModeChange={setZenMode}
-            showVolumeSlider={showVolumeSlider}
-            onShowVolumeSliderChange={setShowVolumeSlider}
-            enable3DTilt={enable3DTilt}
-            onEnable3DTiltChange={setEnable3DTilt}
-            showSettingsButton={showSettingsButton}
-            onShowSettingsButtonChange={setShowSettingsButton}
-            enableCustomLyrics={enableCustomLyrics}
-            onEnableCustomLyricsChange={setEnableCustomLyrics}
-            peekProgressStyle={peekProgressStyle}
-            onPeekProgressStyleChange={setPeekProgressStyle}
-            navMode={navMode}
-            onNavModeChange={handleSetNavMode}
-            navPosition={navPosition}
-            onNavPositionChange={setNavPosition}
-          />
         )}
       </AnimatePresence>
 
@@ -1380,21 +1368,6 @@ export default function App() {
         isOpen={showShortcutMap}
         onClose={() => setShowShortcutMap(false)}
         accentColor={accentColor}
-      />
-
-      <LandingMiniPlayerPill
-        visible={appState === 'landing' && !!songData}
-        song={{
-          title: songData?.title ?? '',
-          artist: songData?.artist ?? '',
-          artworkUrl: songData?.artworkUrl ?? '',
-        }}
-        isPlaying={isMiniPlaying}
-        onOpenPlayer={() => setAppState('ready')}
-        onStop={() => {
-          setColorsSongData(null);
-          setSongData(null);
-        }}
       />
 
       <GlobalVolumeHUD

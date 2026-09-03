@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { X, Sliders, Moon, Layers, Maximize2, Edit3, Volume2, VolumeX, Volume1 } from 'lucide-react';
+import { X, Moon, Layers, Maximize2, Edit3, Volume2, VolumeX, Volume1 } from 'lucide-react';
 import * as Slider from '@radix-ui/react-slider';
 import { AccentColor, ACCENT_THEMES, ACCENT_SWATCH } from './themeUtils';
 
@@ -26,46 +26,44 @@ interface SettingsModalProps {
   onShowVisualizerChange?: (show: boolean) => void;
   volume?: number;
   onVolumeChange?: (v: number) => void;
-
+  peekProgressStyle?: string;
+  onPeekProgressStyleChange?: (style: string) => void;
   navMode?: 'tabs' | 'scroll';
   onNavModeChange?: (mode: 'tabs' | 'scroll') => void;
   navPosition?: 'bottom' | 'top' | 'right';
   onNavPositionChange?: (pos: 'bottom' | 'top' | 'right') => void;
 }
 
-function QuickToggle({ 
-  checked, 
-  onChange, 
-  label, 
+function NoirToggle({
+  checked,
+  onChange,
+  label,
   icon: Icon,
-  accentColor 
-}: { 
-  checked: boolean; 
-  onChange: (c: boolean) => void; 
-  label: string; 
+}: {
+  checked: boolean;
+  onChange: (c: boolean) => void;
+  label: string;
   icon: any;
-  accentColor: AccentColor; 
 }) {
   return (
-    <motion.button 
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+    <button
+      type="button"
       onClick={() => onChange(!checked)}
-      className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-all duration-300 text-left cursor-pointer w-full select-none ${
-        checked 
-          ? `bg-elva-accent-softer border-elva-accent text-white` 
-          : 'bg-white/[0.015] border-white/[0.03] text-white/45 hover:bg-white/[0.03] hover:text-white/70 hover:border-white/[0.08]'
+      className={`flex items-center gap-3 rounded-[var(--noir-radius-md)] px-3.5 py-3 text-left transition-colors duration-150 ${
+        checked
+          ? 'bg-white/[0.09] text-[color:var(--noir-text-primary)]'
+          : 'bg-[color:var(--noir-elevated)] text-[color:var(--noir-text-tertiary)] hover:bg-white/[0.06] hover:text-[color:var(--noir-text-secondary)]'
       }`}
     >
-      <Icon className={`w-4 h-4 shrink-0 transition-colors ${checked ? 'text-elva-accent' : 'text-current'}`} />
-      <span className="text-xs font-light tracking-wide truncate">{label}</span>
-    </motion.button>
+      <Icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+      <span className="text-[13px] font-medium">{label}</span>
+    </button>
   );
 }
 
-export function SettingsModal({ 
-  onClose, 
-  backgroundStyle = 'mesh', 
+export function SettingsModal({
+  onClose,
+  backgroundStyle = 'mesh',
   onBackgroundStyleChange,
   accentColor = 'emerald',
   onAccentColorChange,
@@ -88,7 +86,7 @@ export function SettingsModal({
   navMode = 'tabs',
   onNavModeChange,
   navPosition = 'bottom',
-  onNavPositionChange
+  onNavPositionChange,
 }: SettingsModalProps) {
   const [localVolume, setLocalVolume] = useState(() => {
     const saved = localStorage.getItem('elva_player_volume');
@@ -117,7 +115,7 @@ export function SettingsModal({
       handleVolumeChangeInternal(restoreVol > 0 ? restoreVol : 70);
     }
   };
-  
+
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.code === 'Escape' || (e.code === 'Comma' && (e.metaKey || e.ctrlKey))) {
@@ -125,203 +123,149 @@ export function SettingsModal({
         onClose();
       }
     };
-
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [onClose]);
-
-  const theme = ACCENT_THEMES[accentColor];
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, pointerEvents: 'none' }}
-      transition={{ duration: 0.25 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
       onClick={onClose}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+        initial={{ opacity: 0, scale: 0.97, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        exit={{ opacity: 0, scale: 0.97, y: 10 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[340px] mx-4 elva-glass-chrome rounded-[32px] overflow-hidden flex flex-col p-5 shadow-[0_32px_96px_rgba(0,0,0,0.85)] gap-5 text-left"
+        className="noir-settings-panel w-full max-w-[360px] mx-4 flex flex-col overflow-hidden rounded-[var(--noir-radius-xl)] bg-[color:var(--noir-chrome)] border border-[color:var(--noir-rule-faint)] shadow-[0_24px_80px_rgba(0,0,0,0.8)]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between shrink-0 select-none">
-          <div className="flex flex-col">
-            <span className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-semibold">Quick Settings</span>
-          </div>
+        <div className="flex items-center justify-between px-5 pt-5 pb-1">
+          <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-[color:var(--noir-text-primary)]">
+            Settings
+          </h2>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-white/8 transition-all hover:scale-105 duration-200 cursor-pointer"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-[color:var(--noir-text-tertiary)] hover:bg-white/[0.06] hover:text-white transition-colors"
           >
-            <X className="w-4 h-4 text-white/40 hover:text-white/80 transition-colors" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Volume Controller Card */}
-        <div className="bg-white/[0.015] border border-white/[0.03] rounded-2xl p-4 flex flex-col gap-3 text-left">
-          <div className="flex items-center justify-between select-none">
-            <span className="text-[10px] text-white/35 font-bold uppercase tracking-wider">Volume</span>
-            <span className={`text-[10px] font-bold ${theme.text}`}>{displayVolume}%</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <button onClick={toggleMute} className="text-white/40 hover:text-white/85 transition-colors shrink-0 cursor-pointer">
-              {displayVolume === 0 ? (
-                <VolumeX className="w-4 h-4" />
-              ) : displayVolume < 50 ? (
-                <Volume1 className="w-4 h-4" />
-              ) : (
-                <Volume2 className="w-4 h-4" />
-              )}
-            </button>
-            <Slider.Root
-              value={[displayVolume]}
-              max={100}
-              step={1}
-              onValueChange={(val) => handleVolumeChangeInternal(val[0])}
-              className="relative flex items-center flex-1 h-4 cursor-pointer group/slider select-none"
-            >
-              <Slider.Track className="relative h-[3.5px] w-full bg-white/10 rounded-full overflow-hidden">
-                <Slider.Range className="absolute h-full bg-current" style={{ backgroundColor: 'var(--elva-accent)' }} />
-              </Slider.Track>
-              <Slider.Thumb className="block w-2.5 h-2.5 rounded-full bg-white opacity-0 group-hover/slider:opacity-100 focus:opacity-100 focus:outline-none transition-opacity duration-150 shadow-md" />
-            </Slider.Root>
-          </div>
-        </div>
-
-        {/* Toggles Grid */}
-        <div className="grid grid-cols-2 gap-3.5">
-          <QuickToggle 
-            checked={zenMode} 
-            onChange={(c) => onZenModeChange?.(c)} 
-            label="Zen Mode" 
-            icon={Moon}
-            accentColor={accentColor}
-          />
-          <QuickToggle 
-            checked={textureStyle !== 'none'} 
-            onChange={(on) => onTextureStyleChange?.(on ? 'paper' : 'none')} 
-            label="Film Grain" 
-            icon={Layers}
-            accentColor={accentColor}
-          />
-          <QuickToggle 
-            checked={enable3DTilt} 
-            onChange={(c) => onEnable3DTiltChange?.(c)} 
-            label="3D Tilt" 
-            icon={Maximize2}
-            accentColor={accentColor}
-          />
-          <QuickToggle 
-            checked={enableCustomLyrics} 
-            onChange={(c) => onEnableCustomLyricsChange?.(c)} 
-            label="Lyrics Editor" 
-            icon={Edit3}
-            accentColor={accentColor}
-          />
-        </div>
-
-        {/* Accent Color card */}
-        <div className="bg-white/[0.015] border border-white/[0.03] rounded-2xl p-4 flex flex-col gap-3.5 text-left">
-          <span className="text-[10px] text-white/35 font-bold uppercase tracking-wider select-none">Accent Color</span>
-          <div className="flex items-center justify-between px-1">
-            {(['emerald', 'sand', 'wine', 'navy'] as AccentColor[]).map((color) => {
-              const isActive = accentColor === color;
-              
-              const swatch = ACCENT_SWATCH[color];
-
-              return (
-                <button
-                  key={color}
-                  onClick={() => onAccentColorChange?.(color)}
-                  className={`w-7 h-7 rounded-full flex items-center justify-center border transition-all duration-300 cursor-pointer ${
-                    isActive 
-                      ? 'scale-110 bg-white/5' 
-                      : 'border-transparent opacity-60 hover:opacity-100 hover:scale-105'
-                  }`}
-                  style={{
-                    borderColor: isActive ? swatch.core : 'transparent',
-                    boxShadow: 'none'
-                  }}
-                  title={ACCENT_THEMES[color].name}
-                >
-                  <motion.div
-                    whileHover={{ scale: 1.15 }}
-                    className="w-3.5 h-3.5 rounded-full"
-                    style={{ backgroundColor: swatch.core }}
-                  />
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Navigation settings card */}
-        <div className="bg-white/[0.015] border border-white/[0.03] rounded-2xl p-4 flex flex-col gap-3 text-left">
-          <span className="text-[10px] text-white/35 font-bold uppercase tracking-wider select-none">Navigation Layout</span>
-          
-          <div className="flex flex-col gap-2.5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-white/70 font-light select-none">Mode</span>
-              <div className="flex items-center gap-1 bg-white/[0.02] border border-white/[0.04] rounded-lg p-0.5">
-                {(['tabs', 'scroll'] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    onClick={() => onNavModeChange?.(mode)}
-                    className={`px-2.5 py-1 rounded text-[8px] uppercase tracking-wider font-extrabold transition-all cursor-pointer ${
-                      navMode === mode
-                        ? 'bg-white/10 text-white border border-white/5 shadow-sm'
-                        : 'text-white/30 hover:text-white/60'
-                    }`}
-                  >
-                    {mode === 'tabs' ? 'Tabs' : 'Scroll'}
-                  </button>
-                ))}
-              </div>
+        <div className="flex flex-col gap-5 px-5 py-4 overflow-y-auto max-h-[70vh] scrollbar-none">
+          {/* Volume */}
+          <section className="flex flex-col gap-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-[color:var(--noir-text-tertiary)]">
+                Volume
+              </span>
+              <span className="text-[11px] font-medium tabular-nums text-[color:var(--noir-text-secondary)]">
+                {displayVolume}%
+              </span>
             </div>
-
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-white/70 font-light select-none">Position</span>
-              <div className="flex items-center gap-1 bg-white/[0.02] border border-white/[0.04] rounded-lg p-0.5">
-                {([
-                  { value: 'bottom', label: 'Bottom' },
-                  { value: 'top', label: 'Top' },
-                  ...(navMode === 'scroll' ? [{ value: 'right', label: 'Right' }] : [])
-                ]).map((pos) => (
-                  <button
-                    key={pos.value}
-                    onClick={() => onNavPositionChange?.(pos.value)}
-                    className={`px-2 py-1 rounded text-[8px] uppercase tracking-wider font-extrabold transition-all cursor-pointer ${
-                      navPosition === pos.value
-                        ? 'bg-white/10 text-white border border-white/5 shadow-sm'
-                        : 'text-white/30 hover:text-white/60'
-                    }`}
-                  >
-                    {pos.label}
-                  </button>
-                ))}
-              </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={toggleMute}
+                className="text-[color:var(--noir-text-tertiary)] hover:text-white transition-colors shrink-0"
+              >
+                {displayVolume === 0 ? (
+                  <VolumeX className="h-4 w-4" />
+                ) : displayVolume < 50 ? (
+                  <Volume1 className="h-4 w-4" />
+                ) : (
+                  <Volume2 className="h-4 w-4" />
+                )}
+              </button>
+              <Slider.Root
+                value={[displayVolume]}
+                max={100}
+                step={1}
+                onValueChange={(val) => handleVolumeChangeInternal(val[0])}
+                className="relative flex flex-1 items-center h-4 cursor-pointer group/slider select-none"
+              >
+                <Slider.Track className="relative h-[2px] w-full rounded-full bg-white/[0.08] overflow-hidden">
+                  <Slider.Range className="absolute h-full bg-white/40" />
+                </Slider.Track>
+                <Slider.Thumb className="block h-2.5 w-2.5 rounded-full bg-white opacity-0 group-hover/slider:opacity-100 focus:opacity-100 focus:outline-none transition-opacity duration-150" />
+              </Slider.Root>
             </div>
-          </div>
-        </div>
+          </section>
 
-        {/* Advanced settings button */}
-        <button
-          onClick={() => {
-            onClose();
-            // Close player if open by firing home, wait, then scroll to hub
-            sessionStorage.setItem('elva_hub_active_tab', 'settings');
-            window.dispatchEvent(new CustomEvent('elva-scroll-to-hub', { detail: { tab: 'settings' } }));
-          }}
-          className="w-full py-3.5 rounded-2xl bg-white/5 border border-white/8 hover:bg-white/10 hover:border-white/12 hover:border-elva-accent hover:text-elva-accent transition-all font-bold text-[10px] uppercase tracking-[0.18em] text-white/80 hover:text-white flex items-center justify-center gap-2 cursor-pointer select-none"
-        >
-          <Sliders className="w-3.5 h-3.5 text-current" />
-          Advanced Settings
-        </button>
+          <div className="h-px bg-[color:var(--noir-rule-faint)]" />
+
+          {/* Player toggles */}
+          <section className="flex flex-col gap-2">
+            <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-[color:var(--noir-text-tertiary)]">
+              Player
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <NoirToggle
+                checked={zenMode}
+                onChange={(c) => onZenModeChange?.(c)}
+                label="Zen Mode"
+                icon={Moon}
+              />
+              <NoirToggle
+                checked={textureStyle !== 'none'}
+                onChange={(on) => onTextureStyleChange?.(on ? 'paper' : 'none')}
+                label="Film Grain"
+                icon={Layers}
+              />
+              <NoirToggle
+                checked={enable3DTilt}
+                onChange={(c) => onEnable3DTiltChange?.(c)}
+                label="3D Tilt"
+                icon={Maximize2}
+              />
+              <NoirToggle
+                checked={enableCustomLyrics}
+                onChange={(c) => onEnableCustomLyricsChange?.(c)}
+                label="Lyrics Editor"
+                icon={Edit3}
+              />
+            </div>
+          </section>
+
+          <div className="h-px bg-[color:var(--noir-rule-faint)]" />
+
+          {/* Accent Color */}
+          <section className="flex flex-col gap-3">
+            <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-[color:var(--noir-text-tertiary)]">
+              Accent Color
+            </span>
+            <div className="flex items-center gap-3 px-0.5">
+              {(['emerald', 'sand', 'wine', 'navy'] as AccentColor[]).map((color) => {
+                const isActive = accentColor === color;
+                const swatch = ACCENT_SWATCH[color];
+                return (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => onAccentColorChange?.(color)}
+                    className={`flex h-7 w-7 items-center justify-center rounded-full border transition-all duration-200 ${
+                      isActive
+                        ? 'scale-110 border-white/20'
+                        : 'border-transparent opacity-55 hover:opacity-100 hover:scale-105'
+                    }`}
+                    title={ACCENT_THEMES[color].name}
+                  >
+                    <div
+                      className="h-3.5 w-3.5 rounded-full"
+                      style={{ backgroundColor: swatch.core }}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </div>
       </motion.div>
     </motion.div>
   );
