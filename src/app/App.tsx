@@ -1411,6 +1411,7 @@ export default function App() {
                   favoriteTracks={favorites}
                   quickAddTracks={recentlyPlayed}
                   onAddToQueue={handleAddToQueue}
+                  onOpenDiscover={() => setActiveTab('discover')}
                   onSelectFromQueue={(id) => handleSelectFromQueue(id)}
                   onRemoveFromQueue={handleRemoveFromQueue}
                   onMoveInQueue={handleMoveInQueue}

@@ -372,6 +372,7 @@ export function LandingPage({
                   handleAddToQueue={handleAddToQueue}
                   handlePlayNext={handlePlayNext}
                   handleToggleFavorite={handleToggleFavorite}
+                  onOpenDiscover={() => setActiveTab('discover')}
                   theme={theme}
                 />
               </motion.div>

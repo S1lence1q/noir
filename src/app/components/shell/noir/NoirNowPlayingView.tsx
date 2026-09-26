@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { ChevronUp, Heart, Plus, X } from 'lucide-react';
+import { ChevronUp, Compass, Heart, Plus, X } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
@@ -21,6 +21,7 @@ type NoirNowPlayingViewProps = {
   favoriteTracks?: SearchResult[];
   quickAddTracks?: SearchResult[];
   onAddToQueue?: (track: SearchResult) => void;
+  onOpenDiscover?: () => void;
   onSelectFromQueue: (id: string) => void;
   onRemoveFromQueue?: (id: string) => void;
   onMoveInQueue?: (id: string, direction: -1 | 1) => void;
@@ -37,6 +38,7 @@ export function NoirNowPlayingView({
   favoriteTracks = [],
   quickAddTracks = [],
   onAddToQueue,
+  onOpenDiscover,
   onSelectFromQueue,
   onRemoveFromQueue,
   onMoveInQueue,
@@ -51,11 +53,10 @@ export function NoirNowPlayingView({
       ? queue.slice(currentIndex + 1)
       : queue.filter((item) => getPlaybackSongKey(item) !== currentKey);
   const songKey = currentKey ?? `${song.title}::${song.artist}`;
-  const preferredQuickAdds = favoriteTracks.length > 0 ? favoriteTracks : quickAddTracks;
-  const quickAddSource = favoriteTracks.length > 0 ? 'Favorites' : 'Recently played';
-  const quickAdds = preferredQuickAdds
-    .filter((track) => getPlaybackSongKey(track) !== currentKey)
-    .slice(0, 3);
+  const favoriteAdds = favoriteTracks.filter((track) => getPlaybackSongKey(track) !== currentKey);
+  const recentAdds = quickAddTracks.filter((track) => getPlaybackSongKey(track) !== currentKey);
+  const quickAddSource = favoriteAdds.length > 0 ? 'Favorites' : recentAdds.length > 0 ? 'Recently played' : null;
+  const quickAdds = (favoriteAdds.length > 0 ? favoriteAdds : recentAdds).slice(0, 3);
 
   return (
     <div className="noir-now-playing">
@@ -148,11 +149,13 @@ export function NoirNowPlayingView({
               What should play next?
             </p>
             <p className="mt-2 max-w-[190px] text-[12px] leading-[1.45] text-[color:var(--noir-text-tertiary)]">
-              {favoriteTracks.length > 0
+              {quickAddSource === 'Favorites'
                 ? 'Add a favorite to keep it going.'
-                : 'Pick something from your recent listens.'}
+                : quickAddSource === 'Recently played'
+                  ? 'Pick something from your recent listens.'
+                  : 'Browse Discover to find something for the queue.'}
             </p>
-            {onAddToQueue && quickAdds.length > 0 && (
+            {onAddToQueue && quickAdds.length > 0 && quickAddSource && (
               <div className="mt-4">
                 <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[color:var(--noir-text-tertiary)]">
                   {quickAddSource}
@@ -179,6 +182,16 @@ export function NoirNowPlayingView({
                   ))}
                 </div>
               </div>
+            )}
+            {onOpenDiscover && quickAdds.length === 0 && (
+              <button
+                type="button"
+                onClick={onOpenDiscover}
+                className="mt-5 inline-flex h-9 items-center gap-2 rounded-[var(--noir-radius-md)] border border-white/10 px-3 text-[12px] font-medium text-[color:var(--noir-text-secondary)] transition-colors hover:border-white/20 hover:bg-white/[0.05] hover:text-white elva-focus-ring"
+              >
+                <Compass className="h-3.5 w-3.5" strokeWidth={1.75} />
+                Browse Discover
+              </button>
             )}
           </div>
         ) : (

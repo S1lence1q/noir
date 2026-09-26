@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Pause, Play, Search, X } from 'lucide-react';
+import { Compass, Pause, Play, Search, X } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { shouldShowArtistCard } from '../../../utils/apiUtils';
@@ -9,7 +9,6 @@ import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { ThemeColors } from '../../themeUtils';
 import { SearchLoadingState } from '../../SearchLoadingState';
 import { NoirSongRow } from './NoirSongRow';
-import { NoirGraphicAccent } from './NoirGraphicAccent';
 import { EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
 
 type SearchPanelPhase = 'idle' | 'loading' | 'results' | 'no-results';
@@ -35,6 +34,7 @@ export type NoirHomeViewProps = {
   handleAddToQueue: (track: SearchResult) => void;
   handlePlayNext?: (track: SearchResult) => void;
   handleToggleFavorite?: (track: SearchResult) => void;
+  onOpenDiscover?: () => void;
   theme: ThemeColors;
 };
 
@@ -59,6 +59,7 @@ export function NoirHomeView({
   handleAddToQueue,
   handlePlayNext,
   handleToggleFavorite,
+  onOpenDiscover,
 }: NoirHomeViewProps) {
   const [localQuery, setLocalQuery] = useState(searchQuery);
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -241,14 +242,39 @@ export function NoirHomeView({
               className="relative px-6 py-6"
             >
               {!featuredTrack && (
-                <div className="relative mb-10 max-w-lg">
-                  <NoirGraphicAccent graphic="halftoneCloud" className="noir-accent-halftone-empty" />
-                  <h2 className="relative text-[1.75rem] font-semibold leading-tight tracking-[-0.03em] text-[color:var(--noir-text-primary)]">
-                    Find something to play
-                  </h2>
-                  <p className="mt-2 text-[15px] text-[color:var(--noir-text-secondary)]">
-                    Press ⌘K anytime to search — works from every page.
+                <div className="noir-home-start-card mb-10 max-w-xl">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--noir-text-tertiary)]">
+                    Start listening
                   </p>
+                  <h2 className="mt-3 max-w-md text-[clamp(1.65rem,3.5vw,2.35rem)] font-semibold leading-[1.05] tracking-[-0.035em] text-[color:var(--noir-text-primary)]">
+                    Find something you want to hear.
+                  </h2>
+                  <p className="mt-3 max-w-md text-[14px] leading-relaxed text-[color:var(--noir-text-secondary)]">
+                    Search for a track or browse what is moving right now.
+                  </p>
+                  <div className="mt-6 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={openSearchPalette}
+                      className="inline-flex h-9 items-center gap-2 rounded-[var(--noir-radius-md)] bg-white/[0.1] px-3.5 text-[13px] font-medium text-white transition-colors hover:bg-white/[0.15] elva-focus-ring"
+                    >
+                      <Search className="h-3.5 w-3.5" strokeWidth={1.9} />
+                      Search
+                      <kbd className="ml-1 rounded border border-white/10 px-1.5 py-0.5 text-[10px] text-white/50">
+                        ⌘K
+                      </kbd>
+                    </button>
+                    {onOpenDiscover && (
+                      <button
+                        type="button"
+                        onClick={onOpenDiscover}
+                        className="inline-flex h-9 items-center gap-2 rounded-[var(--noir-radius-md)] border border-white/10 px-3.5 text-[13px] font-medium text-[color:var(--noir-text-secondary)] transition-colors hover:border-white/20 hover:bg-white/[0.05] hover:text-white elva-focus-ring"
+                      >
+                        <Compass className="h-3.5 w-3.5" strokeWidth={1.75} />
+                        Discover
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 

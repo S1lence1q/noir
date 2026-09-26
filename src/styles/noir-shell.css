@@ -478,6 +478,15 @@
   outline: none;
 }
 
+.noir-home-start-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--noir-radius-xl);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.045), transparent 42%),
+    rgba(255, 255, 255, 0.018);
+  padding: 28px;
+}
+
 .noir-search-palette-root {
   position: fixed;
   inset: 0;
