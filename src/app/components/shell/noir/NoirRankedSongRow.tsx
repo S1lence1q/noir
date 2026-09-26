@@ -35,7 +35,7 @@ export function NoirRankedSongRow({
         if (e.key === 'Enter') onPlay();
       }}
       className="noir-track-row group flex cursor-pointer items-center gap-3.5 px-3 py-3"
-      whileTap={reduced ? undefined : { scale: 0.985, backgroundColor: 'rgba(255,255,255,0.07)' }}
+      whileTap={reduced ? undefined : { scale: 0.985 }}
       transition={{ type: 'spring', stiffness: 520, damping: 34 }}
     >
       <span
@@ -71,41 +71,45 @@ export function NoirRankedSongRow({
       </div>
 
       <div
-        className={`noir-track-actions ml-auto flex shrink-0 items-center justify-end gap-0.5 transition-opacity ${
-          isFavorite
-            ? 'opacity-100'
-            : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
-        }`}
+        className="noir-track-actions ml-auto flex shrink-0 items-center justify-end gap-0.5"
         onClick={(e) => e.stopPropagation()}
       >
         {onToggleFavorite && (
+          <div
+            className={`transition-opacity ${
+              isFavorite ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => onToggleFavorite(track)}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white"
+              aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+              title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              <Heart
+                className={`h-4 w-4 ${isFavorite ? 'fill-current text-red-400' : ''}`}
+                strokeWidth={isFavorite ? 0 : 1.75}
+              />
+            </button>
+          </div>
+        )}
+        <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
           <button
             type="button"
-            onClick={() => onToggleFavorite(track)}
+            onClick={() => onAddToQueue(track)}
             className="flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white"
-            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-            title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            aria-label="Add to queue"
+            title="Add to queue"
           >
-            <Heart
-              className={`h-4 w-4 ${isFavorite ? 'fill-current text-red-400' : ''}`}
-              strokeWidth={isFavorite ? 0 : 1.75}
-            />
+            <Plus className="h-4 w-4" strokeWidth={2} />
           </button>
-        )}
-        <button
-          type="button"
-          onClick={() => onAddToQueue(track)}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white"
-          aria-label="Add to queue"
-          title="Add to queue"
-        >
-          <Plus className="h-4 w-4" strokeWidth={2} />
-        </button>
-        <SongRowOptions
-          track={track}
-          onPlayNext={onPlayNext}
-          onAddToQueue={onAddToQueue}
-        />
+          <SongRowOptions
+            track={track}
+            onPlayNext={onPlayNext}
+            onAddToQueue={onAddToQueue}
+          />
+        </div>
       </div>
     </motion.div>
   );

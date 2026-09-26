@@ -1,3 +1,5 @@
+import localFallbackArtwork from '../../assets/noir/atmosphere-warm.jpeg';
+
 export interface LocalMetadata {
   title: string;
   artist: string;
@@ -9,7 +11,7 @@ export interface LocalMetadata {
  * Falls back to filename and Unsplash cover if parsing fails.
  */
 export async function parseLocalMetadata(file: File): Promise<LocalMetadata> {
-  const defaultArtwork = 'https://images.unsplash.com/photo-1676068368612-1c8b3e2afed0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbGJ1bSUyMGNvdmVyJTIwbXVzaWMlMjBhYnN0cmFjdCUyMGFydCUyMGNvbG9yZnVsfGVufDF8fHx8MTc3ODk2NjA3OHww&ixlib=rb-4.1.0&q=80&w=1080';
+  const defaultArtwork = localFallbackArtwork;
   
   const defaultMeta: LocalMetadata = {
     title: file.name.replace(/\.[^/.]+$/, ''),

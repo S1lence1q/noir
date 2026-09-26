@@ -19,6 +19,7 @@ import { prefetchChartTracks } from './utils/chartPrefetch';
 import { parseLocalMetadata } from './utils/metadataParser';
 import { getPlaybackSongKey } from './utils/playbackSongKey';
 import { isTrackFavorite } from './utils/favoriteUtils';
+import { restoreLocalTrack, saveLocalTrack } from './utils/localTrackStorage';
 import { strings } from './constants/strings';
 import { waitForYouTubeApi } from './utils/youtubeApiReady';
 
@@ -39,6 +40,38 @@ import { useGlobalVolumeHUD } from './hooks/useGlobalVolumeHUD';
 
 type AppState = 'landing' | 'processing' | 'ready';
 // landing = shell, processing = resolving a track. `ready` is unused (fullscreen player is parked).
+
+function dedupeRecentlyPlayed(list: SearchResult[]) {
+  const seen = new Set<string>();
+  return list
+    .filter((item) => {
+      const localKey = `${item.title.trim().toLowerCase()}::${item.artist.trim().toLowerCase()}`;
+      const isLocal = item.id.startsWith('local_') || item.audioUrl?.startsWith('blob:');
+      const key =
+        (isLocal ? `local:${localKey}` : '') ||
+        item.videoId?.trim() ||
+        item.audioUrl?.trim() ||
+        localKey;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 10);
+}
+
+async function hydrateLocalTracks(list: SearchResult[]) {
+  const hydrated = await Promise.all(
+    list.map(async (item) => {
+      const isLocal = item.id.startsWith('local_') || item.audioUrl?.startsWith('blob:');
+      if (!isLocal) return item;
+
+      const storageKey = item.id.startsWith('local_') ? item.id : item.audioUrl || item.id;
+      const audioUrl = await restoreLocalTrack(storageKey).catch(() => null);
+      return audioUrl ? { ...item, audioUrl } : null;
+    })
+  );
+  return hydrated.filter((item): item is SearchResult => item !== null);
+}
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>('landing');
@@ -160,6 +193,23 @@ export default function App() {
     }
   });
 
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const stored = localStorage.getItem('elva_favorites');
+      const current: SearchResult[] = stored ? JSON.parse(stored) : [];
+      const hydrated = await hydrateLocalTracks(current);
+      if (cancelled) return;
+      setFavorites(hydrated);
+      localStorage.setItem('elva_favorites', JSON.stringify(hydrated));
+    })().catch(() => {
+      // Keep the persisted favorite entries if local media storage is unavailable.
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const [isIntroActive, setIsIntroActive] = useState(() => {
     const hasSeenIntro = sessionStorage.getItem('elva_intro_seen');
     return !hasSeenIntro;
@@ -184,6 +234,7 @@ export default function App() {
 
   const [queue, setQueue] = useState<SearchResult[]>([]);
   const [songData, setSongData] = useState<{
+    id?: string;
     title: string;
     artist: string;
     artworkUrl: string;
@@ -329,10 +380,10 @@ export default function App() {
       const list: SearchResult[] = stored ? JSON.parse(stored) : [];
       const resolvedRaw = localStorage.getItem('elva_resolved_video_ids');
       const resolved: Record<string, string> = resolvedRaw ? JSON.parse(resolvedRaw) : {};
-      return list.map((item) => ({
+      return dedupeRecentlyPlayed(list.map((item) => ({
         ...item,
         videoId: item.videoId || resolved[item.id] || '',
-      }));
+      })));
     } catch (e) {
       console.warn('Failed to load recently played tracks:', e);
       return [];
@@ -343,6 +394,32 @@ export default function App() {
     const handleRecentlyPlayedCleared = () => setRecentlyPlayed([]);
     window.addEventListener('elva-recently-played-cleared', handleRecentlyPlayedCleared);
     return () => window.removeEventListener('elva-recently-played-cleared', handleRecentlyPlayedCleared);
+  }, []);
+
+  useEffect(() => {
+    setRecentlyPlayed((current) => {
+      const cleaned = dedupeRecentlyPlayed(current);
+      localStorage.setItem('elva_recently_played', JSON.stringify(cleaned));
+      return cleaned;
+    });
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const stored = localStorage.getItem('elva_recently_played');
+      const current: SearchResult[] = stored ? JSON.parse(stored) : [];
+      const hydrated = await hydrateLocalTracks(current);
+      if (cancelled) return;
+      const cleaned = dedupeRecentlyPlayed(hydrated);
+      setRecentlyPlayed(cleaned);
+      localStorage.setItem('elva_recently_played', JSON.stringify(cleaned));
+    })().catch(() => {
+      // Keep the in-memory history if local media storage is unavailable.
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const [isFirstVisit, setIsFirstVisit] = useState(() => !sessionStorage.getItem('elva_intro_seen'));
@@ -406,11 +483,7 @@ export default function App() {
     try {
       const stored = localStorage.getItem('elva_recently_played');
       let list: SearchResult[] = stored ? JSON.parse(stored) : [];
-      list = list.filter(item => item.id !== song.id);
-      list.unshift(song);
-      if (list.length > 10) {
-        list = list.slice(0, 10);
-      }
+      list = dedupeRecentlyPlayed([song, ...list]);
       localStorage.setItem('elva_recently_played', JSON.stringify(list));
       setRecentlyPlayed(list);
     } catch (e) {
@@ -514,6 +587,7 @@ export default function App() {
       const fallbacks = getDynamicFallbackColors(result.title, result.artist);
 
       setSongData({
+        id: result.id,
         title: result.title,
         artist: result.artist,
         artworkUrl: finalArtwork,
@@ -613,6 +687,7 @@ export default function App() {
 
     if (hadActiveSong) {
       setSongData({
+        id: result.id,
         title: result.title,
         artist: result.artist,
         artworkUrl: finalArtwork,
@@ -671,6 +746,7 @@ export default function App() {
       setTimeout(() => {
         if (latestSelectedSongIdRef.current !== latestId) return;
         setSongData({
+          id: result.id,
           title: result.title,
           artist: result.artist,
           artworkUrl: finalArtwork,
@@ -689,14 +765,20 @@ export default function App() {
 
   const playLocalFile = async (file: File) => {
     const meta = await parseLocalMetadata(file);
+    const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    const audioUrl = URL.createObjectURL(file);
     const fileResult: SearchResult = {
-      id: 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9),
+      id: localId,
       title: meta.title,
       artist: meta.artist,
       thumbnail: meta.artworkUrl,
-      audioUrl: URL.createObjectURL(file),
+      audioUrl,
       videoId: '',
     };
+    await Promise.allSettled([
+      saveLocalTrack(localId, file),
+      saveLocalTrack(audioUrl, file),
+    ]);
     await handleSelectSong(fileResult);
   };
 
@@ -1139,14 +1221,20 @@ export default function App() {
 
   const handleQueueFileSelect = async (file: File) => {
     const meta = await parseLocalMetadata(file);
+    const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    const audioUrl = URL.createObjectURL(file);
     const fileResult: SearchResult = {
-      id: 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9),
+      id: localId,
       title: meta.title,
       artist: meta.artist,
       thumbnail: meta.artworkUrl,
-      audioUrl: URL.createObjectURL(file),
+      audioUrl,
       videoId: ''
     };
+    await Promise.allSettled([
+      saveLocalTrack(localId, file),
+      saveLocalTrack(audioUrl, file),
+    ]);
     setQueue(prevQueue => [...prevQueue, fileResult]);
     showMiniHUD('Added file to queue', 'success');
   };
@@ -1275,7 +1363,7 @@ export default function App() {
             isFavorite={
               !!songData &&
               isTrackFavorite(favorites, {
-                id: songData.videoId || songData.audioUrl,
+                id: songData.id || songData.videoId || songData.audioUrl,
                 videoId: songData.videoId,
               })
             }
@@ -1283,7 +1371,7 @@ export default function App() {
               songData
                 ? () =>
                     handleToggleFavorite({
-                      id: songData.videoId || songData.audioUrl || `${songData.title}-${songData.artist}`,
+                      id: songData.id || songData.videoId || songData.audioUrl || `${songData.title}-${songData.artist}`,
                       title: songData.title,
                       artist: songData.artist,
                       thumbnail: songData.artworkUrl,
@@ -1300,12 +1388,12 @@ export default function App() {
                   queue={queue}
                   colors={songColors}
                   isFavorite={isTrackFavorite(favorites, {
-                    id: songData.videoId || songData.audioUrl,
+                    id: songData.id || songData.videoId || songData.audioUrl,
                     videoId: songData.videoId,
                   })}
                   onToggleFavorite={() =>
                     handleToggleFavorite({
-                      id: songData.videoId || songData.audioUrl || `${songData.title}-${songData.artist}`,
+                      id: songData.id || songData.videoId || songData.audioUrl || `${songData.title}-${songData.artist}`,
                       title: songData.title,
                       artist: songData.artist,
                       thumbnail: songData.artworkUrl,
