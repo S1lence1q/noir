@@ -23,14 +23,14 @@ export function NoirPageScaffold({
             <h1
               className={
                 titleSize === 'compact'
-                  ? 'text-[22px] font-semibold tracking-[-0.02em] text-[color:var(--noir-text-primary)]'
-                  : 'text-[28px] font-semibold tracking-[-0.02em] text-[color:var(--noir-text-primary)]'
+                  ? 'text-[24px] font-semibold tracking-[-0.02em] text-[color:var(--noir-text-primary)]'
+                  : 'text-[30px] font-semibold tracking-[-0.02em] text-[color:var(--noir-text-primary)]'
               }
             >
               {title}
             </h1>
             {subtitle && (
-              <p className="mt-2 text-[15px] text-[color:var(--noir-text-secondary)]">{subtitle}</p>
+              <p className="mt-2 text-[16px] text-[color:var(--noir-text-secondary)]">{subtitle}</p>
             )}
           </div>
           {headerExtra}

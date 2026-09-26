@@ -27,6 +27,12 @@ interface LandingPageProps {
   setSelectedArtist: React.Dispatch<React.SetStateAction<VerifiedArtist | null>>;
   selectedPlaylist: Playlist | null;
   setSelectedPlaylist: React.Dispatch<React.SetStateAction<Playlist | null>>;
+  libraryFocus?: {
+    section: 'favorites' | 'playlists';
+    playlistId: string | null;
+    requestId: number;
+  };
+  onLibraryPlaylistOpenChange?: (playlistId: string | null) => void;
   accentColor: AccentColor;
   theme: any;
   hasSeenTour: boolean;
@@ -44,13 +50,15 @@ interface LandingPageProps {
   verifiedArtist: VerifiedArtist | null;
   focusedResultIndex: number;
   loadingSongId: string | null;
+  activeSongKey?: string | null;
+  isPlaying?: boolean;
   artistColors: any;
   artistTracks: SearchResult[];
   isLoadingArtist: boolean;
   favorites: SearchResult[];
   handleSelectSong: (song: SearchResult) => void;
   handleAddToQueue: (song: SearchResult) => void;
-  handlePlayPlaylist: (tracks: SearchResult[], label?: string) => void;
+  handlePlayPlaylist: (tracks: SearchResult[], label?: string, startIndex?: number) => void;
   handlePlayNext: (song: SearchResult) => void;
   handleToggleFavorite: (song: SearchResult) => void;
   handleViewArtistProfile: (artist: VerifiedArtist) => void;
@@ -99,6 +107,8 @@ export function LandingPage({
   setSelectedArtist,
   selectedPlaylist,
   setSelectedPlaylist,
+  libraryFocus,
+  onLibraryPlaylistOpenChange,
   accentColor,
   theme,
   hasSeenTour,
@@ -116,6 +126,8 @@ export function LandingPage({
   verifiedArtist,
   focusedResultIndex,
   loadingSongId,
+  activeSongKey = null,
+  isPlaying = false,
   artistColors,
   artistTracks,
   isLoadingArtist,
@@ -287,12 +299,19 @@ export function LandingPage({
                 artist={selectedArtist}
                 tracks={artistTracks}
                 isLoading={isLoadingArtist}
+                favorites={favorites}
                 onSelectSong={handleSelectSong}
                 onAddToQueue={handleAddToQueue}
                 onPlayNext={handlePlayNext}
+                onToggleFavorite={handleToggleFavorite}
                 onPlayAll={() => {
                   if (artistTracks.length > 0) {
                     handlePlayPlaylist(artistTracks, selectedArtist.name);
+                  }
+                }}
+                onPlayFromIndex={(index) => {
+                  if (artistTracks.length > 0) {
+                    handlePlayPlaylist(artistTracks, selectedArtist.name, index);
                   }
                 }}
               />
@@ -303,10 +322,12 @@ export function LandingPage({
             <NoirDetailOverlay title={selectedPlaylist.name} onClose={() => setSelectedPlaylist(null)}>
               <NoirPlaylistView
                 playlist={selectedPlaylist}
+                favorites={favorites}
                 onSelectSong={handleSelectSong}
                 onAddToQueue={handleAddToQueue}
                 onPlayPlaylist={handlePlayPlaylist}
                 onPlayNext={handlePlayNext}
+                onToggleFavorite={handleToggleFavorite}
               />
             </NoirDetailOverlay>
           )}
@@ -338,15 +359,19 @@ export function LandingPage({
                   searchResults={searchResults}
                   recentArtists={recentArtists}
                   recentlyPlayed={recentlyPlayed}
+                  favorites={favorites}
                   verifiedArtist={verifiedArtist}
                   focusedResultIndex={focusedResultIndex}
                   loadingSongId={loadingSongId}
+                  activeSongKey={activeSongKey}
+                  isPlaying={isPlaying}
                   handleViewArtistProfile={handleViewArtistProfile}
                   handleUrlSubmit={handleUrlSubmit}
                   handleSearch={handleSearch}
                   handleSelectSong={handleSelectSong}
                   handleAddToQueue={handleAddToQueue}
                   handlePlayNext={handlePlayNext}
+                  handleToggleFavorite={handleToggleFavorite}
                   handleFileSelect={handleFileSelect}
                   theme={theme}
                 />
@@ -368,6 +393,8 @@ export function LandingPage({
                     onAddToQueue={handleAddToQueue}
                     onPlayPlaylist={handlePlayPlaylist}
                     onPlayNext={handlePlayNext}
+                    onToggleFavorite={handleToggleFavorite}
+                    favorites={favorites}
                     onSelectPlaylist={setSelectedPlaylist}
                   />
                 </NoirPageScaffold>
@@ -389,6 +416,8 @@ export function LandingPage({
                 >
                   <NoirLibraryView
                     favorites={favorites}
+                    focus={libraryFocus}
+                    onPlaylistOpenChange={onLibraryPlaylistOpenChange}
                     onToggleFavorite={handleToggleFavorite}
                     onSelectSong={handleSelectSong}
                     onAddToQueue={handleAddToQueue}

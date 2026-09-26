@@ -1,8 +1,9 @@
 import { ReactNode } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { AppSidebar } from './AppSidebar';
 import { CompactPlayerBar } from './CompactPlayerBar';
-import { Playlist } from '../PlaylistDetailsView';
 import { AppTab, ShellPlaybackState } from './types';
+import { EASE_PREMIUM, prefersReducedMotion } from '../../utils/motionPresets';
 
 type AppShellProps = {
   activeTab: AppTab;
@@ -16,9 +17,19 @@ type AppShellProps = {
   };
   playback: ShellPlaybackState;
   onExpandPlayer: () => void;
+  onOpenQueue?: () => void;
   showCompactPlayer: boolean;
+  nowPlayingOpen?: boolean;
+  nowPlaying?: ReactNode;
+  queueCount?: number;
   favoritesCount?: number;
-  onSelectPlaylist?: (playlist: Playlist) => void;
+  favoritesActive?: boolean;
+  selectedPlaylistId?: string | null;
+  isFavorite?: boolean;
+  onOpenFavorites?: () => void;
+  onOpenPlaylist?: (playlistId: string) => void;
+  onOpenSearch?: () => void;
+  onToggleFavorite?: () => void;
 };
 
 export function AppShell({
@@ -29,31 +40,86 @@ export function AppShell({
   song,
   playback,
   onExpandPlayer,
+  onOpenQueue,
   showCompactPlayer,
+  nowPlayingOpen = false,
+  nowPlaying,
+  queueCount = 0,
   favoritesCount,
-  onSelectPlaylist,
+  favoritesActive = false,
+  selectedPlaylistId = null,
+  isFavorite = false,
+  onOpenFavorites,
+  onOpenPlaylist,
+  onOpenSearch,
+  onToggleFavorite,
 }: AppShellProps) {
+  const reduced = prefersReducedMotion();
+
   return (
-    <div className="noir-shell absolute inset-0 z-10 flex h-full w-full overflow-hidden bg-black">
+    <div className="noir-shell absolute inset-0 z-10 flex h-full w-full overflow-hidden">
       <AppSidebar
         activeTab={activeTab}
         onTabChange={onTabChange}
         favoritesCount={favoritesCount}
-        onSelectPlaylist={onSelectPlaylist}
+        favoritesActive={favoritesActive}
+        selectedPlaylistId={selectedPlaylistId}
+        onOpenFavorites={onOpenFavorites}
+        onOpenPlaylist={onOpenPlaylist}
+        onOpenSearch={onOpenSearch}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <main className="noir-canvas relative min-h-0 flex-1 overflow-hidden">
           <div className="noir-canvas-grain" aria-hidden />
-          <div className="relative z-10 h-full w-full">{children}</div>
+          <motion.div
+            className="relative z-10 h-full w-full"
+            animate={{
+              opacity: nowPlayingOpen ? 0 : 1,
+              scale: nowPlayingOpen && !reduced ? 0.985 : 1,
+              y: nowPlayingOpen && !reduced ? -8 : 0,
+            }}
+            transition={{ duration: reduced ? 0.18 : 0.42, ease: EASE_PREMIUM }}
+            style={{ pointerEvents: nowPlayingOpen ? 'none' : 'auto' }}
+            aria-hidden={nowPlayingOpen}
+          >
+            {children}
+          </motion.div>
+
+          <AnimatePresence>
+            {nowPlayingOpen && nowPlaying != null && (
+              <motion.div
+                className="absolute inset-0 z-20 overflow-hidden"
+                initial={reduced ? { opacity: 0 } : { opacity: 0, y: '22%' }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reduced ? { opacity: 0 } : { opacity: 0, y: '16%' }}
+                transition={
+                  reduced
+                    ? { duration: 0.18 }
+                    : { type: 'spring', stiffness: 320, damping: 34, mass: 0.85 }
+                }
+              >
+                {nowPlaying}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </main>
 
-        <CompactPlayerBar
-          visible={showCompactPlayer && hasActiveSong && !!song}
-          song={song ?? { title: '', artist: '', artworkUrl: '' }}
-          playback={playback}
-          onExpand={onExpandPlayer}
-        />
+        <AnimatePresence>
+          {showCompactPlayer && hasActiveSong && song ? (
+            <CompactPlayerBar
+              key="compact-player"
+              song={song}
+              playback={playback}
+              expanded={nowPlayingOpen}
+              queueCount={queueCount}
+              isFavorite={isFavorite}
+              onExpand={onExpandPlayer}
+              onOpenQueue={onOpenQueue}
+              onToggleFavorite={onToggleFavorite}
+            />
+          ) : null}
+        </AnimatePresence>
       </div>
     </div>
   );

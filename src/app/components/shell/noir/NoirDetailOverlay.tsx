@@ -17,21 +17,21 @@ export function NoirDetailOverlay({ children, onClose, title }: NoirDetailOverla
       transition={{ duration: 0.22 }}
       className="absolute inset-0 z-40 flex flex-col bg-black"
     >
-      <header className="flex shrink-0 items-center justify-between gap-4 px-6 py-5">
+      <header className="flex shrink-0 items-center justify-between gap-4 px-5 py-4">
         <button
           type="button"
           onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-[color:var(--noir-text-tertiary)] hover:bg-white/[0.06] hover:text-white elva-focus-ring"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white elva-focus-ring"
           aria-label="Close"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" strokeWidth={1.75} />
         </button>
         {title && (
-          <p className="min-w-0 flex-1 truncate text-center text-[13px] font-medium text-[color:var(--noir-text-secondary)]">
+          <p className="min-w-0 flex-1 truncate text-center text-[14px] font-medium text-[color:var(--noir-text-secondary)]">
             {title}
           </p>
         )}
-        <div className="w-8" aria-hidden />
+        <div className="w-10" aria-hidden />
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto scrollbar-none px-6 pb-10">{children}</div>

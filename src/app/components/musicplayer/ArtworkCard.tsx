@@ -548,7 +548,7 @@ export function ArtworkCard({
         const target = document.getElementById('elva-player-root');
         if (!target) return null;
         return createPortal(
-          <div className="fixed top-0 left-0 right-0 h-[2.5px] z-[100] pointer-events-none bg-white/[0.04]" aria-hidden>
+          <div className="absolute top-0 left-0 right-0 h-[2.5px] z-[100] pointer-events-none bg-white/[0.04]" aria-hidden>
             <div 
               className="h-full transition-[width] duration-[250ms] ease-linear"
               style={{ 

@@ -139,7 +139,7 @@ export function NoirSettingsView() {
   const onVolumeChange = (val: number) => {
     setVolume(val);
     localStorage.setItem('elva_player_volume', String(val));
-    window.dispatchEvent(new CustomEvent('elva-volume-change', { detail: { volume: val } }));
+    window.dispatchEvent(new CustomEvent('elva-set-volume', { detail: { volume: val } }));
   };
 
   const handleCrossfadeChange = (val: number) => {

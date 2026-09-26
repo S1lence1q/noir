@@ -6,8 +6,15 @@ import { strings } from '../../../constants/strings';
 import { showMiniHUD } from '../../../utils/hudUtils';
 import { NoirSongRow } from './NoirSongRow';
 import { NoirGraphicAccent } from './NoirGraphicAccent';
+import { isTrackFavorite } from '../../../utils/favoriteUtils';
 
 type LibrarySection = 'favorites' | 'playlists';
+
+export type LibraryFocus = {
+  section: LibrarySection;
+  playlistId?: string | null;
+  requestId: number;
+};
 
 type Playlist = {
   id: string;
@@ -18,10 +25,12 @@ type Playlist = {
 
 export type NoirLibraryViewProps = {
   favorites: SearchResult[];
+  focus?: LibraryFocus | null;
+  onPlaylistOpenChange?: (playlistId: string | null) => void;
   onToggleFavorite: (song: SearchResult) => void;
   onSelectSong: (song: SearchResult) => void;
   onAddToQueue: (song: SearchResult) => void;
-  onPlayPlaylist: (tracks: SearchResult[], label?: string) => void;
+  onPlayPlaylist: (tracks: SearchResult[], label?: string, startIndex?: number) => void;
   onPlayNext?: (song: SearchResult) => void;
 };
 
@@ -32,13 +41,15 @@ const SECTIONS: { id: LibrarySection; label: string; icon: typeof Heart }[] = [
 
 export function NoirLibraryView({
   favorites,
+  focus = null,
+  onPlaylistOpenChange,
   onToggleFavorite,
   onSelectSong,
   onAddToQueue,
   onPlayPlaylist,
   onPlayNext,
 }: NoirLibraryViewProps) {
-  const [section, setSection] = useState<LibrarySection>('favorites');
+  const [section, setSection] = useState<LibrarySection>(focus?.section ?? 'favorites');
   const [playlists, setPlaylists] = useState<Playlist[]>(() => {
     try {
       const stored = localStorage.getItem('elva_playlists');
@@ -47,7 +58,9 @@ export function NoirLibraryView({
       return [];
     }
   });
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(
+    focus?.playlistId ?? null
+  );
   const [isCreating, setIsCreating] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
 
@@ -67,6 +80,20 @@ export function NoirLibraryView({
       window.removeEventListener('storage', sync);
     };
   }, []);
+
+  useEffect(() => {
+    if (!focus) return;
+    setSection(focus.section);
+    setSelectedPlaylistId(focus.playlistId ?? null);
+  }, [focus?.requestId]);
+
+  useEffect(() => {
+    onPlaylistOpenChange?.(selectedPlaylistId);
+  }, [selectedPlaylistId, onPlaylistOpenChange]);
+
+  const openPlaylist = (id: string | null) => {
+    setSelectedPlaylistId(id);
+  };
 
   const selectedPlaylist = playlists.find((p) => p.id === selectedPlaylistId) ?? null;
 
@@ -114,7 +141,7 @@ export function NoirLibraryView({
               type="button"
               onClick={() => {
                 setSection(id);
-                setSelectedPlaylistId(null);
+                openPlaylist(null);
               }}
               data-active={isActive ? 'true' : 'false'}
               className="noir-nav-item flex h-9 items-center gap-2 px-3 text-[13px] font-medium elva-focus-ring"
@@ -139,22 +166,15 @@ export function NoirLibraryView({
               {favorites.length > 0 ? (
                 <div className="flex flex-col gap-0.5">
                   {favorites.map((track) => (
-                    <div key={track.id} className="group relative">
-                      <NoirSongRow
-                        track={track}
-                        onPlay={() => onSelectSong(track)}
-                        onAddToQueue={onAddToQueue}
-                        onPlayNext={onPlayNext}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => onToggleFavorite(track)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-2 text-[color:var(--noir-text-tertiary)] opacity-0 transition-opacity hover:text-white group-hover:opacity-100"
-                        aria-label="Remove from favorites"
-                      >
-                        <Heart className="h-3.5 w-3.5 fill-current text-red-400/80" />
-                      </button>
-                    </div>
+                    <NoirSongRow
+                      key={track.id}
+                      track={track}
+                      isFavorite
+                      onPlay={() => onSelectSong(track)}
+                      onAddToQueue={onAddToQueue}
+                      onPlayNext={onPlayNext}
+                      onToggleFavorite={onToggleFavorite}
+                    />
                   ))}
                 </div>
               ) : (
@@ -229,7 +249,7 @@ export function NoirLibraryView({
                       <button
                         key={playlist.id}
                         type="button"
-                        onClick={() => setSelectedPlaylistId(playlist.id)}
+                        onClick={() => openPlaylist(playlist.id)}
                         className="noir-track-row flex items-center gap-3 p-3 text-left elva-focus-ring"
                       >
                         <div className="noir-art flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden bg-[color:var(--noir-elevated)]">
@@ -275,7 +295,7 @@ export function NoirLibraryView({
               <div className="mb-6 flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => setSelectedPlaylistId(null)}
+                  onClick={() => openPlaylist(null)}
                   className="noir-nav-item flex h-8 w-8 items-center justify-center elva-focus-ring"
                   data-active="false"
                   aria-label="Back"
@@ -309,13 +329,17 @@ export function NoirLibraryView({
 
               {selectedPlaylist.tracks.length > 0 ? (
                 <div className="flex flex-col gap-0.5">
-                  {selectedPlaylist.tracks.map((track) => (
+                  {selectedPlaylist.tracks.map((track, i) => (
                     <NoirSongRow
                       key={track.id}
                       track={track}
-                      onPlay={() => onSelectSong(track)}
+                      isFavorite={isTrackFavorite(favorites, track)}
+                      onPlay={() =>
+                        onPlayPlaylist(selectedPlaylist.tracks, selectedPlaylist.name, i)
+                      }
                       onAddToQueue={onAddToQueue}
                       onPlayNext={onPlayNext}
+                      onToggleFavorite={onToggleFavorite}
                     />
                   ))}
                 </div>

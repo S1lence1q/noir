@@ -105,7 +105,7 @@ export const CustomLyricsModal: React.FC<CustomLyricsModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0, pointerEvents: 'none' }}
           transition={{ duration: 0.25 }}
-          className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100] p-4"
+          className="absolute inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100] p-4"
         >
           {/* Backdrop close */}
           <div className="absolute inset-0" onClick={onClose} />

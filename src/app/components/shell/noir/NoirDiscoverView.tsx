@@ -5,6 +5,7 @@ import { Playlist } from '../../PlaylistDetailsView';
 import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { NoirRankedSongRow } from './NoirRankedSongRow';
 import { NoirGraphicAccent } from './NoirGraphicAccent';
+import { isTrackFavorite } from '../../../utils/favoriteUtils';
 
 import topHitsDenmark from '../../../../top_hits_denmark.png';
 import topHitsGlobal from '../../../../top_hits_global.png';
@@ -12,8 +13,10 @@ import topHitsGlobal from '../../../../top_hits_global.png';
 export type NoirDiscoverViewProps = {
   onSelectSong: (song: SearchResult) => void;
   onAddToQueue: (song: SearchResult) => void;
-  onPlayPlaylist: (tracks: SearchResult[], label?: string) => void;
+  onPlayPlaylist: (tracks: SearchResult[], label?: string, startIndex?: number) => void;
   onPlayNext?: (song: SearchResult) => void;
+  onToggleFavorite?: (song: SearchResult) => void;
+  favorites?: SearchResult[];
   onSelectPlaylist: (playlist: Playlist) => void;
 };
 
@@ -35,6 +38,8 @@ export function NoirDiscoverView({
   onAddToQueue,
   onPlayPlaylist,
   onPlayNext,
+  onToggleFavorite,
+  favorites = [],
   onSelectPlaylist,
 }: NoirDiscoverViewProps) {
   const [activeCountry, setActiveCountry] = useState(
@@ -247,9 +252,11 @@ export function NoirDiscoverView({
                     key={track.id}
                     rank={i + 1}
                     track={track}
-                    onPlay={() => onSelectSong(track)}
+                    isFavorite={isTrackFavorite(favorites, track)}
+                    onPlay={() => onPlayPlaylist(localHits, localPlaylist.name, i)}
                     onAddToQueue={onAddToQueue}
                     onPlayNext={onPlayNext}
+                    onToggleFavorite={onToggleFavorite}
                   />
                 ))}
               </div>

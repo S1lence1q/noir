@@ -2,21 +2,26 @@ import { Play } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
 import { NoirRankedSongRow } from './NoirRankedSongRow';
+import { isTrackFavorite } from '../../../utils/favoriteUtils';
 
 export type NoirPlaylistViewProps = {
   playlist: Playlist;
+  favorites?: SearchResult[];
   onSelectSong: (track: SearchResult) => void;
   onAddToQueue: (track: SearchResult) => void;
-  onPlayPlaylist: (tracks: SearchResult[], label?: string) => void;
+  onPlayPlaylist: (tracks: SearchResult[], label?: string, startIndex?: number) => void;
   onPlayNext?: (track: SearchResult) => void;
+  onToggleFavorite?: (track: SearchResult) => void;
 };
 
 export function NoirPlaylistView({
   playlist,
+  favorites = [],
   onSelectSong,
   onAddToQueue,
   onPlayPlaylist,
   onPlayNext,
+  onToggleFavorite,
 }: NoirPlaylistViewProps) {
   const cover = playlist.tracks[0]?.thumbnail ?? playlist.thumbnail;
 
@@ -55,9 +60,11 @@ export function NoirPlaylistView({
                 key={track.id}
                 rank={i + 1}
                 track={track}
-                onPlay={() => onSelectSong(track)}
+                isFavorite={isTrackFavorite(favorites, track)}
+                onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name, i)}
                 onAddToQueue={onAddToQueue}
                 onPlayNext={onPlayNext}
+                onToggleFavorite={onToggleFavorite}
               />
             ))}
           </div>

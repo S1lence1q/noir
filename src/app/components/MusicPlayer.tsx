@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Queue } from './Queue';
 import { SettingsModal } from './SettingsModal';
 import { LyricsPanel } from './LyricsPanel';
-import { Keyboard } from 'lucide-react';
+import { ChevronDown, Keyboard } from 'lucide-react';
 import { AccentColor, ACCENT_THEMES } from './themeUtils';
 import { getDynamicFallbackColors } from '../utils/playerColorUtils';
 import { loadCustomLyrics } from '../utils/lyricsUtils';
@@ -273,10 +273,11 @@ export function MusicPlayer({
   const [showSettings, setShowSettings] = useState(false);
   const [showSettingsHint, setShowSettingsHint] = useState(false);
 
-  // Auto-close local settings when player is backgrounded to prevent visual leaks
+  // Auto-close overlays when player is backgrounded to prevent visual leaks
   useEffect(() => {
     if (appState !== 'ready') {
       setShowSettings(false);
+      setShowQueue(false);
     }
   }, [appState]);
 
@@ -364,6 +365,9 @@ export function MusicPlayer({
           setShowLyrics(false);
           return;
         }
+        e.preventDefault();
+        onBackToHome?.();
+        return;
       }
 
       if (e.code === 'Space') {
@@ -397,11 +401,6 @@ export function MusicPlayer({
       } else if (e.code === 'KeyQ') {
         e.preventDefault();
         setShowQueue((prev) => !prev);
-      } else if (e.code === 'Comma' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        if (appState === 'ready') {
-          setShowSettings(prev => !prev);
-        }
       }
     };
 
@@ -416,6 +415,10 @@ export function MusicPlayer({
     setPreMuteVolume,
     setShowLyrics,
     setShowSettings,
+    showSettings,
+    showQueue,
+    showLyrics,
+    onBackToHome,
     appState,
   ]);
 
@@ -444,7 +447,7 @@ export function MusicPlayer({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="fixed top-8 right-8 z-50 px-4 py-2 rounded-full bg-black/50 border border-white/10"
+            className="absolute top-8 right-8 z-50 px-4 py-2 rounded-full bg-black/50 border border-white/10"
           >
             <p className="text-xs text-white/50">
               Press <span className="text-white/70">{isMac ? '⌘,' : 'Ctrl+,'}</span> for settings
@@ -457,13 +460,15 @@ export function MusicPlayer({
       <div className={`absolute top-8 left-8 z-20 transition-all duration-700 flex items-center gap-1.5 ${isUserIdle && zenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <motion.button
           id="back-home-button"
+          type="button"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.4 }}
           onClick={onBackToHome}
-          className="text-xl font-normal text-white/30 hover:text-white/50 tracking-wider transition-colors cursor-pointer"
+          className="p-2 hover:bg-white/8 rounded-xl transition-all cursor-pointer text-white/35 hover:text-white/65 hover:scale-105 active:scale-95 duration-200 outline-none focus:outline-none focus:ring-0"
+          aria-label="Back"
         >
-          Elva
+          <ChevronDown className="w-5 h-5" />
         </motion.button>
         <motion.button
           initial={{ opacity: 0 }}

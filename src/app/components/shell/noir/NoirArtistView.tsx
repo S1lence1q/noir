@@ -1,25 +1,32 @@
 import { Play } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
 import { NoirRankedSongRow } from './NoirRankedSongRow';
+import { isTrackFavorite } from '../../../utils/favoriteUtils';
 
 export type NoirArtistViewProps = {
   artist: VerifiedArtist;
   tracks: SearchResult[];
   isLoading: boolean;
+  favorites?: SearchResult[];
   onSelectSong: (track: SearchResult) => void;
   onAddToQueue: (track: SearchResult) => void;
   onPlayNext?: (track: SearchResult) => void;
+  onToggleFavorite?: (track: SearchResult) => void;
   onPlayAll?: () => void;
+  onPlayFromIndex?: (index: number) => void;
 };
 
 export function NoirArtistView({
   artist,
   tracks,
   isLoading,
+  favorites = [],
   onSelectSong,
   onAddToQueue,
   onPlayNext,
+  onToggleFavorite,
   onPlayAll,
+  onPlayFromIndex,
 }: NoirArtistViewProps) {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-10">
@@ -63,9 +70,13 @@ export function NoirArtistView({
                 key={track.id}
                 rank={i + 1}
                 track={track}
-                onPlay={() => onSelectSong(track)}
+                isFavorite={isTrackFavorite(favorites, track)}
+                onPlay={() =>
+                  onPlayFromIndex ? onPlayFromIndex(i) : onSelectSong(track)
+                }
                 onAddToQueue={onAddToQueue}
                 onPlayNext={onPlayNext}
+                onToggleFavorite={onToggleFavorite}
               />
             ))}
           </div>

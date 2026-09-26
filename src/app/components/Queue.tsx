@@ -293,7 +293,7 @@ export function Queue({
         exit={{ opacity: 0 }}
         transition={{ duration: 0.4 }}
         onClick={onClose}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 cursor-pointer pointer-events-auto"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40 cursor-pointer pointer-events-auto"
       />
 
       <motion.div
@@ -304,7 +304,7 @@ export function Queue({
           x: { duration: 0.55, ease: [0.16, 1, 0.3, 1] },
           opacity: { duration: 0.3, ease: [0.4, 0, 1, 1] },
         }}
-        className="fixed right-0 top-0 bottom-0 w-full max-w-[420px] z-50 flex flex-col pointer-events-auto overflow-hidden h-full"
+        className="absolute right-0 top-0 bottom-0 w-full max-w-[420px] z-50 flex flex-col pointer-events-auto overflow-hidden h-full"
         style={{
           background: 'linear-gradient(180deg, rgba(10,11,16,0.97) 0%, rgba(8,9,12,0.99) 100%)',
           boxShadow: '-24px 0 80px rgba(0,0,0,0.7), -1px 0 0 rgba(255,255,255,0.05)',

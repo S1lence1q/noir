@@ -18,6 +18,7 @@ import { isLikelyMusicVideoStream } from './utils/apiUtils';
 import { prefetchChartTracks } from './utils/chartPrefetch';
 import { parseLocalMetadata } from './utils/metadataParser';
 import { getPlaybackSongKey } from './utils/playbackSongKey';
+import { isTrackFavorite } from './utils/favoriteUtils';
 import { strings } from './constants/strings';
 import { waitForYouTubeApi } from './utils/youtubeApiReady';
 
@@ -32,9 +33,12 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { GlobalVolumeHUD } from './components/app/GlobalVolumeHUD';
 import { AppShell } from './components/shell/AppShell';
 import { ShellPlaybackState } from './components/shell/types';
+import { NoirNowPlayingView } from './components/shell/noir/NoirNowPlayingView';
+import { NoirSearchPalette } from './components/shell/noir/NoirSearchPalette';
 import { useGlobalVolumeHUD } from './hooks/useGlobalVolumeHUD';
 
 type AppState = 'landing' | 'processing' | 'ready';
+// landing = shell, processing = resolving a track. `ready` is unused (fullscreen player is parked).
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>('landing');
@@ -72,6 +76,7 @@ export default function App() {
   };
 
   const [activeTab, setActiveTabState] = useState<'search' | 'discover' | 'myhub' | 'settings'>('search');
+  const [nowPlayingOpen, setNowPlayingOpen] = useState(false);
   const [isMiniPlaying, setIsMiniPlaying] = useState(true);
   const [shellPlayback, setShellPlayback] = useState<ShellPlaybackState>({
     currentTime: 0,
@@ -103,8 +108,10 @@ export default function App() {
   const autoScrollTimeoutRef = useRef<any>(null);
 
   const setActiveTab = (tab: 'search' | 'discover' | 'myhub' | 'settings') => {
+    setNowPlayingOpen(false);
+    setSelectedPlaylist(null);
     setActiveTabState(tab);
-    const shellActive = appState === 'landing' || appState === 'processing';
+    const shellActive = appState === 'landing' || appState === 'processing' || appState === 'ready';
     if (navMode === 'scroll' && !shellActive) {
       const container = scrollContainerRef.current;
       if (container) {
@@ -159,6 +166,12 @@ export default function App() {
   });
 
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
+  const [libraryFocus, setLibraryFocus] = useState<{
+    section: 'favorites' | 'playlists';
+    playlistId: string | null;
+    requestId: number;
+  }>({ section: 'favorites', playlistId: null, requestId: 0 });
+  const [libraryOpenPlaylistId, setLibraryOpenPlaylistId] = useState<string | null>(null);
 
   const [resolvedVideoIds, setResolvedVideoIds] = useState<Record<string, string>>(() => {
     try {
@@ -303,6 +316,7 @@ export default function App() {
   const tourBusyRef = useRef(false);
   const [hasSeenTour, setHasSeenTour] = useState(() => localStorage.getItem('elva_tour_completed') === 'true');
   const [showShortcutMap, setShowShortcutMap] = useState(false);
+  const [searchPaletteOpen, setSearchPaletteOpen] = useState(false);
 
   useEffect(() => {
     const handleToggleShortcuts = () => setShowShortcutMap(true);
@@ -366,10 +380,18 @@ export default function App() {
 
   const handleToggleFavorite = (song: SearchResult) => {
     setFavorites((prev) => {
-      const exists = prev.some((item) => item.id === song.id);
+      const exists = prev.some(
+        (item) =>
+          item.id === song.id ||
+          (!!song.videoId && (item.videoId === song.videoId || item.id === song.videoId))
+      );
       let updated;
       if (exists) {
-        updated = prev.filter((item) => item.id !== song.id);
+        updated = prev.filter(
+          (item) =>
+            item.id !== song.id &&
+            !(song.videoId && (item.videoId === song.videoId || item.id === song.videoId))
+        );
         showMiniHUD('Removed from Favorites', 'info');
       } else {
         updated = [...prev, song];
@@ -458,6 +480,7 @@ export default function App() {
 
   const handleSelectSong = async (result: SearchResult, isCrossfade?: boolean) => {
     const startingAppState = appState;
+    const hadActiveSong = !!songData;
     latestSelectedSongIdRef.current = result.id;
     const isLocal = !!(result.audioUrl?.startsWith('blob:') || result.id?.startsWith('local_'));
     const latestId = latestSelectedSongIdRef.current;
@@ -529,7 +552,7 @@ export default function App() {
 
     if (!isLocal && (neededResolve || needsAudioSwap)) {
       setLoadingSongId(result.id);
-      if (startingAppState !== 'ready') {
+      if (!hadActiveSong) {
         setAppState('processing');
       }
       try {
@@ -547,7 +570,7 @@ export default function App() {
             description: `No verified YouTube match for "${result.title}". Try searching the song directly.`,
           });
           setLoadingSongId(null);
-          setAppState(startingAppState === 'ready' ? 'ready' : 'landing');
+          setAppState('landing');
           return;
         }
       } catch (e) {
@@ -556,7 +579,7 @@ export default function App() {
           description: 'Could not retrieve the audio stream for this song.',
         });
         setLoadingSongId(null);
-        setAppState(startingAppState === 'ready' ? 'ready' : 'landing');
+        setAppState('landing');
         return;
       }
     }
@@ -588,7 +611,7 @@ export default function App() {
       }
     }
 
-    if (startingAppState === 'ready') {
+    if (hadActiveSong) {
       setSongData({
         title: result.title,
         artist: result.artist,
@@ -597,7 +620,7 @@ export default function App() {
         videoId: finalVideoId,
         channelId: result.channelId
       });
-      setAppState('ready');
+      setAppState('landing');
       setLoadingSongId(null);
 
       const img = new Image();
@@ -708,14 +731,28 @@ export default function App() {
     }
   };
 
-  const handlePlayPlaylist = async (tracks: SearchResult[], label?: string) => {
+  const handlePlayPlaylist = async (
+    tracks: SearchResult[],
+    label?: string,
+    startIndex = 0
+  ) => {
     if (tracks.length === 0) return;
 
+    const index = Math.max(0, Math.min(startIndex, tracks.length - 1));
     setQueue(tracks);
-    startQueuePrefetch(tracks, tracks[0].id);
-    await handleSelectSong(tracks[0]);
+    startQueuePrefetch(tracks, tracks[index].id);
+    await handleSelectSong(tracks[index]);
 
-    showMiniHUD(label ? `Playing ${label}` : 'Playing playlist', 'success');
+    const upNext = tracks.length - index - 1;
+    if (label && upNext > 0) {
+      showMiniHUD(`Playing ${label} · ${upNext} up next`, 'success');
+    } else if (label) {
+      showMiniHUD(`Playing ${label}`, 'success');
+    } else if (upNext > 0) {
+      showMiniHUD(`${upNext} up next`, 'success');
+    } else {
+      showMiniHUD('Playing', 'success');
+    }
   };
 
   // 3. Search and Artist Profiles Logic Hook
@@ -742,6 +779,17 @@ export default function App() {
   const focusedResultIndex = searchLogic.focusedResultIndex;
   const setFocusedResultIndex = searchLogic.setFocusedResultIndex;
 
+  useEffect(() => {
+    const open = () => setSearchPaletteOpen(true);
+    window.addEventListener('elva-open-search-palette', open);
+    return () => window.removeEventListener('elva-open-search-palette', open);
+  }, []);
+
+  // Tab changes dismiss detail overlays (playlist/chart/artist)
+  useEffect(() => {
+    searchLogic.setSelectedArtist(null);
+  }, [activeTab, searchLogic.setSelectedArtist]);
+
   // Track search interactions to trigger guide variations
   if (selectedArtist) {
     hasSelectedArtistOnce.current = true;
@@ -750,6 +798,9 @@ export default function App() {
   // 4. Keyboard Navigation Hook
   useKeyboardShortcuts({
     appState,
+    nowPlayingOpen,
+    setNowPlayingOpen,
+    hasActiveSong: !!songData,
     searchQuery: searchLogic.searchQuery,
     lastSearchedQuery: searchLogic.lastSearchedQuery,
     isSearching: searchLogic.isSearching,
@@ -770,7 +821,8 @@ export default function App() {
     activeTab,
     setActiveTab,
     selectedPlaylist,
-    setSelectedPlaylist
+    setSelectedPlaylist,
+    onOpenSearchPalette: () => setSearchPaletteOpen(true),
   });
 
   // Global custom HUD event listeners
@@ -832,6 +884,24 @@ export default function App() {
     window.addEventListener('elva-reset-tour', handleResetTour);
     return () => window.removeEventListener('elva-reset-tour', handleResetTour);
   }, []);
+
+  const openLibraryFavorites = () => {
+    setLibraryFocus((prev) => ({
+      section: 'favorites',
+      playlistId: null,
+      requestId: prev.requestId + 1,
+    }));
+    setActiveTab('myhub');
+  };
+
+  const openLibraryPlaylist = (playlistId: string) => {
+    setLibraryFocus((prev) => ({
+      section: 'playlists',
+      playlistId,
+      requestId: prev.requestId + 1,
+    }));
+    setActiveTab('myhub');
+  };
 
   const scrollToLandingSection = (index: number) => {
     const tab = index === 0 ? 'search' : index === 1 ? 'discover' : 'myhub';
@@ -995,7 +1065,30 @@ export default function App() {
   };
 
   const handleRemoveFromQueue = (id: string) => {
-    setQueue(queue.filter(item => item.id !== id));
+    setQueue((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleMoveInQueue = (id: string, direction: -1 | 1) => {
+    setQueue((prev) => {
+      const from = prev.findIndex((item) => item.id === id);
+      if (from < 0) return prev;
+      const to = from + direction;
+      if (to < 0 || to >= prev.length) return prev;
+
+      const activeKey = songData ? getPlaybackSongKey(songData) : null;
+      const currentIndex = activeKey
+        ? prev.findIndex((item) => getPlaybackSongKey(item) === activeKey)
+        : -1;
+      // Keep the playing track fixed; only reorder within up-next
+      if (currentIndex >= 0 && (from <= currentIndex || to <= currentIndex)) {
+        return prev;
+      }
+
+      const next = [...prev];
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return next;
+    });
   };
 
   const handleClearQueue = () => {
@@ -1135,9 +1228,7 @@ export default function App() {
         </AnimatePresence>
       </motion.div>
 
-      <AnimatePresence>
-        {(appState === 'landing' || appState === 'processing') && (
-          <AppShell
+      <AppShell
             activeTab={activeTab}
             onTabChange={setActiveTab}
             hasActiveSong={!!songData}
@@ -1154,10 +1245,81 @@ export default function App() {
               ...shellPlayback,
               isPlaying: isMiniPlaying,
             }}
-            onExpandPlayer={() => setAppState('ready')}
+            nowPlayingOpen={nowPlayingOpen}
+            onExpandPlayer={() => {
+              if (!songData) return;
+              setNowPlayingOpen((open) => !open);
+            }}
+            onOpenQueue={() => {
+              if (!songData) return;
+              setNowPlayingOpen(true);
+            }}
             showCompactPlayer
+            queueCount={(() => {
+              const activeKey = songData ? getPlaybackSongKey(songData) : null;
+              if (!activeKey) return queue.length;
+              const idx = queue.findIndex((item) => getPlaybackSongKey(item) === activeKey);
+              if (idx < 0) return queue.length;
+              return Math.max(0, queue.length - idx - 1);
+            })()}
             favoritesCount={favorites.length}
-            onSelectPlaylist={setSelectedPlaylist}
+            favoritesActive={
+              activeTab === 'myhub' &&
+              libraryFocus.section === 'favorites' &&
+              !libraryOpenPlaylistId
+            }
+            selectedPlaylistId={libraryOpenPlaylistId}
+            onOpenFavorites={openLibraryFavorites}
+            onOpenPlaylist={openLibraryPlaylist}
+            onOpenSearch={() => setSearchPaletteOpen(true)}
+            isFavorite={
+              !!songData &&
+              isTrackFavorite(favorites, {
+                id: songData.videoId || songData.audioUrl,
+                videoId: songData.videoId,
+              })
+            }
+            onToggleFavorite={
+              songData
+                ? () =>
+                    handleToggleFavorite({
+                      id: songData.videoId || songData.audioUrl || `${songData.title}-${songData.artist}`,
+                      title: songData.title,
+                      artist: songData.artist,
+                      thumbnail: songData.artworkUrl,
+                      videoId: songData.videoId || '',
+                      audioUrl: songData.audioUrl,
+                      channelId: songData.channelId,
+                    })
+                : undefined
+            }
+            nowPlaying={
+              songData ? (
+                <NoirNowPlayingView
+                  song={songData}
+                  queue={queue}
+                  colors={songColors}
+                  isFavorite={isTrackFavorite(favorites, {
+                    id: songData.videoId || songData.audioUrl,
+                    videoId: songData.videoId,
+                  })}
+                  onToggleFavorite={() =>
+                    handleToggleFavorite({
+                      id: songData.videoId || songData.audioUrl || `${songData.title}-${songData.artist}`,
+                      title: songData.title,
+                      artist: songData.artist,
+                      thumbnail: songData.artworkUrl,
+                      videoId: songData.videoId || '',
+                      audioUrl: songData.audioUrl,
+                      channelId: songData.channelId,
+                    })
+                  }
+                  onSelectFromQueue={(id) => handleSelectFromQueue(id)}
+                  onRemoveFromQueue={handleRemoveFromQueue}
+                  onMoveInQueue={handleMoveInQueue}
+                />
+              ) : undefined
+            }
           >
             <ErrorBoundary>
               <LandingPage
@@ -1171,6 +1333,8 @@ export default function App() {
               setSelectedArtist={searchLogic.setSelectedArtist}
               selectedPlaylist={selectedPlaylist}
               setSelectedPlaylist={setSelectedPlaylist}
+              libraryFocus={libraryFocus}
+              onLibraryPlaylistOpenChange={setLibraryOpenPlaylistId}
               accentColor={accentColor}
               theme={theme}
               hasSeenTour={hasSeenTour}
@@ -1188,6 +1352,8 @@ export default function App() {
               verifiedArtist={verifiedArtist}
               focusedResultIndex={focusedResultIndex}
               loadingSongId={loadingSongId}
+              activeSongKey={songData ? getPlaybackSongKey(songData) : null}
+              isPlaying={isMiniPlaying}
               artistColors={selectedArtist ? ACCENT_THEMES[accentColor] : null}
               artistTracks={artistTracks}
               isLoadingArtist={isLoadingArtist}
@@ -1251,29 +1417,17 @@ export default function App() {
               </div>
             )}
           </AppShell>
-        )}
 
-        {songData && (
-          <motion.div
-            key="ready"
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ 
-              opacity: appState === 'ready' ? 1 : 0, 
-              scale: appState === 'ready' ? 1 : 0.96,
-              y: appState === 'ready' ? 0 : 40,
-            }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className={`size-full absolute inset-0 z-20 ${appState === 'ready' ? 'pointer-events-auto' : 'pointer-events-none'}`}
-            style={{ 
-              pointerEvents: appState === 'ready' ? 'auto' : 'none',
-              visibility: appState === 'ready' ? 'visible' : 'hidden'
-            }}
-          >
-            <ErrorBoundary>
+      {songData && (
+        <div
+          aria-hidden
+          className="pointer-events-none invisible absolute inset-0 z-0 overflow-hidden"
+        >
+          <ErrorBoundary>
             <MusicPlayer
               songData={songData}
               queue={queue}
-              appState={appState}
+              appState="landing"
               accentColor={accentColor}
               songColors={songColors}
               onAccentColorChange={setAccentColor}
@@ -1318,20 +1472,10 @@ export default function App() {
                 void playLocalFile(file);
               }}
               onUrlSubmit={searchLogic.handleUrlSubmit}
-              onBackToHome={() => {
-                if (backToHomeTimeoutRef.current) {
-                  clearTimeout(backToHomeTimeoutRef.current);
-                }
-                setAppState('landing');
-                setActiveTab('search');
-                searchLogic.setSearchQuery('');
-                searchLogic.setSearchResults([]);
-              }}
             />
-            </ErrorBoundary>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </ErrorBoundary>
+        </div>
+      )}
 
       {/* Mini HUD Glassmorphic Notification Pill */}
       <AnimatePresence>
@@ -1367,6 +1511,18 @@ export default function App() {
         onNext={handleTourNext}
         onBack={handleTourBack}
         onSkip={handleTourSkip}
+      />
+
+      {/* Arc-style search palette (⌘K) */}
+      <NoirSearchPalette
+        open={searchPaletteOpen}
+        onClose={() => setSearchPaletteOpen(false)}
+        onSelectSong={handleSelectSong}
+        onAddToQueue={handleAddToQueue}
+        onPlayNext={handlePlayNext}
+        onToggleFavorite={handleToggleFavorite}
+        favorites={favorites}
+        recentTracks={recentlyPlayed}
       />
 
       {/* Keyboard Shortcuts Map Overlay */}

@@ -26,7 +26,7 @@ export const strings = {
   },
   empty: {
     favoritesTitle: 'No favorite songs yet',
-    favoritesDesc: 'Tap the heart while playing or in search results to save tracks here.',
+    favoritesDesc: 'Tap the heart on a track, in the player bar, or while searching to save it here.',
     favoritesAction: 'Browse Discover',
     playlistEmptyTitle: 'This playlist is empty',
     playlistEmptyDesc: 'Search below to find and add tracks.',

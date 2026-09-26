@@ -969,16 +969,33 @@ export function usePlaybackCore({
       void handlePreviousSong();
     };
 
+    const handleSeekEvent = (e: Event) => {
+      const time = (e as CustomEvent<{ time?: number }>).detail?.time;
+      if (typeof time === 'number' && Number.isFinite(time)) {
+        seekToAbsoluteTime(time);
+      }
+    };
+    const handleSetVolumeEvent = (e: Event) => {
+      const volume = (e as CustomEvent<{ volume?: number }>).detail?.volume;
+      if (typeof volume === 'number' && Number.isFinite(volume)) {
+        handleVolumeChange(Math.max(0, Math.min(100, volume)));
+      }
+    };
+
     window.addEventListener('elva-toggle-play', handleTogglePlayEvent);
     window.addEventListener('elva-play-next', handleNextSongEvent);
     window.addEventListener('elva-play-prev', handlePrevSongEvent);
+    window.addEventListener('elva-seek', handleSeekEvent);
+    window.addEventListener('elva-set-volume', handleSetVolumeEvent);
 
     return () => {
       window.removeEventListener('elva-toggle-play', handleTogglePlayEvent);
       window.removeEventListener('elva-play-next', handleNextSongEvent);
       window.removeEventListener('elva-play-prev', handlePrevSongEvent);
+      window.removeEventListener('elva-seek', handleSeekEvent);
+      window.removeEventListener('elva-set-volume', handleSetVolumeEvent);
     };
-  }, [togglePlayPause, handleNextSong, handlePreviousSong]);
+  }, [togglePlayPause, handleNextSong, handlePreviousSong, seekToAbsoluteTime, handleVolumeChange]);
 
   // Cleanup active animations on unmount
   useEffect(() => {

@@ -3,6 +3,9 @@ import { shouldShowArtistCard } from '../utils/apiUtils';
 
 interface KeyboardShortcutsParams {
   appState: 'landing' | 'processing' | 'ready';
+  nowPlayingOpen?: boolean;
+  setNowPlayingOpen?: (open: boolean) => void;
+  hasActiveSong?: boolean;
   searchQuery: string;
   lastSearchedQuery: string;
   isSearching: boolean;
@@ -24,10 +27,14 @@ interface KeyboardShortcutsParams {
   setActiveTab: (tab: any) => void;
   selectedPlaylist: any;
   setSelectedPlaylist: React.Dispatch<React.SetStateAction<any>>;
+  onOpenSearchPalette?: () => void;
 }
 
 export function useKeyboardShortcuts({
   appState,
+  nowPlayingOpen = false,
+  setNowPlayingOpen,
+  hasActiveSong = false,
   searchQuery,
   lastSearchedQuery,
   isSearching,
@@ -49,10 +56,27 @@ export function useKeyboardShortcuts({
   setActiveTab,
   selectedPlaylist,
   setSelectedPlaylist,
+  onOpenSearchPalette,
 }: KeyboardShortcutsParams) {
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      if (nowPlayingOpen && e.key === 'Escape') {
+        const target = e.target as HTMLElement;
+        if (
+          target &&
+          (target.tagName === 'INPUT' ||
+            target.tagName === 'TEXTAREA' ||
+            target.isContentEditable)
+        ) {
+          return;
+        }
+        e.preventDefault();
+        setNowPlayingOpen?.(false);
+        return;
+      }
+
       const hasSearchResults =
+        !nowPlayingOpen &&
         appState === 'landing' &&
         !isSearching &&
         searchResults.length > 0 &&
@@ -136,6 +160,11 @@ export function useKeyboardShortcuts({
           if (searchQuery.trim()) {
             setSearchQuery('');
           }
+          return;
+        }
+        if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          onOpenSearchPalette?.();
         }
         return;
       }
@@ -146,11 +175,18 @@ export function useKeyboardShortcuts({
       } else if (e.key === 'Escape' && showShortcutMap) {
         e.preventDefault();
         setShowShortcutMap(false);
+      } else if (e.code === 'Space' && hasActiveSong) {
+        e.preventDefault();
+        window.dispatchEvent(new Event('elva-toggle-play'));
       } else if (e.key === ',' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        if (appState === 'landing') {
-          setActiveTab(activeTab === 'settings' ? 'search' : 'settings');
-        }
+        setActiveTab(activeTab === 'settings' ? 'search' : 'settings');
+      } else if (
+        (e.key === 'k' && (e.metaKey || e.ctrlKey)) ||
+        (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey)
+      ) {
+        e.preventDefault();
+        onOpenSearchPalette?.();
       }
     };
 
@@ -177,5 +213,11 @@ export function useKeyboardShortcuts({
     handleViewArtistProfile,
     setShowShortcutMap,
     setActiveTab,
+    nowPlayingOpen,
+    setNowPlayingOpen,
+    hasActiveSong,
+    selectedPlaylist,
+    setSelectedPlaylist,
+    onOpenSearchPalette,
   ]);
 }

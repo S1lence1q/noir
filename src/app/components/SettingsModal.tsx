@@ -101,7 +101,7 @@ export function SettingsModal({
     } else {
       setLocalVolume(val);
       localStorage.setItem('elva_player_volume', String(val));
-      window.dispatchEvent(new CustomEvent('elva-volume-change', { detail: { volume: val } }));
+      window.dispatchEvent(new CustomEvent('elva-set-volume', { detail: { volume: val } }));
     }
   };
 
@@ -133,7 +133,7 @@ export function SettingsModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, pointerEvents: 'none' }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+      className="absolute inset-0 z-50 flex items-center justify-center bg-black/70"
       onClick={onClose}
     >
       <motion.div
