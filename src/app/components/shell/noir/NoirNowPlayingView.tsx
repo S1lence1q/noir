@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { ChevronUp, Heart, X } from 'lucide-react';
+import { ChevronUp, Heart, Plus, X } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
@@ -18,6 +18,9 @@ type NoirNowPlayingViewProps = {
   colors?: { primary: string; secondary: string; accent: string } | null;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
+  favoriteTracks?: SearchResult[];
+  quickAddTracks?: SearchResult[];
+  onAddToQueue?: (track: SearchResult) => void;
   onSelectFromQueue: (id: string) => void;
   onRemoveFromQueue?: (id: string) => void;
   onMoveInQueue?: (id: string, direction: -1 | 1) => void;
@@ -31,6 +34,9 @@ export function NoirNowPlayingView({
   colors,
   isFavorite = false,
   onToggleFavorite,
+  favoriteTracks = [],
+  quickAddTracks = [],
+  onAddToQueue,
   onSelectFromQueue,
   onRemoveFromQueue,
   onMoveInQueue,
@@ -45,6 +51,11 @@ export function NoirNowPlayingView({
       ? queue.slice(currentIndex + 1)
       : queue.filter((item) => getPlaybackSongKey(item) !== currentKey);
   const songKey = currentKey ?? `${song.title}::${song.artist}`;
+  const preferredQuickAdds = favoriteTracks.length > 0 ? favoriteTracks : quickAddTracks;
+  const quickAddSource = favoriteTracks.length > 0 ? 'Favorites' : 'Recently played';
+  const quickAdds = preferredQuickAdds
+    .filter((track) => getPlaybackSongKey(track) !== currentKey)
+    .slice(0, 3);
 
   return (
     <div className="noir-now-playing">
@@ -127,26 +138,58 @@ export function NoirNowPlayingView({
         </AnimatePresence>
       </div>
 
-      <aside className="noir-now-playing-queue" aria-label="Next up">
-        <div className="flex items-baseline justify-between gap-3 px-2 pb-3">
-          <p className="text-[14px] font-medium text-[color:var(--noir-text-primary)]">Next up</p>
-          {upNext.length > 0 && (
-            <p className="text-[12px] tabular-nums text-[color:var(--noir-text-tertiary)]">
-              {upNext.length}
-            </p>
-          )}
-        </div>
-
+      <aside
+        className="noir-now-playing-queue"
+        aria-label={upNext.length > 0 ? 'Next up' : 'Queue suggestions'}
+      >
         {upNext.length === 0 ? (
-          <div className="noir-now-playing-queue-empty px-2">
-            <p className="text-[14px] text-[color:var(--noir-text-secondary)]">Nothing queued</p>
-            <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--noir-text-tertiary)]">
-              Hover a track and tap <span className="text-white/55">+</span> to add it here. Play a
-              chart or playlist to fill a whole session.
+          <div className="noir-now-playing-queue-empty px-2 pt-1">
+            <p className="text-[17px] font-semibold leading-tight tracking-[-0.02em] text-[color:var(--noir-text-primary)]">
+              What should play next?
             </p>
+            <p className="mt-2 max-w-[190px] text-[12px] leading-[1.45] text-[color:var(--noir-text-tertiary)]">
+              {favoriteTracks.length > 0
+                ? 'Add a favorite to keep it going.'
+                : 'Pick something from your recent listens.'}
+            </p>
+            {onAddToQueue && quickAdds.length > 0 && (
+              <div className="mt-4">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[color:var(--noir-text-tertiary)]">
+                  {quickAddSource}
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  {quickAdds.map((track) => (
+                    <button
+                      type="button"
+                      key={track.id}
+                      onClick={() => onAddToQueue(track)}
+                      className="group relative aspect-square overflow-hidden rounded-[var(--noir-radius-sm)] bg-[color:var(--noir-elevated)] text-left elva-focus-ring"
+                      title={`Add ${track.title} to queue`}
+                    >
+                      <img src={track.thumbnail} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                      <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
+                      <span className="absolute inset-x-2 bottom-2 min-w-0">
+                        <span className="block truncate text-[10px] font-medium text-white">{track.title}</span>
+                        <span className="block truncate text-[9px] text-white/55">{track.artist}</span>
+                      </span>
+                      <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                        <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
-          <div className="flex flex-col">
+          <>
+            <div className="flex items-baseline justify-between gap-3 px-2 pb-3">
+              <p className="text-[14px] font-medium text-[color:var(--noir-text-primary)]">Next up</p>
+              <p className="text-[12px] tabular-nums text-[color:var(--noir-text-tertiary)]">
+                {upNext.length}
+              </p>
+            </div>
+            <div className="flex flex-col">
             <AnimatePresence initial={false}>
               {upNext.map((track, i) => (
                 <motion.div
@@ -205,7 +248,8 @@ export function NoirNowPlayingView({
                 </motion.div>
               ))}
             </AnimatePresence>
-          </div>
+            </div>
+          </>
         )}
       </aside>
     </div>

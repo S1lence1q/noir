@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Compass, Heart, Home, Library, ListMusic, Search, Settings } from 'lucide-react';
+import { Compass, Heart, Home, Library, ListMusic, Settings } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { AppTab } from './types';
 import { NoirGraphicAccent } from './noir/NoirGraphicAccent';
@@ -24,7 +24,6 @@ type AppSidebarProps = {
   selectedPlaylistId?: string | null;
   onOpenFavorites?: () => void;
   onOpenPlaylist?: (playlistId: string) => void;
-  onOpenSearch?: () => void;
 };
 
 export function AppSidebar({
@@ -35,7 +34,6 @@ export function AppSidebar({
   selectedPlaylistId = null,
   onOpenFavorites,
   onOpenPlaylist,
-  onOpenSearch,
 }: AppSidebarProps) {
   const [playlists, setPlaylists] = useState<SidebarPlaylist[]>(() => {
     try {
@@ -69,20 +67,10 @@ export function AppSidebar({
   return (
     <aside className="elva-shell-sidebar relative flex h-full w-[248px] shrink-0 flex-col overflow-hidden select-none px-3 py-5">
       <NoirGraphicAccent graphic="plateWave" className="noir-accent-wave-sidebar" />
-      <div className="relative z-[1] flex items-center justify-between gap-2 px-2 pb-5 pt-1">
+      <div className="relative z-[1] flex items-center px-2 pb-5 pt-1">
         <span className="text-[13px] font-bold tracking-[0.34em] text-[color:var(--noir-text-primary)]">
           NOIR
         </span>
-        <button
-          type="button"
-          onClick={() => onOpenSearch?.()}
-          className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[color:var(--noir-text-tertiary)] hover:bg-white/[0.06] hover:text-white elva-focus-ring"
-          aria-label="Search"
-          title="Search (⌘K)"
-        >
-          <Search className="h-4 w-4" strokeWidth={1.75} />
-          <span className="text-[10px] font-semibold tracking-wide">⌘K</span>
-        </button>
       </div>
 
       <nav className="relative z-[1] flex flex-col gap-1" aria-label="Main navigation">

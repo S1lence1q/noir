@@ -795,10 +795,17 @@ export default function App() {
 
   const handleAddToQueue = (result: SearchResult, options?: { silent?: boolean }) => {
     const key = getPlaybackSongKey(result);
+    const activeKey = songData ? getPlaybackSongKey(songData) : null;
     let added = false;
     setQueue((prev) => {
+      const activeIndex = activeKey
+        ? prev.findIndex((item) => getPlaybackSongKey(item) === activeKey)
+        : -1;
+      const pendingStart = activeIndex >= 0 ? activeIndex : 0;
       const exists = prev.some(
-        (item) => item.id === result.id || (key !== null && getPlaybackSongKey(item) === key)
+        (item, index) =>
+          index >= pendingStart &&
+          (item.id === result.id || (key !== null && getPlaybackSongKey(item) === key))
       );
       if (exists) return prev;
       added = true;
@@ -1359,7 +1366,6 @@ export default function App() {
             selectedPlaylistId={libraryOpenPlaylistId}
             onOpenFavorites={openLibraryFavorites}
             onOpenPlaylist={openLibraryPlaylist}
-            onOpenSearch={() => setSearchPaletteOpen(true)}
             isFavorite={
               !!songData &&
               isTrackFavorite(favorites, {
@@ -1402,6 +1408,9 @@ export default function App() {
                       channelId: songData.channelId,
                     })
                   }
+                  favoriteTracks={favorites}
+                  quickAddTracks={recentlyPlayed}
+                  onAddToQueue={handleAddToQueue}
                   onSelectFromQueue={(id) => handleSelectFromQueue(id)}
                   onRemoveFromQueue={handleRemoveFromQueue}
                   onMoveInQueue={handleMoveInQueue}
@@ -1609,6 +1618,7 @@ export default function App() {
         onAddToQueue={handleAddToQueue}
         onPlayNext={handlePlayNext}
         onToggleFavorite={handleToggleFavorite}
+        onFileSelect={handleFileSelect}
         favorites={favorites}
         recentTracks={recentlyPlayed}
       />

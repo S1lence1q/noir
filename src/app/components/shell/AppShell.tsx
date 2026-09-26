@@ -28,7 +28,6 @@ type AppShellProps = {
   isFavorite?: boolean;
   onOpenFavorites?: () => void;
   onOpenPlaylist?: (playlistId: string) => void;
-  onOpenSearch?: () => void;
   onToggleFavorite?: () => void;
 };
 
@@ -51,7 +50,6 @@ export function AppShell({
   isFavorite = false,
   onOpenFavorites,
   onOpenPlaylist,
-  onOpenSearch,
   onToggleFavorite,
 }: AppShellProps) {
   const reduced = prefersReducedMotion();
@@ -66,7 +64,6 @@ export function AppShell({
         selectedPlaylistId={selectedPlaylistId}
         onOpenFavorites={onOpenFavorites}
         onOpenPlaylist={onOpenPlaylist}
-        onOpenSearch={onOpenSearch}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">

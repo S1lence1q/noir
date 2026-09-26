@@ -372,7 +372,6 @@ export function LandingPage({
                   handleAddToQueue={handleAddToQueue}
                   handlePlayNext={handlePlayNext}
                   handleToggleFavorite={handleToggleFavorite}
-                  handleFileSelect={handleFileSelect}
                   theme={theme}
                 />
               </motion.div>

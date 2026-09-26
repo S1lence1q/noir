@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { ListEnd, Loader2, Heart, Plus, Search, X } from 'lucide-react';
+import { ListEnd, Loader2, Heart, Plus, Search, Upload, X } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { executeSearchAPI, resolveUrlToSearchResult } from '../../../utils/apiUtils';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
@@ -15,6 +15,7 @@ type NoirSearchPaletteProps = {
   onAddToQueue: (song: SearchResult) => void;
   onPlayNext?: (song: SearchResult) => void;
   onToggleFavorite?: (song: SearchResult) => void;
+  onFileSelect?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   favorites?: SearchResult[];
   recentTracks?: SearchResult[];
 };
@@ -26,11 +27,13 @@ export function NoirSearchPalette({
   onAddToQueue,
   onPlayNext,
   onToggleFavorite,
+  onFileSelect,
   favorites = [],
   recentTracks = [],
 }: NoirSearchPaletteProps) {
   const reduced = prefersReducedMotion();
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -177,7 +180,26 @@ export function NoirSearchPalette({
                 autoComplete="off"
                 spellCheck={false}
               />
-              <kbd className="noir-search-palette-kbd">esc</kbd>
+              {onFileSelect && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="noir-search-palette-upload flex h-7 w-7 items-center justify-center rounded-full"
+                    aria-label="Upload audio"
+                    title="Upload audio"
+                  >
+                    <Upload className="h-4 w-4" strokeWidth={1.75} />
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="audio/*"
+                    onChange={onFileSelect}
+                    className="hidden"
+                  />
+                </>
+              )}
               <button
                 type="button"
                 onClick={onClose}

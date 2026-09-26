@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Pause, Play, Search, Upload, X } from 'lucide-react';
+import { Pause, Play, Search, X } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { shouldShowArtistCard } from '../../../utils/apiUtils';
@@ -35,7 +35,6 @@ export type NoirHomeViewProps = {
   handleAddToQueue: (track: SearchResult) => void;
   handlePlayNext?: (track: SearchResult) => void;
   handleToggleFavorite?: (track: SearchResult) => void;
-  handleFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   theme: ThemeColors;
 };
 
@@ -60,10 +59,8 @@ export function NoirHomeView({
   handleAddToQueue,
   handlePlayNext,
   handleToggleFavorite,
-  handleFileSelect,
 }: NoirHomeViewProps) {
   const [localQuery, setLocalQuery] = useState(searchQuery);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reduced = prefersReducedMotion();
 
@@ -152,28 +149,16 @@ export function NoirHomeView({
 
   return (
     <div className="relative flex h-full min-h-0 flex-col">
-      <div className="flex shrink-0 items-center gap-3 px-5 pb-3 pt-5">
+      <div className="flex shrink-0 items-center justify-between gap-3 px-5 pb-3 pt-5">
         <button
           type="button"
           onClick={openSearchPalette}
-          className="noir-search-trigger elva-focus-ring"
+          className="noir-search-hint elva-focus-ring"
         >
-          <Search className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-          <span className="min-w-0 flex-1 truncate text-left text-[14px]">
-            Search music…
-          </span>
+          <Search className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
+          <span>Search</span>
           <kbd className="noir-search-trigger-kbd">⌘K</kbd>
         </button>
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[var(--noir-radius-md)] bg-[color:var(--noir-elevated)] text-[color:var(--noir-text-tertiary)] hover:bg-[#222] hover:text-white elva-focus-ring"
-          aria-label="Upload audio"
-          title="Upload audio"
-        >
-          <Upload className="h-4 w-4" strokeWidth={1.5} />
-        </button>
-        <input ref={fileInputRef} type="file" accept="audio/*" onChange={handleFileSelect} className="hidden" />
         {inSearchMode && (
           <button
             type="button"
