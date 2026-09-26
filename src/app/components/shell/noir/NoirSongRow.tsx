@@ -130,8 +130,6 @@ export function NoirSongRow({
           track={track}
           onPlayNext={onPlayNext}
           onAddToQueue={onAddToQueue}
-          onToggleFavorite={onToggleFavorite}
-          isFavorite={isFavorite}
         />
       </div>
     </motion.div>

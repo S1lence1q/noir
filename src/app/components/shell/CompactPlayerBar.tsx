@@ -184,7 +184,7 @@ export function CompactPlayerBar({
               </AnimatePresence>
             </span>
           </button>
-          {onToggleFavorite && (
+          {onToggleFavorite && !expanded && (
             <button
               type="button"
               onClick={onToggleFavorite}
