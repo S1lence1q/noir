@@ -1309,43 +1309,88 @@
   border-color: rgba(255, 255, 255, 0.32);
 }
 
-.noir-add-panel {
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--noir-rule-faint);
+/* Playlist page: list on the left, add panel on the right */
+.noir-playlist-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
 }
 
-.noir-add-button {
-  display: inline-flex;
+.noir-playlist-layout[data-panel='open'] {
+  grid-template-columns: minmax(0, 1fr) 340px;
+}
+
+.noir-add-panel {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 96px - 48px);
+  padding: 16px 12px 8px;
+  border-left: 1px solid var(--noir-rule-faint);
+}
+
+.noir-add-panel-list {
+  min-height: 0;
+  flex: 1;
+  margin-top: 8px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.noir-add-icon {
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 84px;
+  width: 32px;
   height: 32px;
-  padding: 0 12px;
+  flex-shrink: 0;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
   color: var(--noir-text-primary);
   transition: border-color 0.12s ease, background-color 0.12s ease, color 0.12s ease;
 }
 
-.noir-add-button:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.05);
+.noir-add-icon:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.noir-add-button[data-added='true'] {
+.noir-add-icon[data-added='true'] {
   border-color: transparent;
   color: var(--noir-accent);
   cursor: default;
 }
 
-.noir-playlist-empty-row {
+.noir-add-row[data-added='true'] .noir-song-title,
+.noir-add-row[data-added='true'] .noir-song-meta {
+  opacity: 0.5;
+}
+
+.noir-button-secondary[data-active='true'] {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.noir-playlist-empty {
   display: flex;
   align-items: center;
   gap: 16px;
   padding: 12px;
-  list-style: none;
+}
+
+@media (max-width: 1000px) {
+  .noir-playlist-layout[data-panel='open'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .noir-add-panel {
+    position: static;
+    max-height: none;
+    border-left: none;
+    border-top: 1px solid var(--noir-rule-faint);
+  }
 }
 
 .noir-playlist-empty-slot {
@@ -1359,7 +1404,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 12px;
+  padding: 8px;
   border-radius: var(--noir-radius-md);
   transition: background-color 0.12s ease;
 }

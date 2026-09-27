@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { AnimatePresence, motion, Reorder } from 'motion/react';
 import { ArrowLeft, Check, MoreHorizontal, Pencil, Play, Plus, Search, Shuffle, Trash2, X } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { worldForCollection } from '../../../utils/ditherCover';
-import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
+import { EASE_PREMIUM, MOTION, prefersReducedMotion, withReducedMotion } from '../../../utils/motionPresets';
 import { executeSearchAPI } from '../../../utils/api/pipedSearch';
+import { ELVA_STORAGE_KEYS, readJsonStorage } from '../../../utils/elvaStorage';
 import {
   UserPlaylist,
   addTrackToPlaylist,
@@ -40,6 +41,44 @@ function shuffled<T>(items: T[]): T[] {
   return next;
 }
 
+/** Flies a copy of `from` to the bottom of `target` — the spot where the new row will render. */
+function flyCover(from: HTMLElement | null, target: HTMLElement | null) {
+  if (!from || !target || prefersReducedMotion()) return;
+  const a = from.getBoundingClientRect();
+  const t = target.getBoundingClientRect();
+  const size = 48;
+  // New rows append at the list's bottom edge; the row's cover sits 12px in (row padding).
+  const toX = t.left + 12;
+  const toY = t.bottom + 12;
+  const ghost = from.cloneNode(true) as HTMLElement;
+  Object.assign(ghost.style, {
+    position: 'fixed',
+    left: `${a.left}px`,
+    top: `${a.top}px`,
+    width: `${a.width}px`,
+    height: `${a.height}px`,
+    margin: '0',
+    zIndex: '9998',
+    pointerEvents: 'none',
+    borderRadius: '8px',
+    boxShadow: '0 12px 32px rgba(0,0,0,0.6)',
+  });
+  document.body.appendChild(ghost);
+  const dx = toX - a.left;
+  const dy = toY - a.top;
+  const scale = size / a.width;
+  ghost
+    .animate(
+      [
+        { transform: 'translate(0,0) scale(1)', opacity: 1 },
+        { transform: `translate(${dx * 0.55}px, ${dy * 0.35 - 40}px) scale(${1 + (scale - 1) * 0.5})`, opacity: 1, offset: 0.5 },
+        { transform: `translate(${dx}px, ${dy}px) scale(${scale})`, opacity: 0.2 },
+      ],
+      { duration: 520, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' }
+    )
+    .finished.finally(() => ghost.remove());
+}
+
 export function NoirUserPlaylistPage({
   playlist,
   favorites,
@@ -49,12 +88,16 @@ export function NoirUserPlaylistPage({
   onPlayNext,
   onToggleFavorite,
 }: NoirUserPlaylistPageProps) {
-  const [editing, setEditing] = useState(() => consumePendingRename(playlist.id));
+  const [justCreated] = useState(() => consumePendingRename(playlist.id));
+  const [editing, setEditing] = useState(justCreated);
   const [draft, setDraft] = useState(playlist.name);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(() => playlist.tracks.length === 0);
   const [order, setOrder] = useState(() => playlist.tracks.map((t) => t.id));
   const titleInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const reduced = prefersReducedMotion();
 
   useEffect(() => {
     setOrder(playlist.tracks.map((t) => t.id));
@@ -66,10 +109,13 @@ export function NoirUserPlaylistPage({
 
   useEffect(() => {
     if (!editing) return;
-    const input = titleInputRef.current;
-    input?.focus();
-    input?.select();
-  }, [editing]);
+    // Let the entrance animation start before focusing, so selection doesn't flash mid-scale.
+    const timer = setTimeout(() => {
+      titleInputRef.current?.focus();
+      titleInputRef.current?.select();
+    }, justCreated ? 180 : 0);
+    return () => clearTimeout(timer);
+  }, [editing, justCreated]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -82,6 +128,7 @@ export function NoirUserPlaylistPage({
 
   const byId = new Map(playlist.tracks.map((t) => [t.id, t]));
   const orderedTracks = order.map((id) => byId.get(id)).filter((t): t is SearchResult => !!t);
+  const hasTracks = orderedTracks.length > 0;
 
   const commitTitle = () => {
     renamePlaylist(playlist.id, draft);
@@ -104,162 +151,203 @@ export function NoirUserPlaylistPage({
     });
   };
 
-  const hasTracks = orderedTracks.length > 0;
+  const enter = (delay: number) =>
+    justCreated && !reduced
+      ? {
+          initial: { opacity: 0, y: 10 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.42, ease: EASE_PREMIUM, delay },
+        }
+      : {};
 
   return (
-    <div className="flex flex-col pb-6">
-      <button type="button" onClick={onBack} className="noir-back-link elva-focus-ring">
-        <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
-        {strings.playlist.back}
-      </button>
+    <div className="noir-playlist-layout" data-panel={panelOpen ? 'open' : 'closed'}>
+      <div className="min-w-0 pb-6">
+        <button type="button" onClick={onBack} className="noir-back-link elva-focus-ring">
+          <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
+          {strings.playlist.back}
+        </button>
 
-      <header className="mt-5 flex items-end gap-6">
-        <NoirDitherCover
-          source={orderedTracks[0]?.thumbnail}
-          world={worldForCollection(playlist.id)}
-          seed={playlist.id}
-          size={200}
-        />
-        <div className="min-w-0 flex-1 pb-1">
-          <p className="noir-label">{strings.playlist.label}</p>
-          {editing ? (
-            <input
-              ref={titleInputRef}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onBlur={commitTitle}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') commitTitle();
-                if (e.key === 'Escape') {
-                  setDraft(playlist.name);
-                  setEditing(false);
-                }
-              }}
-              maxLength={80}
-              className="noir-collection-title noir-collection-title--input"
-              aria-label={strings.playlist.rename}
+        <header className="mt-5 flex items-end gap-6">
+          <motion.div
+            initial={justCreated && !reduced ? { opacity: 0, scale: 0.4, rotate: -6 } : false}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 22, mass: 0.9 }}
+          >
+            <NoirDitherCover
+              source={orderedTracks[0]?.thumbnail}
+              world={worldForCollection(playlist.id)}
+              seed={playlist.id}
+              size={200}
             />
-          ) : (
-            <h1>
-              <button
-                type="button"
-                onClick={() => setEditing(true)}
-                className="noir-collection-title text-left elva-focus-ring"
-                title={strings.playlist.renameHint}
-              >
-                {playlist.name}
-              </button>
-            </h1>
-          )}
-          <p className="mt-2 text-[13px] text-[color:var(--noir-text-secondary)]">
-            {strings.playlist.songCount(orderedTracks.length)}
-          </p>
-
-          <div className="mt-5 flex items-center gap-2">
-            <motion.button
-              type="button"
-              disabled={!hasTracks}
-              onClick={() => onPlayPlaylist(orderedTracks, playlist.name)}
-              className="noir-play-round elva-focus-ring"
-              aria-label={strings.playlist.play}
-              whileTap={{ scale: 0.94 }}
-              transition={MOTION.tap}
-            >
-              <Play className="ml-0.5 h-5 w-5 fill-current" />
-            </motion.button>
-            <button
-              type="button"
-              disabled={!hasTracks}
-              onClick={() => onPlayPlaylist(shuffled(orderedTracks), playlist.name)}
-              className="noir-icon-button elva-focus-ring"
-              aria-label={strings.playlist.shuffle}
-              title={strings.playlist.shuffle}
-            >
-              <Shuffle className="h-[18px] w-[18px]" strokeWidth={1.75} />
-            </button>
-            <div ref={menuRef} className="relative">
-              <button
-                type="button"
-                onClick={() => setMenuOpen((open) => !open)}
-                className="noir-icon-button elva-focus-ring"
-                aria-label={strings.playlist.more}
-                aria-expanded={menuOpen}
-              >
-                <MoreHorizontal className="h-[18px] w-[18px]" strokeWidth={1.75} />
-              </button>
-              <AnimatePresence>
-                {menuOpen && (
-                  <motion.div
-                    className="noir-menu absolute left-0 top-full z-20 mt-2 w-48"
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    transition={withReducedMotion(MOTION.panel)}
-                    role="menu"
+          </motion.div>
+          <div className="min-w-0 flex-1 pb-1">
+            <motion.p className="noir-label" {...enter(0.08)}>
+              {strings.playlist.label}
+            </motion.p>
+            <motion.div {...enter(0.14)}>
+              {editing ? (
+                <input
+                  ref={titleInputRef}
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onBlur={commitTitle}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitTitle();
+                    if (e.key === 'Escape') {
+                      setDraft(playlist.name);
+                      setEditing(false);
+                    }
+                  }}
+                  maxLength={80}
+                  className="noir-collection-title noir-collection-title--input"
+                  aria-label={strings.playlist.rename}
+                />
+              ) : (
+                <h1>
+                  <button
+                    type="button"
+                    onClick={() => setEditing(true)}
+                    className="noir-collection-title text-left elva-focus-ring"
+                    title={strings.playlist.renameHint}
                   >
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className="noir-menu-item"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        setEditing(true);
-                      }}
+                    {playlist.name}
+                  </button>
+                </h1>
+              )}
+            </motion.div>
+            <motion.p className="mt-2 text-[13px] text-[color:var(--noir-text-secondary)]" {...enter(0.2)}>
+              {strings.playlist.songCount(orderedTracks.length)}
+            </motion.p>
+
+            <motion.div className="mt-5 flex items-center gap-2" {...enter(0.26)}>
+              <motion.button
+                type="button"
+                disabled={!hasTracks}
+                onClick={() => onPlayPlaylist(orderedTracks, playlist.name)}
+                className="noir-play-round elva-focus-ring"
+                aria-label={strings.playlist.play}
+                whileTap={{ scale: 0.94 }}
+                transition={MOTION.tap}
+              >
+                <Play className="ml-0.5 h-5 w-5 fill-current" />
+              </motion.button>
+              <button
+                type="button"
+                disabled={!hasTracks}
+                onClick={() => onPlayPlaylist(shuffled(orderedTracks), playlist.name)}
+                className="noir-icon-button elva-focus-ring"
+                aria-label={strings.playlist.shuffle}
+                title={strings.playlist.shuffle}
+              >
+                <Shuffle className="h-[18px] w-[18px]" strokeWidth={1.75} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setPanelOpen((open) => !open)}
+                className="noir-button-secondary ml-1 elva-focus-ring"
+                data-active={panelOpen ? 'true' : 'false'}
+                aria-expanded={panelOpen}
+              >
+                <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
+                {strings.playlist.addSongs}
+              </button>
+              <div ref={menuRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((open) => !open)}
+                  className="noir-icon-button elva-focus-ring"
+                  aria-label={strings.playlist.more}
+                  aria-expanded={menuOpen}
+                >
+                  <MoreHorizontal className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                </button>
+                <AnimatePresence>
+                  {menuOpen && (
+                    <motion.div
+                      className="noir-menu absolute left-0 top-full z-20 mt-2 w-48"
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={withReducedMotion(MOTION.panel)}
+                      role="menu"
                     >
-                      <Pencil className="h-4 w-4" strokeWidth={1.75} />
-                      {strings.playlist.rename}
-                    </button>
-                    <button type="button" role="menuitem" className="noir-menu-item noir-menu-item--danger" onClick={handleDelete}>
-                      <Trash2 className="h-4 w-4" strokeWidth={1.75} />
-                      {strings.playlist.delete}
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="noir-menu-item"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setEditing(true);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" strokeWidth={1.75} />
+                        {strings.playlist.rename}
+                      </button>
+                      <button type="button" role="menuitem" className="noir-menu-item noir-menu-item--danger" onClick={handleDelete}>
+                        <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                        {strings.playlist.delete}
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <PlaylistAddSection playlist={playlist} favorites={favorites} startOpen={!hasTracks} />
+        <Reorder.Group
+          ref={listRef}
+          axis="y"
+          values={order}
+          onReorder={setOrder}
+          className="mt-10 flex flex-col gap-0.5"
+        >
+          <AnimatePresence initial={false}>
+            {orderedTracks.map((track, i) => (
+              <PlaylistTrackItem
+                key={track.id}
+                track={track}
+                isFavorite={isTrackFavorite(favorites, track)}
+                onDragEnd={() => reorderPlaylist(playlist.id, order)}
+                onPlay={() => onPlayPlaylist(orderedTracks, playlist.name, i)}
+                onRemove={() => handleRemove(track)}
+                onAddToQueue={onAddToQueue}
+                onPlayNext={onPlayNext}
+                onToggleFavorite={onToggleFavorite}
+              />
+            ))}
+          </AnimatePresence>
+        </Reorder.Group>
 
-      <Reorder.Group axis="y" values={order} onReorder={setOrder} className="mt-8 flex flex-col gap-0.5">
-        <AnimatePresence initial={false}>
-          {orderedTracks.map((track, i) => (
-            <PlaylistTrackItem
-              key={track.id}
-              track={track}
-              index={i}
-              isFavorite={isTrackFavorite(favorites, track)}
-              onDragEnd={() => reorderPlaylist(playlist.id, order)}
-              onPlay={() => onPlayPlaylist(orderedTracks, playlist.name, i)}
-              onRemove={() => handleRemove(track)}
-              onAddToQueue={onAddToQueue}
-              onPlayNext={onPlayNext}
-              onToggleFavorite={onToggleFavorite}
-            />
-          ))}
-          {!hasTracks && (
-            <motion.li
-              key="empty"
-              className="noir-playlist-empty-row"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.12 } }}
-            >
-              <span className="noir-playlist-empty-slot" aria-hidden />
-              <span className="text-[13px] text-[color:var(--noir-text-tertiary)]">{strings.playlist.emptyRow}</span>
-            </motion.li>
-          )}
-        </AnimatePresence>
-      </Reorder.Group>
+        {!hasTracks && (
+          <motion.div className="noir-playlist-empty" {...enter(0.32)}>
+            <span className="noir-playlist-empty-slot" aria-hidden />
+            <span className="text-[13px] text-[color:var(--noir-text-tertiary)]">
+              {panelOpen ? strings.playlist.emptyWithPanel : strings.playlist.emptyRow}
+            </span>
+          </motion.div>
+        )}
+      </div>
+
+      <AnimatePresence initial={false}>
+        {panelOpen && (
+          <PlaylistAddPanel
+            key="add-panel"
+            playlist={playlist}
+            favorites={favorites}
+            listRef={listRef}
+            delay={justCreated ? 0.24 : 0}
+            onClose={() => setPanelOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
 type PlaylistTrackItemProps = {
   track: SearchResult;
-  index: number;
   isFavorite: boolean;
   onDragEnd: () => void;
   onPlay: () => void;
@@ -326,33 +414,27 @@ function PlaylistTrackItem({
   );
 }
 
-function PlaylistAddSection({
+type PanelSource = 'favorites' | 'recents';
+
+function PlaylistAddPanel({
   playlist,
   favorites,
-  startOpen,
+  listRef,
+  delay,
+  onClose,
 }: {
   playlist: UserPlaylist;
   favorites: SearchResult[];
-  startOpen: boolean;
+  listRef: RefObject<HTMLUListElement | null>;
+  delay: number;
+  onClose: () => void;
 }) {
-  const pickSuggestions = () => favorites.filter((t) => !playlistHasTrack(playlist, t)).slice(0, 5);
+  const [source, setSource] = useState<PanelSource>(favorites.length > 0 ? 'favorites' : 'recents');
+  const [recents] = useState<SearchResult[]>(() => readJsonStorage<SearchResult[]>(ELVA_STORAGE_KEYS.recentlyPlayed, []));
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(startOpen);
-  // Snapshot on open: added rows stay in place (showing "Added") so nothing shifts under the cursor.
-  const [suggestions, setSuggestions] = useState<SearchResult[]>(() => (startOpen ? pickSuggestions() : []));
   const requestRef = useRef(0);
-
-  const openSection = () => {
-    setSuggestions(pickSuggestions());
-    setOpen(true);
-  };
-
-  const closeSection = () => {
-    setQuery('');
-    setOpen(false);
-  };
 
   useEffect(() => {
     const q = query.trim();
@@ -365,7 +447,7 @@ function PlaylistAddSection({
     const id = ++requestRef.current;
     const timer = setTimeout(async () => {
       try {
-        const next = await executeSearchAPI(q, 8);
+        const next = await executeSearchAPI(q, 12);
         if (id === requestRef.current) setResults(next);
       } catch {
         if (id === requestRef.current) setResults([]);
@@ -377,129 +459,135 @@ function PlaylistAddSection({
   }, [query]);
 
   const showingSearch = query.trim().length >= 2;
-  const list = showingSearch ? results : suggestions;
+  const list = showingSearch ? results : source === 'favorites' ? favorites : recents;
 
-  const add = (track: SearchResult) => {
-    if (addTrackToPlaylist(playlist.id, track)) {
-      noirToast({ text: strings.playlist.addedTo(playlist.name), cover: track.thumbnail });
-    }
+  const add = (track: SearchResult, coverEl: HTMLElement | null) => {
+    if (!addTrackToPlaylist(playlist.id, track)) return;
+    flyCover(coverEl, listRef.current);
   };
 
   return (
-    <div className="mt-8">
-      <AnimatePresence initial={false} mode="popLayout">
-        {!open ? (
-          <motion.button
-            key="add-button"
-            type="button"
-            onClick={openSection}
-            className="noir-button-secondary elva-focus-ring"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.1 } }}
-            transition={withReducedMotion(MOTION.panel)}
-          >
-            <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
-            {strings.playlist.addSongs}
-          </motion.button>
-        ) : (
-          <motion.section
-            key="add-section"
-            className="noir-add-panel"
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4, transition: { duration: 0.14 } }}
-            transition={withReducedMotion(MOTION.panel)}
-          >
-            <div className="mb-3 flex items-center justify-between gap-4">
-              <h2 className="noir-section-title">{strings.playlist.addSongs}</h2>
-              <button
-                type="button"
-                onClick={closeSection}
-                className="noir-icon-button !h-8 !w-8 elva-focus-ring"
-                aria-label={strings.playlist.close}
-                title={strings.playlist.close}
-              >
-                <X className="h-4 w-4" strokeWidth={1.75} />
-              </button>
-            </div>
+    <motion.aside
+      className="noir-add-panel"
+      initial={{ opacity: 0, x: 24 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 16, transition: { duration: 0.16 } }}
+      transition={withReducedMotion({ ...MOTION.scene, delay })}
+      aria-label={strings.playlist.addSongs}
+    >
+      <div className="flex items-center justify-between gap-4 px-1">
+        <h2 className="noir-section-title">{strings.playlist.addSongs}</h2>
+        <button
+          type="button"
+          onClick={onClose}
+          className="noir-icon-button !h-8 !w-8 elva-focus-ring"
+          aria-label={strings.playlist.close}
+          title={strings.playlist.close}
+        >
+          <X className="h-4 w-4" strokeWidth={1.75} />
+        </button>
+      </div>
 
-      <label className="noir-inline-search">
+      <label className="noir-inline-search mt-3 !max-w-none">
         <Search className="h-4 w-4 shrink-0 text-[color:var(--noir-text-tertiary)]" strokeWidth={1.75} />
         <input
           value={query}
-          autoFocus={!startOpen}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Escape') {
               if (query) setQuery('');
-              else closeSection();
+              else onClose();
             }
           }}
           placeholder={strings.playlist.searchPlaceholder}
           className="min-w-0 flex-1 bg-transparent text-[14px] text-[color:var(--noir-text-primary)] outline-none placeholder:text-[color:var(--noir-text-tertiary)]"
         />
         {query && (
-          <button
-            type="button"
-            onClick={() => setQuery('')}
-            className="text-[color:var(--noir-text-tertiary)] hover:text-white"
-            aria-label="Clear"
-          >
+          <button type="button" onClick={() => setQuery('')} className="text-[color:var(--noir-text-tertiary)] hover:text-white" aria-label="Clear">
             <X className="h-4 w-4" strokeWidth={1.75} />
           </button>
         )}
       </label>
 
-      <div className="mt-4">
-        {!showingSearch && suggestions.length > 0 && <p className="noir-label mb-2 px-3">{strings.playlist.suggested}</p>}
+      {!showingSearch && (
+        <div className="mt-3 flex gap-1 px-1" role="tablist">
+          {(['favorites', 'recents'] as PanelSource[]).map((id) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={source === id}
+              data-active={source === id ? 'true' : 'false'}
+              onClick={() => setSource(id)}
+              className="noir-nav-item h-8 px-3 text-[12px] font-medium elva-focus-ring"
+            >
+              {id === 'favorites' ? strings.playlist.tabFavorites : strings.playlist.tabRecents}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="noir-add-panel-list">
         {showingSearch && loading && results.length === 0 && (
-          <p className="px-3 py-4 text-[13px] text-[color:var(--noir-text-tertiary)]">{strings.playlist.searching}</p>
+          <p className="px-2 py-4 text-[13px] text-[color:var(--noir-text-tertiary)]">{strings.playlist.searching}</p>
         )}
         {showingSearch && !loading && results.length === 0 && (
-          <p className="px-3 py-4 text-[13px] text-[color:var(--noir-text-secondary)]">{strings.playlist.noResults(query.trim())}</p>
+          <p className="px-2 py-4 text-[13px] text-[color:var(--noir-text-secondary)]">{strings.playlist.noResults(query.trim())}</p>
         )}
-        <div className="flex flex-col gap-0.5">
-          {list.map((track) => {
-            const inPlaylist = playlistHasTrack(playlist, track);
-            return (
-              <div key={track.id} className="noir-add-row">
-                <img src={track.thumbnail} alt="" className="noir-art h-10 w-10 shrink-0 object-cover" />
-                <div className="min-w-0 flex-1">
-                  <p className="noir-song-title truncate">{track.title}</p>
-                  <p className="noir-song-meta truncate">{track.artist}</p>
-                </div>
-                <motion.button
-                  type="button"
-                  disabled={inPlaylist}
-                  onClick={() => add(track)}
-                  className="noir-add-button elva-focus-ring"
-                  data-added={inPlaylist ? 'true' : 'false'}
-                  whileTap={inPlaylist ? undefined : { scale: 0.94 }}
-                  transition={MOTION.tap}
-                >
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    <motion.span
-                      key={inPlaylist ? 'added' : 'add'}
-                      className="flex items-center gap-1.5"
-                      initial={{ opacity: 0, scale: 0.7 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.7 }}
-                      transition={withReducedMotion(MOTION.panel)}
-                    >
-                      {inPlaylist ? <Check className="h-3.5 w-3.5" strokeWidth={2.25} /> : <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />}
-                      {inPlaylist ? strings.playlist.added : strings.playlist.add}
-                    </motion.span>
-                  </AnimatePresence>
-                </motion.button>
-              </div>
-            );
-          })}
-        </div>
+        {!showingSearch && list.length === 0 && (
+          <p className="px-2 py-4 text-[13px] text-[color:var(--noir-text-tertiary)]">
+            {source === 'favorites' ? strings.playlist.noFavorites : strings.playlist.noRecents}
+          </p>
+        )}
+        {list.map((track) => (
+          <AddRow key={track.id} track={track} added={playlistHasTrack(playlist, track)} onAdd={add} />
+        ))}
       </div>
-          </motion.section>
-        )}
-      </AnimatePresence>
+    </motion.aside>
+  );
+}
+
+function AddRow({
+  track,
+  added,
+  onAdd,
+}: {
+  track: SearchResult;
+  added: boolean;
+  onAdd: (track: SearchResult, coverEl: HTMLElement | null) => void;
+}) {
+  const coverRef = useRef<HTMLImageElement>(null);
+  return (
+    <div className="noir-add-row" data-added={added ? 'true' : 'false'}>
+      <img ref={coverRef} src={track.thumbnail} alt="" className="noir-art h-10 w-10 shrink-0 object-cover" />
+      <div className="min-w-0 flex-1">
+        <p className="noir-song-title truncate">{track.title}</p>
+        <p className="noir-song-meta truncate">{track.artist}</p>
+      </div>
+      <motion.button
+        type="button"
+        disabled={added}
+        onClick={() => onAdd(track, coverRef.current)}
+        className="noir-add-icon elva-focus-ring"
+        data-added={added ? 'true' : 'false'}
+        aria-label={added ? strings.playlist.added : strings.playlist.add}
+        title={added ? strings.playlist.added : strings.playlist.add}
+        whileTap={added ? undefined : { scale: 0.88 }}
+        transition={MOTION.tap}
+      >
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.span
+            key={added ? 'added' : 'add'}
+            className="flex"
+            initial={{ opacity: 0, scale: 0.5, rotate: added ? -30 : 0 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 26 }}
+          >
+            {added ? <Check className="h-4 w-4" strokeWidth={2.5} /> : <Plus className="h-4 w-4" strokeWidth={2.25} />}
+          </motion.span>
+        </AnimatePresence>
+      </motion.button>
     </div>
   );
 }

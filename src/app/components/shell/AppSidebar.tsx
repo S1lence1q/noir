@@ -1,4 +1,6 @@
+import { AnimatePresence, motion } from 'motion/react';
 import { Compass, Heart, Home, Library, Plus, Settings } from 'lucide-react';
+import { MOTION, withReducedMotion } from '../../utils/motionPresets';
 import { AppTab } from './types';
 import { NoirGraphicAccent } from './noir/NoirGraphicAccent';
 import { NoirMark } from './noir/NoirMark';
@@ -96,29 +98,46 @@ export function AppSidebar({
             <Plus className="h-3.5 w-3.5" strokeWidth={2} />
           </button>
         </div>
-        <div className="flex flex-col gap-0.5">
-          {sidebarPlaylists.map((playlist) => {
-            const isActive = selectedPlaylistId === playlist.id;
-            return (
-              <button
-                key={playlist.id}
-                type="button"
-                onClick={() => onOpenPlaylist?.(playlist.id)}
-                data-active={isActive ? 'true' : 'false'}
-                className="noir-nav-item flex h-10 items-center gap-2.5 px-3 text-left text-[14px] font-medium elva-focus-ring"
-                aria-current={isActive ? 'page' : undefined}
-              >
-                <NoirDitherCover
-                  source={playlist.tracks[0]?.thumbnail}
-                  world={worldForCollection(playlist.id)}
-                  seed={playlist.id}
-                  size={22}
-                  radius={5}
-                />
-                <span className="truncate">{playlist.name}</span>
-              </button>
-            );
-          })}
+        <div className="flex flex-col">
+          <AnimatePresence initial={false}>
+            {sidebarPlaylists.map((playlist) => {
+              const isActive = selectedPlaylistId === playlist.id;
+              return (
+                <motion.div
+                  key={playlist.id}
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 42, opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={withReducedMotion(MOTION.panel)}
+                  className="overflow-hidden"
+                >
+                  <button
+                    type="button"
+                    onClick={() => onOpenPlaylist?.(playlist.id)}
+                    data-active={isActive ? 'true' : 'false'}
+                    className="noir-nav-item flex h-10 w-full items-center gap-2.5 px-3 text-left text-[14px] font-medium elva-focus-ring"
+                    aria-current={isActive ? 'page' : undefined}
+                  >
+                    <motion.span
+                      initial={{ scale: 0.3, rotate: -20 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: 'spring', stiffness: 420, damping: 18, delay: 0.08 }}
+                      className="flex"
+                    >
+                      <NoirDitherCover
+                        source={playlist.tracks[0]?.thumbnail}
+                        world={worldForCollection(playlist.id)}
+                        seed={playlist.id}
+                        size={22}
+                        radius={5}
+                      />
+                    </motion.span>
+                    <span className="truncate">{playlist.name}</span>
+                  </button>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       </div>
 
