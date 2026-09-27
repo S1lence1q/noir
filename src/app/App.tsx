@@ -282,6 +282,11 @@ export default function App() {
     } catch {}
   }, [sidePanelOpen]);
 
+  // Lyrics need horizontal room — tuck the Next up rail while they're open.
+  useEffect(() => {
+    if (showLyrics) setSidePanelOpen(false);
+  }, [showLyrics]);
+
   const toggleQueueRail = () => {
     if (!songData) return;
     if (!nowPlayingOpen) {

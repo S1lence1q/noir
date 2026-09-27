@@ -294,7 +294,7 @@ export function NoirNowPlayingView({
       </motion.div>
 
       <div className="noir-now-playing-stage">
-        <div className="noir-now-playing-stage-row">
+        <div className={`noir-now-playing-stage-row${showLyrics && lyrics.length > 0 ? ' has-lyrics' : ''}`}>
           <div className="noir-now-playing-identity">
             <motion.div
               layoutId={reduced ? undefined : 'np-cover'}
@@ -452,7 +452,6 @@ export function NoirNowPlayingView({
                 transition={{ duration: reduced ? 0.15 : 0.36, ease: sheetEase }}
               >
                 <div className="noir-now-playing-stage-lyrics-inner">
-                  <p className="noir-now-playing-lyrics-label">{strings.lyrics.title}</p>
                   <NoirLyricsColumn
                     lyrics={lyrics}
                     isLoading={isLoadingLyrics}
