@@ -22,7 +22,7 @@ import { isTrackFavorite } from './utils/favoriteUtils';
 import { restoreLocalTrack, saveLocalTrack } from './utils/localTrackStorage';
 import { strings } from './constants/strings';
 import { waitForYouTubeApi } from './utils/youtubeApiReady';
-import { addTrackToPlaylist, readPlaylists } from './utils/playlistStore';
+import { addTrackToPlaylist, createPlaylist, readPlaylists } from './utils/playlistStore';
 
 // Import newly extracted hooks and components
 import { useScrollTracking } from './hooks/useScrollTracking';
@@ -883,6 +883,16 @@ export default function App() {
   const focusedResultIndex = searchLogic.focusedResultIndex;
   const setFocusedResultIndex = searchLogic.setFocusedResultIndex;
 
+  const handleNewPlaylist = () => {
+    const playlist = createPlaylist();
+    setLibraryFocus((prev) => ({
+      section: 'playlists',
+      playlistId: playlist.id,
+      requestId: prev.requestId + 1,
+    }));
+    setActiveTab('myhub');
+  };
+
   useEffect(() => {
     const open = () => setSearchPaletteOpen(true);
     window.addEventListener('elva-open-search-palette', open);
@@ -927,6 +937,7 @@ export default function App() {
     selectedPlaylist,
     setSelectedPlaylist,
     onOpenSearchPalette: () => setSearchPaletteOpen(true),
+    onNewPlaylist: handleNewPlaylist,
   });
 
   useEffect(() => {

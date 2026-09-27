@@ -28,6 +28,7 @@ interface KeyboardShortcutsParams {
   selectedPlaylist: any;
   setSelectedPlaylist: React.Dispatch<React.SetStateAction<any>>;
   onOpenSearchPalette?: () => void;
+  onNewPlaylist?: () => void;
 }
 
 export function useKeyboardShortcuts({
@@ -57,6 +58,7 @@ export function useKeyboardShortcuts({
   selectedPlaylist,
   setSelectedPlaylist,
   onOpenSearchPalette,
+  onNewPlaylist,
 }: KeyboardShortcutsParams) {
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -172,6 +174,9 @@ export function useKeyboardShortcuts({
       if (e.key === '?') {
         e.preventDefault();
         setShowShortcutMap((prev) => !prev);
+      } else if (e.key.toLowerCase() === 'n' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        onNewPlaylist?.();
       } else if (e.key === 'Escape' && showShortcutMap) {
         e.preventDefault();
         setShowShortcutMap(false);
@@ -219,5 +224,6 @@ export function useKeyboardShortcuts({
     selectedPlaylist,
     setSelectedPlaylist,
     onOpenSearchPalette,
+    onNewPlaylist,
   ]);
 }
