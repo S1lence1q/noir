@@ -50,6 +50,7 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 - **T14 A+B:** cover flight bar ↔ canvas; bar identity hidden while open; atmosphere after landing
 - **T14 C:** `Playing from {source}` (Popular from artist). Soft Shuffle. **Lyrics beside cover** (`L` / meta link). **Queue bar button toggles** Next up rail. Similar parked; D parked.
 - **T17:** Library **Your sound** (week/month minutes, top artists/tracks, clock, streak) + **NOIR Replay** (Bone story cards + Save image)
+- **T21:** Cold start — Home **Pick 3 artists** (DK chart + search) seeds taste so mixes/Discover aren’t empty
 - **Home:** greeting + Continue + dithered object, Jump back in, library shelf, artist circles
 - **Discover:** taste feed shelves + chart cards (no redundant Top 10 under Charts)
 - **Artist page:** dithered poster, Popular, dedupe; identity via Last.fm/MusicBrainz/Deezer; reopen same profile does not reload
@@ -58,9 +59,10 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 
 ## Next (in order)
 
-1. Polish Stats / Replay from screenshots (tags shelf later; richer Replay art).
-2. F7 cold start · T05b verify · T07 unused-asset leftovers (`top_hits_*.png` still imported by legacy `DiscoverView.tsx`).
-3. Parked later: Similar artists (artist page / on-demand), spray wave (decision 005), NP graphic slot (T14 D).
+1. Polish Stats / Replay from screenshots (tags shelf later; richer Replay art) — atmosphere parked.
+2. **T21 cold start DONE** — Pick 3 artists seeds taste on first Home visit.
+3. T05b verify · T07 unused-asset leftovers (`top_hits_*.png` still imported by legacy `DiscoverView.tsx`).
+4. Parked later: Similar artists (artist page / on-demand), spray wave (decision 005), NP graphic slot (T14 D).
 
 ## Do / don't
 

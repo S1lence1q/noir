@@ -13,8 +13,10 @@ import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motio
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import { NoirDitherCover } from './NoirDitherCover';
 import { NoirFavoritesCover } from './NoirFavoritesCover';
+import { NoirColdStart } from './NoirColdStart';
 import { Playlist } from '../../PlaylistDetailsView';
 import { getListeningEvents } from '../../../services/listening/eventsStore';
+import { isTasteEmpty } from '../../../services/listening/seedTaste';
 import { DailyMix, loadDailyMixes } from '../../../services/mixes/dailyMixes';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { prefetchArtistProfile } from '../../../utils/artistDiscographyLoader';
@@ -79,6 +81,9 @@ export function NoirHomeView({
   const playlists = usePlaylists();
   const [mixes, setMixes] = useState<DailyMix[]>([]);
   const [mixesLoading, setMixesLoading] = useState(true);
+  const [mixReloadKey, setMixReloadKey] = useState(0);
+  /** null = still checking events; true = show F7 picker */
+  const [needsColdStart, setNeedsColdStart] = useState<boolean | null>(null);
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 5) return strings.greeting.lateNight;
@@ -133,6 +138,21 @@ export function NoirHomeView({
 
   useEffect(() => {
     let cancelled = false;
+    void (async () => {
+      try {
+        const events = await getListeningEvents();
+        if (!cancelled) setNeedsColdStart(isTasteEmpty(events));
+      } catch {
+        if (!cancelled) setNeedsColdStart(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [mixReloadKey]);
+
+  useEffect(() => {
+    let cancelled = false;
     setMixesLoading(true);
     void (async () => {
       try {
@@ -149,8 +169,12 @@ export function NoirHomeView({
     return () => {
       cancelled = true;
     };
-  }, [recentlyPlayed.length > 0]); // seed once recents exist; day-cache keeps mixes stable
+  }, [recentlyPlayed.length > 0, mixReloadKey]); // seed once recents exist; reload after cold start
 
+  const handleColdStartSeeded = () => {
+    setNeedsColdStart(false);
+    setMixReloadKey((n) => n + 1);
+  };
   useEffect(() => {
     return () => {
       if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
@@ -321,7 +345,11 @@ export function NoirHomeView({
               exit={{ opacity: 0 }}
               className="noir-content relative py-6"
             >
-              {!featuredTrack && (
+              {!featuredTrack && needsColdStart === true && (
+                <NoirColdStart onSeeded={handleColdStartSeeded} onBrowseDiscover={onOpenDiscover} />
+              )}
+
+              {!featuredTrack && needsColdStart === false && !mixesLoading && mixes.length === 0 && (
                 <div className="noir-home-start-card mb-10 max-w-xl">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--noir-text-tertiary)]">
                     Start listening

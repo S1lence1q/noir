@@ -8,7 +8,8 @@ export type ListeningSource =
   | 'radio'
   | 'mix'
   | 'queue'
-  | 'local';
+  | 'local'
+  | 'seed';
 
 export type ListeningEvent = {
   id: string;
