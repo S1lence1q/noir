@@ -14,10 +14,18 @@ import { getDeezerArtistTopTracks } from '../services/musicGraph/deezer';
 import { graphTrackToSearchResult } from '../services/discover/discoverFeed';
 import { normalizeName } from '../services/musicGraph/normalize';
 import { displayArtistName } from './stringUtils';
+import { hasRealArtwork } from './artwork';
 import type { SearchResult } from '../types';
 
 function trackKey(track: SearchResult): string {
   return `${normalizeName(track.artist)}::${normalizeName(track.title)}`;
+}
+
+function titlesLooselyMatch(a: string, b: string): boolean {
+  const na = normalizeName(a);
+  const nb = normalizeName(b);
+  if (!na || !nb) return false;
+  return na === nb || na.includes(nb) || nb.includes(na);
 }
 
 /** Prefer playable (videoId) rows when merging Popular + discography; keep any real cover. */
@@ -36,10 +44,14 @@ export function mergeArtistTrackLists(
       map.set(key, track);
       continue;
     }
-    const thumbnail = existing.thumbnail?.trim() || track.thumbnail?.trim() || '';
+    const preferredThumb = hasRealArtwork(existing.thumbnail)
+      ? existing.thumbnail
+      : hasRealArtwork(track.thumbnail)
+        ? track.thumbnail
+        : existing.thumbnail?.trim() || track.thumbnail?.trim() || '';
     if (!existing.videoId && track.videoId) {
-      map.set(key, { ...existing, ...track, thumbnail: track.thumbnail?.trim() || thumbnail });
-    } else if (!existing.thumbnail?.trim() && track.thumbnail?.trim()) {
+      map.set(key, { ...existing, ...track, thumbnail: preferredThumb || track.thumbnail?.trim() || '' });
+    } else if (!hasRealArtwork(existing.thumbnail) && hasRealArtwork(track.thumbnail)) {
       map.set(key, { ...existing, thumbnail: track.thumbnail });
     }
   }
@@ -143,15 +155,10 @@ export async function loadArtistPopularTracks(
   const tracks = await getArtistTopTracks(lookupName, limit);
 
   // Last.fm tops rarely ship real artwork; overlay Deezer album covers by title, then per-track search.
-  let deezerByTitle = new Map<string, GraphTrack>();
-  if (tracks.some((track) => !track.image)) {
+  let deezerTops: GraphTrack[] = [];
+  if (tracks.some((track) => !hasRealArtwork(track.image))) {
     try {
-      const deezerTops = await getDeezerArtistTopTracks(lookupName, Math.max(limit, 25));
-      deezerByTitle = new Map(
-        deezerTops
-          .filter((track) => track.image)
-          .map((track) => [normalizeName(track.title) || track.title.toLowerCase(), track])
-      );
+      deezerTops = await getDeezerArtistTopTracks(lookupName, Math.max(limit, 25));
     } catch {
       // optional
     }
@@ -159,10 +166,19 @@ export async function loadArtistPopularTracks(
 
   const withArt = await Promise.all(
     tracks.map(async (track) => {
-      if (track.image) return track;
-      const matched = deezerByTitle.get(normalizeName(track.title) || track.title.toLowerCase());
-      if (matched?.image) {
-        return { ...track, image: matched.image, durationSec: track.durationSec ?? matched.durationSec };
+      if (hasRealArtwork(track.image)) return track;
+      const exact = deezerTops.find(
+        (candidate) =>
+          hasRealArtwork(candidate.image) &&
+          normalizeName(candidate.title) === (normalizeName(track.title) || track.title.toLowerCase())
+      );
+      const loose =
+        exact ||
+        deezerTops.find(
+          (candidate) => hasRealArtwork(candidate.image) && titlesLooselyMatch(candidate.title, track.title)
+        );
+      if (loose?.image) {
+        return { ...track, image: loose.image, durationSec: track.durationSec ?? loose.durationSec };
       }
       try {
         const image = await getTrackImage(track.title, track.artist || lookupName);

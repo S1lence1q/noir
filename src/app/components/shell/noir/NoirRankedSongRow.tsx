@@ -4,6 +4,7 @@ import { SearchResult } from '../../../types';
 import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
 import { prefersReducedMotion } from '../../../utils/motionPresets';
 import { encodePlaylistTrack, PLAYLIST_TRACK_DRAG_MIME } from '../../../utils/playlistStore';
+import { hasRealArtwork, youtubeThumb } from '../../../utils/artwork';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { displayArtistName } from '../../../utils/stringUtils';
 import { NoirDitherCover } from './NoirDitherCover';
@@ -40,7 +41,10 @@ export function NoirRankedSongRow({
 }: NoirRankedSongRowProps) {
   const reduced = prefersReducedMotion();
   const rankLabel = String(rank).padStart(2, '0');
-  const hasThumb = !!track.thumbnail?.trim();
+  const artUrl = hasRealArtwork(track.thumbnail)
+    ? track.thumbnail.trim()
+    : youtubeThumb(track.videoId, 'mq') || '';
+  const hasThumb = !!artUrl;
 
   return (
     <motion.div
@@ -82,15 +86,16 @@ export function NoirRankedSongRow({
         <div className={`noir-art relative h-12 w-12 overflow-hidden ${hasThumb ? 'bg-[color:var(--noir-gray-dark)]' : ''}`}>
           {hasThumb ? (
             <motion.img
-              src={track.thumbnail}
+              src={artUrl}
               alt=""
               className="h-full w-full object-cover"
               whileTap={reduced ? undefined : { scale: 0.92 }}
               transition={{ type: 'spring', stiffness: 450, damping: 30 }}
               onError={(e) => {
                 e.currentTarget.onerror = null;
-                if (track.videoId) {
-                  e.currentTarget.src = `https://img.youtube.com/vi/${track.videoId}/mqdefault.jpg`;
+                const fallback = youtubeThumb(track.videoId, 'mq');
+                if (fallback && e.currentTarget.src !== fallback) {
+                  e.currentTarget.src = fallback;
                 }
               }}
             />

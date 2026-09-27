@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect, type Dispatch, type SetStateAction } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Toaster, toast } from 'sonner';
 import 'sonner/dist/styles.css';
@@ -263,6 +263,7 @@ export default function App() {
   const resolvedVideoIdsRef = useRef(resolvedVideoIds);
   const queueRef = useRef(queue);
   const prefetchAbortRef = useRef<AbortController | null>(null);
+  const setArtistTracksRef = useRef<Dispatch<SetStateAction<SearchResult[]>> | null>(null);
 
   useEffect(() => {
     resolvedVideoIdsRef.current = resolvedVideoIds;
@@ -271,6 +272,23 @@ export default function App() {
   useEffect(() => {
     queueRef.current = queue;
   }, [queue]);
+
+  /** Keep Popular / queue thumbs in sync when playback resolves real cover art. */
+  const patchTrackInLists = (trackId: string, patch: Partial<SearchResult>) => {
+    if (!trackId) return;
+    const apply = (item: SearchResult): SearchResult =>
+      item.id === trackId ? { ...item, ...patch } : item;
+    setQueue((prev) => prev.map(apply));
+    setArtistTracksRef.current?.((prev) => prev.map(apply));
+  };
+
+  const syncTrackArtwork = (trackId: string, artwork: string, videoId?: string) => {
+    if (!hasRealArtwork(artwork)) return;
+    patchTrackInLists(trackId, {
+      thumbnail: artwork,
+      ...(videoId ? { videoId } : {}),
+    });
+  };
 
   // Lifted Settings States
   const [accentColor, setAccentColor] = useState<AccentColor>(() => {
@@ -512,17 +530,10 @@ export default function App() {
       localStorage.setItem('elva_resolved_video_ids', JSON.stringify(next));
       return next;
     });
-    setQueue((prev) =>
-      prev.map((item) =>
-        item.id === trackId
-          ? {
-              ...item,
-              videoId,
-              ...(thumbnail ? { thumbnail } : {}),
-            }
-          : item
-      )
-    );
+    patchTrackInLists(trackId, {
+      videoId,
+      ...(hasRealArtwork(thumbnail) ? { thumbnail: thumbnail! } : {}),
+    });
   };
 
   const startQueuePrefetch = (tracks: SearchResult[], skipTrackId?: string) => {
@@ -586,6 +597,9 @@ export default function App() {
       } catch {
         /* optional */
       }
+    }
+    if (hasRealArtwork(finalArtwork)) {
+      syncTrackArtwork(result.id, finalArtwork, finalVideoId || undefined);
     }
     let neededResolve = !isLocal && !finalVideoId;
     const needsAudioSwap =
@@ -664,6 +678,9 @@ export default function App() {
             ? resolved.thumbnail
             : youtubeThumb(resolved.videoId, 'hq') || finalArtwork;
           persistResolvedVideoId(result.id, finalVideoId, finalArtwork || resolved.thumbnail);
+          if (hasRealArtwork(finalArtwork)) {
+            syncTrackArtwork(result.id, finalArtwork, finalVideoId);
+          }
           startQueuePrefetch(queueRef.current, result.id);
         } else {
           toast.error('Could not play song', {
@@ -957,6 +974,7 @@ export default function App() {
     tourStep,
     setTourStep
   });
+  setArtistTracksRef.current = searchLogic.setArtistTracks;
 
   // Share select state back with hoisting reference
   const verifiedArtist = searchLogic.verifiedArtist;

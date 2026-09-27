@@ -7,6 +7,7 @@ import { prefersReducedMotion } from '../../../utils/motionPresets';
 import { encodePlaylistTrack, PLAYLIST_TRACK_DRAG_MIME } from '../../../utils/playlistStore';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { displayArtistName } from '../../../utils/stringUtils';
+import { hasRealArtwork, youtubeThumb } from '../../../utils/artwork';
 import { NoirDitherCover } from './NoirDitherCover';
 
 type NoirSongRowProps = {
@@ -56,8 +57,11 @@ export function NoirSongRow({
   allowExternalDrag = true,
 }: NoirSongRowProps) {
   const reduced = prefersReducedMotion();
-  const hasThumb = !!track.thumbnail?.trim();
   const canExternalDrag = allowExternalDrag && !isLoading;
+  const artUrl = hasRealArtwork(track.thumbnail)
+    ? track.thumbnail.trim()
+    : youtubeThumb(track.videoId, 'mq') || '';
+  const hasThumb = !!artUrl;
 
   return (
     <motion.div
@@ -98,15 +102,16 @@ export function NoirSongRow({
       <div className={`noir-art relative h-12 w-12 overflow-hidden ${hasThumb ? 'bg-[color:var(--noir-gray-dark)]' : ''}`}>
         {hasThumb ? (
           <motion.img
-            src={track.thumbnail}
+            src={artUrl}
             alt=""
             className={`h-full w-full object-cover ${isLoading ? 'opacity-50' : ''}`}
             whileTap={reduced || isLoading ? undefined : { scale: 0.92 }}
             transition={{ type: 'spring', stiffness: 450, damping: 30 }}
             onError={(e) => {
               e.currentTarget.onerror = null;
-              if (track.videoId) {
-                e.currentTarget.src = `https://img.youtube.com/vi/${track.videoId}/mqdefault.jpg`;
+              const fallback = youtubeThumb(track.videoId, 'mq');
+              if (fallback && e.currentTarget.src !== fallback) {
+                e.currentTarget.src = fallback;
               }
             }}
           />
