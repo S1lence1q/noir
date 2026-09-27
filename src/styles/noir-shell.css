@@ -913,15 +913,28 @@
   display: flex;
   min-width: 0;
   flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  padding: 40px 32px 40px 48px;
+}
+
+/* Row group: identity alone (centered) or identity + lyrics expanding to the right. */
+.noir-now-playing-stage-row {
+  display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 40px;
-  padding: 40px 32px 40px 48px;
+  gap: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .noir-now-playing-identity {
   display: flex;
+  width: min(52vh, 440px);
+  max-width: 100%;
   min-width: 0;
   flex-direction: column;
   justify-content: center;
@@ -929,26 +942,25 @@
   flex-shrink: 0;
 }
 
-.noir-now-playing-stage.has-lyrics {
-  justify-content: flex-start;
-  padding-right: 24px;
-}
-
-.noir-now-playing-stage.has-lyrics .noir-now-playing-identity {
-  max-width: min(100%, 52vh, 440px);
-}
-
 .noir-now-playing-stage-lyrics {
   position: relative;
   z-index: 1;
   display: flex;
-  min-width: 0;
-  min-height: 0;
-  flex: 1;
   flex-direction: column;
-  max-width: 420px;
+  flex-shrink: 0;
+  overflow: hidden;
   height: min(70vh, 560px);
-  align-self: center;
+  margin-left: 0;
+}
+
+.noir-now-playing-stage-lyrics-inner {
+  display: flex;
+  width: 360px;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  padding-left: 40px;
+  box-sizing: border-box;
 }
 
 .noir-now-playing-stage-lyrics .noir-lyrics {
@@ -984,7 +996,7 @@
 
 .noir-now-playing-art-slot {
   position: relative;
-  width: min(100%, 52vh, 440px);
+  width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
   background: var(--noir-elevated);
@@ -1139,19 +1151,30 @@ button.noir-now-playing-source:hover {
   }
 
   .noir-now-playing-stage {
-    flex-direction: column;
     align-items: stretch;
     padding: 28px 24px 24px;
-    gap: 20px;
   }
 
-  .noir-now-playing-stage.has-lyrics .noir-now-playing-identity {
-    max-width: none;
+  .noir-now-playing-stage-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .noir-now-playing-identity {
+    width: min(100%, 52vh, 440px);
+    align-self: center;
   }
 
   .noir-now-playing-stage-lyrics {
-    max-width: none;
     height: min(40vh, 320px);
+    width: 100% !important;
+    max-width: none;
+  }
+
+  .noir-now-playing-stage-lyrics-inner {
+    width: 100%;
+    padding-left: 0;
+    padding-top: 12px;
   }
 
   .noir-now-playing-title {

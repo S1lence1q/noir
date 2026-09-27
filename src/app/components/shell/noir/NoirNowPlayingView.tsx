@@ -57,6 +57,8 @@ type NoirNowPlayingViewProps = {
 const sheetEase = EASE_PREMIUM;
 const BATCH_SIZE = 10;
 const SHUFFLE_SETTLE_MS = 540;
+/** Fixed lyrics panel width — animate 0 ↔ this so hide/show doesn't snap the cover. */
+const LYRICS_PANEL_WIDTH = 360;
 
 function shuffled<T>(items: T[]): T[] {
   const next = [...items];
@@ -293,169 +295,181 @@ export function NoirNowPlayingView({
         />
       </motion.div>
 
-      <div className={`noir-now-playing-stage${showLyrics ? ' has-lyrics' : ''}`}>
-        <div className="noir-now-playing-identity">
-          <motion.div
-            layoutId={reduced ? undefined : 'np-cover'}
-            className="noir-now-playing-art-slot"
-            style={{ borderRadius: 18, boxShadow: '0 28px 80px rgba(0,0,0,0.55)' }}
-            transition={{ type: 'spring', stiffness: 320, damping: 34, mass: 0.85 }}
-          >
-            <AnimatePresence mode="sync" initial={false}>
-              {hasRealArtwork(song.artworkUrl) ? (
-                <motion.img
-                  key={song.artworkUrl}
-                  src={song.artworkUrl}
-                  alt=""
-                  className="noir-now-playing-art"
-                  initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 12 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.03, y: -8 }}
-                  transition={
-                    reduced
-                      ? { duration: 0.2 }
-                      : { type: 'spring', stiffness: 280, damping: 28, mass: 0.85 }
-                  }
-                />
-              ) : (
-                <motion.div
-                  key={`dither:${songKey}`}
-                  className="noir-now-playing-art overflow-hidden"
-                  initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 12 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.03, y: -8 }}
-                  transition={
-                    reduced
-                      ? { duration: 0.2 }
-                      : { type: 'spring', stiffness: 280, damping: 28, mass: 0.85 }
-                  }
-                >
-                  <NoirDitherCover
-                    world={worldForCollection(songKey)}
-                    seed={songKey}
-                    size={320}
-                    radius={0}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-          <motion.div
-            className="min-w-0"
-            initial={reduced ? { opacity: 0 } : { opacity: 0, y: 10 }}
-            animate={
-              isPresent
-                ? { opacity: 1, y: 0 }
-                : { opacity: 0, y: 0, transition: chromeFade.transition }
-            }
-            transition={{ duration: reduced ? 0.15 : 0.34, ease: sheetEase, delay: reduced ? 0 : 0.1 }}
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={songKey}
-                className="min-w-0"
-                initial={{ opacity: 0, y: reduced ? 0 : 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: reduced ? 0 : -8 }}
-                transition={{ duration: reduced ? 0.15 : 0.32, ease: sheetEase }}
-              >
-                <h1 className="noir-now-playing-title">{song.title}</h1>
-                <div className="mt-2 flex items-center gap-3">
-                  {onOpenArtist ? (
-                    <button
-                      type="button"
-                      onClick={onOpenArtist}
-                      className="noir-now-playing-artist !mt-0 text-left hover:underline elva-focus-ring rounded-sm"
-                      title={strings.songMenu.goToArtist}
-                    >
-                      {song.artist}
-                    </button>
-                  ) : (
-                    <p className="noir-now-playing-artist !mt-0">{song.artist}</p>
-                  )}
-                  {onStartRadio && (
-                    <button
-                      type="button"
-                      onClick={onStartRadio}
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white elva-focus-ring"
-                      aria-label={strings.songMenu.startRadio}
-                      title={strings.songMenu.startRadio}
-                    >
-                      <Radio className="h-4 w-4" strokeWidth={1.75} />
-                    </button>
-                  )}
-                  {onToggleFavorite && (
-                    <button
-                      type="button"
-                      onClick={onToggleFavorite}
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white elva-focus-ring"
-                      aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                      title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                    >
-                      <Heart
-                        className={`h-4 w-4 ${isFavorite ? 'fill-current text-[color:var(--noir-accent)]' : ''}`}
-                        strokeWidth={isFavorite ? 0 : 1.75}
-                      />
-                    </button>
-                  )}
-                </div>
-                {queueSource && (
-                  <div className="noir-now-playing-meta">
-                    {onOpenQueueSource ? (
-                      <button
-                        type="button"
-                        className="noir-now-playing-source elva-focus-ring rounded-sm"
-                        onClick={onOpenQueueSource}
-                        title={strings.nowPlaying.openSource}
-                      >
-                        {strings.nowPlaying.playingFrom(queueSource)}
-                      </button>
-                    ) : (
-                      <p className="noir-now-playing-source">{strings.nowPlaying.playingFrom(queueSource)}</p>
-                    )}
-                  </div>
-                )}
-                {onShowLyrics && (
-                  <div className="noir-now-playing-meta">
-                    <button
-                      type="button"
-                      className="noir-now-playing-lyrics-link elva-focus-ring rounded-sm"
-                      onClick={() => onShowLyrics(!showLyrics)}
-                      aria-pressed={showLyrics}
-                    >
-                      {showLyrics ? strings.lyrics.hide : strings.lyrics.show}
-                    </button>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </motion.div>
-        </div>
-
-        <AnimatePresence initial={false}>
-          {showLyrics && (
+      <div className="noir-now-playing-stage">
+        <div className="noir-now-playing-stage-row">
+          <div className="noir-now-playing-identity">
             <motion.div
-              key="stage-lyrics"
-              className="noir-now-playing-stage-lyrics"
-              initial={reduced ? { opacity: 0 } : { opacity: 0, x: 12 }}
+              layoutId={reduced ? undefined : 'np-cover'}
+              className="noir-now-playing-art-slot"
+              style={{ borderRadius: 18, boxShadow: '0 28px 80px rgba(0,0,0,0.55)' }}
+              transition={{ type: 'spring', stiffness: 320, damping: 34, mass: 0.85 }}
+            >
+              <AnimatePresence mode="sync" initial={false}>
+                {hasRealArtwork(song.artworkUrl) ? (
+                  <motion.img
+                    key={song.artworkUrl}
+                    src={song.artworkUrl}
+                    alt=""
+                    className="noir-now-playing-art"
+                    initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 12 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.03, y: -8 }}
+                    transition={
+                      reduced
+                        ? { duration: 0.2 }
+                        : { type: 'spring', stiffness: 280, damping: 28, mass: 0.85 }
+                    }
+                  />
+                ) : (
+                  <motion.div
+                    key={`dither:${songKey}`}
+                    className="noir-now-playing-art overflow-hidden"
+                    initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 12 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.03, y: -8 }}
+                    transition={
+                      reduced
+                        ? { duration: 0.2 }
+                        : { type: 'spring', stiffness: 280, damping: 28, mass: 0.85 }
+                    }
+                  >
+                    <NoirDitherCover
+                      world={worldForCollection(songKey)}
+                      seed={songKey}
+                      size={320}
+                      radius={0}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+            <motion.div
+              className="min-w-0"
+              initial={reduced ? { opacity: 0 } : { opacity: 0, y: 10 }}
               animate={
                 isPresent
-                  ? { opacity: 1, x: 0 }
-                  : { opacity: 0, transition: chromeFade.transition }
+                  ? { opacity: 1, y: 0 }
+                  : { opacity: 0, y: 0, transition: chromeFade.transition }
               }
-              exit={reduced ? { opacity: 0 } : { opacity: 0, x: 8 }}
-              transition={{ duration: reduced ? 0.15 : 0.32, ease: sheetEase }}
+              transition={{ duration: reduced ? 0.15 : 0.34, ease: sheetEase, delay: reduced ? 0 : 0.1 }}
             >
-              <p className="noir-now-playing-lyrics-label">{strings.lyrics.title}</p>
-              <NoirLyricsColumn
-                lyrics={lyrics}
-                isLoading={isLoadingLyrics}
-                isSynced={isLyricsSynced}
-                currentIndex={currentLyricIndex}
-              />
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={songKey}
+                  className="min-w-0"
+                  initial={{ opacity: 0, y: reduced ? 0 : 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: reduced ? 0 : -8 }}
+                  transition={{ duration: reduced ? 0.15 : 0.32, ease: sheetEase }}
+                >
+                  <h1 className="noir-now-playing-title">{song.title}</h1>
+                  <div className="mt-2 flex items-center gap-3">
+                    {onOpenArtist ? (
+                      <button
+                        type="button"
+                        onClick={onOpenArtist}
+                        className="noir-now-playing-artist !mt-0 text-left hover:underline elva-focus-ring rounded-sm"
+                        title={strings.songMenu.goToArtist}
+                      >
+                        {song.artist}
+                      </button>
+                    ) : (
+                      <p className="noir-now-playing-artist !mt-0">{song.artist}</p>
+                    )}
+                    {onStartRadio && (
+                      <button
+                        type="button"
+                        onClick={onStartRadio}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white elva-focus-ring"
+                        aria-label={strings.songMenu.startRadio}
+                        title={strings.songMenu.startRadio}
+                      >
+                        <Radio className="h-4 w-4" strokeWidth={1.75} />
+                      </button>
+                    )}
+                    {onToggleFavorite && (
+                      <button
+                        type="button"
+                        onClick={onToggleFavorite}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white elva-focus-ring"
+                        aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                        title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                      >
+                        <Heart
+                          className={`h-4 w-4 ${isFavorite ? 'fill-current text-[color:var(--noir-accent)]' : ''}`}
+                          strokeWidth={isFavorite ? 0 : 1.75}
+                        />
+                      </button>
+                    )}
+                  </div>
+                  {queueSource && (
+                    <div className="noir-now-playing-meta">
+                      {onOpenQueueSource ? (
+                        <button
+                          type="button"
+                          className="noir-now-playing-source elva-focus-ring rounded-sm"
+                          onClick={onOpenQueueSource}
+                          title={strings.nowPlaying.openSource}
+                        >
+                          {strings.nowPlaying.playingFrom(queueSource)}
+                        </button>
+                      ) : (
+                        <p className="noir-now-playing-source">{strings.nowPlaying.playingFrom(queueSource)}</p>
+                      )}
+                    </div>
+                  )}
+                  {onShowLyrics && (
+                    <div className="noir-now-playing-meta">
+                      <button
+                        type="button"
+                        className="noir-now-playing-lyrics-link elva-focus-ring rounded-sm"
+                        onClick={() => onShowLyrics(!showLyrics)}
+                        aria-pressed={showLyrics}
+                      >
+                        {showLyrics ? strings.lyrics.hide : strings.lyrics.show}
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </motion.div>
-          )}
-        </AnimatePresence>
+          </div>
+
+          <AnimatePresence initial={false}>
+            {showLyrics && (
+              <motion.div
+                key="stage-lyrics"
+                className="noir-now-playing-stage-lyrics"
+                initial={
+                  reduced
+                    ? { opacity: 0, width: LYRICS_PANEL_WIDTH }
+                    : { opacity: 0, width: 0 }
+                }
+                animate={
+                  isPresent
+                    ? { opacity: 1, width: LYRICS_PANEL_WIDTH }
+                    : { opacity: 0, transition: chromeFade.transition }
+                }
+                exit={
+                  reduced
+                    ? { opacity: 0 }
+                    : { opacity: 0, width: 0, transition: { duration: 0.28, ease: sheetEase } }
+                }
+                transition={{ duration: reduced ? 0.15 : 0.34, ease: sheetEase }}
+              >
+                <div className="noir-now-playing-stage-lyrics-inner">
+                  <p className="noir-now-playing-lyrics-label">{strings.lyrics.title}</p>
+                  <NoirLyricsColumn
+                    lyrics={lyrics}
+                    isLoading={isLoadingLyrics}
+                    isSynced={isLyricsSynced}
+                    currentIndex={currentLyricIndex}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       <AnimatePresence initial={false}>
