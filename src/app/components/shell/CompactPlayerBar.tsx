@@ -241,7 +241,7 @@ export function CompactPlayerBar({
                   {onOpenArtist ? (
                     <button
                       type="button"
-                      className="noir-compact-artist block max-w-full truncate text-left hover:underline"
+                      className="noir-compact-artist max-w-full truncate text-left"
                       onClick={(e) => {
                         e.stopPropagation();
                         onOpenArtist();

@@ -109,7 +109,13 @@
   color: var(--noir-text-secondary);
 }
 
-.noir-compact-now:hover .noir-compact-title {
+/* Underline title only when hovering the expand hit (not the artist link). */
+.noir-compact-now:hover:not(:has(.noir-compact-artist:hover)) .noir-compact-title {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.noir-compact-artist:hover {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
