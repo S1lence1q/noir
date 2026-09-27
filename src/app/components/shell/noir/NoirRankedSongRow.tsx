@@ -5,6 +5,7 @@ import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
 import { prefersReducedMotion } from '../../../utils/motionPresets';
 import { encodePlaylistTrack, PLAYLIST_TRACK_DRAG_MIME } from '../../../utils/playlistStore';
 import { worldForCollection } from '../../../utils/ditherCover';
+import { displayArtistName } from '../../../utils/stringUtils';
 import { NoirDitherCover } from './NoirDitherCover';
 
 type NoirRankedSongRowProps = {
@@ -108,7 +109,7 @@ export function NoirRankedSongRow({
         <p className="noir-song-title truncate">
           {track.title}
         </p>
-        <p className="noir-song-meta mt-0.5 truncate">{track.artist}</p>
+        <p className="noir-song-meta mt-0.5 truncate">{displayArtistName(track.artist)}</p>
       </div>
 
       {showDuration && (

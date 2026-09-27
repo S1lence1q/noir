@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { SearchResult, VerifiedArtist } from '../types';
-import { getPrimaryArtist } from '../utils/stringUtils';
+import { displayArtistName } from '../utils/stringUtils';
 import {
   shouldShowArtistCard,
   getArtistName,
@@ -315,6 +315,7 @@ export function useSearchLogic({
     const handPickedUrl = getHandPickedImage(verified.name);
     const displayArtist: VerifiedArtist = {
       ...verified,
+      name: displayArtistName(verified.name),
       thumbnail: handPickedUrl || verified.thumbnail || seedArtist.thumbnail,
     };
 
@@ -438,12 +439,18 @@ export function useSearchLogic({
 
   const handleViewArtistProfile = async (artist: VerifiedArtist) => {
     const generation = ++profileGenRef.current;
-    const handPickedUrl = getHandPickedImage(artist.name);
+    const cleanedName = displayArtistName(artist.name);
+    const artistClean: VerifiedArtist = {
+      ...artist,
+      name: cleanedName,
+      isTopic: artist.isTopic || /\btopic\b/i.test(artist.name),
+    };
+    const handPickedUrl = getHandPickedImage(cleanedName);
 
     // Shell opens immediately
     setSelectedArtist({
-      ...artist,
-      thumbnail: handPickedUrl || artist.thumbnail,
+      ...artistClean,
+      thumbnail: handPickedUrl || artistClean.thumbnail,
     });
     setArtistCandidates(null);
     setIsLoadingArtist(true);
@@ -451,12 +458,12 @@ export function useSearchLogic({
 
     try {
       const identity = await resolveArtistIdentity({
-        name: artist.name,
-        channelId: artist.channelId,
-        thumbnail: handPickedUrl || artist.thumbnail,
-        isTopic: artist.isTopic,
-        mbid: artist.mbid,
-        deezerId: artist.deezerId,
+        name: cleanedName,
+        channelId: artistClean.channelId,
+        thumbnail: handPickedUrl || artistClean.thumbnail,
+        isTopic: artistClean.isTopic,
+        mbid: artistClean.mbid,
+        deezerId: artistClean.deezerId,
       });
 
       if (generation !== profileGenRef.current) return;
@@ -465,30 +472,31 @@ export function useSearchLogic({
         setArtistCandidates(identity.candidates);
         setIsLoadingArtist(false);
         setSelectedArtist({
-          ...artist,
-          name: identity.canonicalName || artist.name,
-          thumbnail: identity.image || handPickedUrl || artist.thumbnail,
+          ...artistClean,
+          name: displayArtistName(identity.canonicalName || cleanedName),
+          thumbnail: identity.image || handPickedUrl || artistClean.thumbnail,
           confidence: 'low',
         });
         return;
       }
 
-      await loadProfileForIdentity(identity, generation, artist);
+      await loadProfileForIdentity(identity, generation, artistClean);
     } catch (error) {
       console.error('Artist identity resolve failed:', error);
       if (generation !== profileGenRef.current) return;
       // Fall back to name-only load
       await loadProfileForIdentity(
         {
-          canonicalName: artist.name,
-          channelId: artist.channelId,
-          image: artist.thumbnail,
-          confidence: artist.channelId ? 'medium' : 'low',
-          mbid: artist.mbid,
-          deezerId: artist.deezerId,
+          canonicalName: cleanedName,
+          channelId: artistClean.channelId,
+          image: artistClean.thumbnail,
+          confidence: artistClean.channelId ? 'medium' : 'low',
+          mbid: artistClean.mbid,
+          deezerId: artistClean.deezerId,
+          channelType: artistClean.isTopic ? 'topic' : 'provided',
         },
         generation,
-        artist
+        artistClean
       );
     }
   };
@@ -502,20 +510,20 @@ export function useSearchLogic({
   };
 
   const handleViewArtistByName = async (artistName: string, channelId?: string) => {
-    const primaryArtistName = getPrimaryArtist(artistName);
-    const nameTrimmed = primaryArtistName.trim();
+    const nameTrimmed = displayArtistName(artistName);
+    const wasTopic = /\btopic\b/i.test(artistName);
     if (!nameTrimmed || nameTrimmed === 'Unknown Artist' || nameTrimmed === 'Web Stream') {
       toast.error('Invalid artist');
       return;
     }
 
     if (verifiedArtist && verifiedArtist.name.toLowerCase() === nameTrimmed.toLowerCase()) {
-      handleViewArtistProfile(verifiedArtist);
+      handleViewArtistProfile({ ...verifiedArtist, isTopic: verifiedArtist.isTopic || wasTopic });
       return;
     }
     const foundInRecent = recentArtists.find((a) => a.name.toLowerCase() === nameTrimmed.toLowerCase());
     if (foundInRecent) {
-      handleViewArtistProfile(foundInRecent);
+      handleViewArtistProfile({ ...foundInRecent, isTopic: foundInRecent.isTopic || wasTopic, channelId: channelId || foundInRecent.channelId });
       return;
     }
 
@@ -527,6 +535,7 @@ export function useSearchLogic({
         songData?.artworkUrl ||
         'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwyfHxtdXNpYyUyMGJhY2tncm91bmR8ZW58MHx8fDE3Nzg5Nzk5NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080',
       channelId: channelId,
+      isTopic: wasTopic,
     };
 
     handleViewArtistProfile(tempArtist);

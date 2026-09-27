@@ -36,10 +36,17 @@ function candidateFromDeezer(
  * Topic channel resolve is optional and timed — Popular can load without it.
  */
 export async function resolveArtistIdentity(input: ResolveArtistInput): Promise<ArtistIdentity> {
-  const name = input.name.trim();
+  const rawName = input.name.trim();
+  const name = rawName
+    .replace(/\s*-\s*Topic\s*$/i, '')
+    .replace(/\s*VEVO\s*$/i, '')
+    .replace(/\s*Official\s*$/i, '')
+    .trim();
   if (!name) {
     return { canonicalName: '', confidence: 'low' };
   }
+
+  const isTopicChannel = !!(input.isTopic || /\btopic\b/i.test(rawName));
 
   const cached = await getCachedIdentity(name);
   if (
@@ -51,7 +58,7 @@ export async function resolveArtistIdentity(input: ResolveArtistInput): Promise<
       const merged: ArtistIdentity = {
         ...cached,
         channelId: input.channelId,
-        channelType: input.isTopic ? 'topic' : cached.channelType || 'provided',
+        channelType: isTopicChannel ? 'topic' : cached.channelType || 'provided',
         confidence: 'high',
       };
       void setCachedIdentity(merged);
@@ -66,7 +73,7 @@ export async function resolveArtistIdentity(input: ResolveArtistInput): Promise<
     input.channelId
       ? Promise.resolve({
           channelId: input.channelId,
-          type: (input.isTopic ? 'topic' : 'provided') as 'topic' | 'vevo' | 'official' | 'provided',
+          type: (isTopicChannel ? 'topic' : 'provided') as 'topic' | 'vevo' | 'official' | 'provided',
         })
       : input.skipChannelResolve
         ? Promise.resolve(null)
@@ -126,7 +133,7 @@ export async function resolveArtistIdentity(input: ResolveArtistInput): Promise<
     deezerId: input.deezerId ?? topDeezer?.id,
     channelId: input.channelId || channel?.channelId,
     channelType:
-      channel?.type || (input.channelId ? (input.isTopic ? 'topic' : 'provided') : undefined),
+      channel?.type || (input.channelId ? (isTopicChannel ? 'topic' : 'provided') : undefined),
     image,
     confidence,
   };
@@ -143,7 +150,11 @@ export function identityToVerifiedArtist(
   fallback?: { thumbnail?: string }
 ): import('../../types').VerifiedArtist {
   return {
-    name: identity.canonicalName,
+    name: identity.canonicalName
+      .replace(/\s*-\s*Topic\s*$/i, '')
+      .replace(/\s*VEVO\s*$/i, '')
+      .replace(/\s*Official\s*$/i, '')
+      .trim(),
     thumbnail: identity.image || fallback?.thumbnail || '',
     channelId: identity.channelId,
     mbid: identity.mbid,

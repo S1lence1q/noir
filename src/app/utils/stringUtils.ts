@@ -12,13 +12,13 @@ export function cleanSongTitle(title: string): string {
 
 export function getPrimaryArtist(artist: string): string {
   if (!artist) return '';
-  
+
   // Clean off standard feature suffixes first
   let cleaned = artist
     .split(/\s+feat\.?\s+/i)[0]
     .split(/\s+ft\.?\s+/i)[0]
     .split(/\s+featuring\s+/i)[0];
-    
+
   // Split on collaborative delimiters and take the first item
   const delimiters = [',', ' & ', ' and ', ' x ', ' X '];
   for (const delimiter of delimiters) {
@@ -26,6 +26,16 @@ export function getPrimaryArtist(artist: string): string {
       cleaned = cleaned.split(delimiter)[0];
     }
   }
-  
-  return cleaned.trim();
+
+  // Strip YouTube / label channel suffixes (Topic, VEVO, Official)
+  return cleaned
+    .replace(/\s*-\s*Topic\s*$/i, '')
+    .replace(/\s*VEVO\s*$/i, '')
+    .replace(/\s*Official\s*$/i, '')
+    .trim();
+}
+
+/** Display-safe artist label (primary + no Topic/VEVO). */
+export function displayArtistName(artist: string): string {
+  return getPrimaryArtist(artist) || artist.trim();
 }

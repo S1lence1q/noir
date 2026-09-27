@@ -23,6 +23,7 @@ import { restoreLocalTrack, saveLocalTrack } from './utils/localTrackStorage';
 import { strings } from './constants/strings';
 import { waitForYouTubeApi } from './utils/youtubeApiReady';
 import { addTrackToPlaylist, createPlaylist, readPlaylists } from './utils/playlistStore';
+import { displayArtistName } from './utils/stringUtils';
 
 // Import newly extracted hooks and components
 import { useScrollTracking } from './hooks/useScrollTracking';
@@ -599,7 +600,7 @@ export default function App() {
       setSongData({
         id: result.id,
         title: result.title,
-        artist: result.artist,
+        artist: displayArtistName(result.artist),
         artworkUrl: finalArtwork,
         audioUrl: isLocal ? (result.audioUrl || '') : `https://www.youtube.com/watch?v=${finalVideoId}`,
         videoId: finalVideoId,
@@ -699,7 +700,7 @@ export default function App() {
       setSongData({
         id: result.id,
         title: result.title,
-        artist: result.artist,
+        artist: displayArtistName(result.artist),
         artworkUrl: finalArtwork,
         audioUrl: isLocal ? (result.audioUrl || '') : `https://www.youtube.com/watch?v=${finalVideoId}`,
         videoId: finalVideoId,
@@ -758,7 +759,7 @@ export default function App() {
         setSongData({
           id: result.id,
           title: result.title,
-          artist: result.artist,
+          artist: displayArtistName(result.artist),
           artworkUrl: finalArtwork,
           audioUrl: isLocal ? (result.audioUrl || '') : `https://www.youtube.com/watch?v=${finalVideoId}`,
           videoId: finalVideoId,

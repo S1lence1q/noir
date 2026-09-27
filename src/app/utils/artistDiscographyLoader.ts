@@ -13,6 +13,7 @@ import {
 import { getDeezerArtistTopTracks } from '../services/musicGraph/deezer';
 import { graphTrackToSearchResult } from '../services/discover/discoverFeed';
 import { normalizeName } from '../services/musicGraph/normalize';
+import { displayArtistName } from './stringUtils';
 import type { SearchResult } from '../types';
 
 function trackKey(track: SearchResult): string {
@@ -138,13 +139,14 @@ export async function loadArtistPopularTracks(
   artistName: string,
   limit = 10
 ): Promise<SearchResult[]> {
-  const tracks = await getArtistTopTracks(artistName, limit);
+  const lookupName = displayArtistName(artistName);
+  const tracks = await getArtistTopTracks(lookupName, limit);
 
   // Last.fm tops rarely ship real artwork; overlay Deezer album covers by title, then per-track search.
   let deezerByTitle = new Map<string, GraphTrack>();
   if (tracks.some((track) => !track.image)) {
     try {
-      const deezerTops = await getDeezerArtistTopTracks(artistName, Math.max(limit, 25));
+      const deezerTops = await getDeezerArtistTopTracks(lookupName, Math.max(limit, 25));
       deezerByTitle = new Map(
         deezerTops
           .filter((track) => track.image)
@@ -163,7 +165,7 @@ export async function loadArtistPopularTracks(
         return { ...track, image: matched.image, durationSec: track.durationSec ?? matched.durationSec };
       }
       try {
-        const image = await getTrackImage(track.title, track.artist);
+        const image = await getTrackImage(track.title, track.artist || lookupName);
         return image ? { ...track, image } : track;
       } catch {
         return track;
@@ -171,9 +173,13 @@ export async function loadArtistPopularTracks(
     })
   );
 
-  return withArt.map((track) =>
-    graphTrackToSearchResult(track, `popular:${normalizeName(artistName)}`)
-  );
+  return withArt.map((track) => {
+    const result = graphTrackToSearchResult(track, `popular:${normalizeName(lookupName)}`);
+    return {
+      ...result,
+      artist: displayArtistName(result.artist || lookupName),
+    };
+  });
 }
 
 const prefetchInFlight = new Set<string>();
