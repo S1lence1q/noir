@@ -12,6 +12,7 @@ import {
 import * as Slider from '@radix-ui/react-slider';
 import { STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { showMiniHUD } from '../../../utils/hudUtils';
+import { clearListeningEvents } from '../../../services/listening/eventsStore';
 
 const APP_VERSION = '1.0.0';
 const GAPLESS_STASH_KEY = 'elva_crossfade_before_gapless';
@@ -183,6 +184,9 @@ export function NoirSettingsView() {
   const handleClearHistory = () => {
     localStorage.setItem('elva_recently_played', '[]');
     window.dispatchEvent(new CustomEvent('elva-recently-played-cleared'));
+    void clearListeningEvents().catch((error) => {
+      console.warn('Failed to clear listening events:', error);
+    });
     showMiniHUD('Play history cleared');
   };
 

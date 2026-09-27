@@ -28,6 +28,7 @@ import { useScrollTracking } from './hooks/useScrollTracking';
 import { useBackgroundColors } from './hooks/useBackgroundColors';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useSearchLogic } from './hooks/useSearchLogic';
+import { useListeningRecorder } from './hooks/useListeningRecorder';
 import { LandingPage } from './components/LandingPage';
 import { Playlist } from './components/PlaylistDetailsView';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -238,6 +239,7 @@ export default function App() {
     videoId?: string;
     channelId?: string;
   } | null>(null);
+  useListeningRecorder(songData, shellPlayback);
 
   const backToHomeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [colorsSongData, setColorsSongData] = useState<any>(null);
