@@ -66,7 +66,7 @@ interface LandingPageProps {
   handlePickArtistCandidate?: (candidate: import('../services/artistIdentity').ArtistIdentity) => void;
   artistCandidates?: import('../services/artistIdentity').ArtistIdentity[] | null;
   setArtistCandidates?: (candidates: import('../services/artistIdentity').ArtistIdentity[] | null) => void;
-  handleViewArtistByName: (name: string, channelId?: string) => void;
+  handleViewArtistByName: (name: string, channelId?: string, thumbnail?: string) => void;
   handleUrlSubmit: (url: string) => void;
   handleFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSearch: (overrideQuery?: string) => void;

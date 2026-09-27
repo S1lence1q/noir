@@ -1035,10 +1035,10 @@ export default function App() {
     setSearchPaletteOpen(false);
     void searchLogic.handleViewArtistProfile(artist);
   };
-  const openArtistByName = (name: string, channelId?: string) => {
+  const openArtistByName = (name: string, channelId?: string, thumbnail?: string) => {
     setNowPlayingOpen(false);
     setSearchPaletteOpen(false);
-    void searchLogic.handleViewArtistByName(name, channelId);
+    void searchLogic.handleViewArtistByName(name, channelId, thumbnail);
   };
   const openArtistFromPlayer = () => {
     if (!songData?.artist) return;

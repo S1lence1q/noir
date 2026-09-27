@@ -24,6 +24,7 @@ import {
   identityCacheKey,
   type ArtistIdentity,
 } from '../services/artistIdentity';
+import { hasRealArtwork } from '../utils/artwork';
 import '../services/musicGraph';
 
 function artistCardFromQuery(query: string, results: SearchResult[]): VerifiedArtist | null {
@@ -509,7 +510,11 @@ export function useSearchLogic({
     await loadProfileForIdentity(picked, generation, identityToVerifiedArtist(picked));
   };
 
-  const handleViewArtistByName = async (artistName: string, channelId?: string) => {
+  const handleViewArtistByName = async (
+    artistName: string,
+    channelId?: string,
+    thumbnail?: string
+  ) => {
     const nameTrimmed = displayArtistName(artistName);
     const wasTopic = /\btopic\b/i.test(artistName);
     if (!nameTrimmed || nameTrimmed === 'Unknown Artist' || nameTrimmed === 'Web Stream') {
@@ -523,17 +528,31 @@ export function useSearchLogic({
     }
     const foundInRecent = recentArtists.find((a) => a.name.toLowerCase() === nameTrimmed.toLowerCase());
     if (foundInRecent) {
-      handleViewArtistProfile({ ...foundInRecent, isTopic: foundInRecent.isTopic || wasTopic, channelId: channelId || foundInRecent.channelId });
+      handleViewArtistProfile({
+        ...foundInRecent,
+        isTopic: foundInRecent.isTopic || wasTopic,
+        channelId: channelId || foundInRecent.channelId,
+        ...(hasRealArtwork(thumbnail) ? { thumbnail: thumbnail! } : {}),
+      });
       return;
     }
 
     const handPicked = getHandPickedImage(nameTrimmed);
+    // Never borrow the currently playing track's art for a different artist — that painted
+    // Thor Farlov's cover onto Danjoo (etc.) when opening from Discover.
+    const playingIsThisArtist =
+      !!songData?.artist &&
+      displayArtistName(songData.artist).toLowerCase() === nameTrimmed.toLowerCase() &&
+      hasRealArtwork(songData.artworkUrl);
+    const knownThumb =
+      handPicked ||
+      (hasRealArtwork(thumbnail) ? thumbnail! : '') ||
+      (playingIsThisArtist ? songData.artworkUrl : '') ||
+      '';
+
     const tempArtist: VerifiedArtist = {
       name: nameTrimmed,
-      thumbnail:
-        handPicked ||
-        songData?.artworkUrl ||
-        'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwyfHxtdXNpYyUyMGJhY2tncm91bmR8ZW58MHx8fDE3Nzg5Nzk5NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      thumbnail: knownThumb,
       channelId: channelId,
       isTopic: wasTopic,
     };

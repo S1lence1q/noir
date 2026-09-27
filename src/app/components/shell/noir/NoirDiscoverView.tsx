@@ -30,7 +30,7 @@ export type NoirDiscoverViewProps = {
   onToggleFavorite?: (song: SearchResult) => void;
   favorites?: SearchResult[];
   onSelectPlaylist: (playlist: Playlist) => void;
-  onViewArtist?: (name: string) => void;
+  onViewArtist?: (name: string, channelId?: string, thumbnail?: string) => void;
 };
 
 function readCacheSync(country: string): SearchResult[] {
@@ -288,7 +288,7 @@ export function NoirDiscoverView({
                 artist={artist}
                 index={i}
                 reduced={reduced}
-                onOpen={() => onViewArtist?.(artist.name)}
+                onOpen={() => onViewArtist?.(artist.name, undefined, artist.image)}
               />
             ))}
           </div>
@@ -307,7 +307,7 @@ export function NoirDiscoverView({
                 artist={artist}
                 index={i}
                 reduced={reduced}
-                onOpen={() => onViewArtist?.(artist.name)}
+                onOpen={() => onViewArtist?.(artist.name, undefined, artist.image)}
               />
             ))}
           </div>

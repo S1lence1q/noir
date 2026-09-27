@@ -54,17 +54,22 @@ export async function resolveArtistIdentity(input: ResolveArtistInput): Promise<
     cached.confidence !== 'low' &&
     (!input.channelId || cached.channelId === input.channelId || !cached.channelId)
   ) {
-    if (input.channelId && !cached.channelId) {
-      const merged: ArtistIdentity = {
+    // Heal identities that once cached a track cover as the artist image.
+    const graphImage = await getArtistImage(name).catch(() => undefined);
+    let next = cached;
+    if (graphImage && graphImage !== cached.image) {
+      next = { ...cached, image: graphImage };
+      void setCachedIdentity(next);
+    } else if (input.channelId && !cached.channelId) {
+      next = {
         ...cached,
         channelId: input.channelId,
         channelType: isTopicChannel ? 'topic' : cached.channelType || 'provided',
         confidence: 'high',
       };
-      void setCachedIdentity(merged);
-      return merged;
+      void setCachedIdentity(next);
     }
-    return cached;
+    return next;
   }
 
   const [deezerMatches, lastFmInfo, channel] = await Promise.all([
@@ -82,11 +87,13 @@ export async function resolveArtistIdentity(input: ResolveArtistInput): Promise<
 
   const exactDeezer = deezerMatches.find((m) => m.exactName) || null;
   const topDeezer = exactDeezer || deezerMatches[0] || null;
+  // Prefer real artist photos from the graph over whatever the caller passed
+  // (callers used to pass the currently playing track's cover for unrelated artists).
   const image =
-    (input.thumbnail && !input.thumbnail.includes('unsplash.com') ? input.thumbnail : undefined) ||
     topDeezer?.image ||
     lastFmInfo?.image ||
-    (await getArtistImage(name).catch(() => undefined));
+    (await getArtistImage(name).catch(() => undefined)) ||
+    (input.thumbnail && !input.thumbnail.includes('unsplash.com') ? input.thumbnail : undefined);
 
   const ambiguous =
     !input.channelId &&
