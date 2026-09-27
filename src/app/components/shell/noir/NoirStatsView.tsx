@@ -211,9 +211,9 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
         transition={withReducedMotion(MOTION.panel)}
         style={
           {
-            '--stats-aura-a': hexToRgba(COLOR_WORLDS[primaryAura].field, 0.72),
-            '--stats-aura-b': hexToRgba(COLOR_WORLDS[secondaryAura].field, 0.5),
-            '--stats-aura-c': hexToRgba(COLOR_WORLDS[tertiaryAura].field, 0.4),
+            '--stats-aura-a': hexToRgba(COLOR_WORLDS[primaryAura].field, 0.85),
+            '--stats-aura-b': hexToRgba(COLOR_WORLDS[secondaryAura].field, 0.7),
+            '--stats-aura-c': hexToRgba(COLOR_WORLDS[tertiaryAura].field, 0.55),
             '--stats-mark-a': COLOR_WORLDS[primaryAura].field,
             '--stats-mark-b': COLOR_WORLDS[secondaryAura].field,
           } as CSSProperties
@@ -228,10 +228,10 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
           <div className="noir-stats-grain-orb noir-stats-grain-orb--a" />
           <div className="noir-stats-grain-orb noir-stats-grain-orb--b" />
           <span className="noir-stats-glow-mark noir-stats-glow-mark--tr">
-            <NoirMark size={300} variant="spray" color="var(--stats-mark-a)" />
+            <NoirMark size={260} variant="spray" color="var(--stats-mark-a)" />
           </span>
           <span className="noir-stats-glow-mark noir-stats-glow-mark--bl">
-            <NoirMark size={200} variant="spray" color="var(--stats-mark-b)" />
+            <NoirMark size={180} variant="spray" color="var(--stats-mark-b)" />
           </span>
         </div>
 
