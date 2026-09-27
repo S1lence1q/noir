@@ -982,42 +982,108 @@ button.noir-now-playing-source:hover {
 .noir-now-playing-queue {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
   width: min(40%, 360px);
   flex-shrink: 0;
-  overflow-y: auto;
+  min-height: 0;
+  overflow: hidden;
   border-left: 1px solid var(--noir-rule-faint);
   padding: 28px 16px 32px;
 }
 
-.noir-now-playing-lyrics-toggle {
+.noir-now-playing-side-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 0 2px 12px;
+}
+
+.noir-now-playing-mode {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.noir-now-playing-mode-tab {
+  border: none;
+  background: transparent;
+  color: var(--noir-text-tertiary);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  padding: 4px 8px;
+  border-radius: var(--noir-radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.noir-now-playing-mode-tab:hover {
+  color: var(--noir-text-secondary);
+}
+
+.noir-now-playing-mode-tab.is-active {
+  color: var(--noir-text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.noir-now-playing-side-collapse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--noir-radius-sm);
+  background: transparent;
+  color: var(--noir-text-tertiary);
+  cursor: pointer;
+}
+
+.noir-now-playing-side-collapse:hover {
+  color: var(--noir-text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.noir-now-playing-side-peek {
   position: absolute;
-  top: 16px;
+  top: 20px;
   right: 16px;
   z-index: 2;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
-  padding: 0 10px;
+  height: 36px;
+  padding: 0 12px;
   border-radius: var(--noir-radius-sm);
   border: 1px solid var(--noir-rule-faint);
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.4);
   color: var(--noir-text-secondary);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
 }
 
-.noir-now-playing-lyrics-toggle:hover {
+.noir-now-playing-side-peek:hover {
   color: var(--noir-text-primary);
   background: rgba(255, 255, 255, 0.06);
 }
 
-.noir-now-playing-lyrics-toggle.is-active {
-  color: var(--noir-text-primary);
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
+.noir-now-playing-side-peek-count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--noir-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.noir-now-playing-queue > .noir-lyrics,
+.noir-now-playing-queue > .noir-now-playing-queue-empty,
+.noir-now-playing-queue > ul {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .noir-lyrics-badge {

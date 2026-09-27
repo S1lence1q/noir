@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, Reorder, useIsPresent } from 'motion/react';
-import { Compass, Heart, Mic2, Plus, Radio, Shuffle, X } from 'lucide-react';
+import { Compass, Heart, ListMusic, PanelRightClose, PanelRightOpen, Plus, Radio, Shuffle, X } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion, withReducedMotion } from '../../../utils/motionPresets';
@@ -51,7 +51,7 @@ type NoirNowPlayingViewProps = {
   playback?: { currentTime: number; duration: number; isPlaying: boolean };
   queueSource?: string;
   showLyrics?: boolean;
-  onToggleLyrics?: () => void;
+  onShowLyrics?: (show: boolean) => void;
   lyrics?: LyricLine[];
   isLoadingLyrics?: boolean;
   isLyricsSynced?: boolean;
@@ -103,7 +103,7 @@ export function NoirNowPlayingView({
   playback = { currentTime: 0, duration: 0, isPlaying: false },
   queueSource,
   showLyrics = false,
-  onToggleLyrics,
+  onShowLyrics,
   lyrics = [],
   isLoadingLyrics = false,
   isLyricsSynced = false,
@@ -116,6 +116,24 @@ export function NoirNowPlayingView({
     opacity: isPresent ? 1 : 0,
     transition: { duration: reduced ? 0.1 : 0.16, ease: sheetEase },
   };
+  const [sidePanelOpen, setSidePanelOpen] = useState(() => {
+    try {
+      return localStorage.getItem('elva_np_side_panel') !== '0';
+    } catch {
+      return true;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('elva_np_side_panel', sidePanelOpen ? '1' : '0');
+    } catch {}
+  }, [sidePanelOpen]);
+
+  // L / lyrics mode always needs the side panel open.
+  useEffect(() => {
+    if (showLyrics) setSidePanelOpen(true);
+  }, [showLyrics]);
   const currentKey = getPlaybackSongKey(song);
   const currentIndex = currentKey
     ? queue.findIndex((item) => getPlaybackSongKey(item) === currentKey)
@@ -212,23 +230,7 @@ export function NoirNowPlayingView({
   };
 
   return (
-    <div className="noir-now-playing">
-      {onToggleLyrics && (
-        <motion.button
-          type="button"
-          className={`noir-now-playing-lyrics-toggle elva-focus-ring ${showLyrics ? 'is-active' : ''}`}
-          onClick={onToggleLyrics}
-          aria-pressed={showLyrics}
-          aria-label={showLyrics ? strings.lyrics.hide : strings.lyrics.show}
-          title={showLyrics ? strings.lyrics.hide : strings.lyrics.show}
-          initial={reduced ? false : { opacity: 0 }}
-          animate={{ opacity: isPresent ? 1 : 0 }}
-          transition={chromeFade.transition}
-        >
-          <Mic2 className="h-3.5 w-3.5" strokeWidth={1.75} />
-          {strings.lyrics.title}
-        </motion.button>
-      )}
+    <div className={`noir-now-playing ${sidePanelOpen ? '' : 'is-side-collapsed'}`.trim()}>
       <AnimatePresence>
         {queueEndPrompt.isVisible && (
           <motion.div
@@ -439,132 +441,46 @@ export function NoirNowPlayingView({
         </motion.div>
       </div>
 
-      <motion.aside
-        className="noir-now-playing-queue"
-        aria-label={
-          showLyrics
-            ? strings.lyrics.title
-            : upNext.length > 0
-              ? 'Next up'
-              : 'Queue suggestions'
-        }
-        initial={reduced ? { opacity: 0 } : { opacity: 0, x: 16 }}
-        animate={
-          isPresent
-            ? { opacity: 1, x: 0 }
-            : { opacity: 0, x: 0, transition: chromeFade.transition }
-        }
-        transition={{ duration: reduced ? 0.15 : 0.4, ease: sheetEase, delay: reduced ? 0 : 0.14 }}
-      >
-        {showLyrics ? (
-          <NoirLyricsColumn
-            lyrics={lyrics}
-            isLoading={isLoadingLyrics}
-            isSynced={isLyricsSynced}
-            currentIndex={currentLyricIndex}
-          />
-        ) : upNext.length === 0 ? (
-          <motion.div
-            key={quickAddSource ?? 'none'}
-            className="noir-now-playing-queue-empty px-2 pt-1"
-            initial={{ opacity: 0, y: reduced ? 0 : 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={withReducedMotion(MOTION.panel)}
+      <AnimatePresence initial={false}>
+        {sidePanelOpen ? (
+          <motion.aside
+            key="np-side"
+            className="noir-now-playing-queue"
+            aria-label={showLyrics ? strings.lyrics.title : strings.nextUp.title}
+            initial={reduced ? { opacity: 0 } : { opacity: 0, x: 16 }}
+            animate={
+              isPresent
+                ? { opacity: 1, x: 0 }
+                : { opacity: 0, x: 0, transition: chromeFade.transition }
+            }
+            exit={reduced ? { opacity: 0 } : { opacity: 0, x: 12 }}
+            transition={{ duration: reduced ? 0.15 : 0.32, ease: sheetEase, delay: reduced ? 0 : 0.06 }}
           >
-            <p className="flex items-center gap-2 text-[17px] font-semibold leading-tight tracking-[-0.02em] text-[color:var(--noir-text-primary)]">
-              <NoirMark size={14} />
-              {strings.nextUp.emptyTitle}
-            </p>
-            <p className="mt-2 max-w-[232px] text-[13px] leading-[1.45] text-[color:var(--noir-text-secondary)]">
-              {quickAddSource === 'favorites'
-                ? strings.nextUp.emptyFromFavorites
-                : quickAddSource === 'recents'
-                  ? strings.nextUp.emptyFromRecents
-                  : strings.nextUp.emptyNothing}
-            </p>
-
-            {onAddToQueue && quickAdds.length > 0 && (
-              <div className="noir-queue-empty-covers mt-4">
-                {quickAdds.map((track, i) => (
-                  <motion.button
-                    type="button"
-                    key={track.id}
-                    onClick={() => addTracks([track])}
-                    className="group min-w-0 text-left elva-focus-ring"
-                    title={strings.nextUp.addOne(track.title)}
-                    initial={{ opacity: 0, y: reduced ? 0 : 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={withReducedMotion({ ...MOTION.panel, delay: 0.06 + i * 0.04 })}
-                  >
-                    <span className="relative block overflow-hidden rounded-[var(--noir-radius-sm)]">
-                      {hasRealArtwork(track.thumbnail) ? (
-                        <img
-                          src={track.thumbnail}
-                          alt=""
-                          className="noir-queue-empty-cover transition-transform duration-300 group-hover:scale-[1.04]"
-                        />
-                      ) : (
-                        <span className="noir-queue-empty-cover block overflow-hidden">
-                          <NoirDitherCover
-                            world={worldForCollection(track.id)}
-                            seed={track.id}
-                            size={72}
-                            radius={0}
-                          />
-                        </span>
-                      )}
-                      <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
-                        <Plus className="h-4 w-4" strokeWidth={2} />
-                      </span>
-                    </span>
-                    <span className="noir-queue-empty-cover-title">{track.title}</span>
-                  </motion.button>
-                ))}
-              </div>
-            )}
-
-            <div className="mt-5 flex flex-wrap items-center gap-2">
-              {onAddToQueue && addPool.length > 0 ? (
-                <>
-                  <button
-                    type="button"
-                    className="noir-button-primary elva-focus-ring"
-                    onClick={() => addTracks(shuffled(addPool).slice(0, BATCH_SIZE))}
-                  >
-                    <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
-                    {strings.nextUp.addBatch(Math.min(BATCH_SIZE, addPool.length))}
-                  </button>
-                  {addPool.length > BATCH_SIZE && (
-                    <button
-                      type="button"
-                      className="noir-button-secondary elva-focus-ring"
-                      onClick={() => addTracks(shuffled(addPool))}
-                    >
-                      <Shuffle className="h-3.5 w-3.5" strokeWidth={2} />
-                      {strings.nextUp.shuffleAll}
-                    </button>
-                  )}
-                </>
-              ) : (
-                onOpenDiscover && (
-                  <button type="button" className="noir-button-secondary elva-focus-ring" onClick={onOpenDiscover}>
-                    <Compass className="h-3.5 w-3.5" strokeWidth={1.75} />
-                    {strings.nextUp.browseDiscover}
-                  </button>
-                )
-              )}
-            </div>
-          </motion.div>
-        ) : (
-          <>
-            <div className="flex items-end justify-between gap-3 px-2 pb-3">
-              <div className="min-w-0">
-                <p className="text-[14px] font-medium text-[color:var(--noir-text-primary)]">
-                  {strings.nextUp.headerTitle(upNext.length)}
-                </p>
+            <div className="noir-now-playing-side-header">
+              <div className="noir-now-playing-mode" role="tablist" aria-label="Side panel">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={!showLyrics}
+                  className={`noir-now-playing-mode-tab elva-focus-ring ${!showLyrics ? 'is-active' : ''}`}
+                  onClick={() => onShowLyrics?.(false)}
+                >
+                  {upNext.length > 0
+                    ? strings.nextUp.headerTitle(upNext.length)
+                    : strings.nextUp.title}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={showLyrics}
+                  className={`noir-now-playing-mode-tab elva-focus-ring ${showLyrics ? 'is-active' : ''}`}
+                  onClick={() => onShowLyrics?.(true)}
+                >
+                  {strings.lyrics.title}
+                </button>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                {onShuffleQueue && (
+                {!showLyrics && upNext.length > 0 && onShuffleQueue && (
                   <motion.button
                     type="button"
                     className="inline-flex items-center gap-1.5 text-[12px] text-[color:var(--noir-text-tertiary)] hover:text-white elva-focus-ring"
@@ -585,7 +501,7 @@ export function NoirNowPlayingView({
                     {strings.nextUp.shuffle}
                   </motion.button>
                 )}
-                {onClearQueue && (
+                {!showLyrics && upNext.length > 0 && onClearQueue && (
                   <button
                     type="button"
                     className="text-[12px] text-[color:var(--noir-text-tertiary)] hover:text-white elva-focus-ring"
@@ -594,33 +510,163 @@ export function NoirNowPlayingView({
                     {strings.nextUp.clear}
                   </button>
                 )}
+                <button
+                  type="button"
+                  className="noir-now-playing-side-collapse elva-focus-ring"
+                  onClick={() => setSidePanelOpen(false)}
+                  aria-label={strings.nowPlaying.hideSide}
+                  title={strings.nowPlaying.hideSide}
+                >
+                  <PanelRightClose className="h-4 w-4" strokeWidth={1.75} />
+                </button>
               </div>
             </div>
-            <Reorder.Group
-              axis="y"
-              values={order}
-              onReorder={setOrder}
-              className="flex flex-col gap-0.5"
-            >
-              <AnimatePresence initial={false}>
-                {orderedUpNext.map((track, index) => (
-                  <QueueTrackItem
-                    key={track.id}
-                    track={track}
-                    index={index}
-                    layoutMode={layoutMode}
-                    shufflePulse={shufflePulse}
-                    onDragEnd={() => onReorderQueue?.(orderRef.current)}
-                    onSelect={() => onSelectFromQueue(track.id)}
-                    onRemove={onRemoveFromQueue ? () => onRemoveFromQueue(track.id) : undefined}
-                    onAddToQueue={onAddToQueue}
-                  />
-                ))}
-              </AnimatePresence>
-            </Reorder.Group>
-          </>
+
+            {showLyrics ? (
+              <NoirLyricsColumn
+                lyrics={lyrics}
+                isLoading={isLoadingLyrics}
+                isSynced={isLyricsSynced}
+                currentIndex={currentLyricIndex}
+              />
+            ) : upNext.length === 0 ? (
+              <motion.div
+                key={quickAddSource ?? 'none'}
+                className="noir-now-playing-queue-empty px-2 pt-1"
+                initial={{ opacity: 0, y: reduced ? 0 : 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={withReducedMotion(MOTION.panel)}
+              >
+                <p className="flex items-center gap-2 text-[17px] font-semibold leading-tight tracking-[-0.02em] text-[color:var(--noir-text-primary)]">
+                  <NoirMark size={14} />
+                  {strings.nextUp.emptyTitle}
+                </p>
+                <p className="mt-2 max-w-[232px] text-[13px] leading-[1.45] text-[color:var(--noir-text-secondary)]">
+                  {quickAddSource === 'favorites'
+                    ? strings.nextUp.emptyFromFavorites
+                    : quickAddSource === 'recents'
+                      ? strings.nextUp.emptyFromRecents
+                      : strings.nextUp.emptyNothing}
+                </p>
+
+                {onAddToQueue && quickAdds.length > 0 && (
+                  <div className="noir-queue-empty-covers mt-4">
+                    {quickAdds.map((track, i) => (
+                      <motion.button
+                        type="button"
+                        key={track.id}
+                        onClick={() => addTracks([track])}
+                        className="group min-w-0 text-left elva-focus-ring"
+                        title={strings.nextUp.addOne(track.title)}
+                        initial={{ opacity: 0, y: reduced ? 0 : 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={withReducedMotion({ ...MOTION.panel, delay: 0.06 + i * 0.04 })}
+                      >
+                        <span className="relative block overflow-hidden rounded-[var(--noir-radius-sm)]">
+                          {hasRealArtwork(track.thumbnail) ? (
+                            <img
+                              src={track.thumbnail}
+                              alt=""
+                              className="noir-queue-empty-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                            />
+                          ) : (
+                            <span className="noir-queue-empty-cover block overflow-hidden">
+                              <NoirDitherCover
+                                world={worldForCollection(track.id)}
+                                seed={track.id}
+                                size={72}
+                                radius={0}
+                              />
+                            </span>
+                          )}
+                          <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
+                            <Plus className="h-4 w-4" strokeWidth={2} />
+                          </span>
+                        </span>
+                        <span className="noir-queue-empty-cover-title">{track.title}</span>
+                      </motion.button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-5 flex flex-wrap items-center gap-2">
+                  {onAddToQueue && addPool.length > 0 ? (
+                    <>
+                      <button
+                        type="button"
+                        className="noir-button-primary elva-focus-ring"
+                        onClick={() => addTracks(shuffled(addPool).slice(0, BATCH_SIZE))}
+                      >
+                        <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
+                        {strings.nextUp.addBatch(Math.min(BATCH_SIZE, addPool.length))}
+                      </button>
+                      {addPool.length > BATCH_SIZE && (
+                        <button
+                          type="button"
+                          className="noir-button-secondary elva-focus-ring"
+                          onClick={() => addTracks(shuffled(addPool))}
+                        >
+                          <Shuffle className="h-3.5 w-3.5" strokeWidth={2} />
+                          {strings.nextUp.shuffleAll}
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    onOpenDiscover && (
+                      <button type="button" className="noir-button-secondary elva-focus-ring" onClick={onOpenDiscover}>
+                        <Compass className="h-3.5 w-3.5" strokeWidth={1.75} />
+                        {strings.nextUp.browseDiscover}
+                      </button>
+                    )
+                  )}
+                </div>
+              </motion.div>
+            ) : (
+              <Reorder.Group
+                axis="y"
+                values={order}
+                onReorder={setOrder}
+                className="flex flex-col gap-0.5"
+              >
+                <AnimatePresence initial={false}>
+                  {orderedUpNext.map((track, index) => (
+                    <QueueTrackItem
+                      key={track.id}
+                      track={track}
+                      index={index}
+                      layoutMode={layoutMode}
+                      shufflePulse={shufflePulse}
+                      onDragEnd={() => onReorderQueue?.(orderRef.current)}
+                      onSelect={() => onSelectFromQueue(track.id)}
+                      onRemove={onRemoveFromQueue ? () => onRemoveFromQueue(track.id) : undefined}
+                      onAddToQueue={onAddToQueue}
+                    />
+                  ))}
+                </AnimatePresence>
+              </Reorder.Group>
+            )}
+          </motion.aside>
+        ) : (
+          <motion.button
+            key="np-side-peek"
+            type="button"
+            className="noir-now-playing-side-peek elva-focus-ring"
+            onClick={() => setSidePanelOpen(true)}
+            aria-label={strings.nowPlaying.showSide}
+            title={strings.nowPlaying.showSide}
+            initial={reduced ? { opacity: 0 } : { opacity: 0, x: 8 }}
+            animate={{ opacity: isPresent ? 1 : 0, x: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduced ? 0.12 : 0.22, ease: sheetEase }}
+          >
+            <PanelRightOpen className="h-4 w-4" strokeWidth={1.75} />
+            <ListMusic className="h-3.5 w-3.5 opacity-70" strokeWidth={1.75} />
+            {upNext.length > 0 && (
+              <span className="noir-now-playing-side-peek-count">{upNext.length}</span>
+            )}
+          </motion.button>
         )}
-      </motion.aside>
+      </AnimatePresence>
     </div>
   );
 }

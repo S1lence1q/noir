@@ -27,11 +27,11 @@ Opening Now Playing feels like the song you're hearing moves up and opens. The s
 ### C. Content the bar can't show (after T10)
 - ~~Line under the source: `Similar: A, B, C`~~ **Parked (2026-09-27):** not permanent in the title block. Revisit as artist-page “Fans also like” or on-demand in NP.
 - **Lyrics (DONE — 2026-09-27):**
-  - Toggle button top-right of the NP canvas (and keyboard `L`).
-  - When on: lyrics replace the **Next up** column (same column width / chrome), not a modal over the cover.
+  - Side panel modes: **Next up** | **Lyrics** (tabs in column header). No floating top-right button.
+  - Panel can **collapse**; peek control reopens. `L` opens NP + lyrics mode (+ expands panel).
   - Reuses `useLyrics` + LRCLIB / custom; seek via `elva-seek`. UI in `NoirLyricsColumn`.
-  - States: loading, synced scroll with `currentTime`, plain (unsynced), empty / not found — copy in `strings.lyrics`.
-  - Reduced motion: instant scroll (no smooth tween); still readable.
+  - States: loading, synced scroll, plain, empty — `strings.lyrics`.
+  - Reduced motion: instant scroll; still readable.
 
 ### D. Graphic slot (after T06, separate small ticket)
 - **Parked** (decision 005). Built twice, removed: the composition is complete without it, and it can't honestly react to YouTube audio.

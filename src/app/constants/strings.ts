@@ -118,10 +118,6 @@ export const strings = {
     addedMany: (n: number) => (n === 1 ? 'Added 1 song to queue' : `Added ${n} songs to queue`),
     undo: 'Undo',
   },
-  nowPlaying: {
-    playingFrom: (source: string) => `Playing from ${source}`,
-    openSource: 'Open source',
-  },
   lyrics: {
     title: 'Lyrics',
     loading: 'Finding lyrics…',
@@ -130,6 +126,12 @@ export const strings = {
     plain: 'Plain',
     show: 'Show lyrics',
     hide: 'Hide lyrics',
+  },
+  nowPlaying: {
+    playingFrom: (source: string) => `Playing from ${source}`,
+    openSource: 'Open source',
+    hideSide: 'Hide side panel',
+    showSide: 'Show side panel',
   },
   playlist: {
     label: 'Playlist',

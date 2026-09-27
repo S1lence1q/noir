@@ -1667,7 +1667,7 @@ export default function App() {
                     isPlaying: isMiniPlaying,
                   }}
                   showLyrics={showLyrics}
-                  onToggleLyrics={() => setShowLyrics((prev) => !prev)}
+                  onShowLyrics={setShowLyrics}
                   lyrics={lyrics}
                   isLoadingLyrics={isLoadingLyrics}
                   isLyricsSynced={isLyricsSynced}

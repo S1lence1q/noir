@@ -15,7 +15,7 @@ function seekViaShell(time: number) {
   window.dispatchEvent(new CustomEvent('elva-seek', { detail: { time } }));
 }
 
-/** Lyrics list for the Now Playing right column (replaces Next up). */
+/** Lyrics list for the Now Playing side panel (queue header owns the title). */
 export function NoirLyricsColumn({
   lyrics,
   isLoading,
@@ -42,22 +42,13 @@ export function NoirLyricsColumn({
 
   return (
     <div className="noir-lyrics flex h-full min-h-0 flex-col">
-      <div className="flex shrink-0 items-end justify-between gap-3 px-2 pb-3">
-        <p className="text-[14px] font-medium text-[color:var(--noir-text-primary)]">
-          {strings.lyrics.title}
-        </p>
-        {!isSynced && lyrics.length > 0 && !isLoading && (
-          <span className="noir-lyrics-badge">{strings.lyrics.plain}</span>
-        )}
-      </div>
-
       <div className="noir-lyrics-scroll min-h-0 flex-1 overflow-y-auto px-2 pb-8">
         {isLoading ? (
-          <p className="px-1 pt-8 text-[14px] text-[color:var(--noir-text-tertiary)]">
+          <p className="px-1 pt-6 text-[14px] text-[color:var(--noir-text-tertiary)]">
             {strings.lyrics.loading}
           </p>
         ) : lyrics.length === 0 ? (
-          <div className="px-1 pt-8">
+          <div className="px-1 pt-6">
             <p className="text-[15px] font-medium text-[color:var(--noir-text-secondary)]">
               {strings.lyrics.empty}
             </p>
@@ -66,7 +57,7 @@ export function NoirLyricsColumn({
             </p>
           </div>
         ) : isSynced ? (
-          <div className="flex flex-col gap-0.5 pt-6">
+          <div className="flex flex-col gap-0.5 pt-4">
             {lyrics.map((line, idx) => {
               const active = idx === currentIndex;
               return (
@@ -84,7 +75,10 @@ export function NoirLyricsColumn({
             <div className="h-[40%] shrink-0" aria-hidden />
           </div>
         ) : (
-          <div className="flex flex-col gap-1 pt-2">
+          <div className="flex flex-col gap-1 pt-1">
+            {!isSynced && (
+              <span className="noir-lyrics-badge mb-2 px-1">{strings.lyrics.plain}</span>
+            )}
             {lyrics.map((line, idx) => (
               <p key={idx} className="noir-lyrics-plain">
                 {line.text}
