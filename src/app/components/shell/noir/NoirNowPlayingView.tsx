@@ -131,7 +131,7 @@ export function NoirNowPlayingView({
       <AnimatePresence>
         {queueEndPrompt.isVisible && (
           <motion.div
-            className="fixed bottom-[112px] left-1/2 z-[60] w-[min(420px,calc(100vw-32px))] -translate-x-1/2 rounded-[var(--noir-radius-md)] border border-white/[0.12] bg-[color:var(--noir-elevated)] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.65)]"
+            className="fixed bottom-[112px] left-1/2 z-[60] w-[min(420px,calc(100vw-32px))] -translate-x-1/2 rounded-[var(--noir-radius-md)] border border-white/[0.12] bg-[color:var(--noir-black)] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.65)]"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
