@@ -576,6 +576,26 @@ export default function App() {
     });
   };
 
+  /**
+   * Direct play (search, artist row, …): if the track isn't already in the queue,
+   * start a fresh listening context — don't leave a stale radio/playlist "Playing from"
+   * with an empty Next up because the song was only appended at the end.
+   * Tracks already in the queue just become current; source stays.
+   */
+  const playTrackInContext = (track: SearchResult) => {
+    const key = getPlaybackSongKey(track);
+    const existingIndex = queueRef.current.findIndex(
+      (item) => item.id === track.id || (key !== null && getPlaybackSongKey(item) === key)
+    );
+    if (existingIndex >= 0) {
+      ensureTrackInQueue(track);
+      return;
+    }
+    setQueueSource(null);
+    queueRef.current = [track];
+    setQueue([track]);
+  };
+
   const handleSelectSong = async (result: SearchResult, isCrossfade?: boolean) => {
     const startingAppState = appState;
     const hadActiveSong = !!songData;
@@ -709,7 +729,7 @@ export default function App() {
     };
 
     saveRecentlyPlayed(queueTrack);
-    ensureTrackInQueue(queueTrack);
+    playTrackInContext(queueTrack);
 
     if (isCrossfade) {
       const saved = localStorage.getItem('elva_crossfade_duration');
@@ -883,6 +903,7 @@ export default function App() {
 
     const index = Math.max(0, Math.min(startIndex, tracks.length - 1));
     setQueueSource(label?.trim() || null);
+    queueRef.current = tracks;
     setQueue(tracks);
     startQueuePrefetch(tracks, tracks[index].id);
     await handleSelectSong(tracks[index]);
