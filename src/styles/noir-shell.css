@@ -942,11 +942,6 @@
   flex-shrink: 0;
 }
 
-.noir-now-playing-stage-row.has-lyrics .noir-now-playing-title {
-  font-size: 22px;
-  letter-spacing: -0.025em;
-}
-
 .noir-now-playing-stage-lyrics {
   position: relative;
   z-index: 1;
