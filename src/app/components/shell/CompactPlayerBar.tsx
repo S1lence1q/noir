@@ -34,6 +34,7 @@ type CompactPlayerBarProps = {
   onOpenQueue?: () => void;
   onToggleFavorite?: () => void;
   onStartRadio?: () => void;
+  onOpenArtist?: () => void;
 };
 
 function formatTime(seconds: number): string {
@@ -68,6 +69,7 @@ export function CompactPlayerBar({
   onOpenQueue,
   onToggleFavorite,
   onStartRadio,
+  onOpenArtist,
 }: CompactPlayerBarProps) {
   const reduced = prefersReducedMotion();
   const songKey = `${song.title}::${song.artist}::${song.artworkUrl}`;
@@ -215,7 +217,21 @@ export function CompactPlayerBar({
                   transition={{ duration: reduced ? 0.12 : 0.28, ease: EASE_PREMIUM }}
                 >
                   <span className="noir-compact-title">{song.title}</span>
-                  <span className="noir-compact-artist">{song.artist}</span>
+                  {onOpenArtist ? (
+                    <button
+                      type="button"
+                      className="noir-compact-artist block max-w-full truncate text-left hover:underline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenArtist();
+                      }}
+                      title={strings.songMenu.goToArtist}
+                    >
+                      {song.artist}
+                    </button>
+                  ) : (
+                    <span className="noir-compact-artist">{song.artist}</span>
+                  )}
                 </motion.span>
               </AnimatePresence>
             </motion.span>

@@ -1,11 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { ListEnd, Loader2, Heart, Plus, Search, Upload, X } from 'lucide-react';
-import { SearchResult } from '../../../types';
-import { executeSearchAPI, resolveUrlToSearchResult } from '../../../utils/apiUtils';
+import { ListEnd, Loader2, Heart, Plus, Search, Upload, UserRound, X } from 'lucide-react';
+import { SearchResult, VerifiedArtist } from '../../../types';
+import {
+  executeSearchAPI,
+  getArtistName,
+  getHandPickedImage,
+  resolveUrlToSearchResult,
+  shouldShowArtistCard,
+} from '../../../utils/apiUtils';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
+import { strings } from '../../../constants/strings';
 import { toast } from 'sonner';
 
 type NoirSearchPaletteProps = {
@@ -15,10 +22,32 @@ type NoirSearchPaletteProps = {
   onAddToQueue: (song: SearchResult) => void;
   onPlayNext?: (song: SearchResult) => void;
   onToggleFavorite?: (song: SearchResult) => void;
+  onViewArtist?: (artist: VerifiedArtist) => void;
   onFileSelect?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   favorites?: SearchResult[];
   recentTracks?: SearchResult[];
 };
+
+function artistFromQuery(query: string, results: SearchResult[]): VerifiedArtist | null {
+  if (!shouldShowArtistCard(query)) return null;
+  const candidate = getArtistName(query, results);
+  if (candidate) {
+    const handPicked = getHandPickedImage(candidate.name);
+    return {
+      name: candidate.name,
+      thumbnail: handPicked || candidate.thumbnail,
+      channelId: candidate.channelId,
+      isTopic: candidate.isTopic,
+    };
+  }
+  const name = query.trim();
+  if (name.length < 2) return null;
+  const handPicked = getHandPickedImage(name);
+  return {
+    name,
+    thumbnail: handPicked || results[0]?.thumbnail || '',
+  };
+}
 
 export function NoirSearchPalette({
   open,
@@ -27,6 +56,7 @@ export function NoirSearchPalette({
   onAddToQueue,
   onPlayNext,
   onToggleFavorite,
+  onViewArtist,
   onFileSelect,
   favorites = [],
   recentTracks = [],
@@ -43,7 +73,13 @@ export function NoirSearchPalette({
 
   const suggestions = recentTracks.slice(0, 3);
   const showingSuggestions = !query.trim() && !isSearching;
-  const rows = showingSuggestions ? suggestions : results;
+  const artistCard = useMemo(
+    () => (!showingSuggestions && !isSearching ? artistFromQuery(query, results) : null),
+    [query, results, showingSuggestions, isSearching]
+  );
+  const trackOffset = artistCard && onViewArtist ? 1 : 0;
+  const trackRows = showingSuggestions ? suggestions : results;
+  const rowCount = trackRows.length + trackOffset;
 
   useEffect(() => {
     if (!open) return;
@@ -57,7 +93,7 @@ export function NoirSearchPalette({
 
   useEffect(() => {
     setFocusedIndex(0);
-  }, [rows.length, showingSuggestions]);
+  }, [rowCount, showingSuggestions]);
 
   useEffect(() => {
     if (!open) return;
@@ -123,6 +159,11 @@ export function NoirSearchPalette({
     onClose();
   };
 
+  const openArtist = (artist: VerifiedArtist) => {
+    onViewArtist?.(artist);
+    onClose();
+  };
+
   if (typeof document === 'undefined') return null;
 
   return createPortal(
@@ -165,14 +206,19 @@ export function NoirSearchPalette({
                 onKeyDown={(e) => {
                   if (e.key === 'ArrowDown') {
                     e.preventDefault();
-                    setFocusedIndex((i) => Math.min(i + 1, Math.max(0, rows.length - 1)));
+                    setFocusedIndex((i) => Math.min(i + 1, Math.max(0, rowCount - 1)));
                   } else if (e.key === 'ArrowUp') {
                     e.preventDefault();
                     setFocusedIndex((i) => Math.max(i - 1, 0));
                   } else if (e.key === 'Enter') {
                     e.preventDefault();
-                    if (rows[focusedIndex]) playRow(rows[focusedIndex]);
-                    else if (query.trim()) void runSearch(query);
+                    if (trackOffset && focusedIndex === 0 && artistCard) {
+                      openArtist(artistCard);
+                    } else {
+                      const track = trackRows[focusedIndex - trackOffset];
+                      if (track) playRow(track);
+                      else if (query.trim()) void runSearch(query);
+                    }
                   }
                 }}
                 placeholder="Search songs, artists, or paste a link…"
@@ -219,20 +265,54 @@ export function NoirSearchPalette({
                   Type to search — or paste a YouTube / Apple Music link.
                 </p>
               )}
-              {!showingSuggestions && !isSearching && results.length === 0 && query.trim() && (
+              {!showingSuggestions &&
+                !isSearching &&
+                results.length === 0 &&
+                !artistCard &&
+                query.trim() && (
                 <p className="noir-search-palette-empty">No results for “{query.trim()}”</p>
               )}
 
               <div className="flex flex-col gap-0.5">
-                {rows.map((track, i) => {
-                  const active = i === focusedIndex;
+                {artistCard && onViewArtist && (
+                  <button
+                    type="button"
+                    data-active={focusedIndex === 0 ? 'true' : 'false'}
+                    className="noir-search-palette-row flex w-full items-center gap-3 text-left"
+                    onMouseEnter={() => setFocusedIndex(0)}
+                    onClick={() => openArtist(artistCard)}
+                  >
+                    {artistCard.thumbnail ? (
+                      <img
+                        src={artistCard.thumbnail}
+                        alt=""
+                        className="noir-art h-10 w-10 shrink-0 object-cover"
+                      />
+                    ) : (
+                      <span className="noir-art flex h-10 w-10 shrink-0 items-center justify-center bg-white/[0.06]">
+                        <UserRound className="h-4 w-4 text-[color:var(--noir-text-tertiary)]" />
+                      </span>
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[14px] font-medium text-[color:var(--noir-text-primary)]">
+                        {artistCard.name}
+                      </span>
+                      <span className="block truncate text-[13px] text-[color:var(--noir-text-tertiary)]">
+                        {strings.artist.openProfile}
+                      </span>
+                    </span>
+                  </button>
+                )}
+                {trackRows.map((track, i) => {
+                  const rowIndex = i + trackOffset;
+                  const active = rowIndex === focusedIndex;
                   const liked = isTrackFavorite(favorites, track);
                   return (
                     <div
                       key={track.id}
                       data-active={active ? 'true' : 'false'}
                       className="noir-search-palette-row group"
-                      onMouseEnter={() => setFocusedIndex(i)}
+                      onMouseEnter={() => setFocusedIndex(rowIndex)}
                     >
                       <button
                         type="button"

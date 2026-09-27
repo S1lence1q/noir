@@ -25,6 +25,8 @@ type NoirNowPlayingViewProps = {
   onToggleFavorite?: () => void;
   /** Start a radio station from the current song. */
   onStartRadio?: () => void;
+  /** Open the artist profile for the current song. */
+  onOpenArtist?: () => void;
   favoriteTracks?: SearchResult[];
   quickAddTracks?: SearchResult[];
   onAddToQueue?: (track: SearchResult, options?: { silent?: boolean }) => void;
@@ -69,6 +71,7 @@ export function NoirNowPlayingView({
   isFavorite = false,
   onToggleFavorite,
   onStartRadio,
+  onOpenArtist,
   favoriteTracks = [],
   quickAddTracks = [],
   onAddToQueue,
@@ -265,7 +268,18 @@ export function NoirNowPlayingView({
           >
             <h1 className="noir-now-playing-title">{song.title}</h1>
             <div className="mt-2 flex items-center gap-3">
-              <p className="noir-now-playing-artist !mt-0">{song.artist}</p>
+              {onOpenArtist ? (
+                <button
+                  type="button"
+                  onClick={onOpenArtist}
+                  className="noir-now-playing-artist !mt-0 text-left hover:underline elva-focus-ring rounded-sm"
+                  title={strings.songMenu.goToArtist}
+                >
+                  {song.artist}
+                </button>
+              ) : (
+                <p className="noir-now-playing-artist !mt-0">{song.artist}</p>
+              )}
               {onStartRadio && (
                 <button
                   type="button"

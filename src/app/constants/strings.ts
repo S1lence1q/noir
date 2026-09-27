@@ -63,6 +63,8 @@ export const strings = {
     empty: 'No songs found for this artist yet.',
     whichArtist: 'Which artist?',
     whichArtistHint: 'A few artists share this name — pick the right one.',
+    openProfile: 'Artist',
+    openProfileNamed: (name: string) => `Open ${name}`,
   },
   home: {
     continue: 'Continue',

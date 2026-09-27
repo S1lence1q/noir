@@ -592,7 +592,9 @@ export function NoirHomeView({
                     <p className="text-[14px] font-medium text-[color:var(--noir-text-primary)]">
                       {verifiedArtist.name}
                     </p>
-                    <p className="text-[13px] text-[color:var(--noir-text-secondary)]">Artist</p>
+                    <p className="text-[13px] text-[color:var(--noir-text-secondary)]">
+                      {strings.artist.openProfile}
+                    </p>
                   </div>
                 </button>
               )}

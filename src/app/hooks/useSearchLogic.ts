@@ -26,6 +26,31 @@ import {
 } from '../services/artistIdentity';
 import '../services/musicGraph';
 
+function artistCardFromQuery(query: string, results: SearchResult[]): VerifiedArtist | null {
+  if (!shouldShowArtistCard(query)) return null;
+  const candidate = getArtistName(query, results);
+  if (candidate) {
+    const handPicked = getHandPickedImage(candidate.name);
+    return {
+      name: candidate.name,
+      thumbnail: handPicked || candidate.thumbnail,
+      channelId: candidate.channelId,
+      isTopic: candidate.isTopic,
+    };
+  }
+  // Name-like query with no strong channel match — still offer a profile entry
+  const name = query.trim();
+  if (name.length < 2) return null;
+  const handPicked = getHandPickedImage(name);
+  return {
+    name,
+    thumbnail:
+      handPicked ||
+      results[0]?.thumbnail ||
+      'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwyfHxtdXNpYyUyMGJhY2tncm91bmR8ZW58MHx8fDE3Nzg5Nzk5NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080',
+  };
+}
+
 // Simple in-memory LRU search cache — max 30 entries, 5-minute TTL
 const SEARCH_CACHE_TTL_MS = 5 * 60 * 1000;
 const SEARCH_CACHE_MAX = 30;
@@ -523,22 +548,16 @@ export function useSearchLogic({
       setSelectedArtist(null);
       setArtistTracks([]);
       setArtistCandidates(null);
-      if (shouldShowArtistCard(query)) {
-        const candidate = getArtistName(query, cached);
-        if (candidate) {
-          const handPicked = getHandPickedImage(candidate.name);
-          setVerifiedArtist({
-            name: candidate.name,
-            thumbnail: handPicked || candidate.thumbnail,
-            channelId: candidate.channelId,
-            isTopic: candidate.isTopic,
-          });
-          void prefetchArtistProfile({
-            name: candidate.name,
-            channelId: candidate.channelId,
-            isTopic: candidate.isTopic,
-          });
-        }
+      const card = artistCardFromQuery(query, cached);
+      if (card) {
+        setVerifiedArtist(card);
+        void prefetchArtistProfile({
+          name: card.name,
+          channelId: card.channelId,
+          isTopic: card.isTopic,
+        });
+      } else {
+        setVerifiedArtist(null);
       }
       setSearchResults([...cached]);
       setLastSearchedQuery(query);
@@ -556,28 +575,22 @@ export function useSearchLogic({
 
     if (results.length > 0) {
       setCachedSearch(query, results);
-      if (shouldShowArtistCard(query)) {
-        const candidate = getArtistName(query, results);
-        if (candidate) {
-          const handPicked = getHandPickedImage(candidate.name);
-          setVerifiedArtist({
-            name: candidate.name,
-            thumbnail: handPicked || candidate.thumbnail,
-            channelId: candidate.channelId,
-            isTopic: candidate.isTopic,
-          });
-          void prefetchArtistProfile({
-            name: candidate.name,
-            channelId: candidate.channelId,
-            isTopic: candidate.isTopic,
-          });
-        }
+      const card = artistCardFromQuery(query, results);
+      if (card) {
+        setVerifiedArtist(card);
+        void prefetchArtistProfile({
+          name: card.name,
+          channelId: card.channelId,
+          isTopic: card.isTopic,
+        });
       }
       setSearchResults(results);
       setLastSearchedQuery(query);
     } else {
       setSearchResults([]);
-      setVerifiedArtist(null);
+      // Still offer artist profile for name-like empty searches (e.g. obscure artist)
+      const card = artistCardFromQuery(query, []);
+      setVerifiedArtist(card);
       setLastSearchedQuery(query);
     }
   };

@@ -969,7 +969,24 @@ export default function App() {
   // Tab changes dismiss detail overlays (playlist/chart/artist)
   useEffect(() => {
     searchLogic.setSelectedArtist(null);
-  }, [activeTab, searchLogic.setSelectedArtist]);
+    searchLogic.setArtistCandidates?.(null);
+  }, [activeTab, searchLogic.setSelectedArtist, searchLogic.setArtistCandidates]);
+
+  /** Open artist profile: close Now Playing / palette so the overlay is visible. */
+  const openArtistProfile = (artist: Parameters<typeof searchLogic.handleViewArtistProfile>[0]) => {
+    setNowPlayingOpen(false);
+    setSearchPaletteOpen(false);
+    void searchLogic.handleViewArtistProfile(artist);
+  };
+  const openArtistByName = (name: string, channelId?: string) => {
+    setNowPlayingOpen(false);
+    setSearchPaletteOpen(false);
+    void searchLogic.handleViewArtistByName(name, channelId);
+  };
+  const openArtistFromPlayer = () => {
+    if (!songData?.artist) return;
+    openArtistByName(songData.artist, songData.channelId);
+  };
 
   // Track search interactions to trigger guide variations
   if (selectedArtist) {
@@ -996,7 +1013,7 @@ export default function App() {
     setSelectedArtist: searchLogic.setSelectedArtist,
     setArtistTracks: searchLogic.setArtistTracks,
     handleSelectSong,
-    handleViewArtistProfile: searchLogic.handleViewArtistProfile,
+    handleViewArtistProfile: openArtistProfile,
     showShortcutMap,
     setShowShortcutMap,
     activeTab,
@@ -1499,6 +1516,7 @@ export default function App() {
                 : undefined
             }
             onStartRadio={songData ? handleStartRadioFromPlayer : undefined}
+            onOpenArtist={songData ? openArtistFromPlayer : undefined}
             nowPlaying={
               songData ? (
                 <NoirNowPlayingView
@@ -1521,6 +1539,7 @@ export default function App() {
                     })
                   }
                   onStartRadio={handleStartRadioFromPlayer}
+                  onOpenArtist={openArtistFromPlayer}
                   favoriteTracks={favorites}
                   quickAddTracks={recentlyPlayed}
                   onAddToQueue={handleAddToQueue}
@@ -1583,11 +1602,11 @@ export default function App() {
               handlePlayNext={handlePlayNext}
               handleToggleFavorite={handleToggleFavorite}
               handleStartRadio={handleStartRadio}
-              handleViewArtistProfile={searchLogic.handleViewArtistProfile}
+              handleViewArtistProfile={openArtistProfile}
               handlePickArtistCandidate={searchLogic.handlePickArtistCandidate}
               artistCandidates={searchLogic.artistCandidates}
               setArtistCandidates={searchLogic.setArtistCandidates}
-              handleViewArtistByName={searchLogic.handleViewArtistByName}
+              handleViewArtistByName={openArtistByName}
               handleUrlSubmit={searchLogic.handleUrlSubmit}
               handleFileSelect={handleFileSelect}
               handleSearch={searchLogic.handleSearch}
@@ -1668,7 +1687,7 @@ export default function App() {
               onToggleFavorite={handleToggleFavorite}
               onSearch={executeSearchAPI}
               onFetchChannelUploads={executeChannelUploadsAPI}
-              onViewArtist={searchLogic.handleViewArtistByName}
+              onViewArtist={openArtistByName}
               tourType={tourType}
               currentStep={tourStep}
               textureStyle={textureStyle}
@@ -1705,7 +1724,7 @@ export default function App() {
         onAddToQueue={handleAddToQueue}
         onStartRadio={handleStartRadio}
         onToggleFavorite={handleToggleFavorite}
-        onGoToArtist={searchLogic.handleViewArtistByName}
+        onGoToArtist={openArtistByName}
         onRemoveFromQueue={(track) => handleRemoveFromQueue(track.id)}
         isFavoriteForTrack={(track) => isTrackFavorite(favorites, track)}
       />
@@ -1730,6 +1749,7 @@ export default function App() {
         onAddToQueue={handleAddToQueue}
         onPlayNext={handlePlayNext}
         onToggleFavorite={handleToggleFavorite}
+        onViewArtist={openArtistProfile}
         onFileSelect={handleFileSelect}
         favorites={favorites}
         recentTracks={recentlyPlayed}
