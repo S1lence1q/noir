@@ -41,10 +41,6 @@ export function initAudioAnalyzer(
   }
 }
 
-export function getGlobalAnalyser(): AnalyserNode | null {
-  return globalAnalyser;
-}
-
 export function suspendGlobalAudioContext(): void {
   if (globalAudioContext && globalAudioContext.state === 'running') {
     try {

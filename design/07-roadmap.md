@@ -7,7 +7,7 @@
 Three tracks run side by side. Craft (`08-craft.md`) is not a phase; it ships inside every ticket.
 
 ```
-GRAPHICS  G1 Foundation ──▶ G2 Covers everywhere ──▶ G3 Now Playing wave ──▶ G4 Artist hero
+GRAPHICS  G1 Foundation ──▶ G2 Covers everywhere ──▶ G4 Artist hero
 REDESIGN  R1 Shared UI ──▶ R2 Volume/toast ──▶ R3 Playlists ──▶ R4 Queue + Now Playing ──▶ R5 Settings ──▶ R6 Library
 ENGINE    E1 Events ──▶ E2 Taste ──▶ E3 musicGraph ──▶ F1 Radio ──▶ F3/F4 Home + Mixes ──▶ F5 Stats ──▶ F6 Discover
 ```
@@ -25,7 +25,7 @@ ENGINE    E1 Events ──▶ E2 Taste ──▶ E3 musicGraph ──▶ F1 Radi
 | 7 | musicGraph | T10 | T09 | No UI; API responses cached |
 | 8 | Radio + autoplay | T11 | T10, T05 | Start radio from menu; autoplay prompt |
 | 9 | Personal Home + mixes | T12, T13 | T06, T10 | Home shelves with real data |
-| 10 | Now Playing: one object (shared element) + content + later wave | T14 | T07 (A/B), T10 (C), T06 (D) | No double UI; cover flies bar ↔ canvas |
+| 10 | Now Playing: one object (shared element) + content | T14 | T07 (A/B), T10 (C), T06 (D) | No double UI; cover flies bar ↔ canvas |
 | 11 | Settings polish | T15 | T02 | Crossfade preview, inline confirms |
 | 12 | Library overview + stats | T16, T17 | T09 | Grid + "Your sound" |
 | 13 | Discover feed | T18 | T10, T12 | Feed shelves |

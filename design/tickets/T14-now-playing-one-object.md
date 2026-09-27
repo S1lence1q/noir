@@ -27,7 +27,7 @@ Opening Now Playing feels like the song you're hearing moves up and opens. The s
 - Lyrics toggle button (`L`) top-right of the canvas, opening the existing lyrics in place of the Next up column. Keep existing lyrics logic; only reposition.
 
 ### D. Graphic slot (after T06, separate small ticket)
-- Spray wave in the cover's extracted color behind/below the cover block, reacting to audio. Spec comes at that checkpoint.
+- **Parked** (decision 005). Built twice, removed: the composition is complete without it, and it can't honestly react to YouTube audio.
 
 ## Also fix (from T05 review)
 - Empty Next up: **Add 10** and **Shuffle all** must sit on one row (let the queue column be ≥ 280 px, or reduce button padding to 12 px).

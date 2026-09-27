@@ -80,8 +80,8 @@ Extend `src/app/utils/motionPresets.ts` (easings + reduced motion already exist)
 - No bounce, except the asterisk (small overshoot when favoriting).
 - Things enter from where they come from (a menu from its button, a toast from the bar).
 - Lists: items added animate height + opacity; removed items collapse (no jump).
-- The only ambient motion: Now Playing spray wave + playing indicator, both driven by audio. Nothing else moves by itself.
-- `prefers-reduced-motion`: durations → 0, wave static.
+- The only ambient motion: the playing indicator. Nothing else moves by itself.
+- `prefers-reduced-motion`: durations → 0.
 
 ## 5. Micro-interactions catalog
 

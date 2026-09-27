@@ -20,7 +20,7 @@ Everything graphic is made of grain: ordered dither, halftone, spray, film noise
 | Technique | Looks like | Used for |
 |-----------|-----------|----------|
 | **Dither** | 1-bit ordered dither / halftone of a real image (`Statue Dithering`, `Cloud`) | Mix covers, chart covers, playlist covers, artist hero, stats cards |
-| **Spray** | Solid form with dissolving, sprayed edges (`Pin fra Pins by you`, `Shape Pin`) | Asterisk mark (large), Now Playing wave |
+| **Spray** | Solid form with dissolving, sprayed edges (`Pin fra Pins by you`, `Shape Pin`) | Asterisk mark (large) |
 | **Grain field** | Flat color field with visible noise | Background of dither covers only |
 | **Cinematic** | Existing plate wave photo | Sidebar brand only. Nowhere else. |
 
@@ -68,7 +68,7 @@ Rules:
 | Sidebar brand | Plate wave (keep) + asterisk | Unchanged; this works |
 | Collection covers (mix / playlist / chart / favorites) | Dither cover | Everywhere a collection is shown: cards, sidebar thumbnails, headers |
 | Artist hero | Dithered artist photo on a color field | Artist page header |
-| Now Playing | Artwork-derived atmosphere (blurred artwork + color wash) — **keep, user-approved 2026-09-27**. Spray wave may be added on top later | Fades in after the cover flight lands |
+| Now Playing | Artwork-derived atmosphere (blurred artwork + color wash) — **keep, user-approved 2026-09-27**. No spray wave (decision 005) | Fades in after the cover flight lands |
 | Home greeting | One dither object (e.g. top artist of the week, dithered) | Small, to the right of the greeting. Optional per day |
 | Stats / Replay | Bone cards with dither images | Only here is Bone allowed |
 | Empty states + loading | Spray asterisk or halftone cloud | Low-key, centered |
@@ -102,5 +102,4 @@ Rules:
 
 - `NoirDitherCover` — props `{ source: string; world: ColorWorld; seed: string; size: number; madeForYou?: boolean }`. Renders once to canvas (Bayer dither), caches as a data URL in IndexedDB keyed by `seed+source+world`. Falls back to a plain field + asterisk if the image fails (CORS).
 - `NoirMark` — SVG asterisk, `variant: 'vector' | 'spray'`, `size`, `spin?`.
-- `NoirSprayWave` — canvas, color from `playerColorUtils`, amplitude from `audioAnalyzer`, respects reduced motion.
 - Image CORS: artwork is loaded through the existing `images.weserv.nl` proxy so canvas isn't tainted.
