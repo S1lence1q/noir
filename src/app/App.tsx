@@ -39,6 +39,11 @@ import { NoirNowPlayingView } from './components/shell/noir/NoirNowPlayingView';
 import { NoirToastHost, noirToast } from './components/shell/noir/NoirToast';
 import { NoirSearchPalette } from './components/shell/noir/NoirSearchPalette';
 import { NoirSongMenuHost } from './components/SongRowOptions';
+import {
+  buildAutoplayTracks,
+  buildRadioTracks,
+  radioStationLabel,
+} from './services/radio/buildRadio';
 type AppState = 'landing' | 'processing' | 'ready';
 // landing = shell, processing = resolving a track. `ready` is unused (fullscreen player is parked).
 
@@ -859,6 +864,50 @@ export default function App() {
     }
   };
 
+  const handleStartRadio = async (seed: SearchResult) => {
+    noirToast({ text: strings.radio.starting, cover: seed.thumbnail });
+    try {
+      const exclude = queue
+        .map((item) => getPlaybackSongKey(item) || `${item.artist}::${item.title}`)
+        .filter(Boolean) as string[];
+      const radioTracks = await buildRadioTracks(seed, { limit: 24, excludeKeys: exclude });
+      if (radioTracks.length === 0) {
+        noirToast({ text: strings.radio.empty });
+        return;
+      }
+      const station = [seed, ...radioTracks.filter((track) => track.id !== seed.id)];
+      await handlePlayPlaylist(station, radioStationLabel(seed.artist));
+      noirToast({
+        text: strings.radio.started(seed.artist),
+        cover: seed.thumbnail,
+      });
+    } catch (error) {
+      console.warn('[radio] Start radio failed', error);
+      noirToast({ text: strings.radio.failed });
+    }
+  };
+
+  const handleAppendRadio = async (seed: SearchResult) => {
+    try {
+      const exclude = queue
+        .map((item) => getPlaybackSongKey(item) || `${item.artist}::${item.title}`)
+        .filter(Boolean) as string[];
+      const radioTracks = await buildAutoplayTracks(seed, exclude);
+      if (radioTracks.length === 0) {
+        noirToast({ text: strings.radio.empty });
+        return;
+      }
+      radioTracks.forEach((track) => handleAddToQueue(track, { silent: true }));
+      noirToast({
+        text: strings.nextUp.addedMany(radioTracks.length),
+        cover: radioTracks[0]?.thumbnail || seed.thumbnail,
+      });
+    } catch (error) {
+      console.warn('[radio] Autoplay append failed', error);
+      noirToast({ text: strings.radio.failed });
+    }
+  };
+
   // 3. Search and Artist Profiles Logic Hook
   const searchLogic = useSearchLogic({
     setAppState,
@@ -1455,6 +1504,7 @@ export default function App() {
                   favoriteTracks={favorites}
                   quickAddTracks={recentlyPlayed}
                   onAddToQueue={handleAddToQueue}
+                  onAppendRadio={handleAppendRadio}
                   onOpenDiscover={() => setActiveTab('discover')}
                   onSelectFromQueue={(id) => handleSelectFromQueue(id)}
                   onRemoveFromQueue={handleRemoveFromQueue}
@@ -1629,6 +1679,7 @@ export default function App() {
       <NoirSongMenuHost
         onPlayNext={handlePlayNext}
         onAddToQueue={handleAddToQueue}
+        onStartRadio={handleStartRadio}
         onToggleFavorite={handleToggleFavorite}
         onGoToArtist={searchLogic.handleViewArtistByName}
         onRemoveFromQueue={(track) => handleRemoveFromQueue(track.id)}

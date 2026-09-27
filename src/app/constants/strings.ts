@@ -17,6 +17,7 @@ export const strings = {
     removeFromPlaylist: 'Remove from this playlist',
     removeFromQueue: 'Remove from queue',
     comingSoon: 'Coming soon',
+    radioStarted: (artist: string) => `Radio · ${artist}`,
     newPlaylist: 'New playlist',
     searchPlaceholder: 'Search playlists',
     moreOptions: 'More options',
@@ -69,6 +70,19 @@ export const strings = {
     favorites: 'Favorites',
     artists: 'Artists you play',
     playMix: 'Play mix',
+  },
+  radio: {
+    starting: 'Starting radio…',
+    started: (artist: string) => `Playing radio · ${artist}`,
+    empty: 'Couldn’t find similar songs for radio.',
+    failed: 'Radio couldn’t start. Try another track.',
+  },
+  settings: {
+    autoplay: 'Autoplay',
+    autoplayDesc: 'When the queue is almost empty',
+    autoplayAsk: 'Ask',
+    autoplayOn: 'Always',
+    autoplayOff: 'Off',
   },
   nextUp: {
     title: 'Next up',

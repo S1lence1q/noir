@@ -15,6 +15,7 @@ const MENU_GAP = 8;
 export type SongMenuActions = {
   onPlayNext?: (track: SearchResult) => void;
   onAddToQueue?: (track: SearchResult) => void;
+  onStartRadio?: (track: SearchResult) => void;
   onToggleFavorite?: (track: SearchResult) => void;
   onGoToArtist?: (artist: string, channelId?: string) => void;
   onRemoveFromQueue?: (track: SearchResult) => (() => void) | void;
@@ -155,6 +156,7 @@ function MenuItem({
 export function NoirSongMenuHost({
   onPlayNext,
   onAddToQueue,
+  onStartRadio,
   onToggleFavorite,
   onGoToArtist,
   onRemoveFromQueue,
@@ -223,6 +225,7 @@ export function NoirSongMenuHost({
   const actions = {
     onPlayNext: request.actions.onPlayNext ?? onPlayNext,
     onAddToQueue: request.actions.onAddToQueue ?? onAddToQueue,
+    onStartRadio: request.actions.onStartRadio ?? onStartRadio,
     onToggleFavorite: request.actions.onToggleFavorite ?? onToggleFavorite,
     onGoToArtist: request.actions.onGoToArtist ?? onGoToArtist,
     onRemoveFromQueue: request.actions.onRemoveFromQueue ?? onRemoveFromQueue,
@@ -297,8 +300,11 @@ export function NoirSongMenuHost({
       <MenuItem
         icon={Radio}
         label={strings.songMenu.startRadio}
-        disabled
-        title={strings.songMenu.comingSoon}
+        disabled={!actions.onStartRadio}
+        onClick={() => {
+          actions.onStartRadio?.(track);
+          close();
+        }}
       />
       <div className="my-1 h-px bg-[color:var(--noir-rule)]" />
       <MenuItem

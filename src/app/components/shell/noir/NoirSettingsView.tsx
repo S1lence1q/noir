@@ -13,9 +13,17 @@ import * as Slider from '@radix-ui/react-slider';
 import { STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { showMiniHUD } from '../../../utils/hudUtils';
 import { clearListeningEvents } from '../../../services/listening/eventsStore';
+import { strings } from '../../../constants/strings';
+import type { AutoplayPreference } from '../../../hooks/useQueueEndPrompt';
 
 const APP_VERSION = '1.0.0';
 const GAPLESS_STASH_KEY = 'elva_crossfade_before_gapless';
+const AUTOPLAY_STORAGE_KEY = 'elva_autoplay';
+
+function readAutoplayPreference(): AutoplayPreference {
+  const value = localStorage.getItem(AUTOPLAY_STORAGE_KEY);
+  return value === 'on' || value === 'off' ? value : 'ask';
+}
 
 function SettingsCard({
   title,
@@ -129,6 +137,7 @@ export function NoirSettingsView() {
   const [country, setCountry] = useState(
     () => localStorage.getItem('elva_profile_country') || 'dk'
   );
+  const [autoplay, setAutoplay] = useState<AutoplayPreference>(() => readAutoplayPreference());
 
   const gapless = crossfade === 0;
 
@@ -257,6 +266,30 @@ export function NoirSettingsView() {
 
         <SettingsRow label="Gapless playback" description="Instant transitions, no crossfade">
           <NoirSwitch checked={gapless} onChange={handleGaplessChange} />
+        </SettingsRow>
+
+        <div className="noir-settings-divider" />
+
+        <SettingsRow label={strings.settings.autoplay} description={strings.settings.autoplayDesc} stacked>
+          <div className="noir-settings-select-wrap">
+            <select
+              value={autoplay}
+              onChange={(e) => {
+                const next = e.target.value as AutoplayPreference;
+                setAutoplay(next);
+                localStorage.setItem(AUTOPLAY_STORAGE_KEY, next);
+              }}
+              className="noir-settings-select"
+              aria-label={strings.settings.autoplay}
+            >
+              <option value="ask">{strings.settings.autoplayAsk}</option>
+              <option value="on">{strings.settings.autoplayOn}</option>
+              <option value="off">{strings.settings.autoplayOff}</option>
+            </select>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--noir-text-tertiary)]">
+              ▾
+            </span>
+          </div>
         </SettingsRow>
       </SettingsCard>
 

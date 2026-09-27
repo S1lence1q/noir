@@ -26,6 +26,8 @@ type NoirNowPlayingViewProps = {
   favoriteTracks?: SearchResult[];
   quickAddTracks?: SearchResult[];
   onAddToQueue?: (track: SearchResult, options?: { silent?: boolean }) => void;
+  /** Append similar/radio tracks when the queue is about to end. */
+  onAppendRadio?: (seed: SearchResult) => void | Promise<void>;
   onOpenDiscover?: () => void;
   onSelectFromQueue: (id: string) => void;
   onRemoveFromQueue?: (id: string) => void;
@@ -67,6 +69,7 @@ export function NoirNowPlayingView({
   favoriteTracks = [],
   quickAddTracks = [],
   onAddToQueue,
+  onAppendRadio,
   onOpenDiscover,
   onSelectFromQueue,
   onRemoveFromQueue,
@@ -105,6 +108,18 @@ export function NoirNowPlayingView({
   };
 
   const keepPlaying = () => {
+    const seed: SearchResult = {
+      id: song.videoId || song.audioUrl || `${song.title}-${song.artist}`,
+      title: song.title,
+      artist: song.artist,
+      thumbnail: song.artworkUrl,
+      videoId: song.videoId || '',
+      audioUrl: song.audioUrl,
+    };
+    if (onAppendRadio) {
+      void onAppendRadio(seed);
+      return;
+    }
     if (addPool.length > 0) addTracks(shuffled(addPool).slice(0, BATCH_SIZE));
   };
 
@@ -114,7 +129,7 @@ export function NoirNowPlayingView({
     duration: playback.duration,
     isPlaying: playback.isPlaying,
     upNextCount: upNext.length,
-    canKeepPlaying: !!onAddToQueue && addPool.length > 0,
+    canKeepPlaying: !!onAddToQueue && (!!onAppendRadio || addPool.length > 0),
     onKeepPlaying: keepPlaying,
   });
 

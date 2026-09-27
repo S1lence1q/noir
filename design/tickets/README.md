@@ -60,6 +60,7 @@ Exact behavior, layout, copy, tokens, states.
 | T04 | Playlists — **DONE** (side add-panel, fly-to-list, entrance). Open: drag song onto sidebar playlist, ⌘N | L | | Opus → Luna for the open bits |
 | T14 | Now Playing: one object — **A+B DONE** (cover flies bar↔canvas, glow removed, centered). D spray wave **parked** (decision 005). Open: C "Playing from"/similar (after T10) | M | | Opus |
 | T12 | Daily mixes + Home shelf — **DONE** (`services/mixes/dailyMixes.ts`) | L | | Opus |
+| T11 | Radio + autoplay — **DONE** (`services/radio/buildRadio.ts`) | M | | Opus |
 
 ### Original index
 
