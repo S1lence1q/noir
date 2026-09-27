@@ -27,7 +27,8 @@ export type ListeningEvent = {
 const DB_NAME = 'noir';
 const STORE_NAME = 'listeningEvents';
 const STARTED_AT_INDEX = 'startedAt';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
+const GRAPH_CACHE_STORE = 'graphCache';
 const RETENTION_MS = 2 * 365 * 24 * 60 * 60 * 1000;
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -42,6 +43,9 @@ function openDatabase(): Promise<IDBDatabase> {
 
       if (!store.indexNames.contains(STARTED_AT_INDEX)) {
         store.createIndex(STARTED_AT_INDEX, STARTED_AT_INDEX, { unique: false });
+      }
+      if (!database.objectStoreNames.contains(GRAPH_CACHE_STORE)) {
+        database.createObjectStore(GRAPH_CACHE_STORE, { keyPath: 'key' });
       }
     };
     request.onsuccess = () => resolve(request.result);

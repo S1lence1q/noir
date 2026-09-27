@@ -40,6 +40,11 @@ export default defineConfig({
         target: 'https://rss.marketingtools.apple.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api-apple/, '')
+      },
+      '/deezer': {
+        target: 'https://api.deezer.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/deezer/, '')
       }
     }
   }

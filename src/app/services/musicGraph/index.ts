@@ -1,0 +1,186 @@
+import { getGraphCache, setGraphCache } from './cache';
+import {
+  getDeezerArtistImage,
+  getDeezerArtistRadio,
+  getDeezerArtistTopTracks,
+  getDeezerNewReleases,
+  getDeezerRelatedArtists,
+} from './deezer';
+import {
+  getLastFmArtistInfo,
+  getLastFmArtistTags,
+  getLastFmArtistTopTracks,
+  getLastFmSimilarArtists,
+  getLastFmSimilarTracks,
+} from './lastfm';
+import { normalizeName } from './normalize';
+
+export type GraphArtist = {
+  name: string;
+  mbid?: string;
+  image?: string;
+  listeners?: number;
+  match?: number;
+};
+
+export type GraphTrack = {
+  title: string;
+  artist: string;
+  mbid?: string;
+  artistMbid?: string;
+  image?: string;
+  listeners?: number;
+};
+
+export type GraphRelease = {
+  title: string;
+  artist: string;
+  releaseDate: string;
+  image?: string;
+  deezerId?: number;
+};
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const TTL = {
+  similar: 7 * DAY_MS,
+  tags: 30 * DAY_MS,
+  releases: DAY_MS,
+  info: 30 * DAY_MS,
+  image: 30 * DAY_MS,
+};
+
+const inFlight = new Map<string, Promise<unknown>>();
+const loggedCacheFailures = new Set<string>();
+
+function logCacheFailure(key: string, error: unknown) {
+  if (loggedCacheFailures.has(key)) return;
+  loggedCacheFailures.add(key);
+  console.warn(`[musicGraph] Cache failed for ${key}`, error);
+}
+
+function requestCached<T>(
+  key: string,
+  ttlMs: number,
+  loader: () => Promise<T>,
+  fallback: T
+): Promise<T> {
+  const existing = inFlight.get(key);
+  if (existing) return existing as Promise<T>;
+
+  const request = (async () => {
+    try {
+      const cached = await getGraphCache<T>(key);
+      if (cached !== null) return cached;
+    } catch (error) {
+      logCacheFailure(key, error);
+    }
+
+    const value = await loader();
+    try {
+      await setGraphCache(key, value, ttlMs);
+    } catch (error) {
+      logCacheFailure(key, error);
+    }
+    return value;
+  })().catch(() => fallback);
+
+  inFlight.set(key, request);
+  void request.then(
+    () => {
+      if (inFlight.get(key) === request) inFlight.delete(key);
+    },
+    () => {
+      if (inFlight.get(key) === request) inFlight.delete(key);
+    }
+  );
+  return request;
+}
+
+function artistKey(artist: string) {
+  return normalizeName(artist) || artist.trim().toLowerCase();
+}
+
+export function getSimilarArtists(artist: string, limit = 12): Promise<GraphArtist[]> {
+  const key = `similar-artists:${artistKey(artist)}:${limit}`;
+  return requestCached(key, TTL.similar, async () => {
+    const result = await getLastFmSimilarArtists(artist, limit);
+    return result.length > 0 ? result : getDeezerRelatedArtists(artist, limit);
+  }, []);
+}
+
+export function getSimilarTracks(
+  title: string,
+  artist: string,
+  limit = 30
+): Promise<GraphTrack[]> {
+  const key = `similar-tracks:${artistKey(artist)}:${artistKey(title)}:${limit}`;
+  return requestCached(
+    key,
+    TTL.similar,
+    () => getLastFmSimilarTracks(title, artist, limit),
+    []
+  );
+}
+
+export function getArtistTags(artist: string): Promise<string[]> {
+  return requestCached(`artist-tags:${artistKey(artist)}`, TTL.tags, () => getLastFmArtistTags(artist), []);
+}
+
+export function getArtistTopTracks(artist: string, limit = 10): Promise<GraphTrack[]> {
+  const key = `artist-top-tracks:${artistKey(artist)}:${limit}`;
+  return requestCached(key, TTL.similar, async () => {
+    const lastFmTracks = await getLastFmArtistTopTracks(artist, limit);
+    return lastFmTracks.length > 0 ? lastFmTracks : getDeezerArtistTopTracks(artist, limit);
+  }, []);
+}
+
+export function getArtistInfo(
+  artist: string
+): Promise<{ name: string; mbid?: string; image?: string; listeners?: number } | undefined> {
+  return requestCached(`artist-info:${artistKey(artist)}`, TTL.info, () => getLastFmArtistInfo(artist), undefined);
+}
+
+export function getArtistRadio(artist: string): Promise<GraphTrack[]> {
+  return requestCached(`artist-radio:${artistKey(artist)}`, TTL.similar, () => getDeezerArtistRadio(artist), []);
+}
+
+export function getNewReleases(artist: string, days = 30): Promise<GraphRelease[]> {
+  return requestCached(
+    `new-releases:${artistKey(artist)}:${days}`,
+    TTL.releases,
+    () => getDeezerNewReleases(artist, days),
+    []
+  );
+}
+
+export function getArtistImage(artist: string): Promise<string | undefined> {
+  return requestCached(`artist-image:${artistKey(artist)}`, TTL.image, () => getDeezerArtistImage(artist), undefined);
+}
+
+declare global {
+  interface Window {
+    __noirGraph?: {
+      getSimilarArtists: typeof getSimilarArtists;
+      getSimilarTracks: typeof getSimilarTracks;
+      getArtistTags: typeof getArtistTags;
+      getArtistTopTracks: typeof getArtistTopTracks;
+      getArtistInfo: typeof getArtistInfo;
+      getArtistRadio: typeof getArtistRadio;
+      getNewReleases: typeof getNewReleases;
+      getArtistImage: typeof getArtistImage;
+    };
+  }
+}
+
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
+  window.__noirGraph = {
+    getSimilarArtists,
+    getSimilarTracks,
+    getArtistTags,
+    getArtistTopTracks,
+    getArtistInfo,
+    getArtistRadio,
+    getNewReleases,
+    getArtistImage,
+  };
+}

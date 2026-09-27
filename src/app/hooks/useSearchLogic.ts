@@ -15,6 +15,7 @@ import {
   peekCachedDiscography,
   loadArtistDiscographyWithCache,
 } from '../utils/artistDiscographyLoader';
+import '../services/musicGraph';
 
 // Simple in-memory LRU search cache — max 30 entries, 5-minute TTL
 // Prevents repeated API hits when the user types the same query twice in a session.
@@ -194,8 +195,9 @@ export function useSearchLogic({
             localStorage.setItem(`elva_artist_img_${queryVal.toLowerCase()}`, handPicked);
           } else {
             const deezerRes = await fetchWithTimeout(
-              `https://corsproxy.io/?https://api.deezer.com/search/artist?q=${encodeURIComponent(queryVal)}`,
-              { timeout: 2500 }
+              `/deezer/search/artist?q=${encodeURIComponent(queryVal)}`,
+              {},
+              2500
             );
             if (deezerRes.ok) {
               const deezerData = await deezerRes.json();
@@ -305,7 +307,7 @@ export function useSearchLogic({
       if (existing) return existing;
       try {
         const deezerRes = await fetchWithTimeout(
-          `https://corsproxy.io/?https://api.deezer.com/search/artist?q=${encodeURIComponent(artist.name.trim())}`,
+          `/deezer/search/artist?q=${encodeURIComponent(artist.name.trim())}`,
           {},
           2000
         );
