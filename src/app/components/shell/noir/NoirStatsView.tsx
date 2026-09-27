@@ -21,10 +21,11 @@ import {
   type TasteTrack,
 } from '../../../services/listening/tasteProfile';
 import { getArtistImage, getTrackImage } from '../../../services/musicGraph';
-import { COLOR_WORLDS, worldForCollection } from '../../../utils/ditherCover';
+import { worldForCollection } from '../../../utils/ditherCover';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
 import { NoirDitherCover } from './NoirDitherCover';
+import { NoirIdentityCover } from './NoirIdentityCover';
 import { NoirMark } from './NoirMark';
 import { NoirReplayStory } from './NoirReplayStory';
 
@@ -187,7 +188,6 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
 
   const topArtist = summary.artists[0] ?? null;
   const heroSource = topArtist ? artistImages[topArtist.artist] : undefined;
-  const clockSource = heroSource;
 
   return (
     <>
@@ -229,30 +229,16 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
             )}
           </div>
           <div className="noir-stats-hero-band-art">
-            <NoirDitherCover
-              source={heroSource}
-              world="bone"
-              seed={topArtist ? `sound-hero-${topArtist.artist}` : 'sound-hero'}
-              size={200}
-              madeForYou
-            />
-            <NoirMark
-              size={160}
-              variant="spray"
-              color={COLOR_WORLDS.bone.mark}
-              className="noir-stats-hero-band-mark"
-            />
+            {/* Fixed Your sound identity — not the #1 artist face again */}
+            <NoirIdentityCover world="ember" size={200} radius={0} />
           </div>
         </section>
 
         {summary.replay && (
           <section className="noir-stats-replay-cta">
-            <NoirDitherCover
-              source={heroSource}
-              world="bone"
-              seed={`replay-cta-${summary.replay.month.year}-${summary.replay.month.month}`}
+            <NoirIdentityCover
+              world="moss"
               size={88}
-              madeForYou
               className="noir-stats-replay-art"
             />
             <div className="min-w-0 flex-1">
@@ -348,12 +334,10 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
 
         <section className="noir-stats-block noir-stats-block--clock">
           <div className="noir-stats-clock-card">
-            <NoirDitherCover
-              source={clockSource}
-              world="bone"
-              seed={topArtist ? `sound-clock-${topArtist.artist}` : 'sound-clock'}
+            <NoirIdentityCover
+              world="cobalt"
               size={280}
-              madeForYou
+              radius={0}
               className="noir-stats-clock-art"
             />
             <div className="noir-stats-clock-meta">

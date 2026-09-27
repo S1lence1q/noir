@@ -2141,7 +2141,8 @@ button.noir-now-playing-source:hover {
 }
 
 /* Fine halftone grain so the flat field matches the dither covers next to it. */
-.noir-favorites-cover::after {
+.noir-favorites-cover::after,
+.noir-identity-cover::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -2149,6 +2150,23 @@ button.noir-now-playing-source:hover {
   background-size: 4px 4px;
   mask-image: radial-gradient(circle at 30% 25%, transparent 30%, #000 100%);
   pointer-events: none;
+}
+
+.noir-identity-cover {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.noir-identity-cover--light::after {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.18) 0.8px, transparent 1px);
+}
+
+.noir-identity-cover:not(.noir-identity-cover--light)::after {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 0.8px, transparent 1px);
 }
 
 /* NoirDitherCover — generated collection cover */
