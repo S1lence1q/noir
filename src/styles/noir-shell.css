@@ -1316,19 +1316,32 @@
   border-color: rgba(255, 255, 255, 0.32);
 }
 
-/* Playlist page: list on the left, add panel on the right */
+/* Playlist page: list on the left, add panel on the right.
+   Second column is always reserved in the grid (0→340px via :has) so the
+   panel never auto-places under the list during enter/exit. */
 .noir-playlist-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 40px;
+  grid-template-columns: minmax(0, 1fr) 0fr;
+  column-gap: 0;
+  row-gap: 40px;
   align-items: start;
 }
 
-.noir-playlist-layout[data-panel='open'] {
+.noir-playlist-layout:has(.noir-add-panel) {
   grid-template-columns: minmax(0, 1fr) 340px;
+  column-gap: 40px;
+}
+
+.noir-add-panel-rail {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .noir-add-panel {
+  width: 340px;
+  box-sizing: border-box;
   position: sticky;
   top: 0;
   display: flex;
@@ -1388,11 +1401,23 @@
 }
 
 @media (max-width: 1000px) {
-  .noir-playlist-layout[data-panel='open'] {
+  .noir-playlist-layout {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .noir-playlist-layout:has(.noir-add-panel) {
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: 0;
+  }
+
+  .noir-add-panel-rail {
+    grid-column: 1;
+    grid-row: auto;
+    overflow: visible;
+  }
+
   .noir-add-panel {
+    width: auto;
     position: static;
     max-height: none;
     border-left: none;

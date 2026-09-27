@@ -163,7 +163,7 @@ export function NoirUserPlaylistPage({
       : {};
 
   return (
-    <div className="noir-playlist-layout" data-panel={panelOpen ? 'open' : 'closed'}>
+    <div className="noir-playlist-layout">
       <div className="min-w-0 pb-6">
         <button type="button" onClick={onBack} className="noir-back-link elva-focus-ring">
           <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
@@ -332,18 +332,20 @@ export function NoirUserPlaylistPage({
         )}
       </div>
 
-      <AnimatePresence initial={false}>
-        {panelOpen && (
-          <PlaylistAddPanel
-            key="add-panel"
-            playlist={playlist}
-            favorites={favorites}
-            listRef={listRef}
-            delay={justCreated ? 0.24 : 0}
-            onClose={() => setPanelOpen(false)}
-          />
-        )}
-      </AnimatePresence>
+      <div className="noir-add-panel-rail">
+        <AnimatePresence initial={false}>
+          {panelOpen && (
+            <PlaylistAddPanel
+              key="add-panel"
+              playlist={playlist}
+              favorites={favorites}
+              listRef={listRef}
+              delay={justCreated ? 0.24 : 0}
+              onClose={() => setPanelOpen(false)}
+            />
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
