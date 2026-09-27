@@ -2484,7 +2484,7 @@ button.noir-now-playing-source:hover {
   /* Keep stage inside scrollport — negative offsets get clipped by overflow-y parents */
   padding: 28px 20px 64px;
   margin: 0 -8px;
-  max-width: 780px;
+  max-width: min(100%, var(--noir-content-max));
   isolation: isolate;
   /* Color lives on the page itself so it can't vanish behind overflow */
   background:
@@ -2768,13 +2768,87 @@ button.noir-now-playing-source:hover {
   background: #1a1a1a;
 }
 
+.noir-stats-artists {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.95fr) minmax(280px, 1.05fr);
+  gap: 28px 36px;
+  align-items: stretch;
+}
+
+.noir-stats-artists-lead {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.noir-stats-artists-lead-art {
+  width: min(100%, 280px) !important;
+  height: auto !important;
+  aspect-ratio: 1;
+  max-width: 280px;
+}
+
+.noir-stats-artists-lead-copy .noir-stats-eyebrow {
+  margin-bottom: 6px;
+}
+
+.noir-stats-artists-lead-name {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--noir-text-primary);
+}
+
+.noir-stats-artists-lead-meta {
+  margin: 6px 0 0;
+  font: var(--noir-type-meta);
+  color: var(--noir-text-tertiary);
+}
+
+.noir-stats-artists-rail {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.noir-stats-artists-rail-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 76px;
+  padding: 6px 8px 6px 0;
+  border-radius: 18px;
+}
+
+.noir-stats-artists-rail-n {
+  width: 28px;
+  flex-shrink: 0;
+  font: var(--noir-type-meta);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--noir-text-tertiary);
+}
+
+.noir-stats-artists-rail-art {
+  flex-shrink: 0;
+}
+
 .noir-stats-tiles {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
+  max-width: none;
 }
 
 .noir-stats-tile {
@@ -3009,6 +3083,10 @@ button.noir-now-playing-source:hover {
 }
 
 @media (max-width: 720px) {
+  .noir-stats-artists {
+    grid-template-columns: 1fr;
+  }
+
   .noir-stats-tiles {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

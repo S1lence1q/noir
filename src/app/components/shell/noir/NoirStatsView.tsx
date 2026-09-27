@@ -292,24 +292,49 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
           {summary.artists.length === 0 ? (
             <p className="text-[13px] text-[color:var(--noir-text-tertiary)]">{strings.stats.noRankings}</p>
           ) : (
-            <ol className="noir-stats-tiles">
-              {summary.artists.map((artist, index) => (
-                <li key={artist.artist} className="noir-stats-tile">
-                  <span className="noir-stats-tile-art">
-                    <NoirDitherCover
-                      source={artistImages[artist.artist]}
-                      world={index === 0 ? 'bone' : worldForCollection(artist.artist)}
-                      seed={`stats-artist-${artist.artist}`}
-                      size={96}
-                      madeForYou={index === 0}
-                    />
-                    <span className="noir-stats-tile-rank">{index + 1}</span>
-                  </span>
-                  <span className="noir-stats-tile-label truncate">{artist.artist}</span>
-                  <span className="noir-stats-tile-meta">{strings.stats.plays(artist.plays)}</span>
-                </li>
-              ))}
-            </ol>
+            <div className="noir-stats-artists">
+              {summary.artists[0] && (
+                <article className="noir-stats-artists-lead">
+                  <NoirDitherCover
+                    source={artistImages[summary.artists[0].artist]}
+                    world="bone"
+                    seed={`stats-artist-lead-${summary.artists[0].artist}`}
+                    size={280}
+                    madeForYou
+                    className="noir-stats-artists-lead-art"
+                  />
+                  <div className="noir-stats-artists-lead-copy">
+                    <p className="noir-stats-eyebrow">{strings.stats.yourNumberOne}</p>
+                    <p className="noir-stats-artists-lead-name">{summary.artists[0].artist}</p>
+                    <p className="noir-stats-artists-lead-meta">
+                      {strings.stats.plays(summary.artists[0].plays)}
+                    </p>
+                  </div>
+                </article>
+              )}
+              {summary.artists.length > 1 && (
+                <ol className="noir-stats-artists-rail">
+                  {summary.artists.slice(1).map((artist, index) => (
+                    <li key={artist.artist} className="noir-stats-artists-rail-row">
+                      <span className="noir-stats-artists-rail-n" aria-hidden>
+                        {String(index + 2).padStart(2, '0')}
+                      </span>
+                      <NoirDitherCover
+                        source={artistImages[artist.artist]}
+                        world={worldForCollection(artist.artist)}
+                        seed={`stats-artist-${artist.artist}`}
+                        size={72}
+                        className="noir-stats-artists-rail-art"
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="noir-stats-tile-label block truncate">{artist.artist}</span>
+                        <span className="noir-stats-tile-meta">{strings.stats.plays(artist.plays)}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
           )}
         </section>
 
