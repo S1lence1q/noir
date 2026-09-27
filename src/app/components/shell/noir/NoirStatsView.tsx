@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { strings } from '../../../constants/strings';
 import type { SearchResult } from '../../../types';
@@ -19,7 +19,7 @@ import {
   type TasteTrack,
 } from '../../../services/listening/tasteProfile';
 import { getArtistImage, getTrackImage } from '../../../services/musicGraph';
-import { COLOR_WORLDS, worldForCollection, type ColorWorld } from '../../../utils/ditherCover';
+import { COLOR_WORLDS, worldForCollection } from '../../../utils/ditherCover';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
 import { NoirDitherCover } from './NoirDitherCover';
@@ -30,18 +30,6 @@ export type NoirStatsViewProps = {
   favorites?: SearchResult[];
   recentTracks?: SearchResult[];
 };
-
-function hexToRgba(hex: string, alpha: number) {
-  const n = parseInt(hex.slice(1), 16);
-  const r = (n >> 16) & 255;
-  const g = (n >> 8) & 255;
-  const b = n & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-function washFor(world: ColorWorld, alpha: number) {
-  return hexToRgba(COLOR_WORLDS[world].field, alpha);
-}
 
 function localPool(favorites: SearchResult[], recentTracks: SearchResult[]) {
   return [...favorites, ...recentTracks];
@@ -65,7 +53,6 @@ function localTrackThumb(track: TasteTrack, pool: SearchResult[]) {
   )?.thumbnail;
 }
 
-/** Soft 24h intensity strip — sits under the Bone clock card, not a dial. */
 function HourStrip({ hours, peakHour }: { hours: number[]; peakHour: number }) {
   const max = Math.max(1, ...hours);
   return (
@@ -197,16 +184,8 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
   }
 
   const topArtist = summary.artists[0] ?? null;
-  const secondArtist = summary.artists[1] ?? null;
   const heroSource = topArtist ? artistImages[topArtist.artist] : undefined;
   const clockSource = heroSource;
-  const accentWorldRaw = topArtist ? worldForCollection(topArtist.artist) : 'ember';
-  // Bone/ink washes read as grey mud on black — push them to Ember for stage color.
-  const accentWorld =
-    accentWorldRaw === 'bone' || accentWorldRaw === 'ink' ? 'ember' : accentWorldRaw;
-  const sideWorldRaw = secondArtist ? worldForCollection(secondArtist.artist) : 'cobalt';
-  const sideWorld =
-    sideWorldRaw === 'bone' || sideWorldRaw === 'ink' ? 'cobalt' : sideWorldRaw;
 
   return (
     <>
@@ -215,19 +194,7 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={withReducedMotion(MOTION.panel)}
-        style={
-          {
-            '--stats-accent': washFor(accentWorld, 0.32),
-            '--stats-side': washFor(sideWorld, 0.18),
-          } as CSSProperties
-        }
       >
-        <div className="noir-stats-stage" aria-hidden>
-          <div className="noir-stats-wash" />
-          <div className="noir-stats-grain" />
-        </div>
-
-        <div className="noir-stats-body">
         <section className="noir-stats-hero-band">
           <div className="noir-stats-hero-band-copy">
             <p className="noir-stats-eyebrow">{strings.stats.thisWeek}</p>
@@ -249,7 +216,6 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
               seed={topArtist ? `sound-hero-${topArtist.artist}` : 'sound-hero'}
               size={200}
               madeForYou
-              radius={28}
             />
             <NoirMark
               size={160}
@@ -268,7 +234,6 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
               seed={`replay-cta-${summary.replay.month.year}-${summary.replay.month.month}`}
               size={88}
               madeForYou
-              radius={22}
               className="noir-stats-replay-art"
             />
             <div className="min-w-0 flex-1">
@@ -287,25 +252,21 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
           {summary.artists.length === 0 ? (
             <p className="text-[13px] text-[color:var(--noir-text-tertiary)]">{strings.stats.noRankings}</p>
           ) : (
-            <ol className="noir-stats-soft-list">
+            <ol className="noir-stats-tiles">
               {summary.artists.map((artist, index) => (
-                <li key={artist.artist} className={`noir-stats-soft-row${index === 0 ? ' is-lead' : ''}`}>
-                  <span className="noir-stats-soft-n" aria-hidden>
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <span className="noir-stats-soft-art">
+                <li key={artist.artist} className="noir-stats-tile">
+                  <span className="noir-stats-tile-art">
                     <NoirDitherCover
                       source={artistImages[artist.artist]}
-                      world={index === 0 ? 'bone' : 'ink'}
+                      world={index === 0 ? 'bone' : worldForCollection(artist.artist)}
                       seed={`stats-artist-${artist.artist}`}
-                      size={index === 0 ? 64 : 52}
-                      radius={999}
+                      size={96}
+                      madeForYou={index === 0}
                     />
+                    <span className="noir-stats-tile-rank">{index + 1}</span>
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="noir-stats-soft-label truncate">{artist.artist}</span>
-                    <span className="noir-stats-soft-meta">{strings.stats.plays(artist.plays)}</span>
-                  </span>
+                  <span className="noir-stats-tile-label truncate">{artist.artist}</span>
+                  <span className="noir-stats-tile-meta">{strings.stats.plays(artist.plays)}</span>
                 </li>
               ))}
             </ol>
@@ -317,26 +278,24 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
           {summary.tracks.length === 0 ? (
             <p className="text-[13px] text-[color:var(--noir-text-tertiary)]">{strings.stats.noRankings}</p>
           ) : (
-            <ol className="noir-stats-soft-list">
+            <ol className="noir-stats-tiles">
               {summary.tracks.map((track, index) => (
-                <li key={track.songKey} className={`noir-stats-soft-row${index === 0 ? ' is-lead' : ''}`}>
-                  <span className="noir-stats-soft-n" aria-hidden>
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <span className="noir-stats-soft-art">
+                <li key={track.songKey} className="noir-stats-tile">
+                  <span className="noir-stats-tile-art">
                     <NoirDitherCover
                       source={trackImages[track.songKey]}
-                      world={index === 0 ? 'bone' : 'ink'}
+                      world={index === 0 ? 'bone' : worldForCollection(track.songKey)}
                       seed={`stats-track-${track.songKey}`}
-                      size={index === 0 ? 64 : 52}
-                      radius={18}
+                      size={96}
+                      madeForYou={index === 0}
                     />
+                    <span className="noir-stats-tile-rank">{index + 1}</span>
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="noir-stats-soft-label truncate">{track.title}</span>
-                    <span className="noir-stats-soft-meta truncate">{track.artist}</span>
+                  <span className="min-w-0">
+                    <span className="noir-stats-tile-label block truncate">{track.title}</span>
+                    <span className="noir-stats-tile-meta block truncate">{track.artist}</span>
                   </span>
-                  <span className="noir-stats-soft-meta shrink-0">{strings.stats.plays(track.plays)}</span>
+                  <span className="noir-stats-tile-meta shrink-0">{strings.stats.plays(track.plays)}</span>
                 </li>
               ))}
             </ol>
@@ -351,7 +310,6 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
               seed={topArtist ? `sound-clock-${topArtist.artist}` : 'sound-clock'}
               size={280}
               madeForYou
-              radius={0}
               className="noir-stats-clock-art"
             />
             <div className="noir-stats-clock-meta">
@@ -361,14 +319,11 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
                   ? strings.stats.peakHour(formatHourLabel(summary.clock.peakHour))
                   : strings.stats.noRankings}
               </p>
-              {topArtist && (
-                <p className="noir-stats-clock-artist">{topArtist.artist}</p>
-              )}
+              {topArtist && <p className="noir-stats-clock-artist">{topArtist.artist}</p>}
               <HourStrip hours={summary.clock.hours} peakHour={summary.clock.peakHour} />
             </div>
           </div>
         </section>
-        </div>
       </motion.div>
 
       <AnimatePresence>
