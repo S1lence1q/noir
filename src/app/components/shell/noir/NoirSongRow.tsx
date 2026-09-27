@@ -25,6 +25,11 @@ type NoirSongRowProps = {
   showDuration?: boolean;
   /** Rendered in the hover action group, before add-to-queue. */
   extraAction?: ReactNode;
+  /**
+   * HTML5 drag onto sidebar playlists. Disable inside Reorder lists —
+   * native drag steals the pointer and breaks Framer reorder.
+   */
+  allowExternalDrag?: boolean;
 };
 
 function formatDuration(duration: number) {
@@ -48,15 +53,17 @@ export function NoirSongRow({
   showArtistColumn = true,
   showDuration = false,
   extraAction,
+  allowExternalDrag = true,
 }: NoirSongRowProps) {
   const reduced = prefersReducedMotion();
   const hasThumb = !!track.thumbnail?.trim();
+  const canExternalDrag = allowExternalDrag && !isLoading;
 
   return (
     <motion.div
       role="button"
       tabIndex={0}
-      draggable={!isLoading}
+      draggable={canExternalDrag}
       data-search-result-index={dataIndex}
       data-focused={isFocused ? 'true' : 'false'}
       data-playing={isPlaying ? 'true' : 'false'}
@@ -73,8 +80,11 @@ export function NoirSongRow({
         })
       }
       onDragStart={(event) => {
-        event.dataTransfer.effectAllowed = 'copy';
-        event.dataTransfer.setData(PLAYLIST_TRACK_DRAG_MIME, encodePlaylistTrack(track));
+        if (!canExternalDrag) return;
+        const dt = 'dataTransfer' in event ? event.dataTransfer : null;
+        if (!dt) return;
+        dt.effectAllowed = 'copy';
+        dt.setData(PLAYLIST_TRACK_DRAG_MIME, encodePlaylistTrack(track));
       }}
       onKeyDown={(e) => {
         if (e.key === 'Enter' && !isLoading) onPlay();

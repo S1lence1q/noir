@@ -101,6 +101,8 @@ export function NoirNowPlayingView({
       ? queue.slice(currentIndex + 1)
       : queue.filter((item) => getPlaybackSongKey(item) !== currentKey);
   const [order, setOrder] = useState(() => upNext.map((track) => track.id));
+  const orderRef = useRef(order);
+  orderRef.current = order;
   useEffect(() => {
     setOrder(upNext.map((track) => track.id));
   }, [upNext.map((track) => track.id).join('\0')]);
@@ -491,7 +493,7 @@ export function NoirNowPlayingView({
                   <QueueTrackItem
                     key={track.id}
                     track={track}
-                    onDragEnd={() => onReorderQueue?.(order)}
+                    onDragEnd={() => onReorderQueue?.(orderRef.current)}
                     onSelect={() => onSelectFromQueue(track.id)}
                     onRemove={onRemoveFromQueue ? () => onRemoveFromQueue(track.id) : undefined}
                     onAddToQueue={onAddToQueue}

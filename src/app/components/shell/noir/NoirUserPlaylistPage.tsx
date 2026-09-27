@@ -94,6 +94,8 @@ export function NoirUserPlaylistPage({
   const [menuOpen, setMenuOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(() => playlist.tracks.length === 0);
   const [order, setOrder] = useState(() => playlist.tracks.map((t) => t.id));
+  const orderRef = useRef(order);
+  orderRef.current = order;
   const titleInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -309,13 +311,12 @@ export function NoirUserPlaylistPage({
                 key={track.id}
                 track={track}
                 isFavorite={isTrackFavorite(favorites, track)}
-                onDragEnd={() => reorderPlaylist(playlist.id, order)}
+                onDragEnd={() => reorderPlaylist(playlist.id, orderRef.current)}
                 onPlay={() => onPlayPlaylist(orderedTracks, playlist.name, i)}
                 onRemove={() => handleRemove(track)}
                 onAddToQueue={onAddToQueue}
                 onPlayNext={onPlayNext}
                 onToggleFavorite={onToggleFavorite}
-                onRemoveFromPlaylist={handleRemove}
               />
             ))}
           </AnimatePresence>
@@ -393,12 +394,14 @@ function PlaylistTrackItem({
       <NoirSongRow
         track={track}
         isFavorite={isFavorite}
+        allowExternalDrag={false}
         onPlay={() => {
           if (!draggedRef.current) onPlay();
         }}
         onAddToQueue={onAddToQueue}
         onPlayNext={onPlayNext}
         onToggleFavorite={onToggleFavorite}
+        onRemoveFromPlaylist={() => onRemove()}
         extraAction={
           <button
             type="button"
@@ -406,6 +409,7 @@ function PlaylistTrackItem({
             className="flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white"
             aria-label={strings.playlist.removeFromPlaylist}
             title={strings.playlist.removeFromPlaylist}
+            onPointerDown={(e) => e.stopPropagation()}
           >
             <X className="h-4 w-4" strokeWidth={2} />
           </button>
