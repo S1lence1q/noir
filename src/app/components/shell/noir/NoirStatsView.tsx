@@ -195,10 +195,12 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
 
   const topArtist = summary.artists[0] ?? null;
   const secondArtist = summary.artists[1] ?? null;
+  const thirdArtist = summary.artists[2] ?? null;
   const heroSource = topArtist ? artistImages[topArtist.artist] : undefined;
   const clockSource = heroSource;
   const primaryAura = auraWorld(topArtist ? worldForCollection(topArtist.artist) : 'ember');
   const secondaryAura = auraWorld(secondArtist ? worldForCollection(secondArtist.artist) : 'cobalt');
+  const tertiaryAura = auraWorld(thirdArtist ? worldForCollection(thirdArtist.artist) : 'rose');
 
   return (
     <>
@@ -209,13 +211,29 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
         transition={withReducedMotion(MOTION.panel)}
         style={
           {
-            '--stats-aura-a': hexToRgba(COLOR_WORLDS[primaryAura].field, 0.55),
-            '--stats-aura-b': hexToRgba(COLOR_WORLDS[secondaryAura].field, 0.28),
+            '--stats-aura-a': hexToRgba(COLOR_WORLDS[primaryAura].field, 0.72),
+            '--stats-aura-b': hexToRgba(COLOR_WORLDS[secondaryAura].field, 0.5),
+            '--stats-aura-c': hexToRgba(COLOR_WORLDS[tertiaryAura].field, 0.4),
+            '--stats-mark-a': COLOR_WORLDS[primaryAura].field,
+            '--stats-mark-b': COLOR_WORLDS[secondaryAura].field,
           } as CSSProperties
         }
       >
-        <div className="noir-stats-aura noir-stats-aura--primary" aria-hidden />
-        <div className="noir-stats-aura noir-stats-aura--secondary" aria-hidden />
+        <div className="noir-stats-stage" aria-hidden>
+          <div className="noir-stats-aura noir-stats-aura--primary" />
+          <div className="noir-stats-aura noir-stats-aura--secondary" />
+          <div className="noir-stats-aura noir-stats-aura--tertiary" />
+          <div className="noir-stats-blob noir-stats-blob--a" />
+          <div className="noir-stats-blob noir-stats-blob--b" />
+          <div className="noir-stats-grain-orb noir-stats-grain-orb--a" />
+          <div className="noir-stats-grain-orb noir-stats-grain-orb--b" />
+          <span className="noir-stats-glow-mark noir-stats-glow-mark--tr">
+            <NoirMark size={300} variant="spray" color="var(--stats-mark-a)" />
+          </span>
+          <span className="noir-stats-glow-mark noir-stats-glow-mark--bl">
+            <NoirMark size={200} variant="spray" color="var(--stats-mark-b)" />
+          </span>
+        </div>
 
         <section className="noir-stats-hero-band">
           <div className="noir-stats-hero-band-copy">

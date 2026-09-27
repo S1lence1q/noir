@@ -2482,40 +2482,138 @@ button.noir-now-playing-source:hover {
   flex-direction: column;
   gap: 40px;
   padding-bottom: 56px;
-  max-width: 720px;
+  max-width: 760px;
   isolation: isolate;
 }
 
-/* Soft color only — blurred discs, masked so no rectangular edge ever shows. */
-.noir-stats-aura {
+.noir-stats-stage {
   pointer-events: none;
   position: absolute;
+  inset: -12% -20% -8% -16%;
   z-index: 0;
+  overflow: hidden;
+  /* Soften the stage box itself so overflow never reads as a hard frame */
+  -webkit-mask-image: radial-gradient(ellipse 78% 72% at 50% 40%, #000 35%, transparent 78%);
+  mask-image: radial-gradient(ellipse 78% 72% at 50% 40%, #000 35%, transparent 78%);
+}
+
+.noir-stats-aura {
+  position: absolute;
   border-radius: 50%;
-  filter: blur(56px);
-  -webkit-mask-image: radial-gradient(circle, #000 0%, #000 42%, transparent 72%);
-  mask-image: radial-gradient(circle, #000 0%, #000 42%, transparent 72%);
+  filter: blur(64px);
+  -webkit-mask-image: radial-gradient(circle, #000 0%, #000 38%, transparent 70%);
+  mask-image: radial-gradient(circle, #000 0%, #000 38%, transparent 70%);
 }
 
 .noir-stats-aura--primary {
-  top: -120px;
-  right: -100px;
-  width: 380px;
-  height: 380px;
-  background: radial-gradient(circle at 45% 45%, var(--stats-aura-a, rgba(232, 80, 2, 0.55)) 0%, transparent 70%);
-  opacity: 0.9;
+  top: -8%;
+  right: -6%;
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle at 42% 40%, var(--stats-aura-a, rgba(232, 80, 2, 0.72)) 0%, transparent 68%);
+  opacity: 0.95;
 }
 
 .noir-stats-aura--secondary {
-  left: -140px;
-  bottom: 8%;
-  width: 280px;
-  height: 280px;
-  background: radial-gradient(circle at 50% 50%, var(--stats-aura-b, rgba(31, 63, 191, 0.28)) 0%, transparent 72%);
-  opacity: 0.7;
+  left: -10%;
+  bottom: 12%;
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle at 50% 50%, var(--stats-aura-b, rgba(31, 63, 191, 0.5)) 0%, transparent 70%);
+  opacity: 0.85;
 }
 
-.noir-stats > :not(.noir-stats-aura) {
+.noir-stats-aura--tertiary {
+  left: 35%;
+  top: 42%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle at 50% 50%, var(--stats-aura-c, rgba(224, 122, 154, 0.4)) 0%, transparent 72%);
+  opacity: 0.55;
+  filter: blur(72px);
+}
+
+/* Organic liquid blobs — wilder than plain discs */
+.noir-stats-blob {
+  position: absolute;
+  filter: blur(42px);
+  opacity: 0.55;
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, #000 15%, transparent 72%);
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, #000 15%, transparent 72%);
+}
+
+.noir-stats-blob--a {
+  top: 8%;
+  right: 4%;
+  width: 260px;
+  height: 320px;
+  background: var(--stats-aura-a, rgba(232, 80, 2, 0.72));
+  border-radius: 62% 38% 48% 52% / 48% 55% 45% 52%;
+  transform: rotate(18deg);
+}
+
+.noir-stats-blob--b {
+  left: 2%;
+  bottom: 18%;
+  width: 220px;
+  height: 240px;
+  background: var(--stats-aura-b, rgba(31, 63, 191, 0.5));
+  border-radius: 42% 58% 55% 45% / 58% 42% 58% 42%;
+  transform: rotate(-22deg);
+}
+
+/* Grain only inside soft orbs — never a rectangular sheet */
+.noir-stats-grain-orb {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.45;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  -webkit-mask-image: radial-gradient(circle, #000 0%, #000 35%, transparent 72%);
+  mask-image: radial-gradient(circle, #000 0%, #000 35%, transparent 72%);
+}
+
+.noir-stats-grain-orb--a {
+  top: -4%;
+  right: -2%;
+  width: 420px;
+  height: 420px;
+}
+
+.noir-stats-grain-orb--b {
+  left: -8%;
+  bottom: 6%;
+  width: 320px;
+  height: 320px;
+  opacity: 0.35;
+}
+
+/* Soft glowing spray marks — green-ref energy, NOIR material */
+.noir-stats-glow-mark {
+  position: absolute;
+  display: block;
+  line-height: 0;
+  opacity: 0.42;
+  filter: blur(2px);
+  -webkit-mask-image: radial-gradient(circle, #000 10%, transparent 68%);
+  mask-image: radial-gradient(circle, #000 10%, transparent 68%);
+}
+
+.noir-stats-glow-mark--tr {
+  top: -2%;
+  right: 0;
+  transform: rotate(14deg);
+}
+
+.noir-stats-glow-mark--bl {
+  left: 2%;
+  bottom: 10%;
+  opacity: 0.32;
+  transform: rotate(-18deg);
+}
+
+.noir-stats > :not(.noir-stats-stage) {
   position: relative;
   z-index: 1;
 }
