@@ -1,10 +1,11 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { Compass, Heart, Home, Library, Plus, Settings } from 'lucide-react';
+import { Compass, Home, Library, Plus, Settings } from 'lucide-react';
 import { MOTION, withReducedMotion } from '../../utils/motionPresets';
 import { AppTab } from './types';
 import { NoirGraphicAccent } from './noir/NoirGraphicAccent';
 import { NoirMark } from './noir/NoirMark';
 import { NoirDitherCover } from './noir/NoirDitherCover';
+import { NoirFavoritesCover } from './noir/NoirFavoritesCover';
 import { worldForCollection } from '../../utils/ditherCover';
 import { createPlaylist, usePlaylists } from '../../utils/playlistStore';
 import { strings } from '../../constants/strings';
@@ -77,7 +78,7 @@ export function AppSidebar({
           className="noir-nav-item flex h-10 items-center gap-3 px-3 text-left text-[14px] font-medium elva-focus-ring"
           aria-current={favoritesActive ? 'page' : undefined}
         >
-          <Heart className="h-[18px] w-[18px] shrink-0" strokeWidth={favoritesActive ? 2.25 : 1.75} />
+          <NoirFavoritesCover size={22} radius={5} />
           <span className="flex-1">Favorites</span>
           {favoritesCount > 0 && (
             <span className="text-[12px] tabular-nums text-[color:var(--noir-text-tertiary)]">{favoritesCount}</span>

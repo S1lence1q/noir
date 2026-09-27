@@ -1557,6 +1557,103 @@
   }
 }
 
+/* Artist page */
+.noir-artist-hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 320px;
+  overflow: hidden;
+  border-radius: var(--noir-radius-lg);
+}
+
+.noir-artist-hero-portrait {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+}
+
+/* Fade the portrait's left edge into the field so it reads as one poster, not a pasted square. */
+.noir-artist-hero-portrait .noir-dither-cover {
+  mask-image: linear-gradient(to right, transparent 0%, #000 35%);
+}
+
+.noir-artist-hero-text {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  max-width: 60%;
+  padding: 32px;
+}
+
+.noir-artist-hero-label {
+  font: var(--noir-type-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.noir-artist-hero-name {
+  margin-top: 6px;
+  overflow: hidden;
+  font: 700 clamp(40px, 6vw, 72px) / 0.98 var(--noir-font);
+  letter-spacing: -0.045em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.noir-artist-hero-meta {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+.noir-artist-play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+}
+
+.noir-artist-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  color: inherit;
+  opacity: 0.8;
+  transition: opacity 0.12s ease, background-color 0.12s ease;
+}
+
+.noir-artist-icon:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.noir-artist-play:disabled,
+.noir-artist-icon:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+@media (max-width: 760px) {
+  .noir-artist-hero-portrait {
+    opacity: 0.35;
+  }
+
+  .noir-artist-hero-text {
+    max-width: none;
+  }
+}
+
 /* Discover */
 .noir-discover-charts {
   display: grid;
@@ -1708,6 +1805,26 @@
 .noir-collection-card:hover .noir-collection-card-new {
   border-color: rgba(255, 255, 255, 0.32);
   color: var(--noir-text-primary);
+}
+
+.noir-favorites-cover {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Fine halftone grain so the flat field matches the dither covers next to it. */
+.noir-favorites-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.22) 0.8px, transparent 1px);
+  background-size: 4px 4px;
+  mask-image: radial-gradient(circle at 30% 25%, transparent 30%, #000 100%);
+  pointer-events: none;
 }
 
 /* NoirDitherCover — generated collection cover */

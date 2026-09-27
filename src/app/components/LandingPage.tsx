@@ -289,7 +289,6 @@ export function LandingPage({
         <AnimatePresence>
           {selectedArtist && (
             <NoirDetailOverlay
-              title={selectedArtist.name}
               onClose={() => {
                 setSelectedArtist(null);
                 setArtistTracks([]);

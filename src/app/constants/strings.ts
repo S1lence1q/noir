@@ -24,6 +24,17 @@ export const strings = {
       likes: 'No favorites saved yet.',
     },
   },
+  artist: {
+    label: 'Artist',
+    loading: 'Finding songs…',
+    songCount: (n: number) => (n === 1 ? '1 song' : `${n} songs`),
+    play: 'Play',
+    shuffle: 'Shuffle',
+    popular: 'Popular',
+    showAll: (n: number) => `Show all ${n}`,
+    showLess: 'Show less',
+    empty: 'No songs found for this artist yet.',
+  },
   home: {
     continue: 'Continue',
     nowPlaying: 'Now playing',

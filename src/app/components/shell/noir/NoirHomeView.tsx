@@ -13,13 +13,9 @@ import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motio
 import { worldForCollection } from '../../../utils/ditherCover';
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import { NoirDitherCover } from './NoirDitherCover';
+import { NoirFavoritesCover } from './NoirFavoritesCover';
 
 type SearchPanelPhase = 'idle' | 'loading' | 'results' | 'no-results';
-
-/** Avoid two shelf covers dithering the same artwork when collections start with the same song. */
-function distinctCoverSource(tracks: SearchResult[], taken?: string): string | undefined {
-  return tracks.find((t) => t.thumbnail && t.thumbnail !== taken)?.thumbnail ?? tracks[0]?.thumbnail;
-}
 
 export type NoirHomeViewProps = {
   searchQuery: string;
@@ -368,13 +364,7 @@ export function NoirHomeView({
                         onClick={() => window.dispatchEvent(new Event('noir-open-favorites'))}
                         className="noir-collection-card noir-home-shelf-card elva-focus-ring"
                       >
-                        <NoirDitherCover
-                          source={favorites[0]?.thumbnail}
-                          world="ember"
-                          seed="favorites"
-                          size={168}
-                          madeForYou
-                        />
+                        <NoirFavoritesCover size={168} />
                         <span className="min-w-0">
                           <span className="noir-song-title block truncate">{strings.home.favorites}</span>
                           <span className="noir-song-meta mt-0.5 block truncate">
@@ -393,7 +383,7 @@ export function NoirHomeView({
                         className="noir-collection-card noir-home-shelf-card elva-focus-ring"
                       >
                         <NoirDitherCover
-                          source={distinctCoverSource(playlist.tracks, favorites[0]?.thumbnail)}
+                          source={playlist.tracks[0]?.thumbnail}
                           world={worldForCollection(playlist.id)}
                           seed={playlist.id}
                           size={168}
