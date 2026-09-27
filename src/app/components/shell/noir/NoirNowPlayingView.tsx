@@ -112,9 +112,34 @@ export function NoirNowPlayingView({
   const [order, setOrder] = useState(() => upNext.map((track) => track.id));
   const orderRef = useRef(order);
   orderRef.current = order;
+  /** 'shuffle' = longer spring so rows glide after Shuffle; 'drag' = snappy 120 ms settle. */
+  const [layoutMode, setLayoutMode] = useState<'drag' | 'shuffle'>('drag');
+  const [shufflePulse, setShufflePulse] = useState(0);
+  const shuffleResetRef = useRef<number | null>(null);
   useEffect(() => {
     setOrder(upNext.map((track) => track.id));
   }, [upNext.map((track) => track.id).join('\0')]);
+
+  const triggerShuffle = () => {
+    if (!onShuffleQueue || upNext.length < 2) return;
+    if (shuffleResetRef.current != null) window.clearTimeout(shuffleResetRef.current);
+    if (!reduced) {
+      setLayoutMode('shuffle');
+      setShufflePulse((n) => n + 1);
+      shuffleResetRef.current = window.setTimeout(() => {
+        setLayoutMode('drag');
+        shuffleResetRef.current = null;
+      }, 560);
+    }
+    onShuffleQueue();
+  };
+
+  useEffect(
+    () => () => {
+      if (shuffleResetRef.current != null) window.clearTimeout(shuffleResetRef.current);
+    },
+    []
+  );
 
   const byId = new Map(upNext.map((track) => [track.id, track]));
   const orderedUpNext = order.map((id) => byId.get(id)).filter((track): track is SearchResult => !!track);
@@ -496,13 +521,25 @@ export function NoirNowPlayingView({
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {onShuffleQueue && (
-                  <button
+                  <motion.button
                     type="button"
-                    className="text-[12px] text-[color:var(--noir-text-tertiary)] hover:text-white elva-focus-ring"
-                    onClick={onShuffleQueue}
+                    className="inline-flex items-center gap-1.5 text-[12px] text-[color:var(--noir-text-tertiary)] hover:text-white elva-focus-ring"
+                    onClick={triggerShuffle}
+                    whileTap={reduced ? undefined : { scale: 0.96 }}
+                    transition={MOTION.tap}
+                    aria-label={strings.nextUp.shuffle}
                   >
+                    <motion.span
+                      key={shufflePulse}
+                      className="inline-flex"
+                      initial={reduced || shufflePulse === 0 ? false : { rotate: 0 }}
+                      animate={{ rotate: reduced || shufflePulse === 0 ? 0 : 180 }}
+                      transition={withReducedMotion({ duration: 0.42, ease: EASE_PREMIUM })}
+                    >
+                      <Shuffle className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    </motion.span>
                     {strings.nextUp.shuffle}
-                  </button>
+                  </motion.button>
                 )}
                 {onClearQueue && (
                   <button
@@ -522,10 +559,12 @@ export function NoirNowPlayingView({
               className="flex flex-col gap-0.5"
             >
               <AnimatePresence initial={false}>
-                {orderedUpNext.map((track) => (
+                {orderedUpNext.map((track, index) => (
                   <QueueTrackItem
                     key={track.id}
                     track={track}
+                    index={index}
+                    layoutMode={layoutMode}
                     onDragEnd={() => onReorderQueue?.(orderRef.current)}
                     onSelect={() => onSelectFromQueue(track.id)}
                     onRemove={onRemoveFromQueue ? () => onRemoveFromQueue(track.id) : undefined}
@@ -543,14 +582,35 @@ export function NoirNowPlayingView({
 
 type QueueTrackItemProps = {
   track: SearchResult;
+  index: number;
+  layoutMode: 'drag' | 'shuffle';
   onDragEnd: () => void;
   onSelect: () => void;
   onRemove?: () => void;
   onAddToQueue?: (track: SearchResult, options?: { silent?: boolean }) => void;
 };
 
-function QueueTrackItem({ track, onDragEnd, onSelect, onRemove, onAddToQueue }: QueueTrackItemProps) {
+function QueueTrackItem({
+  track,
+  index,
+  layoutMode,
+  onDragEnd,
+  onSelect,
+  onRemove,
+  onAddToQueue,
+}: QueueTrackItemProps) {
   const draggedRef = useRef(false);
+  const reduced = prefersReducedMotion();
+  const layoutTransition =
+    layoutMode === 'shuffle' && !reduced
+      ? {
+          type: 'spring' as const,
+          stiffness: 400,
+          damping: 32,
+          mass: 0.78,
+          delay: Math.min(index, 8) * 0.018,
+        }
+      : { duration: 0.12, ease: EASE_PREMIUM };
 
   return (
     <Reorder.Item
@@ -576,7 +636,7 @@ function QueueTrackItem({ track, onDragEnd, onSelect, onRemove, onAddToQueue }: 
       }}
       transition={{
         ...MOTION.panel,
-        layout: { duration: 0.12, ease: EASE_PREMIUM },
+        layout: layoutTransition,
       }}
       onContextMenu={(event) => openSongMenu(track, event)}
     >
