@@ -10,6 +10,30 @@ export type UserPlaylist = {
   tracks: SearchResult[];
 };
 
+export const PLAYLIST_TRACK_DRAG_MIME = 'application/x-noir-track';
+
+export function encodePlaylistTrack(track: SearchResult): string {
+  return JSON.stringify(track);
+}
+
+export function decodePlaylistTrack(value: string | null): SearchResult | null {
+  if (!value) return null;
+  try {
+    const track = JSON.parse(value) as Partial<SearchResult>;
+    if (
+      typeof track.id !== 'string' ||
+      typeof track.title !== 'string' ||
+      typeof track.artist !== 'string' ||
+      typeof track.thumbnail !== 'string'
+    ) {
+      return null;
+    }
+    return track as SearchResult;
+  } catch {
+    return null;
+  }
+}
+
 const UPDATED_EVENT = 'elva-playlists-updated';
 
 /** Set by `createPlaylist`; the playlist page consumes it to open with the title in edit mode. */

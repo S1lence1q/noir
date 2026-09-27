@@ -3,6 +3,7 @@ import { Heart, Plus } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
 import { prefersReducedMotion } from '../../../utils/motionPresets';
+import { encodePlaylistTrack, PLAYLIST_TRACK_DRAG_MIME } from '../../../utils/playlistStore';
 
 type NoirRankedSongRowProps = {
   rank: number;
@@ -38,6 +39,7 @@ export function NoirRankedSongRow({
     <motion.div
       role="button"
       tabIndex={0}
+      draggable
       onClick={onPlay}
       onContextMenu={(event) =>
         openSongMenu(track, event, {
@@ -47,6 +49,10 @@ export function NoirRankedSongRow({
           isFavorite,
         })
       }
+      onDragStart={(event) => {
+        event.dataTransfer.effectAllowed = 'copy';
+        event.dataTransfer.setData(PLAYLIST_TRACK_DRAG_MIME, encodePlaylistTrack(track));
+      }}
       onKeyDown={(e) => {
         if (e.key === 'Enter') onPlay();
       }}

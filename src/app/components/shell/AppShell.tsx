@@ -4,6 +4,7 @@ import { AppSidebar } from './AppSidebar';
 import { CompactPlayerBar } from './CompactPlayerBar';
 import { AppTab, ShellPlaybackState } from './types';
 import { EASE_PREMIUM, prefersReducedMotion } from '../../utils/motionPresets';
+import type { SearchResult } from '../../types';
 
 type AppShellProps = {
   activeTab: AppTab;
@@ -28,6 +29,7 @@ type AppShellProps = {
   isFavorite?: boolean;
   onOpenFavorites?: () => void;
   onOpenPlaylist?: (playlistId: string) => void;
+  onDropSongToPlaylist?: (playlistId: string, track: SearchResult) => void;
   onToggleFavorite?: () => void;
 };
 
@@ -50,6 +52,7 @@ export function AppShell({
   isFavorite = false,
   onOpenFavorites,
   onOpenPlaylist,
+  onDropSongToPlaylist,
   onToggleFavorite,
 }: AppShellProps) {
   const reduced = prefersReducedMotion();
@@ -65,6 +68,7 @@ export function AppShell({
         selectedPlaylistId={selectedPlaylistId}
         onOpenFavorites={onOpenFavorites}
         onOpenPlaylist={onOpenPlaylist}
+        onDropSongToPlaylist={onDropSongToPlaylist}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">

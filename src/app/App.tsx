@@ -22,6 +22,7 @@ import { isTrackFavorite } from './utils/favoriteUtils';
 import { restoreLocalTrack, saveLocalTrack } from './utils/localTrackStorage';
 import { strings } from './constants/strings';
 import { waitForYouTubeApi } from './utils/youtubeApiReady';
+import { addTrackToPlaylist, readPlaylists } from './utils/playlistStore';
 
 // Import newly extracted hooks and components
 import { useScrollTracking } from './hooks/useScrollTracking';
@@ -484,6 +485,15 @@ export default function App() {
     } catch (e) {
       console.warn('Failed to save recently played track:', e);
     }
+  };
+
+  const handleDropSongToPlaylist = (playlistId: string, track: SearchResult) => {
+    const playlist = readPlaylists().find((item) => item.id === playlistId);
+    if (!playlist || !addTrackToPlaylist(playlistId, track)) return;
+    noirToast({
+      text: strings.playlist.addedTo(playlist.name),
+      cover: track.thumbnail,
+    });
   };
 
   const handleFileSelectRef = useRef<(e: React.ChangeEvent<HTMLInputElement>) => void>(() => {});
@@ -1388,6 +1398,7 @@ export default function App() {
             selectedPlaylistId={libraryOpenPlaylistId}
             onOpenFavorites={openLibraryFavorites}
             onOpenPlaylist={openLibraryPlaylist}
+            onDropSongToPlaylist={handleDropSongToPlaylist}
             isFavorite={
               !!songData &&
               isTrackFavorite(favorites, {

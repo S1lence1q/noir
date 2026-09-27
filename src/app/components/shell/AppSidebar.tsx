@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Compass, Home, Library, Plus, Settings } from 'lucide-react';
+import { SearchResult } from '../../types';
 import { MOTION, withReducedMotion } from '../../utils/motionPresets';
 import { AppTab } from './types';
 import { NoirGraphicAccent } from './noir/NoirGraphicAccent';
@@ -7,7 +9,12 @@ import { NoirMark } from './noir/NoirMark';
 import { NoirDitherCover } from './noir/NoirDitherCover';
 import { NoirFavoritesCover } from './noir/NoirFavoritesCover';
 import { worldForCollection } from '../../utils/ditherCover';
-import { createPlaylist, usePlaylists } from '../../utils/playlistStore';
+import {
+  createPlaylist,
+  decodePlaylistTrack,
+  PLAYLIST_TRACK_DRAG_MIME,
+  usePlaylists,
+} from '../../utils/playlistStore';
 import { strings } from '../../constants/strings';
 
 const PRIMARY_NAV: { id: AppTab; label: string; icon: typeof Home }[] = [
@@ -24,6 +31,7 @@ type AppSidebarProps = {
   selectedPlaylistId?: string | null;
   onOpenFavorites?: () => void;
   onOpenPlaylist?: (playlistId: string) => void;
+  onDropSongToPlaylist?: (playlistId: string, track: SearchResult) => void;
 };
 
 export function AppSidebar({
@@ -34,10 +42,12 @@ export function AppSidebar({
   selectedPlaylistId = null,
   onOpenFavorites,
   onOpenPlaylist,
+  onDropSongToPlaylist,
 }: AppSidebarProps) {
   const playlists = usePlaylists();
   const sidebarPlaylists = playlists.slice(0, 8);
   const sidebarPlaylistActive = sidebarPlaylists.some((p) => p.id === selectedPlaylistId);
+  const [dragOverPlaylistId, setDragOverPlaylistId] = useState<string | null>(null);
 
   return (
     <aside className="elva-shell-sidebar relative flex h-full w-[248px] shrink-0 flex-col overflow-hidden select-none px-3 py-5">
@@ -115,8 +125,30 @@ export function AppSidebar({
                   <button
                     type="button"
                     onClick={() => onOpenPlaylist?.(playlist.id)}
+                    onDragOver={(event) => {
+                      if (!event.dataTransfer.types.includes(PLAYLIST_TRACK_DRAG_MIME)) return;
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = 'copy';
+                      setDragOverPlaylistId(playlist.id);
+                    }}
+                    onDragLeave={(event) => {
+                      if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+                        setDragOverPlaylistId(null);
+                      }
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      const track = decodePlaylistTrack(
+                        event.dataTransfer.getData(PLAYLIST_TRACK_DRAG_MIME)
+                      );
+                      setDragOverPlaylistId(null);
+                      if (track) onDropSongToPlaylist?.(playlist.id, track);
+                    }}
                     data-active={isActive ? 'true' : 'false'}
-                    className="noir-nav-item flex h-10 w-full items-center gap-2.5 px-3 text-left text-[14px] font-medium elva-focus-ring"
+                    data-drop-target={dragOverPlaylistId === playlist.id ? 'true' : 'false'}
+                    className={`noir-nav-item flex h-10 w-full items-center gap-2.5 px-3 text-left text-[14px] font-medium elva-focus-ring ${
+                      dragOverPlaylistId === playlist.id ? 'bg-white/[0.08] text-white' : ''
+                    }`}
                     aria-current={isActive ? 'page' : undefined}
                   >
                     <motion.span

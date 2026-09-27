@@ -4,6 +4,7 @@ import { Heart, Plus } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
 import { prefersReducedMotion } from '../../../utils/motionPresets';
+import { encodePlaylistTrack, PLAYLIST_TRACK_DRAG_MIME } from '../../../utils/playlistStore';
 
 type NoirSongRowProps = {
   track: SearchResult;
@@ -51,6 +52,7 @@ export function NoirSongRow({
     <motion.div
       role="button"
       tabIndex={0}
+      draggable={!isLoading}
       data-search-result-index={dataIndex}
       data-focused={isFocused ? 'true' : 'false'}
       data-playing={isPlaying ? 'true' : 'false'}
@@ -66,6 +68,10 @@ export function NoirSongRow({
           onRemoveFromPlaylist,
         })
       }
+      onDragStart={(event) => {
+        event.dataTransfer.effectAllowed = 'copy';
+        event.dataTransfer.setData(PLAYLIST_TRACK_DRAG_MIME, encodePlaylistTrack(track));
+      }}
       onKeyDown={(e) => {
         if (e.key === 'Enter' && !isLoading) onPlay();
       }}
