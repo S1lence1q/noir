@@ -1083,14 +1083,6 @@ button.noir-now-playing-source:hover {
   overflow-y: auto;
 }
 
-.noir-lyrics-badge {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--noir-text-tertiary);
-}
-
 .noir-lyrics-scroll {
   mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);

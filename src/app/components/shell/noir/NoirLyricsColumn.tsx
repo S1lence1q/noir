@@ -76,9 +76,6 @@ export function NoirLyricsColumn({
           </div>
         ) : (
           <div className="flex flex-col gap-1 pt-1">
-            {!isSynced && (
-              <span className="noir-lyrics-badge mb-2 px-1">{strings.lyrics.plain}</span>
-            )}
             {lyrics.map((line, idx) => (
               <p key={idx} className="noir-lyrics-plain">
                 {line.text}

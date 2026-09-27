@@ -125,7 +125,6 @@ export const strings = {
     loading: 'Finding lyrics…',
     empty: 'No lyrics found',
     emptyHint: 'Enjoy the music instead.',
-    plain: 'Plain',
     show: 'Show lyrics',
     hide: 'Hide lyrics',
   },
