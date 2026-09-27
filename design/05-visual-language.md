@@ -84,6 +84,12 @@ Rules:
 5. Graphics are deterministic: the same collection always looks the same.
 6. Every graphic has a job. If you can't say what it represents, remove it.
 
+## UI surfaces (Level 1)
+
+- Base is pure black. Tints are **white alpha on black**, never opaque greys (`#111`, `#1a1a1a` read as "off").
+- Inline surfaces (inputs, hover, active): `rgba(255,255,255, .04 hover / .06 rest / .08 active / .10 focus)`, no border.
+- Floating surfaces (menus, toasts, palette): `--noir-black` + `1px rgba(255,255,255,.12)` + deep shadow. Classes: `.noir-menu`, `.noir-toast`, `.noir-search-palette`.
+
 ## What gets deleted
 
 - `src/Cinematic Dark Music Background.jpeg`

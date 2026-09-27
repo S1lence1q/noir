@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion, Reorder, useDragControls } from 'motion/react';
-import { ArrowLeft, Check, GripVertical, MoreHorizontal, Pencil, Play, Plus, Search, Shuffle, Trash2, X } from 'lucide-react';
+import { AnimatePresence, motion, Reorder } from 'motion/react';
+import { ArrowLeft, Check, MoreHorizontal, Pencil, Play, Plus, Search, Shuffle, Trash2, X } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
@@ -272,33 +272,31 @@ function PlaylistTrackItem({
   onPlayNext,
   onToggleFavorite,
 }: PlaylistTrackItemProps) {
-  const controls = useDragControls();
+  // A drag ends with a click on the same row; swallow it so reordering never starts playback.
+  const draggedRef = useRef(false);
 
   return (
     <Reorder.Item
       value={track.id}
-      dragListener={false}
-      dragControls={controls}
-      onDragEnd={onDragEnd}
-      className="noir-playlist-item group/item relative"
-      whileDrag={{ scale: 1.015, boxShadow: '0 12px 32px rgba(0,0,0,0.55)', zIndex: 5 }}
+      onDragStart={() => {
+        draggedRef.current = true;
+      }}
+      onDragEnd={() => {
+        onDragEnd();
+        setTimeout(() => {
+          draggedRef.current = false;
+        }, 0);
+      }}
+      className="noir-playlist-item select-none"
+      whileDrag={{ scale: 1.015, boxShadow: '0 12px 32px rgba(0,0,0,0.65)', zIndex: 5, cursor: 'grabbing' }}
       transition={MOTION.panel}
     >
-      <span
-        className="noir-drag-handle"
-        onPointerDown={(e) => {
-          e.preventDefault();
-          controls.start(e);
-        }}
-        aria-label={strings.playlist.dragToReorder}
-        title={strings.playlist.dragToReorder}
-      >
-        <GripVertical className="h-4 w-4" strokeWidth={1.75} />
-      </span>
       <NoirSongRow
         track={track}
         isFavorite={isFavorite}
-        onPlay={onPlay}
+        onPlay={() => {
+          if (!draggedRef.current) onPlay();
+        }}
         onAddToQueue={onAddToQueue}
         onPlayNext={onPlayNext}
         onToggleFavorite={onToggleFavorite}
@@ -330,7 +328,12 @@ function PlaylistAddSection({
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(isEmpty);
   const requestRef = useRef(0);
+
+  useEffect(() => {
+    if (isEmpty) setOpen(true);
+  }, [isEmpty]);
 
   useEffect(() => {
     const q = query.trim();
@@ -354,7 +357,7 @@ function PlaylistAddSection({
     return () => clearTimeout(timer);
   }, [query]);
 
-  const suggestions = favorites.filter((t) => !playlistHasTrack(playlist, t)).slice(0, 5);
+  const suggestions = isEmpty ? favorites.filter((t) => !playlistHasTrack(playlist, t)).slice(0, 5) : [];
   const showingSearch = query.trim().length >= 2;
   const list = showingSearch ? results : suggestions;
 
@@ -364,8 +367,19 @@ function PlaylistAddSection({
     }
   };
 
+  if (!open) {
+    return (
+      <div className="mt-8">
+        <button type="button" onClick={() => setOpen(true)} className="noir-button-secondary elva-focus-ring">
+          <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
+          {strings.playlist.addSongs}
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <section className={isEmpty ? 'mt-12' : 'mt-14'}>
+    <section className={isEmpty ? 'mt-12' : 'mt-8'}>
       {isEmpty && (
         <div className="mb-5">
           <h2 className="noir-section-title">{strings.playlist.emptyTitle}</h2>
@@ -377,12 +391,27 @@ function PlaylistAddSection({
         <Search className="h-4 w-4 shrink-0 text-[color:var(--noir-text-tertiary)]" strokeWidth={1.75} />
         <input
           value={query}
+          autoFocus={!isEmpty}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape' && !isEmpty) {
+              setQuery('');
+              setOpen(false);
+            }
+          }}
           placeholder={strings.playlist.searchPlaceholder}
           className="min-w-0 flex-1 bg-transparent text-[14px] text-[color:var(--noir-text-primary)] outline-none placeholder:text-[color:var(--noir-text-tertiary)]"
         />
-        {query && (
-          <button type="button" onClick={() => setQuery('')} className="text-[color:var(--noir-text-tertiary)] hover:text-white" aria-label="Clear">
+        {(query || !isEmpty) && (
+          <button
+            type="button"
+            onClick={() => {
+              setQuery('');
+              if (!isEmpty) setOpen(false);
+            }}
+            className="text-[color:var(--noir-text-tertiary)] hover:text-white"
+            aria-label="Close"
+          >
             <X className="h-4 w-4" strokeWidth={1.75} />
           </button>
         )}

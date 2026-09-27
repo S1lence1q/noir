@@ -45,6 +45,22 @@ Exact behavior, layout, copy, tokens, states.
 
 ## Index
 
+**Owner:** Opus = visual / hard (built by the creative director model). Luna = mechanical, clear spec.
+
+| Id | Title | Size | Golden | Owner |
+|----|-------|------|--------|-------|
+| T01 | Layout grid, type hierarchy, accent token — **DONE** | M | | Luna |
+| T03 | Shared song menu + right-click | M | | Opus |
+| T04 | Playlists redesign | L | | Opus |
+| T05b | Next up header + "queue ends soon" | S | | Luna |
+| T06 | Dither covers — **DONE** on playlist/chart headers + Discover; Favorites header + sidebar thumbs move to T04 | M | | Opus |
+| T07 | Asset cleanup (hero part of step 1 done in T06) | S | | Luna |
+| T09 | Listening events + taste profile | M | | Luna (high) |
+| T10 | musicGraph service | L | | Luna (high) |
+| T14 | Now Playing: one object | M | | Opus |
+
+### Original index
+
 | Id | Title | Size | Golden |
 |----|-------|------|--------|
 | T01 | Layout grid, type hierarchy, accent token | M | |

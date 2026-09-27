@@ -1244,12 +1244,13 @@
   color: var(--noir-text-primary);
 }
 
+/* Floating surfaces match the search palette: black + 12% hairline, never opaque grey. */
 .noir-menu {
   padding: 4px;
-  border: 1px solid var(--noir-rule);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--noir-radius-md);
-  background: var(--noir-elevated);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  background: var(--noir-black);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
 }
 
 .noir-menu-item {
@@ -1267,7 +1268,7 @@
 }
 
 .noir-menu-item:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .noir-menu-item--danger {
@@ -1287,28 +1288,6 @@
   min-width: 0;
 }
 
-.noir-drag-handle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 48px;
-  margin-left: -24px;
-  color: var(--noir-text-tertiary);
-  cursor: grab;
-  opacity: 0;
-  touch-action: none;
-  transition: opacity 0.12s ease;
-}
-
-.noir-playlist-item:hover .noir-drag-handle {
-  opacity: 1;
-}
-
-.noir-drag-handle:active {
-  cursor: grabbing;
-}
-
 .noir-inline-search {
   display: flex;
   align-items: center;
@@ -1316,14 +1295,17 @@
   max-width: 420px;
   height: 40px;
   padding: 0 12px;
-  border: 1px solid var(--noir-rule);
   border-radius: var(--noir-radius-md);
-  background: var(--noir-chrome);
-  transition: border-color 0.12s ease;
+  background: rgba(255, 255, 255, 0.06);
+  transition: background-color 0.12s ease;
+}
+
+.noir-inline-search:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .noir-inline-search:focus-within {
-  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .noir-add-row {
@@ -1440,10 +1422,10 @@
   min-height: 44px;
   max-width: min(480px, calc(100vw - 32px));
   padding: 6px 6px 6px 14px;
-  border: 1px solid var(--noir-rule);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--noir-radius-md);
-  background: var(--noir-elevated);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  background: var(--noir-black);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65);
   pointer-events: auto;
 }
 
