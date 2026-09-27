@@ -1,5 +1,6 @@
 import { getGraphCache, setGraphCache } from './cache';
 import {
+  getDeezerAlbumTracks,
   getDeezerArtistImage,
   getDeezerArtistRadio,
   getDeezerArtistTopTracks,
@@ -12,6 +13,7 @@ import {
   getLastFmArtistTopTracks,
   getLastFmSimilarArtists,
   getLastFmSimilarTracks,
+  getLastFmTagTopTracks,
 } from './lastfm';
 import { normalizeName } from './normalize';
 
@@ -30,6 +32,8 @@ export type GraphTrack = {
   artistMbid?: string;
   image?: string;
   listeners?: number;
+  /** Seconds, when known (Deezer). */
+  durationSec?: number;
 };
 
 export type GraphRelease = {
@@ -161,6 +165,15 @@ export function getArtistImage(artist: string): Promise<string | undefined> {
   return requestCached(`artist-image:${artistKey(artist)}`, TTL.image, () => getDeezerArtistImage(artist), undefined);
 }
 
+export function getTagTopTracks(tag: string, limit = 20): Promise<GraphTrack[]> {
+  const key = `tag-top-tracks:${artistKey(tag)}:${limit}`;
+  return requestCached(key, TTL.similar, () => getLastFmTagTopTracks(tag, limit), []);
+}
+
+export function getAlbumTracks(albumId: number): Promise<GraphTrack[]> {
+  return requestCached(`album-tracks:${albumId}`, TTL.releases, () => getDeezerAlbumTracks(albumId), []);
+}
+
 declare global {
   interface Window {
     __noirGraph?: {
@@ -172,6 +185,8 @@ declare global {
       getArtistRadio: typeof getArtistRadio;
       getNewReleases: typeof getNewReleases;
       getArtistImage: typeof getArtistImage;
+      getTagTopTracks: typeof getTagTopTracks;
+      getAlbumTracks: typeof getAlbumTracks;
     };
   }
 }
@@ -186,5 +201,7 @@ if (typeof window !== 'undefined' && import.meta.env.DEV) {
     getArtistRadio,
     getNewReleases,
     getArtistImage,
+    getTagTopTracks,
+    getAlbumTracks,
   };
 }

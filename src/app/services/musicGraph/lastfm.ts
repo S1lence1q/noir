@@ -14,10 +14,14 @@ function logFailure(method: string, error: unknown) {
   console.warn(`[musicGraph] Last.fm ${method} failed`, error);
 }
 
+/** Last.fm serves this grey star for every artist/track without artwork. */
+const LASTFM_PLACEHOLDER = '2a96cbd8b46e442fc41c2b86b821562f';
+
 function imageFromLastFm(images?: Array<{ '#text'?: string; size?: string }>) {
-  return images?.find((image) => image.size === 'extralarge' || image.size === 'large')?.['#text'] ||
+  const url = images?.find((image) => image.size === 'extralarge' || image.size === 'large')?.['#text'] ||
     images?.[images.length - 1]?.['#text'] ||
     undefined;
+  return url && !url.includes(LASTFM_PLACEHOLDER) ? url : undefined;
 }
 
 function scheduleRequest<T>(request: () => Promise<T>): Promise<T> {
@@ -154,6 +158,29 @@ export async function getLastFmArtistTopTracks(artist: string, limit: number): P
       artistMbid: item.artist?.mbid || undefined,
       image: imageFromLastFm(item.image),
       listeners: item.listeners ? Number(item.listeners) : undefined,
+    }));
+}
+
+export async function getLastFmTagTopTracks(tag: string, limit: number): Promise<GraphTrack[]> {
+  type Response = {
+    tracks?: {
+      track?: Array<{
+        name?: string;
+        mbid?: string;
+        artist?: { name?: string; mbid?: string };
+        image?: Array<{ '#text'?: string; size?: string }>;
+      }>;
+    };
+  };
+  const response = await requestLastFm<Response>('tag.getTopTracks', { tag: tag.trim(), limit });
+  return (response?.tracks?.track ?? [])
+    .filter((item) => !!item.name && !!item.artist?.name)
+    .map((item) => ({
+      title: item.name!,
+      artist: item.artist!.name!,
+      mbid: item.mbid || undefined,
+      artistMbid: item.artist?.mbid || undefined,
+      image: imageFromLastFm(item.image),
     }));
 }
 

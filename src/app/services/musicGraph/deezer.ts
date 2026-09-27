@@ -128,6 +128,30 @@ export async function getDeezerNewReleases(artist: string, days: number): Promis
     }));
 }
 
+export async function getDeezerAlbumTracks(albumId: number): Promise<GraphTrack[]> {
+  const album = await deezerGet<{
+    title?: string;
+    artist?: { name?: string };
+    cover_xl?: string;
+    cover_big?: string;
+    tracks?: {
+      data?: Array<{ title?: string; duration?: number; artist?: { name?: string } }>;
+    };
+  }>(`/album/${albumId}`);
+  if (!album) return [];
+
+  const fallbackArtist = album.artist?.name || '';
+  const cover = album.cover_xl || album.cover_big;
+  return (album.tracks?.data ?? [])
+    .filter((track) => !!track.title && !!(track.artist?.name || fallbackArtist))
+    .map((track) => ({
+      title: track.title!,
+      artist: track.artist?.name || fallbackArtist,
+      image: cover,
+      durationSec: track.duration,
+    }));
+}
+
 export async function getDeezerArtistImage(artist: string): Promise<string | undefined> {
   const match = await findArtist(artist);
   return match?.picture_xl || match?.picture_big || match?.picture_medium;

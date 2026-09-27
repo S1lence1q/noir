@@ -5,11 +5,20 @@ import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
 import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { NoirRankedSongRow } from './NoirRankedSongRow';
+import { NoirSongRow } from './NoirSongRow';
 import { NoirDitherCover } from './NoirDitherCover';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
+import { getListeningEvents } from '../../../services/listening/eventsStore';
+import {
+  DiscoverArtistCard,
+  DiscoverFeed,
+  DiscoverReleaseCard,
+  loadAlbumAsPlaylistTracks,
+  loadDiscoverFeed,
+} from '../../../services/discover/discoverFeed';
 
 export type NoirDiscoverViewProps = {
   onSelectSong: (song: SearchResult) => void;
@@ -19,6 +28,7 @@ export type NoirDiscoverViewProps = {
   onToggleFavorite?: (song: SearchResult) => void;
   favorites?: SearchResult[];
   onSelectPlaylist: (playlist: Playlist) => void;
+  onViewArtist?: (name: string) => void;
 };
 
 function readCacheSync(country: string): SearchResult[] {
@@ -34,6 +44,12 @@ function readCacheSync(country: string): SearchResult[] {
   return [];
 }
 
+function formatReleaseDate(iso: string) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 export function NoirDiscoverView({
   onAddToQueue,
   onPlayPlaylist,
@@ -41,16 +57,19 @@ export function NoirDiscoverView({
   onToggleFavorite,
   favorites = [],
   onSelectPlaylist,
+  onViewArtist,
 }: NoirDiscoverViewProps) {
   const [activeCountry, setActiveCountry] = useState(
     () => localStorage.getItem('elva_profile_country') || 'dk'
   );
   const [localHits, setLocalHits] = useState<SearchResult[]>(() => readCacheSync(activeCountry));
   const [globalHits, setGlobalHits] = useState<SearchResult[]>(() => readCacheSync('us'));
-  const [isLoading, setIsLoading] = useState(
+  const [chartsLoading, setChartsLoading] = useState(
     () => readCacheSync(activeCountry).length === 0 || readCacheSync('us').length === 0
   );
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [feed, setFeed] = useState<DiscoverFeed | null>(null);
+  const [feedLoading, setFeedLoading] = useState(true);
 
   const countryData =
     STOREFRONT_COUNTRIES.find((c) => c.code === activeCountry) || { name: 'Denmark', flag: '🇩🇰' };
@@ -83,7 +102,7 @@ export function NoirDiscoverView({
 
   const loadCharts = useCallback(async () => {
     const hasCache = localHits.length > 0 && globalHits.length > 0;
-    if (!hasCache) setIsLoading(true);
+    if (!hasCache) setChartsLoading(true);
     setLoadError(null);
 
     const [local, global] = await Promise.all([
@@ -98,31 +117,83 @@ export function NoirDiscoverView({
       setLoadError(local.error ?? global.error ?? 'Charts unavailable');
     }
 
-    setIsLoading(false);
+    setChartsLoading(false);
   }, [activeCountry, localHits.length, globalHits.length]);
+
+  const loadFeed = useCallback(async () => {
+    setFeedLoading(true);
+    try {
+      const events = await getListeningEvents();
+      setFeed(await loadDiscoverFeed(events));
+    } catch {
+      setFeed({ newReleases: [], artistsLike: [], tags: [] });
+    } finally {
+      setFeedLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     void loadCharts();
   }, [loadCharts]);
 
-  if (isLoading) {
+  useEffect(() => {
+    void loadFeed();
+  }, [loadFeed]);
+
+  const openRelease = async (release: DiscoverReleaseCard) => {
+    const tracks = await loadAlbumAsPlaylistTracks(release);
+    onSelectPlaylist({
+      id: `release:${release.id}`,
+      name: release.title,
+      description: strings.discover.releaseMeta(release.artist, formatReleaseDate(release.releaseDate)),
+      tracks,
+      thumbnail: release.image ?? '',
+      accent: 'navy',
+    });
+  };
+
+  const playRelease = async (release: DiscoverReleaseCard) => {
+    const tracks = await loadAlbumAsPlaylistTracks(release);
+    if (tracks.length > 0) {
+      onPlayPlaylist(tracks, release.title);
+    }
+  };
+
+  const openTagShelf = (title: string, tracks: SearchResult[], id: string) => {
+    onSelectPlaylist({
+      id,
+      name: title,
+      description: strings.discover.browseTag(title),
+      tracks,
+      thumbnail: tracks[0]?.thumbnail ?? '',
+      accent: 'sand',
+    });
+  };
+
+  const chartsEmpty = loadError && localHits.length === 0 && globalHits.length === 0;
+  const personalReady = !feedLoading && feed;
+  const hasPersonal =
+    !!personalReady &&
+    (feed.newReleases.length > 0 || feed.artistsLike.length > 0 || feed.tags.length > 0);
+
+  if (chartsLoading && feedLoading) {
     return (
       <div className="flex flex-col gap-10 pb-6">
+        <div className="noir-home-shelf">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="noir-skeleton h-[188px] w-[168px] shrink-0 rounded-[var(--noir-radius-md)]" />
+          ))}
+        </div>
         <div className="noir-discover-charts">
           {[0, 1].map((i) => (
             <div key={i} className="noir-skeleton h-[216px] rounded-[var(--noir-radius-lg)]" />
-          ))}
-        </div>
-        <div className="noir-discover-ranked">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="noir-skeleton h-[72px] rounded-[var(--noir-radius-md)]" />
           ))}
         </div>
       </div>
     );
   }
 
-  if (loadError && localHits.length === 0 && globalHits.length === 0) {
+  if (chartsEmpty && !hasPersonal) {
     return (
       <div className="py-16">
         <p className="text-[15px] text-[color:var(--noir-text-primary)]">{strings.discover.trendingUnavailable}</p>
@@ -140,21 +211,112 @@ export function NoirDiscoverView({
     { playlist: globalPlaylist, label: strings.discover.topGlobal },
   ].filter((s) => s.playlist.tracks.length > 0);
 
+  const reduced = prefersReducedMotion();
+
   return (
     <div className="flex flex-col pb-6">
-      <section className="noir-discover-charts">
-        {[localPlaylist, globalPlaylist]
-          .filter((p) => p.tracks.length > 0)
-          .map((playlist, i) => (
-            <ChartCard
-              key={playlist.id}
-              playlist={playlist}
-              index={i}
-              onOpen={() => onSelectPlaylist(playlist)}
-              onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name)}
-            />
-          ))}
-      </section>
+      {!hasPersonal && !feedLoading && (
+        <div className="mb-8 max-w-lg px-1">
+          <p className="noir-label">{strings.discover.emptyTasteTitle}</p>
+          <p className="mt-2 text-[14px] text-[color:var(--noir-text-secondary)]">
+            {strings.discover.emptyTasteDesc}
+          </p>
+        </div>
+      )}
+
+      {feedLoading && (
+        <section className="mb-2">
+          <div className="noir-skeleton mb-4 h-5 w-48 rounded" />
+          <div className="noir-home-shelf">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="noir-skeleton h-[188px] w-[168px] shrink-0 rounded-[var(--noir-radius-md)]" />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {feed && feed.newReleases.length > 0 && (
+        <section>
+          <h3 className="noir-section-heading !mt-2 px-1">{strings.discover.newReleases}</h3>
+          <div className="noir-home-shelf">
+            {feed.newReleases.map((release, i) => (
+              <ReleaseCard
+                key={release.id}
+                release={release}
+                index={i}
+                reduced={reduced}
+                onOpen={() => void openRelease(release)}
+                onPlay={() => void playRelease(release)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {feed && feed.artistsLike.length > 0 && (
+        <section>
+          <h3 className="noir-section-heading px-1">{strings.discover.artistsLike}</h3>
+          <div className="noir-home-shelf">
+            {feed.artistsLike.map((artist, i) => (
+              <ArtistCard
+                key={artist.id}
+                artist={artist}
+                index={i}
+                reduced={reduced}
+                onOpen={() => onViewArtist?.(artist.name)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {feed &&
+        feed.tags.map((shelf) => (
+          <section key={shelf.id}>
+            <div className="mb-4 mt-[var(--noir-section-gap)] flex items-baseline justify-between gap-4 px-1">
+              <h3 className="noir-section-title">{shelf.title}</h3>
+              <button
+                type="button"
+                onClick={() => openTagShelf(shelf.title, shelf.tracks, shelf.id)}
+                className="noir-link elva-focus-ring"
+              >
+                {strings.discover.showAll}
+              </button>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              {shelf.tracks.slice(0, 6).map((track, i) => (
+                <NoirSongRow
+                  key={track.id}
+                  track={track}
+                  isFavorite={isTrackFavorite(favorites, track)}
+                  onPlay={() => onPlayPlaylist(shelf.tracks, shelf.title, i)}
+                  onAddToQueue={onAddToQueue}
+                  onPlayNext={onPlayNext}
+                  onToggleFavorite={onToggleFavorite}
+                />
+              ))}
+            </div>
+          </section>
+        ))}
+
+      {!chartsLoading && (
+        <section className={hasPersonal ? 'mt-[var(--noir-section-gap)]' : undefined}>
+          {hasPersonal && <h3 className="noir-section-heading !mt-0 px-1">{strings.discover.charts}</h3>}
+          <div className="noir-discover-charts">
+            {[localPlaylist, globalPlaylist]
+              .filter((p) => p.tracks.length > 0)
+              .map((playlist, i) => (
+                <ChartCard
+                  key={playlist.id}
+                  playlist={playlist}
+                  index={i}
+                  onOpen={() => onSelectPlaylist(playlist)}
+                  onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name)}
+                />
+              ))}
+          </div>
+        </section>
+      )}
 
       {rankedSections.map(({ playlist, label }) => (
         <section key={playlist.id}>
@@ -185,6 +347,103 @@ export function NoirDiscoverView({
         </section>
       ))}
     </div>
+  );
+}
+
+function ReleaseCard({
+  release,
+  index,
+  reduced,
+  onOpen,
+  onPlay,
+}: {
+  release: DiscoverReleaseCard;
+  index: number;
+  reduced: boolean;
+  onOpen: () => void;
+  onPlay: () => void;
+}) {
+  return (
+    <motion.div
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+      className="noir-collection-card noir-home-shelf-card group elva-focus-ring"
+      initial={reduced ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: index * 0.03 }}
+    >
+      <span className="relative block">
+        <NoirDitherCover
+          source={release.image}
+          world={worldForCollection(release.id)}
+          seed={release.id}
+          size={168}
+        />
+        <motion.button
+          type="button"
+          className="noir-discover-release-play noir-play-round !h-10 !w-10 elva-focus-ring"
+          aria-label={`${strings.discover.playRelease}: ${release.title}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onPlay();
+          }}
+          whileTap={{ scale: 0.94 }}
+          transition={MOTION.tap}
+        >
+          <Play className="ml-0.5 h-4 w-4 fill-current" />
+        </motion.button>
+      </span>
+      <span className="min-w-0">
+        <span className="noir-song-title block truncate">{release.title}</span>
+        <span className="noir-song-meta mt-0.5 block truncate">
+          {strings.discover.releaseMeta(release.artist, formatReleaseDate(release.releaseDate))}
+        </span>
+      </span>
+    </motion.div>
+  );
+}
+
+function ArtistCard({
+  artist,
+  index,
+  reduced,
+  onOpen,
+}: {
+  artist: DiscoverArtistCard;
+  index: number;
+  reduced: boolean;
+  onOpen: () => void;
+}) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onOpen}
+      className="noir-home-artist group elva-focus-ring"
+      initial={reduced ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.06 + index * 0.03 }}
+    >
+      <span className="noir-home-artist-art">
+        <NoirDitherCover
+          source={artist.image}
+          world={worldForCollection(artist.id)}
+          seed={artist.id}
+          size={108}
+          radius={999}
+        />
+      </span>
+      <span className="noir-song-title mt-3 block truncate text-center">{artist.name}</span>
+      <span className="noir-song-meta mt-0.5 block truncate text-center">
+        {strings.discover.artistsLikeFrom(artist.seedArtist)}
+      </span>
+    </motion.button>
   );
 }
 

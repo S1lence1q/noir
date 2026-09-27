@@ -395,6 +395,7 @@ export function LandingPage({
                     onToggleFavorite={handleToggleFavorite}
                     favorites={favorites}
                     onSelectPlaylist={setSelectedPlaylist}
+                    onViewArtist={handleViewArtistByName}
                   />
                 </NoirPageScaffold>
               </motion.div>
