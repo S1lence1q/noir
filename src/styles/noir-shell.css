@@ -1204,7 +1204,7 @@ button.noir-now-playing-source:hover {
   }
 
   .noir-lyrics-line.is-active {
-    font-size: 22px;
+    transform: scale(1.08);
   }
 
   .noir-now-playing-title {
