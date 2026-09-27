@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Play, RefreshCw } from 'lucide-react';
+import { motion } from 'motion/react';
+import { ArrowRight, Play, RefreshCw } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
 import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
@@ -7,9 +8,8 @@ import { NoirRankedSongRow } from './NoirRankedSongRow';
 import { NoirDitherCover } from './NoirDitherCover';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
-
-import topHitsDenmark from '../../../../top_hits_denmark.png';
-import topHitsGlobal from '../../../../top_hits_global.png';
+import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
+import { strings } from '../../../constants/strings';
 
 export type NoirDiscoverViewProps = {
   onSelectSong: (song: SearchResult) => void;
@@ -35,7 +35,6 @@ function readCacheSync(country: string): SearchResult[] {
 }
 
 export function NoirDiscoverView({
-  onSelectSong,
   onAddToQueue,
   onPlayPlaylist,
   onPlayNext,
@@ -61,7 +60,7 @@ export function NoirDiscoverView({
     name: `Top Hits: ${countryData.name}`,
     description: `The most popular tracks in ${countryData.name} right now.`,
     tracks: localHits,
-    thumbnail: localHits[0]?.thumbnail ?? topHitsDenmark,
+    thumbnail: localHits[0]?.thumbnail ?? '',
     accent: 'wine',
   };
 
@@ -70,7 +69,7 @@ export function NoirDiscoverView({
     name: 'Top Hits: Global',
     description: 'The biggest tracks from charts around the world.',
     tracks: globalHits,
-    thumbnail: globalHits[0]?.thumbnail ?? topHitsGlobal,
+    thumbnail: globalHits[0]?.thumbnail ?? '',
     accent: 'navy',
   };
 
@@ -106,147 +105,160 @@ export function NoirDiscoverView({
     void loadCharts();
   }, [loadCharts]);
 
-  const playChart = (e: React.MouseEvent, name: string, tracks: SearchResult[]) => {
-    e.stopPropagation();
-    if (tracks.length === 0) return;
-    onPlayPlaylist(tracks, name);
-  };
-
-  const featured = localHits[0];
-  const localTracks = localHits.slice(0, 10);
-
-  return (
-    <div className="flex flex-col gap-10 pb-6">
-      {isLoading ? (
-        <div className="space-y-3">
-          <div className="h-[min(36vh,280px)] animate-pulse rounded-[var(--noir-radius-xl)] bg-[color:var(--noir-elevated)]" />
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-12 animate-pulse rounded-[var(--noir-radius-md)] bg-[color:var(--noir-elevated)]" />
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-10 pb-6">
+        <div className="noir-discover-charts">
+          {[0, 1].map((i) => (
+            <div key={i} className="noir-skeleton h-[216px] rounded-[var(--noir-radius-lg)]" />
           ))}
         </div>
-      ) : loadError && localHits.length === 0 && globalHits.length === 0 ? (
-        <div className="py-16">
-          <p className="text-[15px] text-[color:var(--noir-text-primary)]">Could not load charts</p>
-          <p className="mt-2 text-[14px] text-[color:var(--noir-text-secondary)]">{loadError}</p>
-          <button
-            type="button"
-            onClick={() => void loadCharts()}
-            className="mt-5 inline-flex items-center gap-2 text-[13px] text-[color:var(--noir-text-secondary)] hover:text-white"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            Retry
-          </button>
+        <div className="noir-discover-ranked">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="noir-skeleton h-[72px] rounded-[var(--noir-radius-md)]" />
+          ))}
         </div>
-      ) : (
-        <>
-          {featured && (
+      </div>
+    );
+  }
+
+  if (loadError && localHits.length === 0 && globalHits.length === 0) {
+    return (
+      <div className="py-16">
+        <p className="text-[15px] text-[color:var(--noir-text-primary)]">{strings.discover.trendingUnavailable}</p>
+        <p className="mt-2 text-[14px] text-[color:var(--noir-text-secondary)]">{strings.discover.trendingDesc}</p>
+        <button type="button" onClick={() => void loadCharts()} className="noir-button-secondary mt-5 elva-focus-ring">
+          <RefreshCw className="h-3.5 w-3.5" />
+          {strings.discover.retry}
+        </button>
+      </div>
+    );
+  }
+
+  const rankedSections = [
+    { playlist: localPlaylist, label: strings.discover.topIn(countryData.name) },
+    { playlist: globalPlaylist, label: strings.discover.topGlobal },
+  ].filter((s) => s.playlist.tracks.length > 0);
+
+  return (
+    <div className="flex flex-col pb-6">
+      <section className="noir-discover-charts">
+        {[localPlaylist, globalPlaylist]
+          .filter((p) => p.tracks.length > 0)
+          .map((playlist, i) => (
+            <ChartCard
+              key={playlist.id}
+              playlist={playlist}
+              index={i}
+              onOpen={() => onSelectPlaylist(playlist)}
+              onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name)}
+            />
+          ))}
+      </section>
+
+      {rankedSections.map(({ playlist, label }) => (
+        <section key={playlist.id}>
+          <div className="mb-4 mt-[var(--noir-section-gap)] flex items-baseline justify-between gap-4 px-1">
+            <h3 className="noir-section-title">{label}</h3>
             <button
               type="button"
-              onClick={() => onSelectPlaylist(localPlaylist)}
-              className="group flex w-full items-end gap-6 text-left elva-focus-ring"
+              onClick={() => onSelectPlaylist(playlist)}
+              className="noir-link elva-focus-ring"
             >
-              <NoirDitherCover
-                source={featured.thumbnail}
-                world={worldForCollection(localPlaylist.id)}
-                seed={localPlaylist.id}
-                size={220}
-                className="transition-transform duration-300 group-hover:scale-[1.015]"
-              />
-              <div className="min-w-0 pb-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--noir-text-tertiary)]">
-                  {localPlaylist.name} · No. 1
-                </p>
-                <h2 className="mt-2 truncate text-[clamp(1.6rem,3vw,2.25rem)] font-semibold leading-tight tracking-[-0.02em] text-[color:var(--noir-text-primary)]">
-                  {featured.title}
-                </h2>
-                <p className="mt-1 text-[14px] text-[color:var(--noir-text-secondary)]">{featured.artist}</p>
-                <span
-                  onClick={(e) => playChart(e, localPlaylist.name, localHits)}
-                  className="noir-button-primary mt-5"
-                >
-                  <Play className="h-3.5 w-3.5 fill-current" />
-                  Play chart
-                </span>
-              </div>
+              {strings.discover.showAll}
             </button>
-          )}
-
-          <section>
-            <h3 className="noir-section-heading px-1">
-              Charts
-            </h3>
-            <div className="flex flex-col gap-0.5">
-              {localHits.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => onSelectPlaylist(localPlaylist)}
-                  className="noir-track-row flex w-full items-center gap-3 px-3 py-3 text-left elva-focus-ring"
-                >
-                  <NoirDitherCover
-                    source={localHits[0]?.thumbnail}
-                    world={worldForCollection(localPlaylist.id)}
-                    seed={localPlaylist.id}
-                    size={48}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14px] font-medium text-[color:var(--noir-text-primary)]">
-                      {localPlaylist.name}
-                    </p>
-                    <p className="truncate text-[13px] text-[color:var(--noir-text-secondary)]">
-                      {localHits.length} tracks
-                    </p>
-                  </div>
-                </button>
-              )}
-
-              {globalHits.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => onSelectPlaylist(globalPlaylist)}
-                  className="noir-track-row flex w-full items-center gap-3 px-3 py-3 text-left elva-focus-ring"
-                >
-                  <NoirDitherCover
-                    source={globalHits[0]?.thumbnail}
-                    world={worldForCollection(globalPlaylist.id)}
-                    seed={globalPlaylist.id}
-                    size={48}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14px] font-medium text-[color:var(--noir-text-primary)]">
-                      {globalPlaylist.name}
-                    </p>
-                    <p className="truncate text-[13px] text-[color:var(--noir-text-secondary)]">
-                      {globalHits.length} tracks
-                    </p>
-                  </div>
-                </button>
-              )}
-            </div>
-          </section>
-
-          {localTracks.length > 0 && (
-            <section className="relative">
-              <h3 className="noir-section-heading px-1">
-                {countryData.name}
-              </h3>
-              <div className="flex flex-col gap-0.5">
-                {localTracks.map((track, i) => (
-                  <NoirRankedSongRow
-                    key={track.id}
-                    rank={i + 1}
-                    track={track}
-                    isFavorite={isTrackFavorite(favorites, track)}
-                    onPlay={() => onPlayPlaylist(localHits, localPlaylist.name, i)}
-                    onAddToQueue={onAddToQueue}
-                    onPlayNext={onPlayNext}
-                    onToggleFavorite={onToggleFavorite}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-        </>
-      )}
+          </div>
+          <div className="noir-discover-ranked">
+            {playlist.tracks.slice(0, 10).map((track, i) => (
+              <NoirRankedSongRow
+                key={track.id}
+                rank={i + 1}
+                track={track}
+                isFavorite={isTrackFavorite(favorites, track)}
+                onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name, i)}
+                onAddToQueue={onAddToQueue}
+                onPlayNext={onPlayNext}
+                onToggleFavorite={onToggleFavorite}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
+  );
+}
+
+function ChartCard({
+  playlist,
+  index,
+  onOpen,
+  onPlay,
+}: {
+  playlist: Playlist;
+  index: number;
+  onOpen: () => void;
+  onPlay: () => void;
+}) {
+  const reduced = prefersReducedMotion();
+  const preview = playlist.tracks.slice(0, 3);
+
+  return (
+    <motion.div
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') onOpen();
+      }}
+      className="noir-chart-card group elva-focus-ring"
+      initial={reduced ? false : { opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: EASE_PREMIUM, delay: index * 0.07 }}
+    >
+      <span className="noir-chart-card-cover">
+        <NoirDitherCover
+          source={playlist.tracks[0]?.thumbnail}
+          world={worldForCollection(playlist.id)}
+          seed={playlist.id}
+          size={176}
+        />
+      </span>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <p className="noir-label">{strings.discover.chart}</p>
+        <h2 className="noir-chart-card-title">{playlist.name}</h2>
+        <ol className="noir-chart-card-preview">
+          {preview.map((track, i) => (
+            <li key={track.id} className="flex min-w-0 items-baseline gap-2.5">
+              <span className="noir-chart-card-rank">{i + 1}</span>
+              <span className="min-w-0 truncate">
+                <span className="text-[color:var(--noir-text-primary)]">{track.title}</span>
+                <span className="text-[color:var(--noir-text-tertiary)]"> · {track.artist}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+
+        <div className="mt-auto flex items-center gap-3 pt-4">
+          <motion.button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPlay();
+            }}
+            className="noir-play-round !h-11 !w-11 elva-focus-ring"
+            aria-label={`${strings.discover.playChart}: ${playlist.name}`}
+            whileTap={{ scale: 0.94 }}
+            transition={MOTION.tap}
+          >
+            <Play className="ml-0.5 h-[18px] w-[18px] fill-current" />
+          </motion.button>
+          <span className="noir-chart-card-more">
+            {strings.discover.songs(playlist.tracks.length)}
+            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" strokeWidth={1.75} />
+          </span>
+        </div>
+      </div>
+    </motion.div>
   );
 }

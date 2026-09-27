@@ -16,6 +16,11 @@ import { NoirDitherCover } from './NoirDitherCover';
 
 type SearchPanelPhase = 'idle' | 'loading' | 'results' | 'no-results';
 
+/** Avoid two shelf covers dithering the same artwork when collections start with the same song. */
+function distinctCoverSource(tracks: SearchResult[], taken?: string): string | undefined {
+  return tracks.find((t) => t.thumbnail && t.thumbnail !== taken)?.thumbnail ?? tracks[0]?.thumbnail;
+}
+
 export type NoirHomeViewProps = {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -86,10 +91,10 @@ export function NoirHomeView({
   const isFeaturedActive = !!featuredKey && featuredKey === activeSongKey;
   const isFeaturedPlaying = isFeaturedActive && isPlaying;
   const listRecents = useMemo(() => {
-    if (listFrozen) return stableRecents.slice(0, 12);
-    if (!featuredTrack) return stableRecents.slice(0, 12);
-    return stableRecents.filter((t) => t.id !== featuredTrack.id).slice(0, 12);
-  }, [stableRecents, featuredTrack, listFrozen]);
+    // The hero already shows the featured/playing song; never repeat it in the tiles.
+    const hidden = new Set([featuredKey, activeSongKey].filter(Boolean));
+    return stableRecents.filter((t) => !hidden.has(getPlaybackSongKey(t))).slice(0, 12);
+  }, [stableRecents, featuredKey, activeSongKey]);
 
   const isTrackPlaying = (track: SearchResult) => {
     const key = getPlaybackSongKey(track);
@@ -388,7 +393,7 @@ export function NoirHomeView({
                         className="noir-collection-card noir-home-shelf-card elva-focus-ring"
                       >
                         <NoirDitherCover
-                          source={playlist.tracks[0]?.thumbnail}
+                          source={distinctCoverSource(playlist.tracks, favorites[0]?.thumbnail)}
                           world={worldForCollection(playlist.id)}
                           seed={playlist.id}
                           size={168}

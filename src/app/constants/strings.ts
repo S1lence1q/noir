@@ -103,6 +103,12 @@ export const strings = {
     trendingUnavailable: 'Trending unavailable',
     trendingDesc: 'Charts could not load right now. Check your connection and try again.',
     retry: 'Retry',
+    chart: 'Chart · Updated daily',
+    topIn: (country: string) => `Top 10 in ${country}`,
+    topGlobal: 'Top 10 worldwide',
+    showAll: 'Show all',
+    playChart: 'Play chart',
+    songs: (n: number) => `${n} songs`,
   },
   profileHub: {
     favoritesTitle: 'Your Favorite Library',

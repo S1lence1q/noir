@@ -1557,6 +1557,119 @@
   }
 }
 
+/* Discover */
+.noir-discover-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 16px;
+}
+
+.noir-chart-card {
+  display: flex;
+  gap: 20px;
+  min-width: 0;
+  padding: 20px;
+  border-radius: var(--noir-radius-lg);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+
+.noir-chart-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.noir-chart-card-cover {
+  flex-shrink: 0;
+  border-radius: var(--noir-radius-md);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.noir-chart-card:hover .noir-chart-card-cover {
+  transform: rotate(-1.5deg) scale(1.02);
+}
+
+.noir-chart-card-title {
+  margin-top: 6px;
+  font: 600 24px / 1.15 var(--noir-font);
+  letter-spacing: -0.025em;
+  color: var(--noir-text-primary);
+}
+
+.noir-chart-card-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.noir-chart-card-rank {
+  width: 12px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--noir-text-tertiary);
+}
+
+.noir-chart-card-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--noir-text-secondary);
+}
+
+.noir-discover-ranked {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-flow: column;
+  grid-template-rows: repeat(5, auto);
+  column-gap: 24px;
+  row-gap: 2px;
+}
+
+.noir-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--noir-text-secondary);
+  transition: color 0.12s ease;
+}
+
+.noir-link:hover {
+  color: var(--noir-text-primary);
+}
+
+.noir-skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.04));
+  background-size: 200% 100%;
+  animation: noir-skeleton 1.4s ease-in-out infinite;
+}
+
+@keyframes noir-skeleton {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noir-skeleton {
+    animation: none;
+  }
+}
+
+@media (max-width: 1000px) {
+  .noir-discover-ranked {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-flow: row;
+    grid-template-rows: none;
+  }
+}
+
 /* Library playlist grid */
 .noir-collection-grid {
   display: grid;
