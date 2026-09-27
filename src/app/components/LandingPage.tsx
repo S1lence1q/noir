@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { VerifiedArtist, SearchResult } from '../types';
 import { Playlist } from './PlaylistDetailsView';
@@ -170,6 +171,15 @@ export function LandingPage({
   onNavPositionChange,
   shellMode = false,
 }: LandingPageProps) {
+  const [libraryPlaylistOpen, setLibraryPlaylistOpen] = useState(false);
+  const handleLibraryPlaylistOpenChange = useCallback(
+    (playlistId: string | null) => {
+      setLibraryPlaylistOpen(playlistId !== null);
+      onLibraryPlaylistOpenChange?.(playlistId);
+    },
+    [onLibraryPlaylistOpenChange]
+  );
+
   const renderSearchContent = () => (
     <>
       <div className="w-full flex flex-col items-center shrink-0">
@@ -411,13 +421,13 @@ export function LandingPage({
                 className="h-full"
               >
                 <NoirPageScaffold
-                  title="Library"
-                  subtitle="Favorites and playlists"
+                  title={libraryPlaylistOpen ? undefined : 'Library'}
+                  subtitle={libraryPlaylistOpen ? undefined : 'Favorites and playlists'}
                 >
                   <NoirLibraryView
                     favorites={favorites}
                     focus={libraryFocus}
-                    onPlaylistOpenChange={onLibraryPlaylistOpenChange}
+                    onPlaylistOpenChange={handleLibraryPlaylistOpenChange}
                     onToggleFavorite={handleToggleFavorite}
                     onSelectSong={handleSelectSong}
                     onAddToQueue={handleAddToQueue}

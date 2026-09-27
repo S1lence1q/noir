@@ -1,21 +1,17 @@
-import { useEffect, useState } from 'react';
-import { Compass, Heart, Home, Library, ListMusic, Settings } from 'lucide-react';
-import { SearchResult } from '../../../types';
+import { Compass, Heart, Home, Library, Plus, Settings } from 'lucide-react';
 import { AppTab } from './types';
 import { NoirGraphicAccent } from './noir/NoirGraphicAccent';
 import { NoirMark } from './noir/NoirMark';
+import { NoirDitherCover } from './noir/NoirDitherCover';
+import { worldForCollection } from '../../utils/ditherCover';
+import { createPlaylist, usePlaylists } from '../../utils/playlistStore';
+import { strings } from '../../constants/strings';
 
 const PRIMARY_NAV: { id: AppTab; label: string; icon: typeof Home }[] = [
   { id: 'search', label: 'Home', icon: Home },
   { id: 'discover', label: 'Discover', icon: Compass },
   { id: 'myhub', label: 'Library', icon: Library },
 ];
-
-type SidebarPlaylist = {
-  id: string;
-  name: string;
-  tracks: SearchResult[];
-};
 
 type AppSidebarProps = {
   activeTab: AppTab;
@@ -36,33 +32,8 @@ export function AppSidebar({
   onOpenFavorites,
   onOpenPlaylist,
 }: AppSidebarProps) {
-  const [playlists, setPlaylists] = useState<SidebarPlaylist[]>(() => {
-    try {
-      const stored = localStorage.getItem('elva_playlists');
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    const sync = () => {
-      try {
-        const stored = localStorage.getItem('elva_playlists');
-        if (stored) setPlaylists(JSON.parse(stored));
-      } catch {
-        /* ignore */
-      }
-    };
-    window.addEventListener('elva-playlists-updated', sync);
-    window.addEventListener('storage', sync);
-    return () => {
-      window.removeEventListener('elva-playlists-updated', sync);
-      window.removeEventListener('storage', sync);
-    };
-  }, []);
-
-  const sidebarPlaylists = playlists.slice(0, 5);
+  const playlists = usePlaylists();
+  const sidebarPlaylists = playlists.slice(0, 8);
   const sidebarPlaylistActive = sidebarPlaylists.some((p) => p.id === selectedPlaylistId);
 
   return (
@@ -112,36 +83,44 @@ export function AppSidebar({
         </button>
       </div>
 
-      {sidebarPlaylists.length > 0 ? (
-        <div className="relative z-[1] mt-6 min-h-0 flex-1 overflow-y-auto scrollbar-none">
-          <p className="px-3 pb-1.5 text-[12px] font-medium text-[color:var(--noir-text-tertiary)]">Playlists</p>
-          <div className="flex flex-col gap-0.5">
-            {sidebarPlaylists.map((playlist) => {
-              const isActive = selectedPlaylistId === playlist.id;
-              return (
-                <button
-                  key={playlist.id}
-                  type="button"
-                  onClick={() => onOpenPlaylist?.(playlist.id)}
-                  data-active={isActive ? 'true' : 'false'}
-                  className="noir-nav-item flex h-10 items-center gap-2.5 px-3 text-left text-[14px] font-medium elva-focus-ring"
-                  aria-current={isActive ? 'page' : undefined}
-                >
-                  <ListMusic
-                    className={`h-[18px] w-[18px] shrink-0 ${
-                      isActive ? '' : 'text-[color:var(--noir-text-tertiary)]'
-                    }`}
-                    strokeWidth={isActive ? 2.25 : 1.75}
-                  />
-                  <span className="truncate">{playlist.name}</span>
-                </button>
-              );
-            })}
-          </div>
+      <div className="relative z-[1] mt-6 min-h-0 flex-1 overflow-y-auto scrollbar-none">
+        <div className="flex items-center justify-between pb-1.5 pl-3 pr-1.5">
+          <p className="text-[12px] font-medium text-[color:var(--noir-text-tertiary)]">Playlists</p>
+          <button
+            type="button"
+            onClick={() => onOpenPlaylist?.(createPlaylist().id)}
+            className="flex h-6 w-6 items-center justify-center rounded-md text-[color:var(--noir-text-tertiary)] transition-colors hover:bg-white/[0.06] hover:text-white elva-focus-ring"
+            aria-label={strings.playlist.newPlaylist}
+            title={strings.playlist.newPlaylist}
+          >
+            <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+          </button>
         </div>
-      ) : (
-        <div className="relative z-[1] flex-1" />
-      )}
+        <div className="flex flex-col gap-0.5">
+          {sidebarPlaylists.map((playlist) => {
+            const isActive = selectedPlaylistId === playlist.id;
+            return (
+              <button
+                key={playlist.id}
+                type="button"
+                onClick={() => onOpenPlaylist?.(playlist.id)}
+                data-active={isActive ? 'true' : 'false'}
+                className="noir-nav-item flex h-10 items-center gap-2.5 px-3 text-left text-[14px] font-medium elva-focus-ring"
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <NoirDitherCover
+                  source={playlist.tracks[0]?.thumbnail}
+                  world={worldForCollection(playlist.id)}
+                  seed={playlist.id}
+                  size={22}
+                  radius={5}
+                />
+                <span className="truncate">{playlist.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <div className="relative z-[1] mt-auto pt-4">
         <button

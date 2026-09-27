@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { Heart, Plus } from 'lucide-react';
 import { SearchResult } from '../../../types';
@@ -17,6 +18,8 @@ type NoirSongRowProps = {
   onToggleFavorite?: (track: SearchResult) => void;
   showArtistColumn?: boolean;
   showDuration?: boolean;
+  /** Rendered in the hover action group, before add-to-queue. */
+  extraAction?: ReactNode;
 };
 
 function formatDuration(duration: number) {
@@ -38,6 +41,7 @@ export function NoirSongRow({
   onToggleFavorite,
   showArtistColumn = true,
   showDuration = false,
+  extraAction,
 }: NoirSongRowProps) {
   const reduced = prefersReducedMotion();
 
@@ -116,7 +120,7 @@ export function NoirSongRow({
       >
         {onToggleFavorite && (
           <div
-            className={isFavorite ? 'opacity-100' : undefined}
+            className={isFavorite ? 'noir-track-action--pinned' : undefined}
           >
             <button
               type="button"
@@ -132,6 +136,7 @@ export function NoirSongRow({
             </button>
           </div>
         )}
+        {extraAction}
         <div className="flex items-center gap-0.5">
           <button
             type="button"

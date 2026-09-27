@@ -1,0 +1,425 @@
+import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, Reorder, useDragControls } from 'motion/react';
+import { ArrowLeft, Check, GripVertical, MoreHorizontal, Pencil, Play, Plus, Search, Shuffle, Trash2, X } from 'lucide-react';
+import { SearchResult } from '../../../types';
+import { strings } from '../../../constants/strings';
+import { isTrackFavorite } from '../../../utils/favoriteUtils';
+import { worldForCollection } from '../../../utils/ditherCover';
+import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
+import { executeSearchAPI } from '../../../utils/api/pipedSearch';
+import {
+  UserPlaylist,
+  addTrackToPlaylist,
+  consumePendingRename,
+  deletePlaylist,
+  playlistHasTrack,
+  removeTrackFromPlaylist,
+  renamePlaylist,
+  reorderPlaylist,
+} from '../../../utils/playlistStore';
+import { NoirDitherCover } from './NoirDitherCover';
+import { NoirSongRow } from './NoirSongRow';
+import { noirToast } from './NoirToast';
+
+type NoirUserPlaylistPageProps = {
+  playlist: UserPlaylist;
+  favorites: SearchResult[];
+  onBack: () => void;
+  onAddToQueue: (track: SearchResult) => void;
+  onPlayPlaylist: (tracks: SearchResult[], label?: string, startIndex?: number) => void;
+  onPlayNext?: (track: SearchResult) => void;
+  onToggleFavorite: (track: SearchResult) => void;
+};
+
+function shuffled<T>(items: T[]): T[] {
+  const next = [...items];
+  for (let i = next.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+}
+
+export function NoirUserPlaylistPage({
+  playlist,
+  favorites,
+  onBack,
+  onAddToQueue,
+  onPlayPlaylist,
+  onPlayNext,
+  onToggleFavorite,
+}: NoirUserPlaylistPageProps) {
+  const [editing, setEditing] = useState(() => consumePendingRename(playlist.id));
+  const [draft, setDraft] = useState(playlist.name);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [order, setOrder] = useState(() => playlist.tracks.map((t) => t.id));
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setOrder(playlist.tracks.map((t) => t.id));
+  }, [playlist.tracks]);
+
+  useEffect(() => {
+    if (!editing) setDraft(playlist.name);
+  }, [playlist.name, editing]);
+
+  useEffect(() => {
+    if (!editing) return;
+    const input = titleInputRef.current;
+    input?.focus();
+    input?.select();
+  }, [editing]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = (e: PointerEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
+    };
+    window.addEventListener('pointerdown', close);
+    return () => window.removeEventListener('pointerdown', close);
+  }, [menuOpen]);
+
+  const byId = new Map(playlist.tracks.map((t) => [t.id, t]));
+  const orderedTracks = order.map((id) => byId.get(id)).filter((t): t is SearchResult => !!t);
+
+  const commitTitle = () => {
+    renamePlaylist(playlist.id, draft);
+    setEditing(false);
+  };
+
+  const handleDelete = () => {
+    setMenuOpen(false);
+    const restore = deletePlaylist(playlist.id);
+    onBack();
+    noirToast({ text: strings.playlist.deleted, action: { label: strings.playlist.undo, onClick: restore } });
+  };
+
+  const handleRemove = (track: SearchResult) => {
+    const restore = removeTrackFromPlaylist(playlist.id, track.id);
+    noirToast({
+      text: strings.playlist.removedFrom(playlist.name),
+      cover: track.thumbnail,
+      action: { label: strings.playlist.undo, onClick: restore },
+    });
+  };
+
+  const hasTracks = orderedTracks.length > 0;
+
+  return (
+    <div className="flex flex-col pb-6">
+      <button type="button" onClick={onBack} className="noir-back-link elva-focus-ring">
+        <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
+        {strings.playlist.back}
+      </button>
+
+      <header className="mt-5 flex items-end gap-6">
+        <NoirDitherCover
+          source={orderedTracks[0]?.thumbnail}
+          world={worldForCollection(playlist.id)}
+          seed={playlist.id}
+          size={200}
+        />
+        <div className="min-w-0 flex-1 pb-1">
+          <p className="noir-label">{strings.playlist.label}</p>
+          {editing ? (
+            <input
+              ref={titleInputRef}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commitTitle}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') commitTitle();
+                if (e.key === 'Escape') {
+                  setDraft(playlist.name);
+                  setEditing(false);
+                }
+              }}
+              maxLength={80}
+              className="noir-collection-title noir-collection-title--input"
+              aria-label={strings.playlist.rename}
+            />
+          ) : (
+            <h1>
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="noir-collection-title text-left elva-focus-ring"
+                title={strings.playlist.renameHint}
+              >
+                {playlist.name}
+              </button>
+            </h1>
+          )}
+          <p className="mt-2 text-[13px] text-[color:var(--noir-text-secondary)]">
+            {strings.playlist.songCount(orderedTracks.length)}
+          </p>
+
+          <div className="mt-5 flex items-center gap-2">
+            <motion.button
+              type="button"
+              disabled={!hasTracks}
+              onClick={() => onPlayPlaylist(orderedTracks, playlist.name)}
+              className="noir-play-round elva-focus-ring"
+              aria-label={strings.playlist.play}
+              whileTap={{ scale: 0.94 }}
+              transition={MOTION.tap}
+            >
+              <Play className="ml-0.5 h-5 w-5 fill-current" />
+            </motion.button>
+            <button
+              type="button"
+              disabled={!hasTracks}
+              onClick={() => onPlayPlaylist(shuffled(orderedTracks), playlist.name)}
+              className="noir-icon-button elva-focus-ring"
+              aria-label={strings.playlist.shuffle}
+              title={strings.playlist.shuffle}
+            >
+              <Shuffle className="h-[18px] w-[18px]" strokeWidth={1.75} />
+            </button>
+            <div ref={menuRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setMenuOpen((open) => !open)}
+                className="noir-icon-button elva-focus-ring"
+                aria-label={strings.playlist.more}
+                aria-expanded={menuOpen}
+              >
+                <MoreHorizontal className="h-[18px] w-[18px]" strokeWidth={1.75} />
+              </button>
+              <AnimatePresence>
+                {menuOpen && (
+                  <motion.div
+                    className="noir-menu absolute left-0 top-full z-20 mt-2 w-48"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={withReducedMotion(MOTION.panel)}
+                    role="menu"
+                  >
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="noir-menu-item"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setEditing(true);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4" strokeWidth={1.75} />
+                      {strings.playlist.rename}
+                    </button>
+                    <button type="button" role="menuitem" className="noir-menu-item noir-menu-item--danger" onClick={handleDelete}>
+                      <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                      {strings.playlist.delete}
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {hasTracks && (
+        <Reorder.Group
+          axis="y"
+          values={order}
+          onReorder={setOrder}
+          className="mt-10 flex flex-col gap-0.5"
+        >
+          {orderedTracks.map((track, i) => (
+            <PlaylistTrackItem
+              key={track.id}
+              track={track}
+              index={i}
+              isFavorite={isTrackFavorite(favorites, track)}
+              onDragEnd={() => reorderPlaylist(playlist.id, order)}
+              onPlay={() => onPlayPlaylist(orderedTracks, playlist.name, i)}
+              onRemove={() => handleRemove(track)}
+              onAddToQueue={onAddToQueue}
+              onPlayNext={onPlayNext}
+              onToggleFavorite={onToggleFavorite}
+            />
+          ))}
+        </Reorder.Group>
+      )}
+
+      <PlaylistAddSection playlist={playlist} favorites={favorites} isEmpty={!hasTracks} />
+    </div>
+  );
+}
+
+type PlaylistTrackItemProps = {
+  track: SearchResult;
+  index: number;
+  isFavorite: boolean;
+  onDragEnd: () => void;
+  onPlay: () => void;
+  onRemove: () => void;
+  onAddToQueue: (track: SearchResult) => void;
+  onPlayNext?: (track: SearchResult) => void;
+  onToggleFavorite: (track: SearchResult) => void;
+};
+
+function PlaylistTrackItem({
+  track,
+  isFavorite,
+  onDragEnd,
+  onPlay,
+  onRemove,
+  onAddToQueue,
+  onPlayNext,
+  onToggleFavorite,
+}: PlaylistTrackItemProps) {
+  const controls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={track.id}
+      dragListener={false}
+      dragControls={controls}
+      onDragEnd={onDragEnd}
+      className="noir-playlist-item group/item relative"
+      whileDrag={{ scale: 1.015, boxShadow: '0 12px 32px rgba(0,0,0,0.55)', zIndex: 5 }}
+      transition={MOTION.panel}
+    >
+      <span
+        className="noir-drag-handle"
+        onPointerDown={(e) => {
+          e.preventDefault();
+          controls.start(e);
+        }}
+        aria-label={strings.playlist.dragToReorder}
+        title={strings.playlist.dragToReorder}
+      >
+        <GripVertical className="h-4 w-4" strokeWidth={1.75} />
+      </span>
+      <NoirSongRow
+        track={track}
+        isFavorite={isFavorite}
+        onPlay={onPlay}
+        onAddToQueue={onAddToQueue}
+        onPlayNext={onPlayNext}
+        onToggleFavorite={onToggleFavorite}
+        extraAction={
+          <button
+            type="button"
+            onClick={onRemove}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white"
+            aria-label={strings.playlist.removeFromPlaylist}
+            title={strings.playlist.removeFromPlaylist}
+          >
+            <X className="h-4 w-4" strokeWidth={2} />
+          </button>
+        }
+      />
+    </Reorder.Item>
+  );
+}
+
+function PlaylistAddSection({
+  playlist,
+  favorites,
+  isEmpty,
+}: {
+  playlist: UserPlaylist;
+  favorites: SearchResult[];
+  isEmpty: boolean;
+}) {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const requestRef = useRef(0);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setResults([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const id = ++requestRef.current;
+    const timer = setTimeout(async () => {
+      try {
+        const next = await executeSearchAPI(q, 8);
+        if (id === requestRef.current) setResults(next);
+      } catch {
+        if (id === requestRef.current) setResults([]);
+      } finally {
+        if (id === requestRef.current) setLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const suggestions = favorites.filter((t) => !playlistHasTrack(playlist, t)).slice(0, 5);
+  const showingSearch = query.trim().length >= 2;
+  const list = showingSearch ? results : suggestions;
+
+  const add = (track: SearchResult) => {
+    if (addTrackToPlaylist(playlist.id, track)) {
+      noirToast({ text: strings.playlist.addedTo(playlist.name), cover: track.thumbnail });
+    }
+  };
+
+  return (
+    <section className={isEmpty ? 'mt-12' : 'mt-14'}>
+      {isEmpty && (
+        <div className="mb-5">
+          <h2 className="noir-section-title">{strings.playlist.emptyTitle}</h2>
+          <p className="mt-1.5 text-[14px] text-[color:var(--noir-text-secondary)]">{strings.playlist.emptyBody}</p>
+        </div>
+      )}
+
+      <label className="noir-inline-search">
+        <Search className="h-4 w-4 shrink-0 text-[color:var(--noir-text-tertiary)]" strokeWidth={1.75} />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={strings.playlist.searchPlaceholder}
+          className="min-w-0 flex-1 bg-transparent text-[14px] text-[color:var(--noir-text-primary)] outline-none placeholder:text-[color:var(--noir-text-tertiary)]"
+        />
+        {query && (
+          <button type="button" onClick={() => setQuery('')} className="text-[color:var(--noir-text-tertiary)] hover:text-white" aria-label="Clear">
+            <X className="h-4 w-4" strokeWidth={1.75} />
+          </button>
+        )}
+      </label>
+
+      <div className="mt-4">
+        {!showingSearch && suggestions.length > 0 && <p className="noir-label mb-2 px-3">{strings.playlist.suggested}</p>}
+        {showingSearch && loading && results.length === 0 && (
+          <p className="px-3 py-4 text-[13px] text-[color:var(--noir-text-tertiary)]">{strings.playlist.searching}</p>
+        )}
+        {showingSearch && !loading && results.length === 0 && (
+          <p className="px-3 py-4 text-[13px] text-[color:var(--noir-text-secondary)]">{strings.playlist.noResults(query.trim())}</p>
+        )}
+        <div className="flex flex-col gap-0.5">
+          {list.map((track) => {
+            const inPlaylist = playlistHasTrack(playlist, track);
+            return (
+              <div key={track.id} className="noir-add-row">
+                <img src={track.thumbnail} alt="" className="noir-art h-10 w-10 shrink-0 object-cover" />
+                <div className="min-w-0 flex-1">
+                  <p className="noir-song-title truncate">{track.title}</p>
+                  <p className="noir-song-meta truncate">{track.artist}</p>
+                </div>
+                <button
+                  type="button"
+                  disabled={inPlaylist}
+                  onClick={() => add(track)}
+                  className="noir-button-secondary elva-focus-ring disabled:opacity-50"
+                >
+                  {inPlaylist ? <Check className="h-3.5 w-3.5" strokeWidth={2.25} /> : <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />}
+                  {inPlaylist ? strings.playlist.added : strings.playlist.add}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}

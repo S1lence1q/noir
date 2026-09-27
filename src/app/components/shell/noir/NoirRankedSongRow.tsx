@@ -91,7 +91,7 @@ export function NoirRankedSongRow({
       >
         {onToggleFavorite && (
           <div
-            className={isFavorite ? 'opacity-100' : undefined}
+            className={isFavorite ? 'noir-track-action--pinned' : undefined}
           >
             <button
               type="button"
