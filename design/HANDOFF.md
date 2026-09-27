@@ -20,7 +20,7 @@ Read this first in a new chat.
 - **Creative director model (Opus) builds the hard/visual work** (graphics, animation, UX-heavy screens). Cheaper models (Luna/Grok) get mechanical, clearly-specced tickets. See owners in `tickets/README.md`.
 - **Save limit:** user takes screenshots themselves. Do not run the browser. Be economical; read only what you need.
 - Build (`npm run build`) after every change; **commit after every finished step** (user has allowed commits).
-- **Never `git add src`** — `src/Cinematic Dark Music Background.jpeg`, `src/Plate Wave Recreation Image.jpeg`, `src/abstract cloud like form.jpeg` are untracked originals and must stay untracked. Stage `src/app src/styles design` explicitly.
+- **Never `git add src`** — `src/Plate Wave Recreation Image.jpeg`, `src/abstract cloud like form.jpeg` are untracked originals and must stay untracked. (`src/Cinematic Dark Music Background.jpeg` was deleted in T07; its only copy is `src/assets/noir/atmosphere-warm.jpeg` — never delete that file.) Stage `src/app src/styles design` explicitly.
 - User reacts to screenshots; iterate quickly. When something "feels off", assume a real problem and find the cause.
 
 ## User taste learned (honor these)
