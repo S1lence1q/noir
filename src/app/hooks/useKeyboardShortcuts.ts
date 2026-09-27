@@ -29,6 +29,7 @@ interface KeyboardShortcutsParams {
   setSelectedPlaylist: React.Dispatch<React.SetStateAction<any>>;
   onOpenSearchPalette?: () => void;
   onNewPlaylist?: () => void;
+  onToggleLyrics?: () => void;
 }
 
 export function useKeyboardShortcuts({
@@ -59,6 +60,7 @@ export function useKeyboardShortcuts({
   setSelectedPlaylist,
   onOpenSearchPalette,
   onNewPlaylist,
+  onToggleLyrics,
 }: KeyboardShortcutsParams) {
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -74,6 +76,28 @@ export function useKeyboardShortcuts({
         }
         e.preventDefault();
         setNowPlayingOpen?.(false);
+        return;
+      }
+
+      if (
+        (e.key === 'l' || e.key === 'L') &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        hasActiveSong &&
+        onToggleLyrics
+      ) {
+        const target = e.target as HTMLElement;
+        if (
+          target &&
+          (target.tagName === 'INPUT' ||
+            target.tagName === 'TEXTAREA' ||
+            target.isContentEditable)
+        ) {
+          return;
+        }
+        e.preventDefault();
+        onToggleLyrics();
         return;
       }
 
@@ -225,5 +249,6 @@ export function useKeyboardShortcuts({
     setSelectedPlaylist,
     onOpenSearchPalette,
     onNewPlaylist,
+    onToggleLyrics,
   ]);
 }

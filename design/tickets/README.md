@@ -62,7 +62,7 @@ Exact behavior, layout, copy, tokens, states.
 | T10 | musicGraph (Last.fm + Deezer) — **DONE** | L | | Luna |
 | T11 | Radio + autoplay — **DONE** | M | | Opus |
 | T12 | Daily mixes + Home shelf — **DONE** | L | | Opus |
-| T14 | Now Playing — **A+B DONE**; C Playing from **DONE**, similar parked; Soft Shuffle; **NEXT: lyrics in NP column** · D parked | M | | Opus |
+| T14 | Now Playing — **A+B+C DONE** (Playing from, lyrics column, Soft Shuffle); similar parked; D parked | M | | Opus |
 
 ### Original index
 
@@ -87,4 +87,4 @@ Exact behavior, layout, copy, tokens, states.
 - Copy: `strings.nextUp` in `src/app/constants/strings.ts`
 | T09 | Listening events + taste profile | M | |
 | T10 | musicGraph service (Last.fm + Deezer) | L | |
-| T14 | Now Playing: A+B + Playing from DONE; **lyrics NEXT** (see ticket §C) | M | |
+| T14 | Now Playing: A+B+C DONE (incl. lyrics); D parked | M | |

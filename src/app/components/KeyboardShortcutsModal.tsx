@@ -67,7 +67,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
                 { keys: ['↑', '↓'], desc: 'Adjust volume' },
                 { keys: ['M'], desc: 'Mute / Unmute audio' },
                 { keys: ['←', '→'], desc: 'Seek 5s backward / forward' },
-                { keys: ['L'], desc: 'Flip artwork / toggle live lyrics' },
+                { keys: ['L'], desc: 'Toggle lyrics in Now Playing' },
                 { keys: ['Q'], desc: 'Toggle active queue drawer' },
                 { keys: [isMac ? '⌘' : 'Ctrl', 'N'], desc: 'Create a new playlist' },
                 { keys: [isMac ? '⌘' : 'Ctrl', ','], desc: 'Open settings menu' },

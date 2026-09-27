@@ -26,12 +26,12 @@ Opening Now Playing feels like the song you're hearing moves up and opens. The s
 
 ### C. Content the bar can't show (after T10)
 - ~~Line under the source: `Similar: A, B, C`~~ **Parked (2026-09-27):** not permanent in the title block. Revisit as artist-page “Fans also like” or on-demand in NP.
-- **Lyrics (NEXT — only open C work):**
-  - Toggle button top-right of the NP canvas (and keyboard `L`, already in craft + shortcuts map).
+- **Lyrics (DONE — 2026-09-27):**
+  - Toggle button top-right of the NP canvas (and keyboard `L`).
   - When on: lyrics replace the **Next up** column (same column width / chrome), not a modal over the cover.
-  - Reuse existing lyrics pipeline: `useLyrics` + `lyricsUtils` (LRCLIB / custom). Do **not** rewrite fetch/sync; reposition UI into `NoirNowPlayingView`.
-  - States: loading, synced scroll with `currentTime`, plain (unsynced), empty / not found — copy in `strings.ts`.
-  - Reduced motion: no fancy scroll tween; still readable.
+  - Reuses `useLyrics` + LRCLIB / custom; seek via `elva-seek`. UI in `NoirLyricsColumn`.
+  - States: loading, synced scroll with `currentTime`, plain (unsynced), empty / not found — copy in `strings.lyrics`.
+  - Reduced motion: instant scroll (no smooth tween); still readable.
 
 ### D. Graphic slot (after T06, separate small ticket)
 - **Parked** (decision 005). Built twice, removed: the composition is complete without it, and it can't honestly react to YouTube audio.
@@ -56,9 +56,9 @@ Opening Now Playing feels like the song you're hearing moves up and opens. The s
 - [x] Closing reverses it; transport/scrubber don't jump; no ghost title over canvas
 - [x] Title not shown twice while open
 - [x] Playing from under artist when source exists
-- [ ] Lyrics toggle (`L` + button) swaps Next up ↔ lyrics in the right column
-- [ ] Synced / plain / empty / loading states work
-- [ ] Reduced motion: no flying cover; lyrics still usable
+- [x] Lyrics toggle (`L` + button) swaps Next up ↔ lyrics in the right column
+- [x] Synced / plain / empty / loading states work
+- [x] Reduced motion: no flying cover; lyrics still usable
 
 ## Don't
 - Don't hide the compact bar. Don't move transport controls into the canvas.

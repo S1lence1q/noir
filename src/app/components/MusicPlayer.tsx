@@ -396,8 +396,7 @@ export function MusicPlayer({
           handleVolumeChange(preMuteVolume || 70);
         }
       } else if (e.code === 'KeyL') {
-        e.preventDefault();
-        setShowLyrics((prev) => !prev);
+        // Shell Now Playing owns lyrics (L) — skip flip-card lyrics here.
       } else if (e.code === 'KeyQ') {
         e.preventDefault();
         setShowQueue((prev) => !prev);

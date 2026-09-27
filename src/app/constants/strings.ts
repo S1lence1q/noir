@@ -122,6 +122,15 @@ export const strings = {
     playingFrom: (source: string) => `Playing from ${source}`,
     openSource: 'Open source',
   },
+  lyrics: {
+    title: 'Lyrics',
+    loading: 'Finding lyrics…',
+    empty: 'No lyrics found',
+    emptyHint: 'Enjoy the music instead.',
+    plain: 'Plain',
+    show: 'Show lyrics',
+    hide: 'Hide lyrics',
+  },
   playlist: {
     label: 'Playlist',
     back: 'Library',

@@ -48,18 +48,18 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 - **T08** Mark: sidebar + Library empty spray + search loading spin
 - **T09–T12, T11:** listening/taste, musicGraph, radio/autoplay, daily mixes + Home
 - **T14 A+B:** cover flight bar ↔ canvas; bar identity hidden while open; atmosphere after landing
-- **T14 C (partial):** `Playing from {source}` under artist (clickable when resolvable). `queueSource` cleared when starting a song **outside** the current queue (search/direct play = fresh context). Similar artists **parked**. Soft Shuffle animation in Next up. **Lyrics still open.**
+- **T14 C (partial):** `Playing from {source}` under artist (clickable when resolvable). Artist-profile play uses **Playing from Popular**. `queueSource` cleared when starting a song **outside** the current queue. Similar artists **parked**. Soft Shuffle in Next up. **Lyrics: toggle + `L` swap Next up ↔ lyrics column** (reuse `useLyrics`).
 - **Home:** greeting + Continue + dithered object, Jump back in, library shelf, artist circles
 - **Discover:** taste feed shelves + chart cards (no redundant Top 10 under Charts)
-- **Artist page:** dithered poster, Popular, dedupe; identity via Last.fm/MusicBrainz/Deezer
+- **Artist page:** dithered poster, Popular, dedupe; identity via Last.fm/MusicBrainz/Deezer; reopen same profile does not reload
 - **Compact bar:** Close fades on the left (does not steal cover slot); queue opens only when closed; title/artist underline scoped separately
 - **⌘N** new playlist + listed in shortcuts map
 
 ## Next (in order)
 
-1. **Now: T14 lyrics in Now Playing** — see `tickets/T14-now-playing-one-object.md` §C. Toggle `L` / button top-right; lyrics replace the Next up column; reuse `useLyrics` / existing fetch — reposition only, don't rewrite the engine.
-2. Then: Stats/Replay · F7 cold start · T05b verify · T07 unused-asset leftovers (`top_hits_*.png` still imported by legacy `DiscoverView.tsx`).
-3. Parked later: Similar artists (artist page / on-demand), spray wave (decision 005), NP graphic slot.
+1. **Stats / Replay** (year in review / Fase 7) — when ready for a bigger product surface.
+2. F7 cold start · T05b verify · T07 unused-asset leftovers (`top_hits_*.png` still imported by legacy `DiscoverView.tsx`).
+3. Parked later: Similar artists (artist page / on-demand), spray wave (decision 005), NP graphic slot (T14 D).
 
 ## Do / don't
 
@@ -76,7 +76,7 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 | Graphics | `NoirDitherCover.tsx`, `NoirFavoritesCover.tsx`, `NoirMark.tsx`, `utils/ditherCover.ts` |
 | Feedback | `NoirToast.tsx` (`noirToast`), `utils/hudUtils.ts` (legacy forwarder) |
 | Data | `utils/playlistStore.ts`, `utils/elvaStorage.ts`, `utils/localTrackStorage.ts`, `services/listening/*`, `services/musicGraph/*`, `services/discover/discoverFeed.ts`, `services/mixes/dailyMixes.ts`, `services/radio/buildRadio.ts`, `services/artistIdentity/*` |
-| Lyrics | `hooks/useLyrics.ts`, `utils/lyricsUtils.ts` — wire into `NoirNowPlayingView` for T14 lyrics |
+| Lyrics | `hooks/useLyrics.ts`, `utils/lyricsUtils.ts`, `shell/noir/NoirLyricsColumn.tsx` (NP column) |
 | Tokens / motion / copy | `src/styles/noir-shell.css`, `utils/motionPresets.ts`, `constants/strings.ts` |
 | Orchestration | `src/app/App.tsx` (listens to `noir-open-favorites`, `noir-open-playlist`, `elva-open-search-palette`) |
 | Hidden audio engine | `src/app/components/MusicPlayer.tsx` |

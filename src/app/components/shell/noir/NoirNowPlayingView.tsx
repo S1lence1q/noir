@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, Reorder, useIsPresent } from 'motion/react';
-import { Compass, Heart, Plus, Radio, Shuffle, X } from 'lucide-react';
+import { Compass, Heart, Mic2, Plus, Radio, Shuffle, X } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion, withReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
 import { NoirMark } from './NoirMark';
+import { NoirLyricsColumn } from './NoirLyricsColumn';
 import { noirToast } from './NoirToast';
 import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
 import { useQueueEndPrompt } from '../../../hooks/useQueueEndPrompt';
@@ -13,6 +14,7 @@ import { displayArtistName } from '../../../utils/stringUtils';
 import { hasRealArtwork } from '../../../utils/artwork';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { NoirDitherCover } from './NoirDitherCover';
+import type { LyricLine } from '../../../types';
 
 type NowPlayingSong = {
   title: string;
@@ -48,6 +50,12 @@ type NoirNowPlayingViewProps = {
   onReorderQueue?: (orderedUpNextIds: string[]) => void;
   playback?: { currentTime: number; duration: number; isPlaying: boolean };
   queueSource?: string;
+  showLyrics?: boolean;
+  onToggleLyrics?: () => void;
+  lyrics?: LyricLine[];
+  isLoadingLyrics?: boolean;
+  isLyricsSynced?: boolean;
+  currentLyricIndex?: number;
 };
 
 const sheetEase = EASE_PREMIUM;
@@ -94,6 +102,12 @@ export function NoirNowPlayingView({
   onReorderQueue,
   playback = { currentTime: 0, duration: 0, isPlaying: false },
   queueSource,
+  showLyrics = false,
+  onToggleLyrics,
+  lyrics = [],
+  isLoadingLyrics = false,
+  isLyricsSynced = false,
+  currentLyricIndex = -1,
 }: NoirNowPlayingViewProps) {
   const reduced = prefersReducedMotion();
   /** While cover flies home, keep layoutId mounted but fade everything else so title/queue don't ghost. */
@@ -199,6 +213,22 @@ export function NoirNowPlayingView({
 
   return (
     <div className="noir-now-playing">
+      {onToggleLyrics && (
+        <motion.button
+          type="button"
+          className={`noir-now-playing-lyrics-toggle elva-focus-ring ${showLyrics ? 'is-active' : ''}`}
+          onClick={onToggleLyrics}
+          aria-pressed={showLyrics}
+          aria-label={showLyrics ? strings.lyrics.hide : strings.lyrics.show}
+          title={showLyrics ? strings.lyrics.hide : strings.lyrics.show}
+          initial={reduced ? false : { opacity: 0 }}
+          animate={{ opacity: isPresent ? 1 : 0 }}
+          transition={chromeFade.transition}
+        >
+          <Mic2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+          {strings.lyrics.title}
+        </motion.button>
+      )}
       <AnimatePresence>
         {queueEndPrompt.isVisible && (
           <motion.div
@@ -411,7 +441,13 @@ export function NoirNowPlayingView({
 
       <motion.aside
         className="noir-now-playing-queue"
-        aria-label={upNext.length > 0 ? 'Next up' : 'Queue suggestions'}
+        aria-label={
+          showLyrics
+            ? strings.lyrics.title
+            : upNext.length > 0
+              ? 'Next up'
+              : 'Queue suggestions'
+        }
         initial={reduced ? { opacity: 0 } : { opacity: 0, x: 16 }}
         animate={
           isPresent
@@ -420,7 +456,14 @@ export function NoirNowPlayingView({
         }
         transition={{ duration: reduced ? 0.15 : 0.4, ease: sheetEase, delay: reduced ? 0 : 0.14 }}
       >
-        {upNext.length === 0 ? (
+        {showLyrics ? (
+          <NoirLyricsColumn
+            lyrics={lyrics}
+            isLoading={isLoadingLyrics}
+            isSynced={isLyricsSynced}
+            currentIndex={currentLyricIndex}
+          />
+        ) : upNext.length === 0 ? (
           <motion.div
             key={quickAddSource ?? 'none'}
             className="noir-now-playing-queue-empty px-2 pt-1"

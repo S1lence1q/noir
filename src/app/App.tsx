@@ -33,7 +33,9 @@ import { useBackgroundColors } from './hooks/useBackgroundColors';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useSearchLogic } from './hooks/useSearchLogic';
 import { useListeningRecorder } from './hooks/useListeningRecorder';
+import { useLyrics } from './hooks/useLyrics';
 import { LandingPage } from './components/LandingPage';
+import type { PlaybackSongData } from './types/playback';
 import { Playlist } from './components/PlaylistDetailsView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AppShell } from './components/shell/AppShell';
@@ -251,6 +253,21 @@ export default function App() {
     channelId?: string;
   } | null>(null);
   useListeningRecorder(songData, shellPlayback);
+
+  const EMPTY_LYRICS_SONG: PlaybackSongData = {
+    title: '',
+    artist: '',
+    artworkUrl: '',
+    audioUrl: '',
+  };
+  const {
+    showLyrics,
+    setShowLyrics,
+    lyrics,
+    isLoadingLyrics,
+    currentLyricIndex,
+    isLyricsSynced,
+  } = useLyrics(songData ?? EMPTY_LYRICS_SONG, shellPlayback.currentTime);
 
   const backToHomeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [colorsSongData, setColorsSongData] = useState<any>(null);
@@ -1079,6 +1096,14 @@ export default function App() {
     setSelectedPlaylist,
     onOpenSearchPalette: () => setSearchPaletteOpen(true),
     onNewPlaylist: handleNewPlaylist,
+    onToggleLyrics: () => {
+      if (!songData) return;
+      setShowLyrics((prev) => {
+        const next = !prev;
+        if (next) setNowPlayingOpen(true);
+        return next;
+      });
+    },
   });
 
   useEffect(() => {
@@ -1641,6 +1666,12 @@ export default function App() {
                     duration: shellPlayback.duration,
                     isPlaying: isMiniPlaying,
                   }}
+                  showLyrics={showLyrics}
+                  onToggleLyrics={() => setShowLyrics((prev) => !prev)}
+                  lyrics={lyrics}
+                  isLoadingLyrics={isLoadingLyrics}
+                  isLyricsSynced={isLyricsSynced}
+                  currentLyricIndex={currentLyricIndex}
                 />
               ) : undefined
             }

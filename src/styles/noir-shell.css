@@ -989,6 +989,86 @@ button.noir-now-playing-source:hover {
   padding: 28px 16px 32px;
 }
 
+.noir-now-playing-lyrics-toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--noir-radius-sm);
+  border: 1px solid var(--noir-rule-faint);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--noir-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.noir-now-playing-lyrics-toggle:hover {
+  color: var(--noir-text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.noir-now-playing-lyrics-toggle.is-active {
+  color: var(--noir-text-primary);
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.noir-lyrics-badge {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--noir-text-tertiary);
+}
+
+.noir-lyrics-scroll {
+  mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
+}
+
+.noir-lyrics-line {
+  display: block;
+  width: 100%;
+  padding: 10px 4px;
+  text-align: left;
+  border-radius: var(--noir-radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--noir-text-tertiary);
+  font-size: 17px;
+  font-weight: 550;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.noir-lyrics-line:hover {
+  color: var(--noir-text-secondary);
+}
+
+.noir-lyrics-line.is-active {
+  color: var(--noir-text-primary);
+  font-weight: 650;
+}
+
+.noir-lyrics-plain {
+  margin: 0;
+  padding: 6px 4px;
+  color: var(--noir-text-secondary);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
 .noir-now-playing-queue-empty {
   max-width: 220px;
   padding-top: 8px;
