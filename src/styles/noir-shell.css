@@ -2481,13 +2481,10 @@ button.noir-now-playing-source:hover {
   display: flex;
   flex-direction: column;
   gap: 40px;
-  padding: 8px 8px 56px;
+  padding: 0 0 56px;
   max-width: min(100%, var(--noir-content-max));
   isolation: isolate;
-  /* Soft wash only — no rounded panel (that made a hard outer kant) */
-  background:
-    radial-gradient(ellipse 70% 55% at 92% 8%, var(--stats-aura-a, rgba(232, 80, 2, 0.38)) 0%, transparent 62%),
-    radial-gradient(ellipse 55% 45% at 4% 88%, var(--stats-aura-b, rgba(31, 63, 191, 0.28)) 0%, transparent 58%);
+  /* No filled background — a wash here + rounded Bone child = visible kant in corners */
 }
 
 .noir-stats-stage {
@@ -2495,30 +2492,61 @@ button.noir-now-playing-source:hover {
   position: absolute;
   inset: 0;
   z-index: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
+/* Soft color disc */
 .noir-stats-aura {
   position: absolute;
   border-radius: 50%;
-  filter: blur(72px);
-  opacity: 0.7;
+  filter: blur(56px);
+  opacity: 0.85;
 }
 
 .noir-stats-aura--primary {
-  top: -60px;
-  right: 0;
-  width: 320px;
-  height: 320px;
-  background: radial-gradient(circle at 40% 40%, var(--stats-aura-a, rgba(232, 80, 2, 0.38)) 0%, transparent 70%);
+  top: -100px;
+  right: -40px;
+  width: 440px;
+  height: 440px;
+  background: radial-gradient(circle at 42% 40%, var(--stats-aura-a, rgba(232, 80, 2, 0.5)) 0%, transparent 68%);
 }
 
 .noir-stats-aura--secondary {
-  left: -40px;
-  bottom: 10%;
-  width: 260px;
-  height: 260px;
-  background: radial-gradient(circle at 50% 50%, var(--stats-aura-b, rgba(31, 63, 191, 0.28)) 0%, transparent 70%);
+  left: -80px;
+  bottom: 6%;
+  width: 340px;
+  height: 340px;
+  background: radial-gradient(circle at 50% 50%, var(--stats-aura-b, rgba(31, 63, 191, 0.4)) 0%, transparent 70%);
+  opacity: 0.7;
+}
+
+/* Grain sits ON the color, same circular mask — this is the “fed” ref feel */
+.noir-stats-grain-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 120px 120px;
+  mix-blend-mode: overlay;
+  opacity: 0.65;
+  -webkit-mask-image: radial-gradient(circle, #000 0%, #000 32%, transparent 72%);
+  mask-image: radial-gradient(circle, #000 0%, #000 32%, transparent 72%);
+}
+
+.noir-stats-grain-orb--a {
+  top: -90px;
+  right: -30px;
+  width: 420px;
+  height: 420px;
+}
+
+.noir-stats-grain-orb--b {
+  left: -70px;
+  bottom: 4%;
+  width: 320px;
+  height: 320px;
+  opacity: 0.45;
+  mix-blend-mode: soft-light;
 }
 
 .noir-stats > :not(.noir-stats-stage) {

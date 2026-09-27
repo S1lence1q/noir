@@ -209,14 +209,16 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
         transition={withReducedMotion(MOTION.panel)}
         style={
           {
-            '--stats-aura-a': hexToRgba(COLOR_WORLDS[primaryAura].field, 0.38),
-            '--stats-aura-b': hexToRgba(COLOR_WORLDS[secondaryAura].field, 0.28),
+            '--stats-aura-a': hexToRgba(COLOR_WORLDS[primaryAura].field, 0.55),
+            '--stats-aura-b': hexToRgba(COLOR_WORLDS[secondaryAura].field, 0.42),
           } as CSSProperties
         }
       >
         <div className="noir-stats-stage" aria-hidden>
           <div className="noir-stats-aura noir-stats-aura--primary" />
           <div className="noir-stats-aura noir-stats-aura--secondary" />
+          <div className="noir-stats-grain-orb noir-stats-grain-orb--a" />
+          <div className="noir-stats-grain-orb noir-stats-grain-orb--b" />
         </div>
 
         <section className="noir-stats-hero-band">
