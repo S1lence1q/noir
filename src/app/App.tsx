@@ -24,6 +24,8 @@ import { strings } from './constants/strings';
 import { waitForYouTubeApi } from './utils/youtubeApiReady';
 import { addTrackToPlaylist, createPlaylist, readPlaylists } from './utils/playlistStore';
 import { displayArtistName } from './utils/stringUtils';
+import { hasRealArtwork, youtubeThumb } from './utils/artwork';
+import { getTrackImage } from './services/musicGraph';
 
 // Import newly extracted hooks and components
 import { useScrollTracking } from './hooks/useScrollTracking';
@@ -573,7 +575,18 @@ export default function App() {
     let finalVideoId = isLocal
       ? ''
       : (result.videoId || resolvedVideoIdsRef.current[result.id] || queuedMatch?.videoId || '');
-    let finalArtwork = result.thumbnail || 'https://images.unsplash.com/photo-1676068368612-1c8b3e2afed0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbGJ1bSUyMGNvdmVyJTIwbXVzaWMlMjBhYnN0cmFjdCUyMGFydCUyMGNvbG9yZnVsfGVufDF8fHx8MTc3ODk2NjA3OHww&ixlib=rb-4.1.0&q=80&w=1080';
+    let finalArtwork = hasRealArtwork(result.thumbnail) ? result.thumbnail : '';
+    if (!finalArtwork) {
+      finalArtwork = youtubeThumb(finalVideoId, 'hq') || '';
+    }
+    if (!finalArtwork && !isLocal) {
+      try {
+        const fetched = await getTrackImage(result.title, result.artist);
+        if (fetched) finalArtwork = fetched;
+      } catch {
+        /* optional */
+      }
+    }
     let neededResolve = !isLocal && !finalVideoId;
     const needsAudioSwap =
       !isLocal && !!finalVideoId && isLikelyMusicVideoStream(result);
@@ -647,8 +660,10 @@ export default function App() {
         if (latestSelectedSongIdRef.current !== latestId) return;
         if (resolved?.videoId) {
           finalVideoId = resolved.videoId;
-          finalArtwork = resolved.thumbnail;
-          persistResolvedVideoId(result.id, finalVideoId, resolved.thumbnail);
+          finalArtwork = hasRealArtwork(resolved.thumbnail)
+            ? resolved.thumbnail
+            : youtubeThumb(resolved.videoId, 'hq') || finalArtwork;
+          persistResolvedVideoId(result.id, finalVideoId, finalArtwork || resolved.thumbnail);
           startQueuePrefetch(queueRef.current, result.id);
         } else {
           toast.error('Could not play song', {

@@ -8,17 +8,19 @@ import {
   getArtistTags,
   getArtistTopTracks,
   getSimilarArtists,
+  getTrackImage,
   type GraphTrack,
 } from '../musicGraph';
 import { normalizeName } from '../musicGraph/normalize';
 import { graphTrackToSearchResult } from '../discover/discoverFeed';
+import { hasRealArtwork, youtubeThumb } from '../../utils/artwork';
 
 const MIX_TRACK_COUNT = 25;
 const YOUR_SHARE = 0.4;
 /** Show the shelf once we have at least one usable mix. */
 const MIN_SHOW = 1;
 const MAX_MIXES = 6;
-const CACHE_PREFIX = 'noir_daily_mixes_v2:';
+const CACHE_PREFIX = 'noir_daily_mixes_v3:';
 
 const SKIP_TAGS = new Set([
   'seen live',
@@ -109,9 +111,25 @@ function eventToSearchResult(event: ListeningEvent): SearchResult {
     id: `listen:${event.songKey}`,
     title: event.title,
     artist: event.artist,
-    thumbnail: '',
+    thumbnail: youtubeThumb(event.songKey) || '',
     videoId: event.songKey.length === 11 && !event.songKey.startsWith('local:') ? event.songKey : '',
   };
+}
+
+async function enrichMixArtwork(tracks: SearchResult[]): Promise<SearchResult[]> {
+  return Promise.all(
+    tracks.map(async (track) => {
+      if (hasRealArtwork(track.thumbnail)) return track;
+      const fromYt = youtubeThumb(track.videoId);
+      if (fromYt) return { ...track, thumbnail: fromYt };
+      try {
+        const image = await getTrackImage(track.title, track.artist);
+        return image ? { ...track, thumbnail: image } : track;
+      } catch {
+        return track;
+      }
+    })
+  );
 }
 
 /** Taste from events, or fall back to recently-played artists (Home often has those first). */
@@ -223,10 +241,11 @@ async function buildMixTracks(
     .slice(0, similarTarget)
     .map((track) => graphTrackToSearchResult(track, mixId));
 
-  return shuffleSeeded([...yours, ...similar], hashString(`${mixId}:all:${day}`)).slice(
+  const combined = shuffleSeeded([...yours, ...similar], hashString(`${mixId}:all:${day}`)).slice(
     0,
     MIX_TRACK_COUNT
   );
+  return enrichMixArtwork(combined);
 }
 
 async function buildOneMix(
@@ -244,7 +263,7 @@ async function buildOneMix(
 
   const top = clusterArtists[0];
   const coverImage =
-    (await getArtistImage(top.artist)) || tracks.find((t) => t.thumbnail)?.thumbnail;
+    (await getArtistImage(top.artist)) || tracks.find((t) => hasRealArtwork(t.thumbnail))?.thumbnail;
 
   const subtitle =
     names.length <= 3 ? names.join(', ') : `${names.slice(0, 3).join(', ')} and more`;

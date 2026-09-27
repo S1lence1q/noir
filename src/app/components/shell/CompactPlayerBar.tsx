@@ -17,6 +17,9 @@ import {
 import { ShellPlaybackState } from './types';
 import { EASE_PREMIUM, prefersReducedMotion } from '../../utils/motionPresets';
 import { strings } from '../../constants/strings';
+import { hasRealArtwork } from '../../utils/artwork';
+import { worldForCollection } from '../../utils/ditherCover';
+import { NoirDitherCover } from './noir/NoirDitherCover';
 
 type SongPreview = {
   title: string;
@@ -189,16 +192,34 @@ export function CompactPlayerBar({
               transition={{ type: 'spring', stiffness: 320, damping: 34, mass: 0.85 }}
             >
               <AnimatePresence mode="sync" initial={false}>
-                <motion.img
-                  key={song.artworkUrl}
-                  src={song.artworkUrl}
-                  alt=""
-                  className="noir-compact-art"
-                  initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.86 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.06 }}
-                  transition={{ duration: reduced ? 0.15 : 0.32, ease: EASE_PREMIUM }}
-                />
+                {hasRealArtwork(song.artworkUrl) ? (
+                  <motion.img
+                    key={song.artworkUrl}
+                    src={song.artworkUrl}
+                    alt=""
+                    className="noir-compact-art"
+                    initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.86 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.06 }}
+                    transition={{ duration: reduced ? 0.15 : 0.32, ease: EASE_PREMIUM }}
+                  />
+                ) : (
+                  <motion.div
+                    key={`dither:${songKey}`}
+                    className="noir-compact-art overflow-hidden"
+                    initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.86 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.06 }}
+                    transition={{ duration: reduced ? 0.15 : 0.32, ease: EASE_PREMIUM }}
+                  >
+                    <NoirDitherCover
+                      world={worldForCollection(songKey)}
+                      seed={songKey}
+                      size={48}
+                      radius={0}
+                    />
+                  </motion.div>
+                )}
               </AnimatePresence>
             </motion.span>
             <motion.span

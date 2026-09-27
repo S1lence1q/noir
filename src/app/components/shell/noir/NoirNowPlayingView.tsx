@@ -10,6 +10,9 @@ import { noirToast } from './NoirToast';
 import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
 import { useQueueEndPrompt } from '../../../hooks/useQueueEndPrompt';
 import { displayArtistName } from '../../../utils/stringUtils';
+import { hasRealArtwork } from '../../../utils/artwork';
+import { worldForCollection } from '../../../utils/ditherCover';
+import { NoirDitherCover } from './NoirDitherCover';
 
 type NowPlayingSong = {
   title: string;
@@ -209,16 +212,18 @@ export function NoirNowPlayingView({
         transition={{ duration: reduced ? 0.2 : 0.7, ease: sheetEase, delay: reduced ? 0 : 0.2 }}
       >
         <AnimatePresence mode="sync" initial={false}>
-          <motion.img
-            key={song.artworkUrl}
-            src={song.artworkUrl}
-            alt=""
-            className="noir-now-playing-atmosphere-img"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.28 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: reduced ? 0.2 : 0.8, ease: sheetEase }}
-          />
+          {hasRealArtwork(song.artworkUrl) ? (
+            <motion.img
+              key={song.artworkUrl}
+              src={song.artworkUrl}
+              alt=""
+              className="noir-now-playing-atmosphere-img"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.28 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reduced ? 0.2 : 0.8, ease: sheetEase }}
+            />
+          ) : null}
         </AnimatePresence>
         <motion.div
           key={songKey + '-wash'}
@@ -244,20 +249,42 @@ export function NoirNowPlayingView({
           transition={{ type: 'spring', stiffness: 320, damping: 34, mass: 0.85 }}
         >
           <AnimatePresence mode="sync" initial={false}>
-            <motion.img
-              key={song.artworkUrl}
-              src={song.artworkUrl}
-              alt=""
-              className="noir-now-playing-art"
-              initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.03, y: -8 }}
-              transition={
-                reduced
-                  ? { duration: 0.2 }
-                  : { type: 'spring', stiffness: 280, damping: 28, mass: 0.85 }
-              }
-            />
+            {hasRealArtwork(song.artworkUrl) ? (
+              <motion.img
+                key={song.artworkUrl}
+                src={song.artworkUrl}
+                alt=""
+                className="noir-now-playing-art"
+                initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.03, y: -8 }}
+                transition={
+                  reduced
+                    ? { duration: 0.2 }
+                    : { type: 'spring', stiffness: 280, damping: 28, mass: 0.85 }
+                }
+              />
+            ) : (
+              <motion.div
+                key={`dither:${songKey}`}
+                className="noir-now-playing-art overflow-hidden"
+                initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.03, y: -8 }}
+                transition={
+                  reduced
+                    ? { duration: 0.2 }
+                    : { type: 'spring', stiffness: 280, damping: 28, mass: 0.85 }
+                }
+              >
+                <NoirDitherCover
+                  world={worldForCollection(songKey)}
+                  seed={songKey}
+                  size={320}
+                  radius={0}
+                />
+              </motion.div>
+            )}
           </AnimatePresence>
         </motion.div>
         <motion.div
@@ -361,11 +388,22 @@ export function NoirNowPlayingView({
                     transition={withReducedMotion({ ...MOTION.panel, delay: 0.06 + i * 0.04 })}
                   >
                     <span className="relative block overflow-hidden rounded-[var(--noir-radius-sm)]">
-                      <img
-                        src={track.thumbnail}
-                        alt=""
-                        className="noir-queue-empty-cover transition-transform duration-300 group-hover:scale-[1.04]"
-                      />
+                      {hasRealArtwork(track.thumbnail) ? (
+                        <img
+                          src={track.thumbnail}
+                          alt=""
+                          className="noir-queue-empty-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                        />
+                      ) : (
+                        <span className="noir-queue-empty-cover block overflow-hidden">
+                          <NoirDitherCover
+                            world={worldForCollection(track.id)}
+                            seed={track.id}
+                            size={72}
+                            radius={0}
+                          />
+                        </span>
+                      )}
                       <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
                         <Plus className="h-4 w-4" strokeWidth={2} />
                       </span>
@@ -512,7 +550,18 @@ function QueueTrackItem({ track, onDragEnd, onSelect, onRemove, onAddToQueue }: 
           }}
           className="flex min-w-0 flex-1 items-center gap-3 text-left elva-focus-ring"
         >
-          <img src={track.thumbnail} alt="" className="noir-art h-11 w-11 shrink-0 object-cover" />
+          <span className="noir-art relative h-11 w-11 shrink-0 overflow-hidden">
+            {hasRealArtwork(track.thumbnail) ? (
+              <img src={track.thumbnail} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <NoirDitherCover
+                world={worldForCollection(track.id)}
+                seed={track.id}
+                size={44}
+                radius={0}
+              />
+            )}
+          </span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-[14px] font-medium text-[color:var(--noir-text-primary)]">
               {track.title}
