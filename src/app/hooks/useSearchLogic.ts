@@ -464,9 +464,22 @@ export function useSearchLogic({
       .catch(() => {});
   };
 
+  const sameArtistAlreadyOpen = (name: string) => {
+    if (!selectedArtist) return false;
+    return (
+      displayArtistName(selectedArtist.name).toLowerCase() ===
+      displayArtistName(name).toLowerCase()
+    );
+  };
+
   const handleViewArtistProfile = async (artist: VerifiedArtist) => {
-    const generation = ++profileGenRef.current;
     const cleanedName = displayArtistName(artist.name);
+    // Already on this profile with songs (or mid-load) — don't wipe and restart.
+    if (sameArtistAlreadyOpen(cleanedName) && (artistTracks.length > 0 || isLoadingArtist)) {
+      return;
+    }
+
+    const generation = ++profileGenRef.current;
     const artistClean: VerifiedArtist = {
       ...artist,
       name: cleanedName,
@@ -479,6 +492,7 @@ export function useSearchLogic({
       allowStale: true,
       artistName: cleanedName,
     });
+    const keepInMemory = sameArtistAlreadyOpen(cleanedName) && artistTracks.length > 0;
     setSelectedArtist({
       ...artistClean,
       thumbnail: handPickedUrl || artistClean.thumbnail,
@@ -486,6 +500,9 @@ export function useSearchLogic({
     setArtistCandidates(null);
     if (warm?.tracks.length) {
       setArtistTracks(warm.tracks);
+      setIsLoadingArtist(false);
+    } else if (keepInMemory) {
+      // Never blank a profile we already painted — refresh underneath.
       setIsLoadingArtist(false);
     } else {
       setArtistTracks([]);
@@ -554,6 +571,14 @@ export function useSearchLogic({
     const wasTopic = /\btopic\b/i.test(artistName);
     if (!nameTrimmed || nameTrimmed === 'Unknown Artist' || nameTrimmed === 'Web Stream') {
       toast.error('Invalid artist');
+      return;
+    }
+
+    // Compact bar / NP artist link while already on that profile — no-op.
+    if (
+      sameArtistAlreadyOpen(nameTrimmed) &&
+      (artistTracks.length > 0 || isLoadingArtist)
+    ) {
       return;
     }
 
