@@ -951,6 +951,7 @@
   min-width: 0;
   max-width: min(560px, 100%);
   height: min(48vh, 400px);
+  margin-top: -14px;
   margin-left: 0;
   overflow: hidden;
   /* Match cover height so the duo reads as one object */
@@ -965,7 +966,7 @@
   min-height: 0;
   flex-direction: column;
   box-sizing: border-box;
-  padding-top: 4px;
+  padding-top: 0;
 }
 
 .noir-now-playing-stage-lyrics .noir-lyrics {
@@ -1089,8 +1090,8 @@ button.noir-now-playing-source:hover {
 }
 
 .noir-lyrics-scroll {
-  mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 88%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 88%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 93%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 93%, transparent 100%);
   padding-right: 1.5rem;
 }
 
