@@ -57,8 +57,6 @@ type NoirNowPlayingViewProps = {
 const sheetEase = EASE_PREMIUM;
 const BATCH_SIZE = 10;
 const SHUFFLE_SETTLE_MS = 540;
-/** Fixed lyrics panel width — animate 0 ↔ this so hide/show doesn't snap the cover. */
-const LYRICS_PANEL_WIDTH = 420;
 
 function shuffled<T>(items: T[]): T[] {
   const next = [...items];
@@ -440,22 +438,18 @@ export function NoirNowPlayingView({
               <motion.div
                 key="stage-lyrics"
                 className="noir-now-playing-stage-lyrics"
-                initial={
-                  reduced
-                    ? { opacity: 0, width: LYRICS_PANEL_WIDTH }
-                    : { opacity: 0, width: 0 }
-                }
+                initial={reduced ? { opacity: 0 } : { opacity: 0, x: 20 }}
                 animate={
                   isPresent
-                    ? { opacity: 1, width: LYRICS_PANEL_WIDTH }
+                    ? { opacity: 1, x: 0 }
                     : { opacity: 0, transition: chromeFade.transition }
                 }
                 exit={
                   reduced
                     ? { opacity: 0 }
-                    : { opacity: 0, width: 0, transition: { duration: 0.28, ease: sheetEase } }
+                    : { opacity: 0, x: 12, transition: { duration: 0.24, ease: sheetEase } }
                 }
-                transition={{ duration: reduced ? 0.15 : 0.34, ease: sheetEase }}
+                transition={{ duration: reduced ? 0.15 : 0.36, ease: sheetEase }}
               >
                 <div className="noir-now-playing-stage-lyrics-inner">
                   <p className="noir-now-playing-lyrics-label">{strings.lyrics.title}</p>
