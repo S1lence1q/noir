@@ -73,6 +73,12 @@
   overflow: hidden;
   border-radius: 6px;
   background: var(--noir-elevated);
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.noir-compact-now:hover .noir-compact-art-wrap {
+  filter: brightness(1.08);
+  transform: scale(1.02);
 }
 
 .noir-compact-art {
@@ -109,15 +115,32 @@
   color: var(--noir-text-secondary);
 }
 
-/* Underline title only when hovering the expand hit (not the artist link). */
-.noir-compact-now:hover:not(:has(.noir-compact-artist:hover)) .noir-compact-title {
+.noir-compact-artist:hover {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-.noir-compact-artist:hover {
-  text-decoration: underline;
-  text-underline-offset: 2px;
+.noir-compact-close {
+  display: inline-flex;
+  height: 64px;
+  min-width: 64px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 0 4px;
+  border-radius: var(--noir-radius-md);
+  color: var(--noir-text-secondary);
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.noir-compact-close:hover {
+  color: var(--noir-text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.noir-compact-close-label {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 .noir-compact-center {
@@ -256,12 +279,17 @@
   transition: color 0.15s ease, background-color 0.15s ease;
 }
 
-.noir-compact-queue:hover,
 .noir-compact-queue--active {
   color: var(--noir-text-primary);
+  background: rgba(255, 255, 255, 0.06);
+  cursor: default;
 }
 
 .noir-compact-queue:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.noir-compact-queue--active:hover {
   background: rgba(255, 255, 255, 0.06);
 }
 

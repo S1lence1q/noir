@@ -51,8 +51,8 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 
 ## Next (in order)
 
-1. **DONE:** T09 (`services/listening/*`, `useListeningRecorder`, `window.__noirTaste()`; local files keyed by `local:title::artist` since blob URLs change per session), T10 (`services/musicGraph/*`, `window.__noirGraph`, key in `.env`), T03 (`NoirSongMenu.tsx`). **Luna next:** **T05b**, **T07**, drag-song-to-sidebar-playlist, ⌘N. Dev note: hot reload mid-song records an extra short event; clear play history once before real use.
-2. **Opus (visual):** ~~spray wave~~ parked. ~~Discover~~ DONE. ~~Mixes~~ DONE. ~~Radio (T11)~~ DONE. ~~Artist identity~~ **DONE** (`services/artistIdentity/*`, Popular-first + SWR discography + disambiguation). Next: Stats/Replay or F7 cold start; Luna: T05b, T07, drag-to-sidebar, ⌘N.
+1. **DONE:** T09, T10, T03. Drag-song-to-sidebar-playlist **DONE**. **Luna next:** **T05b** (Next up header leftovers if any + queue-ends polish vs T11 autoplay), **T07**, ⌘N new playlist. Dev note: hot reload mid-song records an extra short event; clear play history once before real use.
+2. **Opus (visual):** ~~spray wave~~ parked. ~~Discover~~ DONE. ~~Mixes~~ DONE. ~~Radio (T11)~~ DONE. ~~Artist identity~~ DONE. Compact bar open/close affordances tightened (close on left, queue opens only). Next: Stats/Replay or F7 cold start; T14 C "Playing from" / similar artists.
 3. User has a list of small tweaks to bring — ask for it.
 
 ## Do / don't

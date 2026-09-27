@@ -35,6 +35,12 @@ export const strings = {
   search: {
     keyboardHint: '↑↓ navigate · Enter open · Esc clear',
   },
+  compact: {
+    openNowPlaying: 'Now playing',
+    closeNowPlaying: 'Close now playing',
+    upNext: 'Up next',
+    upNextOpen: 'Viewing up next',
+  },
   queue: {
     upNext: 'Up Next',
     emptyTitle: 'Nothing queued yet',

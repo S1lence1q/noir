@@ -52,13 +52,10 @@ Exact behavior, layout, copy, tokens, states.
 | T01 | Layout grid, type hierarchy, accent token — **DONE** | M | | Luna |
 | T03 | Shared song menu + right-click — **DONE** (`components/NoirSongMenu.tsx`: `openSongMenu()` + one `NoirSongMenuHost`; reviewed, surface → `.noir-menu`). Start radio wired via T11 | M | | Luna |
 | T04 | Playlists redesign | L | | Opus |
-| T05b | Next up header + "queue ends soon" | S | | Luna |
-| T06 | Dither covers — **DONE** on playlist/chart headers + Discover; Favorites header + sidebar thumbs move to T04 | M | | Opus |
-| T07 | Asset cleanup (hero part of step 1 done in T06) | S | | Luna |
-| T09 | Listening events + taste profile — **DONE** (reviewed; tab-hide fix). `source` is only `local`/`queue` for now; real source context comes with T14 C "Playing from" | M | | Luna (high) |
-| T10 | musicGraph service — **DONE** (reviewed; empty/failed results cached 10 min only). Deezer goes through the Vite dev proxy `/deezer`, like `/api-apple`: works in `npm run dev`, not in a static build | L | | Luna (high) |
-| T04 | Playlists — **DONE** (side add-panel, fly-to-list, entrance). Open: drag song onto sidebar playlist, ⌘N | L | | Opus → Luna for the open bits |
-| T14 | Now Playing: one object — **A+B DONE** (cover flies bar↔canvas, glow removed, centered). D spray wave **parked** (decision 005). Open: C "Playing from"/similar (after T10) | M | | Opus |
+| T04 | Playlists — **DONE** (side add-panel, fly-to-list, entrance, drag-to-sidebar). Open: ⌘N | L | | Opus → Luna for ⌘N |
+| T05b | Next up header + "queue ends soon" — header/shuffle/clear largely in; queue-ends overlaps T11 autoplay — verify/polish | S | | Luna |
+| T07 | Asset cleanup — partially done (heroes/glow); finish unused-asset delete/rename checklist | S | | Luna |
+| T14 | Now Playing: one object — **A+B DONE**. D parked. Open: **C** "Playing from"/similar/lyrics slot | M | | Opus |
 | T12 | Daily mixes + Home shelf — **DONE** (`services/mixes/dailyMixes.ts`) | L | | Opus |
 | T11 | Radio + autoplay — **DONE** (`services/radio/buildRadio.ts`) | M | | Opus |
 

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   ChevronDown,
-  ChevronUp,
   Heart,
   ListMusic,
   Pause,
@@ -175,15 +174,25 @@ export function CompactPlayerBar({
       }
     >
       <div className="noir-compact-left">
-        {/* While Now Playing is open the song identity lives there only; the cover flies between via layoutId. */}
-        {/* Plain conditional (no AnimatePresence): an exit wait would leave the title visible twice. */}
-        {!expanded && (
+        {/* While Now Playing is open the song identity lives there only; close sits where the cover was. */}
+        {expanded ? (
+          <button
+            type="button"
+            onClick={onExpand}
+            className="noir-compact-close elva-focus-ring"
+            aria-label={strings.compact.closeNowPlaying}
+            title={strings.compact.closeNowPlaying}
+          >
+            <ChevronDown className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+            <span className="noir-compact-close-label">{strings.playlist.close}</span>
+          </button>
+        ) : (
         <div className="flex min-w-0 items-center gap-1">
           <button
             type="button"
             onClick={onExpand}
             className="noir-compact-now group elva-focus-ring"
-            aria-label="Now playing"
+            aria-label={strings.compact.openNowPlaying}
           >
             <motion.span
               layoutId={reduced ? undefined : 'np-cover'}
@@ -358,14 +367,25 @@ export function CompactPlayerBar({
       <div className="noir-compact-right">
         <button
           type="button"
-          onClick={() => onOpenQueue?.()}
+          onClick={() => {
+            if (!expanded) onOpenQueue?.();
+          }}
           className={`noir-compact-queue${expanded ? ' noir-compact-queue--active' : ''}`}
           aria-label={
-            upNextCount > 0
-              ? `Up next, ${upNextCount} ${upNextCount === 1 ? 'track' : 'tracks'}`
-              : 'Up next, empty'
+            expanded
+              ? strings.compact.upNextOpen
+              : upNextCount > 0
+                ? `${strings.compact.upNext}, ${upNextCount}`
+                : strings.compact.upNext
           }
-          title={upNextCount > 0 ? `${upNextCount} up next` : 'Up next'}
+          title={
+            expanded
+              ? strings.compact.upNextOpen
+              : upNextCount > 0
+                ? `${upNextCount} up next`
+                : strings.compact.upNext
+          }
+          aria-current={expanded ? 'true' : undefined}
         >
           <ListMusic className="h-4 w-4 shrink-0" strokeWidth={1.75} />
           {upNextCount > 0 && (
@@ -420,19 +440,6 @@ export function CompactPlayerBar({
             </div>
           </div>
         </div>
-
-        <button
-          type="button"
-          onClick={onExpand}
-          className="noir-compact-ctrl"
-          aria-label={expanded ? 'Back to library' : 'Now playing'}
-        >
-          {expanded ? (
-            <ChevronDown className="h-4 w-4" strokeWidth={1.75} />
-          ) : (
-            <ChevronUp className="h-4 w-4" strokeWidth={1.75} />
-          )}
-        </button>
       </div>
     </motion.footer>
   );
