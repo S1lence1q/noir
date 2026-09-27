@@ -3,6 +3,7 @@ import { Compass, Heart, Home, Library, ListMusic, Settings } from 'lucide-react
 import { SearchResult } from '../../../types';
 import { AppTab } from './types';
 import { NoirGraphicAccent } from './noir/NoirGraphicAccent';
+import { NoirMark } from './noir/NoirMark';
 
 const PRIMARY_NAV: { id: AppTab; label: string; icon: typeof Home }[] = [
   { id: 'search', label: 'Home', icon: Home },
@@ -67,10 +68,11 @@ export function AppSidebar({
   return (
     <aside className="elva-shell-sidebar relative flex h-full w-[248px] shrink-0 flex-col overflow-hidden select-none px-3 py-5">
       <NoirGraphicAccent graphic="plateWave" className="noir-accent-wave-sidebar" />
-      <div className="relative z-[1] flex items-center px-2 pb-5 pt-1">
+      <div className="relative z-[1] flex items-center gap-1 px-2 pb-5 pt-1">
         <span className="text-[13px] font-bold tracking-[0.34em] text-[color:var(--noir-text-primary)]">
           NOIR
         </span>
+        <NoirMark size={11} className="text-[color:var(--noir-text-primary)]" />
       </div>
 
       <nav className="relative z-[1] flex flex-col gap-1" aria-label="Main navigation">

@@ -72,6 +72,14 @@ export function CompactPlayerBar({
     return saved !== null ? parseInt(saved, 10) : 70;
   });
   const preMuteRef = useRef(volume > 0 ? volume : 70);
+  const [volumeValueVisible, setVolumeValueVisible] = useState(false);
+  const volumeValueTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const flashVolumeValue = () => {
+    setVolumeValueVisible(true);
+    if (volumeValueTimerRef.current) clearTimeout(volumeValueTimerRef.current);
+    volumeValueTimerRef.current = setTimeout(() => setVolumeValueVisible(false), 800);
+  };
 
   useEffect(() => {
     const onVolume = (e: Event) => {
@@ -79,14 +87,19 @@ export function CompactPlayerBar({
       if (typeof next === 'number' && Number.isFinite(next)) {
         setVolume(next);
         if (next > 0) preMuteRef.current = next;
+        flashVolumeValue();
       }
     };
     window.addEventListener('elva-volume-change', onVolume);
-    return () => window.removeEventListener('elva-volume-change', onVolume);
+    return () => {
+      window.removeEventListener('elva-volume-change', onVolume);
+      if (volumeValueTimerRef.current) clearTimeout(volumeValueTimerRef.current);
+    };
   }, []);
 
   const setPlayerVolume = (next: number) => {
     const clamped = Math.max(0, Math.min(100, next));
+    flashVolumeValue();
     setVolume(clamped);
     if (clamped > 0) preMuteRef.current = clamped;
     localStorage.setItem('elva_player_volume', String(clamped));
@@ -291,6 +304,13 @@ export function CompactPlayerBar({
         </button>
 
         <div className="noir-compact-volume">
+          <span
+            className="noir-compact-volume-value"
+            style={{ opacity: volumeValueVisible ? 1 : 0 }}
+            aria-hidden
+          >
+            {volume}
+          </span>
           <button
             type="button"
             onClick={toggleMute}
@@ -309,6 +329,10 @@ export function CompactPlayerBar({
             aria-valuenow={volume}
             onPointerDown={onVolumePointerDown}
             onPointerMove={onVolumePointerMove}
+            onWheel={(e) => {
+              if (e.deltaY === 0) return;
+              setPlayerVolume(volume + (e.deltaY < 0 ? 2 : -2));
+            }}
             onKeyDown={(e) => {
               if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
                 e.preventDefault();

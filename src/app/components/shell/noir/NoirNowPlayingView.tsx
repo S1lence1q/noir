@@ -1,8 +1,11 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { ChevronUp, Compass, Heart, Plus, X } from 'lucide-react';
+import { ChevronUp, Compass, Heart, Plus, Shuffle, X } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
-import { EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
+import { EASE_PREMIUM, MOTION, prefersReducedMotion, withReducedMotion } from '../../../utils/motionPresets';
+import { strings } from '../../../constants/strings';
+import { NoirMark } from './NoirMark';
+import { noirToast } from './NoirToast';
 
 type NowPlayingSong = {
   title: string;
@@ -20,7 +23,7 @@ type NoirNowPlayingViewProps = {
   onToggleFavorite?: () => void;
   favoriteTracks?: SearchResult[];
   quickAddTracks?: SearchResult[];
-  onAddToQueue?: (track: SearchResult) => void;
+  onAddToQueue?: (track: SearchResult, options?: { silent?: boolean }) => void;
   onOpenDiscover?: () => void;
   onSelectFromQueue: (id: string) => void;
   onRemoveFromQueue?: (id: string) => void;
@@ -28,6 +31,26 @@ type NoirNowPlayingViewProps = {
 };
 
 const sheetEase = EASE_PREMIUM;
+const BATCH_SIZE = 10;
+
+function shuffled<T>(items: T[]): T[] {
+  const next = [...items];
+  for (let i = next.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+}
+
+function uniqueByKey(tracks: SearchResult[]): SearchResult[] {
+  const seen = new Set<string>();
+  return tracks.filter((track) => {
+    const key = getPlaybackSongKey(track) ?? track.id;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 
 export function NoirNowPlayingView({
   song,
@@ -53,10 +76,23 @@ export function NoirNowPlayingView({
       ? queue.slice(currentIndex + 1)
       : queue.filter((item) => getPlaybackSongKey(item) !== currentKey);
   const songKey = currentKey ?? `${song.title}::${song.artist}`;
-  const favoriteAdds = favoriteTracks.filter((track) => getPlaybackSongKey(track) !== currentKey);
-  const recentAdds = quickAddTracks.filter((track) => getPlaybackSongKey(track) !== currentKey);
-  const quickAddSource = favoriteAdds.length > 0 ? 'Favorites' : recentAdds.length > 0 ? 'Recently played' : null;
-  const quickAdds = (favoriteAdds.length > 0 ? favoriteAdds : recentAdds).slice(0, 3);
+  const favoriteAdds = uniqueByKey(favoriteTracks.filter((track) => getPlaybackSongKey(track) !== currentKey));
+  const recentAdds = uniqueByKey(quickAddTracks.filter((track) => getPlaybackSongKey(track) !== currentKey));
+  const quickAddSource = favoriteAdds.length > 0 ? 'favorites' : recentAdds.length > 0 ? 'recents' : null;
+  const addPool = favoriteAdds.length > 0 ? favoriteAdds : recentAdds;
+  const quickAdds = addPool.slice(0, 3);
+
+  const addTracks = (tracks: SearchResult[]) => {
+    if (!onAddToQueue || tracks.length === 0) return;
+    tracks.forEach((track) => onAddToQueue(track, { silent: true }));
+    noirToast({
+      text: tracks.length === 1 ? strings.nextUp.addedOne : strings.nextUp.addedMany(tracks.length),
+      cover: tracks[0].thumbnail,
+      action: onRemoveFromQueue
+        ? { label: strings.nextUp.undo, onClick: () => tracks.forEach((track) => onRemoveFromQueue(track.id)) }
+        : undefined,
+    });
+  };
 
   return (
     <div className="noir-now-playing">
@@ -144,56 +180,86 @@ export function NoirNowPlayingView({
         aria-label={upNext.length > 0 ? 'Next up' : 'Queue suggestions'}
       >
         {upNext.length === 0 ? (
-          <div className="noir-now-playing-queue-empty px-2 pt-1">
-            <p className="text-[17px] font-semibold leading-tight tracking-[-0.02em] text-[color:var(--noir-text-primary)]">
-              What should play next?
+          <motion.div
+            key={quickAddSource ?? 'none'}
+            className="noir-now-playing-queue-empty px-2 pt-1"
+            initial={{ opacity: 0, y: reduced ? 0 : 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={withReducedMotion(MOTION.panel)}
+          >
+            <p className="flex items-center gap-2 text-[17px] font-semibold leading-tight tracking-[-0.02em] text-[color:var(--noir-text-primary)]">
+              <NoirMark size={14} />
+              {strings.nextUp.emptyTitle}
             </p>
-            <p className="mt-2 max-w-[190px] text-[12px] leading-[1.45] text-[color:var(--noir-text-tertiary)]">
-              {quickAddSource === 'Favorites'
-                ? 'Add a favorite to keep it going.'
-                : quickAddSource === 'Recently played'
-                  ? 'Pick something from your recent listens.'
-                  : 'Browse Discover to find something for the queue.'}
+            <p className="mt-2 max-w-[232px] text-[13px] leading-[1.45] text-[color:var(--noir-text-secondary)]">
+              {quickAddSource === 'favorites'
+                ? strings.nextUp.emptyFromFavorites
+                : quickAddSource === 'recents'
+                  ? strings.nextUp.emptyFromRecents
+                  : strings.nextUp.emptyNothing}
             </p>
-            {onAddToQueue && quickAdds.length > 0 && quickAddSource && (
-              <div className="mt-4">
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[color:var(--noir-text-tertiary)]">
-                  {quickAddSource}
-                </p>
-                <div className="grid grid-cols-3 gap-2">
-                  {quickAdds.map((track) => (
-                    <button
-                      type="button"
-                      key={track.id}
-                      onClick={() => onAddToQueue(track)}
-                      className="group relative aspect-square overflow-hidden rounded-[var(--noir-radius-sm)] bg-[color:var(--noir-elevated)] text-left elva-focus-ring"
-                      title={`Add ${track.title} to queue`}
-                    >
-                      <img src={track.thumbnail} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                      <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
-                      <span className="absolute inset-x-2 bottom-2 min-w-0">
-                        <span className="block truncate text-[10px] font-medium text-white">{track.title}</span>
-                        <span className="block truncate text-[9px] text-white/55">{track.artist}</span>
+
+            {onAddToQueue && quickAdds.length > 0 && (
+              <div className="noir-queue-empty-covers mt-4">
+                {quickAdds.map((track, i) => (
+                  <motion.button
+                    type="button"
+                    key={track.id}
+                    onClick={() => addTracks([track])}
+                    className="group min-w-0 text-left elva-focus-ring"
+                    title={strings.nextUp.addOne(track.title)}
+                    initial={{ opacity: 0, y: reduced ? 0 : 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={withReducedMotion({ ...MOTION.panel, delay: 0.06 + i * 0.04 })}
+                  >
+                    <span className="relative block overflow-hidden rounded-[var(--noir-radius-sm)]">
+                      <img
+                        src={track.thumbnail}
+                        alt=""
+                        className="noir-queue-empty-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                      />
+                      <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
+                        <Plus className="h-4 w-4" strokeWidth={2} />
                       </span>
-                      <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-                        <Plus className="h-3.5 w-3.5" strokeWidth={2} />
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                    </span>
+                    <span className="noir-queue-empty-cover-title">{track.title}</span>
+                  </motion.button>
+                ))}
               </div>
             )}
-            {onOpenDiscover && quickAdds.length === 0 && (
-              <button
-                type="button"
-                onClick={onOpenDiscover}
-                className="mt-5 inline-flex h-9 items-center gap-2 rounded-[var(--noir-radius-md)] border border-white/10 px-3 text-[12px] font-medium text-[color:var(--noir-text-secondary)] transition-colors hover:border-white/20 hover:bg-white/[0.05] hover:text-white elva-focus-ring"
-              >
-                <Compass className="h-3.5 w-3.5" strokeWidth={1.75} />
-                Browse Discover
-              </button>
-            )}
-          </div>
+
+            <div className="mt-5 flex flex-wrap items-center gap-2">
+              {onAddToQueue && addPool.length > 0 ? (
+                <>
+                  <button
+                    type="button"
+                    className="noir-button-primary elva-focus-ring"
+                    onClick={() => addTracks(shuffled(addPool).slice(0, BATCH_SIZE))}
+                  >
+                    <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
+                    {strings.nextUp.addBatch(Math.min(BATCH_SIZE, addPool.length))}
+                  </button>
+                  {addPool.length > BATCH_SIZE && (
+                    <button
+                      type="button"
+                      className="noir-button-secondary elva-focus-ring"
+                      onClick={() => addTracks(shuffled(addPool))}
+                    >
+                      <Shuffle className="h-3.5 w-3.5" strokeWidth={2} />
+                      {strings.nextUp.shuffleAll}
+                    </button>
+                  )}
+                </>
+              ) : (
+                onOpenDiscover && (
+                  <button type="button" className="noir-button-secondary elva-focus-ring" onClick={onOpenDiscover}>
+                    <Compass className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    {strings.nextUp.browseDiscover}
+                  </button>
+                )
+              )}
+            </div>
+          </motion.div>
         ) : (
           <>
             <div className="flex items-baseline justify-between gap-3 px-2 pb-3">

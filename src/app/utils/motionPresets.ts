@@ -18,6 +18,13 @@ export const EASE_OUT_SMOOTH: Transition['ease'] = [0.25, 0.1, 0.25, 1];
 export const DURATION_FAST = 0.22;
 export const DURATION_PANEL = 0.28;
 
+/** NOIR motion tokens (design/08-craft.md §4). New code uses only these. */
+export const MOTION = {
+  tap: { duration: 0.12, ease: EASE_OUT_SMOOTH },
+  panel: { duration: 0.28, ease: EASE_PREMIUM },
+  scene: { duration: 0.45, ease: EASE_PREMIUM },
+} satisfies Record<'tap' | 'panel' | 'scene', Transition>;
+
 export const panelEnter = {
   initial: { opacity: 0 },
   animate: { opacity: 1 },

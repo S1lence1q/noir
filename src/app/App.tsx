@@ -31,13 +31,11 @@ import { useSearchLogic } from './hooks/useSearchLogic';
 import { LandingPage } from './components/LandingPage';
 import { Playlist } from './components/PlaylistDetailsView';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { GlobalVolumeHUD } from './components/app/GlobalVolumeHUD';
 import { AppShell } from './components/shell/AppShell';
 import { ShellPlaybackState } from './components/shell/types';
 import { NoirNowPlayingView } from './components/shell/noir/NoirNowPlayingView';
+import { NoirToastHost } from './components/shell/noir/NoirToast';
 import { NoirSearchPalette } from './components/shell/noir/NoirSearchPalette';
-import { useGlobalVolumeHUD } from './hooks/useGlobalVolumeHUD';
-
 type AppState = 'landing' | 'processing' | 'ready';
 // landing = shell, processing = resolving a track. `ready` is unused (fullscreen player is parked).
 
@@ -116,8 +114,6 @@ export default function App() {
     duration: 0,
     isPlaying: true,
   });
-
-  const { globalVolume, showGlobalVolumeHUD } = useGlobalVolumeHUD();
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -263,10 +259,6 @@ export default function App() {
   useEffect(() => {
     queueRef.current = queue;
   }, [queue]);
-
-  // Mini HUD state
-  const [hudMessage, setHudMessage] = useState<string | null>(null);
-  const [hudType, setHudType] = useState<'success' | 'info' | 'error'>('success');
 
   // Lifted Settings States
   const [accentColor, setAccentColor] = useState<AccentColor>(() => {
@@ -914,19 +906,6 @@ export default function App() {
     onOpenSearchPalette: () => setSearchPaletteOpen(true),
   });
 
-  // Global custom HUD event listeners
-  useEffect(() => {
-    const handleShowHUD = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      if (customEvent.detail) {
-        setHudMessage(customEvent.detail.message);
-        setHudType(customEvent.detail.type || 'success');
-      }
-    };
-    window.addEventListener('elva-show-hud', handleShowHUD);
-    return () => window.removeEventListener('elva-show-hud', handleShowHUD);
-  }, []);
-
   useEffect(() => {
     const handleScrollToHub = (e: Event) => {
       const customEvent = e as CustomEvent;
@@ -953,15 +932,6 @@ export default function App() {
     window.addEventListener('elva-scroll-to-discover', handleScrollToDiscover);
     return () => window.removeEventListener('elva-scroll-to-discover', handleScrollToDiscover);
   }, [searchLogic]);
-
-  useEffect(() => {
-    if (hudMessage) {
-      const timer = setTimeout(() => {
-        setHudMessage(null);
-      }, 1800);
-      return () => clearTimeout(timer);
-    }
-  }, [hudMessage]);
 
   useEffect(() => {
     const handleResetTour = () => {
@@ -1575,31 +1545,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Mini HUD Glassmorphic Notification Pill */}
-      <AnimatePresence>
-        {hudMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -45, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-            className="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none select-none"
-          >
-            <div className="flex items-center gap-2.5 px-4.5 py-2.5 rounded-full border border-white/10 bg-black/80 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.65)]">
-              {hudType === 'success' ? (
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]" />
-              ) : hudType === 'error' ? (
-                <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)]" />
-              ) : (
-                <div className="w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.7)]" />
-              )}
-              <span className="text-[11px] font-semibold tracking-wide text-white/95">
-                {hudMessage}
-              </span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <NoirToastHost />
 
       {/* Onboarding Tour Overlay */}
       <OnboardingTour
@@ -1628,12 +1574,6 @@ export default function App() {
       <KeyboardShortcutsModal
         isOpen={showShortcutMap}
         onClose={() => setShowShortcutMap(false)}
-        accentColor={accentColor}
-      />
-
-      <GlobalVolumeHUD
-        visible={showGlobalVolumeHUD && !showVolumeSlider}
-        volume={globalVolume}
         accentColor={accentColor}
       />
 

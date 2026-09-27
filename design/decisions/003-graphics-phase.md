@@ -1,6 +1,6 @@
 # 003 — Graphics phase (after shell)
 
-**Status:** Next major creative phase — shell (Level 1) is in place; expressive identity (Level 2/3) not yet.
+**Status:** Started, not locked. Do **after** player-in-canvas unless a placement bug is blocking. See [04-north-star.md](../04-north-star.md) Phase 2.
 
 ## Where we are now
 
@@ -14,7 +14,7 @@ That is **correct order**: structure first, graphics second. Without Level 1, gr
 
 ## When Settings gets NOIR styling
 
-**Not now** — Settings works functionally; restyling it before the graphics system exists would mean redoing it twice.
+**Done** — Settings is a shell tab (`NoirSettingsView`). Do not restyle again unless broken.
 
 **Do Settings noir-pass when:**
 

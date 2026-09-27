@@ -1,7 +1,7 @@
 # ADR 000: Shell-first vs player-centric architecture
 
-**Status:** Working hypothesis — not final  
-**Date:** 2026-03-02
+**Status:** Validated for shell. **Superseded for expand behavior** — see [04-north-star.md](../04-north-star.md) Phase 1.  
+**Date:** 2026-03-02 (updated 2026-09-03)
 
 ## Context
 

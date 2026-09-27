@@ -18,11 +18,11 @@ Working architectural model for the UI redesign. This describes **intent and str
 │  └────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────┘
 
-              ↓ expand
+              ↓ expand (target — Phase 1)
 
-┌─────────────────────────────────────────────────────┐
-│  Fullscreen Immersive Player (existing, preserved)  │
-└─────────────────────────────────────────────────────┘
+Same shell. Canvas becomes now-playing. Do not cover the window.
+
+Today (legacy): `ready` mounts MusicPlayer over the entire app. See [04-north-star.md](./04-north-star.md).
 ```
 
 See [decisions/000-shell-vs-player.md](./decisions/000-shell-vs-player.md) for the rationale behind shell-first as our current hypothesis.
@@ -83,13 +83,11 @@ Visible when a track is active and the user is browsing the app.
 
 Should feel like application chrome — solid, integrated — not a floating glass pill.
 
-### Fullscreen player (expanded mode)
+### Expanded player (target)
 
-The existing `MusicPlayer` experience: large artwork, immersive environment, lyrics, queue, controls.
+Now-playing **in the canvas**. Sidebar and compact bar stay. Same app, deeper view.
 
-- **Preserved, not redesigned** in this phase
-- Entered when the user wants deeper listening
-- Collapsed back to shell without interrupting playback
+The existing `MusicPlayer` is still a full-window overlay (`appState === 'ready'`). That is the next structural change, not a visual restyle of glass/WebGL first.
 
 ### Mode switching
 
