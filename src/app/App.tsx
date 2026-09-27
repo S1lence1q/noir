@@ -1122,6 +1122,7 @@ export default function App() {
     onToggleLyrics: () => {
       if (!songData) return;
       setShowLyrics((prev) => {
+        if (!prev && lyrics.length === 0) return prev;
         const next = !prev;
         if (next) setNowPlayingOpen(true);
         return next;

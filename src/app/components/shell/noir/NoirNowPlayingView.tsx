@@ -418,7 +418,7 @@ export function NoirNowPlayingView({
                       )}
                     </div>
                   )}
-                  {onShowLyrics && (
+                  {onShowLyrics && lyrics.length > 0 && (
                     <div className="noir-now-playing-meta">
                       <button
                         type="button"
@@ -436,7 +436,7 @@ export function NoirNowPlayingView({
           </div>
 
           <AnimatePresence initial={false}>
-            {showLyrics && (
+            {showLyrics && lyrics.length > 0 && (
               <motion.div
                 key="stage-lyrics"
                 className="noir-now-playing-stage-lyrics"

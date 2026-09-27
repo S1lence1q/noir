@@ -39,6 +39,7 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number) {
       setLyrics([]);
       setCurrentLyricIndex(-1);
       setIsLyricsSynced(false);
+      setShowLyrics(false);
 
       const custom = loadCustomLyrics(songData.videoId, songData.title, songData.artist);
       if (custom) {
