@@ -53,7 +53,7 @@ Exact behavior, layout, copy, tokens, states.
 | T02 | Toast system + kill volume popup — **DONE (golden)** | M | yes | Opus |
 | T03 | Shared song menu + right-click — **DONE** | M | | Luna |
 | T04 | Playlists — **DONE** (side panel, fly-to-list, drag-to-sidebar). ⌘N wired + in shortcuts map | L | | Opus → Luna ⌘N |
-| T05 | Queue craft — empty Next up **DONE (golden)**; see T05b for leftovers | M | yes | Opus/Luna |
+| T05 | Queue craft — empty Next up **DONE (golden)**; Soft Shuffle in NP; see T05b for leftovers | M | yes | Opus/Luna |
 | T05b | Next up header + "queue ends soon" — verify/polish (header mostly in; ends overlaps T11) | S | | Luna |
 | T06 | Dither covers — **DONE** | M | | Opus |
 | T07 | Asset cleanup — **partial**; finish unused-asset checklist | S | | Luna |
@@ -62,7 +62,7 @@ Exact behavior, layout, copy, tokens, states.
 | T10 | musicGraph (Last.fm + Deezer) — **DONE** | L | | Luna |
 | T11 | Radio + autoplay — **DONE** | M | | Opus |
 | T12 | Daily mixes + Home shelf — **DONE** | L | | Opus |
-| T14 | Now Playing one object — **A+B DONE**; C Playing from **DONE**, similar parked (not in title block); lyrics still open; D parked | M | | Opus |
+| T14 | Now Playing — **A+B DONE**; C Playing from **DONE**, similar parked; Soft Shuffle; **NEXT: lyrics in NP column** · D parked | M | | Opus |
 
 ### Original index
 
@@ -72,7 +72,7 @@ Exact behavior, layout, copy, tokens, states.
 | T02 | Toast system + kill volume popup — **DONE (golden)** | M | yes |
 | T03 | Shared song menu + right-click | M | |
 | T04 | Playlists redesign | L | |
-| T05 | Queue craft — empty queue **DONE (golden)**; header + "queue ends soon" still open | M | yes |
+| T05 | Queue craft — empty queue **DONE (golden)**; Soft Shuffle in NP; header leftovers → T05b | M | yes |
 | T06 | `NoirDitherCover` renderer | M | |
 | T07 | Asset cleanup | S | |
 | T08 | `NoirMark` asterisk — component + sidebar + Library empty + search loading **DONE (golden)** | S | yes |
@@ -87,4 +87,4 @@ Exact behavior, layout, copy, tokens, states.
 - Copy: `strings.nextUp` in `src/app/constants/strings.ts`
 | T09 | Listening events + taste profile | M | |
 | T10 | musicGraph service (Last.fm + Deezer) | L | |
-| T14 | Now Playing: one object (shared element, no double UI) | M | |
+| T14 | Now Playing: A+B + Playing from DONE; **lyrics NEXT** (see ticket §C) | M | |

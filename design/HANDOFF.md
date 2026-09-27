@@ -27,39 +27,45 @@ Read this first in a new chat.
 
 - **Clean** above all. Editorial style (giant numbers, cropped type, magazine layouts) = no.
 - **Nothing may jump.** Layout must stay stable when adding/removing things (search fields must not move, lists must not shift under the cursor, headers must not flash).
-- **Animation matters a lot.** "Basic" fades aren't enough; use springs, staggers, shared-element motion (see Now Playing cover flight, playlist entrance, fly-to-list). User called the Now Playing animation "perfect" — use it as the bar.
+- **Animation matters a lot.** "Basic" fades aren't enough; use springs, staggers, shared-element motion (see Now Playing cover flight, playlist entrance, fly-to-list). User called the Now Playing cover flight "perfect" — use it as the bar. Queue **Shuffle** = Soft settle (opacity/blur ease in from sharp, not snap-on blur) + icon spin.
 - Surfaces: black + white-alpha tints, floating = black + 12% hairline. Opaque greys read as "off" (see `05-visual-language.md` → UI surfaces).
 - Now Playing **artwork gradient atmosphere is wanted** (user-approved) — don't remove it.
-- Two similar-looking lists stacked = confusing. Separate "what's in it" from "where to find more" (playlist side panel pattern).
+- Two similar-looking lists stacked = confusing. Separate "what's in it" from "where to find more" (playlist side panel pattern). **Discover:** Charts cards only — no duplicate Top 10 list under the same chart.
 - Favorites has its own fixed cover (ember + spray asterisk) — recognizable everywhere.
 - Suggestions are fine but must not be intrusive or always in the way.
+- **Similar artists** do **not** live permanently under the NP title block (parked; revisit artist-page / on-demand).
+- Closing NP: fade title/queue/atmosphere immediately (`useIsPresent`); keep cover flight slot intact (no CSS transform/filter on `layoutId="np-cover"`; AppShell exit opacity stays 1).
 
 ## What is done (2026-09-27)
 
 Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (earlier work), plus this session:
 
-- **Design system docs:** `05`–`09`, tickets T01–T10, T14, boards in `design/boards/`, references mapped
-- **Golden samples:** `NoirMark` (asterisk), `NoirToast` + `noirToast()` (replaces mini HUD + volume popup), inline volume value in the bar, empty Next up with Add 10 / Shuffle all + Undo
-- **T01** grid/type/accent (Luna, fixed); song-row grid scoped to `.noir-song-grid`
-- **T06 dither covers:** `NoirDitherCover` + `utils/ditherCover.ts` (Bayer, color worlds, field-dominant inversion, IndexedDB cache). Used on charts, playlists, Discover, Home, sidebar
-- **T04 playlists:** `utils/playlistStore.ts` (single source of truth + undo), `NoirUserPlaylistPage` (click-to-rename, whole-row drag reorder, remove w/ undo, **right side add panel** with search + Favorites/Recents tabs, cover flies into list, entrance animation), Library grid, sidebar "+" and covers
-- **T14 Now Playing:** cover flies bar ↔ canvas (`layoutId="np-cover"` in a `LayoutGroup`), bar identity hidden while open, atmosphere fades in after landing
-- **Home redesign:** greeting + Continue + one dithered object, Jump back in tiles, Your library shelf, artist circles
-- **Discover redesign:** feed shelves from taste (new releases, artists like X, browse by tag) + chart cards + Top 10s
-- **Artist page:** color-world poster with dithered portrait, Popular + Show all, dedupe
-- **Favorites cover:** `NoirFavoritesCover`
+- **Design system docs:** `05`–`09`, tickets T01–T14, boards in `design/boards/`, references mapped
+- **Golden samples:** `NoirMark` (asterisk), `NoirToast` + `noirToast()`, inline volume in the bar, empty Next up with Add 10 / Shuffle all + Undo
+- **T01** grid/type/accent; song-row grid scoped to `.noir-song-grid`
+- **T06 dither covers:** `NoirDitherCover` + `utils/ditherCover.ts`
+- **T04 playlists:** `playlistStore`, `NoirUserPlaylistPage` (rename, whole-row drag, add panel, fly-to-list). Drag settle restored (scale 1.02 + 120 ms layout; don't set `layout: { duration: 0 }` again)
+- **T08** Mark: sidebar + Library empty spray + search loading spin
+- **T09–T12, T11:** listening/taste, musicGraph, radio/autoplay, daily mixes + Home
+- **T14 A+B:** cover flight bar ↔ canvas; bar identity hidden while open; atmosphere after landing
+- **T14 C (partial):** `Playing from {source}` under artist (clickable when resolvable). `queueSource` cleared when starting a song **outside** the current queue (search/direct play = fresh context). Similar artists **parked**. Soft Shuffle animation in Next up. **Lyrics still open.**
+- **Home:** greeting + Continue + dithered object, Jump back in, library shelf, artist circles
+- **Discover:** taste feed shelves + chart cards (no redundant Top 10 under Charts)
+- **Artist page:** dithered poster, Popular, dedupe; identity via Last.fm/MusicBrainz/Deezer
+- **Compact bar:** Close fades on the left (does not steal cover slot); queue opens only when closed; title/artist underline scoped separately
+- **⌘N** new playlist + listed in shortcuts map
 
 ## Next (in order)
 
-1. **DONE:** T09, T10, T03. Drag-song-to-sidebar-playlist **DONE**. **Luna next:** **T05b** (Next up header leftovers if any + queue-ends polish vs T11 autoplay), **T07**, ⌘N new playlist. Dev note: hot reload mid-song records an extra short event; clear play history once before real use.
-2. **Opus (visual):** ~~spray wave~~ parked. ~~Discover~~ DONE (dropped duplicate Top 10 lists under Charts — cards open the full chart). ~~Mixes~~ DONE. ~~Radio (T11)~~ DONE. ~~Artist identity~~ DONE. Compact bar open/close affordances tightened. **T14 C** Playing from **DONE**; similar parked. Lyrics still open. Next: Stats/Replay or F7 cold start.
-3. User has a list of small tweaks to bring — ask for it.
+1. **Now: T14 lyrics in Now Playing** — see `tickets/T14-now-playing-one-object.md` §C. Toggle `L` / button top-right; lyrics replace the Next up column; reuse `useLyrics` / existing fetch — reposition only, don't rewrite the engine.
+2. Then: Stats/Replay · F7 cold start · T05b verify · T07 unused-asset leftovers (`top_hits_*.png` still imported by legacy `DiscoverView.tsx`).
+3. Parked later: Similar artists (artist page / on-demand), spray wave (decision 005), NP graphic slot.
 
 ## Do / don't
 
 **Do:** `--noir-*` tokens; `MOTION` tokens + `withReducedMotion`; copy in `strings.ts`; toasts with Undo for reversible actions; one graphic beat per screen; keep `MusicPlayer` mounted (audio engine).
 
-**Don't:** glassmorphism/backdrop blur; opaque grey surfaces; editorial type; paste JPEG graphics; text printed on covers; AnimatePresence exit-waits around shared-layout elements (caused a double title); `overflow: hidden` on ancestors of flying elements (clipped the cover flight).
+**Don't:** glassmorphism/backdrop blur; opaque grey surfaces; editorial type; paste JPEG graphics; text printed on covers; AnimatePresence exit-waits around shared-layout elements (caused a double title); `overflow: hidden` on ancestors of flying elements (clipped the cover flight); fade the whole NP layer on exit (kills cover flight — fade chrome only).
 
 ## Key files
 
@@ -70,8 +76,9 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 | Graphics | `NoirDitherCover.tsx`, `NoirFavoritesCover.tsx`, `NoirMark.tsx`, `utils/ditherCover.ts` |
 | Feedback | `NoirToast.tsx` (`noirToast`), `utils/hudUtils.ts` (legacy forwarder) |
 | Data | `utils/playlistStore.ts`, `utils/elvaStorage.ts`, `utils/localTrackStorage.ts`, `services/listening/*`, `services/musicGraph/*`, `services/discover/discoverFeed.ts`, `services/mixes/dailyMixes.ts`, `services/radio/buildRadio.ts`, `services/artistIdentity/*` |
+| Lyrics | `hooks/useLyrics.ts`, `utils/lyricsUtils.ts` — wire into `NoirNowPlayingView` for T14 lyrics |
 | Tokens / motion / copy | `src/styles/noir-shell.css`, `utils/motionPresets.ts`, `constants/strings.ts` |
-| Orchestration | `src/app/App.tsx` (1.7k lines; listens to `noir-open-favorites`, `noir-open-playlist`, `elva-open-search-palette`) |
+| Orchestration | `src/app/App.tsx` (listens to `noir-open-favorites`, `noir-open-playlist`, `elva-open-search-palette`) |
 | Hidden audio engine | `src/app/components/MusicPlayer.tsx` |
 
 ## State names (legacy)
@@ -80,4 +87,4 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 
 ## Standing user decisions
 
-Shell-first · Settings is a canvas page · no accent-color setting · expand never leaves NOIR · artist identity correctness before cleverness ([004](./decisions/004-artist-profile.md), unparked via Last.fm/MusicBrainz ids in T10+).
+Shell-first · Settings is a canvas page · no accent-color setting · expand never leaves NOIR · artist identity correctness before cleverness ([004](./decisions/004-artist-profile.md)) · Similar not in NP title block · Discover Charts without duplicate ranked lists · Soft shuffle for queue.
