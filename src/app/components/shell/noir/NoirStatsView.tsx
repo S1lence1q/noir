@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { strings } from '../../../constants/strings';
 import type { SearchResult } from '../../../types';
@@ -19,7 +19,7 @@ import {
   type TasteTrack,
 } from '../../../services/listening/tasteProfile';
 import { getArtistImage, getTrackImage } from '../../../services/musicGraph';
-import { COLOR_WORLDS, worldForCollection } from '../../../utils/ditherCover';
+import { COLOR_WORLDS, worldForCollection, type ColorWorld } from '../../../utils/ditherCover';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
 import { NoirDitherCover } from './NoirDitherCover';
@@ -30,6 +30,16 @@ export type NoirStatsViewProps = {
   favorites?: SearchResult[];
   recentTracks?: SearchResult[];
 };
+
+function hexToRgba(hex: string, alpha: number) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
+/** Soft stage color — Bone/Ink become Ember so aura never reads as grey mud. */
+function auraWorld(world: ColorWorld): ColorWorld {
+  return world === 'bone' || world === 'ink' ? 'ember' : world;
+}
 
 function localPool(favorites: SearchResult[], recentTracks: SearchResult[]) {
   return [...favorites, ...recentTracks];
@@ -184,8 +194,11 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
   }
 
   const topArtist = summary.artists[0] ?? null;
+  const secondArtist = summary.artists[1] ?? null;
   const heroSource = topArtist ? artistImages[topArtist.artist] : undefined;
   const clockSource = heroSource;
+  const primaryAura = auraWorld(topArtist ? worldForCollection(topArtist.artist) : 'ember');
+  const secondaryAura = auraWorld(secondArtist ? worldForCollection(secondArtist.artist) : 'cobalt');
 
   return (
     <>
@@ -194,7 +207,16 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={withReducedMotion(MOTION.panel)}
+        style={
+          {
+            '--stats-aura-a': hexToRgba(COLOR_WORLDS[primaryAura].field, 0.55),
+            '--stats-aura-b': hexToRgba(COLOR_WORLDS[secondaryAura].field, 0.28),
+          } as CSSProperties
+        }
       >
+        <div className="noir-stats-aura noir-stats-aura--primary" aria-hidden />
+        <div className="noir-stats-aura noir-stats-aura--secondary" aria-hidden />
+
         <section className="noir-stats-hero-band">
           <div className="noir-stats-hero-band-copy">
             <p className="noir-stats-eyebrow">{strings.stats.thisWeek}</p>

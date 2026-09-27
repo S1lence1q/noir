@@ -2477,11 +2477,47 @@ button.noir-now-playing-source:hover {
 
 /* —— Stats / Your sound + NOIR Replay —— */
 .noir-stats {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 40px;
   padding-bottom: 56px;
   max-width: 720px;
+  isolation: isolate;
+}
+
+/* Soft color only — blurred discs, masked so no rectangular edge ever shows. */
+.noir-stats-aura {
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+  border-radius: 50%;
+  filter: blur(56px);
+  -webkit-mask-image: radial-gradient(circle, #000 0%, #000 42%, transparent 72%);
+  mask-image: radial-gradient(circle, #000 0%, #000 42%, transparent 72%);
+}
+
+.noir-stats-aura--primary {
+  top: -120px;
+  right: -100px;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle at 45% 45%, var(--stats-aura-a, rgba(232, 80, 2, 0.55)) 0%, transparent 70%);
+  opacity: 0.9;
+}
+
+.noir-stats-aura--secondary {
+  left: -140px;
+  bottom: 8%;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle at 50% 50%, var(--stats-aura-b, rgba(31, 63, 191, 0.28)) 0%, transparent 72%);
+  opacity: 0.7;
+}
+
+.noir-stats > :not(.noir-stats-aura) {
+  position: relative;
+  z-index: 1;
 }
 
 .noir-stats--empty {
