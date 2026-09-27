@@ -1331,6 +1331,7 @@
   grid-column: 2;
   grid-row: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .noir-add-panel {
@@ -1344,6 +1345,7 @@
   padding: 16px 12px 8px;
   border-left: 1px solid var(--noir-rule-faint);
   background: var(--noir-canvas);
+  will-change: transform, opacity;
 }
 
 .noir-add-panel-list {

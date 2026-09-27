@@ -424,6 +424,22 @@ function PlaylistTrackItem({
 
 type PanelSource = 'favorites' | 'recents';
 
+const ADD_PANEL_SPRING = { type: 'spring' as const, stiffness: 380, damping: 32, mass: 0.85 };
+const ADD_PANEL_STAGGER = {
+  initial: {},
+  animate: {
+    transition: { staggerChildren: 0.05, delayChildren: 0.06 },
+  },
+};
+const ADD_PANEL_ITEM = {
+  initial: { opacity: 0, y: 12 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.44, ease: EASE_PREMIUM },
+  },
+};
+
 function PlaylistAddPanel({
   playlist,
   favorites,
@@ -437,6 +453,7 @@ function PlaylistAddPanel({
   delay: number;
   onClose: () => void;
 }) {
+  const reduced = prefersReducedMotion();
   const [source, setSource] = useState<PanelSource>(favorites.length > 0 ? 'favorites' : 'recents');
   const [recents] = useState<SearchResult[]>(() => readJsonStorage<SearchResult[]>(ELVA_STORAGE_KEYS.recentlyPlayed, []));
   const [query, setQuery] = useState('');
@@ -477,80 +494,115 @@ function PlaylistAddPanel({
   return (
     <motion.aside
       className="noir-add-panel"
-      initial={{ opacity: 0, x: 24 }}
+      initial={reduced ? { opacity: 0 } : { opacity: 0, x: 56 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 16, transition: { duration: 0.16 } }}
-      transition={withReducedMotion({ ...MOTION.scene, delay })}
+      exit={
+        reduced
+          ? { opacity: 0, transition: { duration: 0.12 } }
+          : { opacity: 0, x: 36, transition: { duration: 0.22, ease: EASE_PREMIUM } }
+      }
+      transition={
+        reduced
+          ? withReducedMotion({ ...MOTION.panel, delay })
+          : { ...ADD_PANEL_SPRING, delay }
+      }
       aria-label={strings.playlist.addSongs}
     >
-      <div className="flex items-center justify-between gap-4 px-1">
-        <h2 className="noir-section-title">{strings.playlist.addSongs}</h2>
-        <button
-          type="button"
-          onClick={onClose}
-          className="noir-icon-button !h-8 !w-8 elva-focus-ring"
-          aria-label={strings.playlist.close}
-          title={strings.playlist.close}
-        >
-          <X className="h-4 w-4" strokeWidth={1.75} />
-        </button>
-      </div>
-
-      <label className="noir-inline-search mt-3 !max-w-none">
-        <Search className="h-4 w-4 shrink-0 text-[color:var(--noir-text-tertiary)]" strokeWidth={1.75} />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              if (query) setQuery('');
-              else onClose();
-            }
-          }}
-          placeholder={strings.playlist.searchPlaceholder}
-          className="min-w-0 flex-1 bg-transparent text-[14px] text-[color:var(--noir-text-primary)] outline-none placeholder:text-[color:var(--noir-text-tertiary)]"
-        />
-        {query && (
-          <button type="button" onClick={() => setQuery('')} className="text-[color:var(--noir-text-tertiary)] hover:text-white" aria-label="Clear">
+      <motion.div
+        className="flex min-h-0 flex-1 flex-col"
+        variants={reduced ? undefined : ADD_PANEL_STAGGER}
+        initial={reduced ? false : 'initial'}
+        animate="animate"
+      >
+        <motion.div className="flex items-center justify-between gap-4 px-1" variants={reduced ? undefined : ADD_PANEL_ITEM}>
+          <h2 className="noir-section-title">{strings.playlist.addSongs}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="noir-icon-button !h-8 !w-8 elva-focus-ring"
+            aria-label={strings.playlist.close}
+            title={strings.playlist.close}
+          >
             <X className="h-4 w-4" strokeWidth={1.75} />
           </button>
-        )}
-      </label>
+        </motion.div>
 
-      {!showingSearch && (
-        <div className="mt-3 flex gap-1 px-1" role="tablist">
-          {(['favorites', 'recents'] as PanelSource[]).map((id) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={source === id}
-              data-active={source === id ? 'true' : 'false'}
-              onClick={() => setSource(id)}
-              className="noir-nav-item h-8 px-3 text-[12px] font-medium elva-focus-ring"
-            >
-              {id === 'favorites' ? strings.playlist.tabFavorites : strings.playlist.tabRecents}
+        <motion.label className="noir-inline-search mt-3 !max-w-none" variants={reduced ? undefined : ADD_PANEL_ITEM}>
+          <Search className="h-4 w-4 shrink-0 text-[color:var(--noir-text-tertiary)]" strokeWidth={1.75} />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                if (query) setQuery('');
+                else onClose();
+              }
+            }}
+            placeholder={strings.playlist.searchPlaceholder}
+            className="min-w-0 flex-1 bg-transparent text-[14px] text-[color:var(--noir-text-primary)] outline-none placeholder:text-[color:var(--noir-text-tertiary)]"
+          />
+          {query && (
+            <button type="button" onClick={() => setQuery('')} className="text-[color:var(--noir-text-tertiary)] hover:text-white" aria-label="Clear">
+              <X className="h-4 w-4" strokeWidth={1.75} />
             </button>
-          ))}
-        </div>
-      )}
+          )}
+        </motion.label>
 
-      <div className="noir-add-panel-list">
-        {showingSearch && loading && results.length === 0 && (
-          <p className="px-2 py-4 text-[13px] text-[color:var(--noir-text-tertiary)]">{strings.playlist.searching}</p>
+        {!showingSearch && (
+          <motion.div className="mt-3 flex gap-1 px-1" role="tablist" variants={reduced ? undefined : ADD_PANEL_ITEM}>
+            {(['favorites', 'recents'] as PanelSource[]).map((id) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={source === id}
+                data-active={source === id ? 'true' : 'false'}
+                onClick={() => setSource(id)}
+                className="noir-nav-item h-8 px-3 text-[12px] font-medium elva-focus-ring"
+              >
+                {id === 'favorites' ? strings.playlist.tabFavorites : strings.playlist.tabRecents}
+              </button>
+            ))}
+          </motion.div>
         )}
-        {showingSearch && !loading && results.length === 0 && (
-          <p className="px-2 py-4 text-[13px] text-[color:var(--noir-text-secondary)]">{strings.playlist.noResults(query.trim())}</p>
-        )}
-        {!showingSearch && list.length === 0 && (
-          <p className="px-2 py-4 text-[13px] text-[color:var(--noir-text-tertiary)]">
-            {source === 'favorites' ? strings.playlist.noFavorites : strings.playlist.noRecents}
-          </p>
-        )}
-        {list.map((track) => (
-          <AddRow key={track.id} track={track} added={playlistHasTrack(playlist, track)} onAdd={add} />
-        ))}
-      </div>
+
+        <motion.div
+          className="noir-add-panel-list"
+          variants={reduced ? undefined : ADD_PANEL_ITEM}
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={showingSearch ? `search:${query.trim()}` : source}
+              initial={reduced ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduced ? undefined : { opacity: 0, y: -6, transition: { duration: 0.14 } }}
+              transition={withReducedMotion({ duration: 0.28, ease: EASE_PREMIUM })}
+            >
+              {showingSearch && loading && results.length === 0 && (
+                <p className="px-2 py-4 text-[13px] text-[color:var(--noir-text-tertiary)]">{strings.playlist.searching}</p>
+              )}
+              {showingSearch && !loading && results.length === 0 && (
+                <p className="px-2 py-4 text-[13px] text-[color:var(--noir-text-secondary)]">{strings.playlist.noResults(query.trim())}</p>
+              )}
+              {!showingSearch && list.length === 0 && (
+                <p className="px-2 py-4 text-[13px] text-[color:var(--noir-text-tertiary)]">
+                  {source === 'favorites' ? strings.playlist.noFavorites : strings.playlist.noRecents}
+                </p>
+              )}
+              {list.map((track, i) => (
+                <AddRow
+                  key={track.id}
+                  track={track}
+                  added={playlistHasTrack(playlist, track)}
+                  index={i}
+                  reduced={reduced}
+                  onAdd={add}
+                />
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
+      </motion.div>
     </motion.aside>
   );
 }
@@ -558,15 +610,29 @@ function PlaylistAddPanel({
 function AddRow({
   track,
   added,
+  index,
+  reduced,
   onAdd,
 }: {
   track: SearchResult;
   added: boolean;
+  index: number;
+  reduced: boolean;
   onAdd: (track: SearchResult, coverEl: HTMLElement | null) => void;
 }) {
   const coverRef = useRef<HTMLImageElement>(null);
   return (
-    <div className="noir-add-row" data-added={added ? 'true' : 'false'}>
+    <motion.div
+      className="noir-add-row"
+      data-added={added ? 'true' : 'false'}
+      initial={reduced ? false : { opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={
+        reduced
+          ? undefined
+          : { duration: 0.4, ease: EASE_PREMIUM, delay: Math.min(index, 8) * 0.03 }
+      }
+    >
       <img ref={coverRef} src={track.thumbnail} alt="" className="noir-art h-10 w-10 shrink-0 object-cover" />
       <div className="min-w-0 flex-1">
         <p className="noir-song-title truncate">{track.title}</p>
@@ -596,6 +662,6 @@ function AddRow({
           </motion.span>
         </AnimatePresence>
       </motion.button>
-    </div>
+    </motion.div>
   );
 }
