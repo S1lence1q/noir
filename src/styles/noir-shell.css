@@ -2506,27 +2506,27 @@ button.noir-now-playing-source:hover {
 }
 
 .noir-stats-atmosphere--cool {
-  top: 210px;
-  left: -4%;
-  width: 58%;
-  height: 460px;
-  opacity: 0.62;
+  top: 180px;
+  left: -6%;
+  width: 70%;
+  height: 520px;
+  opacity: 0.88;
   object-position: 40% 45%;
-  filter: brightness(1.15) saturate(1.1);
-  -webkit-mask-image: radial-gradient(ellipse 52% 48% at 48% 50%, #000 0%, #000 12%, transparent 64%);
-  mask-image: radial-gradient(ellipse 52% 48% at 48% 50%, #000 0%, #000 12%, transparent 64%);
+  filter: brightness(1.35) contrast(1.12) saturate(1.2);
+  -webkit-mask-image: radial-gradient(ellipse 58% 52% at 48% 48%, #000 0%, #000 20%, transparent 70%);
+  mask-image: radial-gradient(ellipse 58% 52% at 48% 48%, #000 0%, #000 20%, transparent 70%);
 }
 
 .noir-stats-atmosphere--warm {
-  top: 250px;
-  right: -6%;
-  width: 48%;
-  height: 400px;
-  opacity: 0.48;
+  top: 220px;
+  right: -8%;
+  width: 58%;
+  height: 460px;
+  opacity: 0.72;
   object-position: 60% 40%;
-  filter: brightness(1.1) saturate(1.05);
-  -webkit-mask-image: radial-gradient(ellipse 48% 46% at 55% 48%, #000 0%, #000 10%, transparent 62%);
-  mask-image: radial-gradient(ellipse 48% 46% at 55% 48%, #000 0%, #000 10%, transparent 62%);
+  filter: brightness(1.28) contrast(1.1) saturate(1.15);
+  -webkit-mask-image: radial-gradient(ellipse 54% 50% at 55% 48%, #000 0%, #000 16%, transparent 68%);
+  mask-image: radial-gradient(ellipse 54% 50% at 55% 48%, #000 0%, #000 16%, transparent 68%);
 }
 
 .noir-stats-body {
