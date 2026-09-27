@@ -79,7 +79,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const memoryCache = new Map<string, string>();
 const inflight = new Map<string, Promise<string>>();
 
@@ -156,17 +156,30 @@ function paint(img: HTMLImageElement, world: ColorWorld, seed: string, px: numbe
   const hi = sorted[Math.floor(sorted.length * 0.98)];
   const range = Math.max(0.08, hi - lo);
 
-  const { light, dark } = COLOR_WORLDS[world];
+  const { field, light, dark } = COLOR_WORLDS[world];
   const [lr, lg, lb] = hexToRgb(light);
   const [dr, dg, db] = hexToRgb(dark);
   const rand = mulberry32(hashString(seed));
 
+  const levels = new Float32Array(luma.length);
+  let mean = 0;
+  for (let i = 0; i < luma.length; i++) {
+    const v = Math.min(1, Math.max(0, (luma[i] - lo) / range));
+    // S-curve: backgrounds collapse to solid, the subject keeps its mid-tones.
+    levels[i] = v < 0.5 ? 2 * v * v : 1 - 2 * (1 - v) * (1 - v);
+    mean += levels[i];
+  }
+  mean /= levels.length;
+
+  // The field color must dominate the cover, so invert when the image's majority tone would map to ink.
+  const fieldIsLight = field === light;
+  const invert = fieldIsLight ? mean < 0.5 : mean > 0.5;
+
   for (let y = 0; y < cells; y++) {
     for (let x = 0; x < cells; x++) {
       const i = y * cells + x;
-      const v = Math.min(1, Math.max(0, (luma[i] - lo) / range));
-      const contrasted = Math.pow(v, 0.9) * 1.2 - 0.1;
-      const on = contrasted > BAYER_8[(y % 8) * 8 + (x % 8)];
+      const v = invert ? 1 - levels[i] : levels[i];
+      const on = v > BAYER_8[(y % 8) * 8 + (x % 8)];
       const o = i * 4;
       px4[o] = on ? lr : dr;
       px4[o + 1] = on ? lg : dg;
@@ -209,7 +222,7 @@ export function renderDitherCover(source: string, world: ColorWorld, seed: strin
     }
     const img = await loadImage(proxiedSource(source, Math.min(600, px)));
     // Cell size in device px: coarse enough to read as dither, fine enough at thumbnail size.
-    const cellPx = px >= 320 ? 6 : px >= 160 ? 4 : 3;
+    const cellPx = px >= 320 ? 4 : px >= 160 ? 3 : 2;
     const url = paint(img, world, seed, px, cellPx);
     memoryCache.set(key, url);
     void idbSet(key, url);
