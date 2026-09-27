@@ -122,11 +122,10 @@
 
 .noir-compact-close {
   display: inline-flex;
-  height: 64px;
-  min-width: 64px;
+  height: 36px;
   align-items: center;
-  gap: 8px;
-  padding: 0 12px 0 4px;
+  gap: 6px;
+  padding: 0 10px 0 8px;
   border-radius: var(--noir-radius-md);
   color: var(--noir-text-secondary);
   transition: color 0.15s ease, background-color 0.15s ease;

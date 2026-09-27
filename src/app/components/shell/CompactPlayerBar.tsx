@@ -174,19 +174,9 @@ export function CompactPlayerBar({
       }
     >
       <div className="noir-compact-left">
-        {/* While Now Playing is open the song identity lives there only; close sits where the cover was. */}
-        {expanded ? (
-          <button
-            type="button"
-            onClick={onExpand}
-            className="noir-compact-close elva-focus-ring"
-            aria-label={strings.compact.closeNowPlaying}
-            title={strings.compact.closeNowPlaying}
-          >
-            <ChevronDown className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-            <span className="noir-compact-close-label">{strings.playlist.close}</span>
-          </button>
-        ) : (
+        {/* Empty while open so np-cover can fly back into this slot (T14). Close lives on the right. */}
+        {/* Plain conditional (no AnimatePresence): an exit wait would leave the title visible twice. */}
+        {!expanded && (
         <div className="flex min-w-0 items-center gap-1">
           <button
             type="button"
@@ -440,6 +430,19 @@ export function CompactPlayerBar({
             </div>
           </div>
         </div>
+
+        {expanded && (
+          <button
+            type="button"
+            onClick={onExpand}
+            className="noir-compact-close elva-focus-ring"
+            aria-label={strings.compact.closeNowPlaying}
+            title={strings.compact.closeNowPlaying}
+          >
+            <ChevronDown className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+            <span className="noir-compact-close-label">{strings.playlist.close}</span>
+          </button>
+        )}
       </div>
     </motion.footer>
   );
