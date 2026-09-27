@@ -4,6 +4,7 @@ import { ArrowLeft, Play, Plus, Music, Heart, Loader2 } from 'lucide-react';
 import { SearchResult } from '../types';
 import { AccentColor, ACCENT_THEMES } from './themeUtils';
 import { SongRowOptions } from './SongRowOptions';
+import type { ColorWorld } from '../utils/ditherCover';
 
 const ACCENT_BG: Record<AccentColor, string> = {
   emerald: 'bg-emerald-400',
@@ -19,6 +20,8 @@ export interface Playlist {
   tracks: SearchResult[];
   thumbnail: string;
   accent: AccentColor;
+  /** Optional dither world (mixes). Falls back to hash of id. */
+  coverWorld?: ColorWorld;
 }
 
 interface PlaylistDetailsViewProps {

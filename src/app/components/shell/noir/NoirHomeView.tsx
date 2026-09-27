@@ -10,10 +10,13 @@ import { ThemeColors } from '../../themeUtils';
 import { SearchLoadingState } from '../../SearchLoadingState';
 import { NoirSongRow } from './NoirSongRow';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
-import { worldForCollection } from '../../../utils/ditherCover';
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import { NoirDitherCover } from './NoirDitherCover';
 import { NoirFavoritesCover } from './NoirFavoritesCover';
+import { Playlist } from '../../PlaylistDetailsView';
+import { getListeningEvents } from '../../../services/listening/eventsStore';
+import { DailyMix, loadDailyMixes } from '../../../services/mixes/dailyMixes';
+import { worldForCollection } from '../../../utils/ditherCover';
 
 type SearchPanelPhase = 'idle' | 'loading' | 'results' | 'no-results';
 
@@ -39,6 +42,8 @@ export type NoirHomeViewProps = {
   handlePlayNext?: (track: SearchResult) => void;
   handleToggleFavorite?: (track: SearchResult) => void;
   onOpenDiscover?: () => void;
+  onSelectPlaylist?: (playlist: Playlist) => void;
+  onPlayPlaylist?: (tracks: SearchResult[], label?: string, startIndex?: number) => void;
   theme: ThemeColors;
 };
 
@@ -64,11 +69,15 @@ export function NoirHomeView({
   handlePlayNext,
   handleToggleFavorite,
   onOpenDiscover,
+  onSelectPlaylist,
+  onPlayPlaylist,
 }: NoirHomeViewProps) {
   const [localQuery, setLocalQuery] = useState(searchQuery);
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reduced = prefersReducedMotion();
   const playlists = usePlaylists();
+  const [mixes, setMixes] = useState<DailyMix[]>([]);
+  const [mixesLoading, setMixesLoading] = useState(false);
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 5) return strings.greeting.lateNight;
@@ -122,10 +131,46 @@ export function NoirHomeView({
   }, [searchQuery]);
 
   useEffect(() => {
+    let cancelled = false;
+    setMixesLoading(true);
+    void (async () => {
+      try {
+        const events = await getListeningEvents();
+        const next = await loadDailyMixes(events);
+        if (!cancelled) setMixes(next);
+      } catch {
+        if (!cancelled) setMixes([]);
+      } finally {
+        if (!cancelled) setMixesLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
     };
   }, []);
+
+  const openMix = (mix: DailyMix) => {
+    onSelectPlaylist?.({
+      id: mix.id,
+      name: mix.name,
+      description: mix.subtitle,
+      tracks: mix.tracks,
+      thumbnail: mix.coverImage ?? mix.tracks[0]?.thumbnail ?? '',
+      accent: 'navy',
+      coverWorld: mix.world,
+    });
+  };
+
+  const playMix = (mix: DailyMix) => {
+    if (mix.tracks.length === 0) return;
+    onPlayPlaylist?.(mix.tracks, mix.name);
+  };
 
   const clearSearch = () => {
     if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
@@ -350,6 +395,75 @@ export function NoirHomeView({
                         </motion.button>
                       );
                     })}
+                  </div>
+                </section>
+              )}
+
+              {mixesLoading && (
+                <section>
+                  <div className="noir-skeleton mb-4 mt-[var(--noir-section-gap)] h-5 w-36 rounded px-1" />
+                  <div className="noir-home-shelf">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="noir-skeleton h-[220px] w-[188px] shrink-0 rounded-[var(--noir-radius-md)]"
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {!mixesLoading && mixes.length > 0 && (
+                <section>
+                  <h2 className="noir-section-heading px-1">{strings.home.yourMixes}</h2>
+                  <div className="noir-home-shelf">
+                    {mixes.map((mix, i) => (
+                      <motion.div
+                        key={mix.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => openMix(mix)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            openMix(mix);
+                          }
+                        }}
+                        className="noir-collection-card noir-home-mix-card group elva-focus-ring"
+                        initial={reduced ? false : { opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.08 + i * 0.04 }}
+                      >
+                        <span className="relative block">
+                          <NoirDitherCover
+                            source={mix.coverImage}
+                            world={mix.world}
+                            seed={mix.id}
+                            size={188}
+                            madeForYou
+                          />
+                          {onPlayPlaylist && (
+                            <motion.button
+                              type="button"
+                              className="noir-discover-release-play noir-play-round !h-11 !w-11 elva-focus-ring"
+                              aria-label={`${strings.home.playMix}: ${mix.name}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                playMix(mix);
+                              }}
+                              whileTap={{ scale: 0.94 }}
+                              transition={MOTION.tap}
+                            >
+                              <Play className="ml-0.5 h-4 w-4 fill-current" />
+                            </motion.button>
+                          )}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="noir-song-title block truncate">{mix.name}</span>
+                          <span className="noir-song-meta mt-0.5 block truncate">{mix.subtitle}</span>
+                        </span>
+                      </motion.div>
+                    ))}
                   </div>
                 </section>
               )}

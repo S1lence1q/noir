@@ -33,6 +33,17 @@ export function worldForCollection(id: string): ColorWorld {
   return FIXED_WORLDS[id] ?? HASH_WORLDS[hashString(id) % HASH_WORLDS.length];
 }
 
+/** Mix color from dominant Last.fm tag (design/06-product-vision.md F4). */
+export function worldForTag(tag: string): ColorWorld {
+  const t = tag.toLowerCase();
+  if (/hip-?hop|rap|trap|drill|grime/.test(t)) return 'ember';
+  if (/chill|lo-?fi|ambient|electronic|techno|house|edm/.test(t)) return 'cobalt';
+  if (/indie|folk|acoustic|rock|alternative|singer/.test(t)) return 'moss';
+  if (/pop|dance|disco|r&b|rnb|soul/.test(t)) return 'rose';
+  if (/metal|dark|industrial|punk|goth/.test(t)) return 'ink';
+  return HASH_WORLDS[hashString(t) % HASH_WORLDS.length];
+}
+
 const BAYER_8 = [
   0, 32, 8, 40, 2, 34, 10, 42,
   48, 16, 56, 24, 50, 18, 58, 26,

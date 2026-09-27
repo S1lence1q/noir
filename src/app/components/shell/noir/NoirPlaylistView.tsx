@@ -34,11 +34,12 @@ export function NoirPlaylistView({
 }: NoirPlaylistViewProps) {
   const cover = playlist.tracks[0]?.thumbnail ?? playlist.thumbnail;
   const hideArt = allSameCover(playlist.tracks, playlist.thumbnail);
+  const world = playlist.coverWorld ?? worldForCollection(playlist.id);
 
   return (
     <div className="flex w-full flex-col gap-10">
       <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:items-end sm:text-left">
-        <NoirDitherCover source={cover} world={worldForCollection(playlist.id)} seed={playlist.id} size={160} />
+        <NoirDitherCover source={cover} world={world} seed={playlist.id} size={160} madeForYou={playlist.id.startsWith('mix:')} />
         <div className="min-w-0 flex-1">
           <h1 className="text-[clamp(1.5rem,3.5vw,2.25rem)] font-semibold leading-tight tracking-[-0.03em] text-[color:var(--noir-text-primary)]">
             {playlist.name}

@@ -64,9 +64,11 @@ export const strings = {
     continue: 'Continue',
     nowPlaying: 'Now playing',
     jumpBackIn: 'Jump back in',
+    yourMixes: 'Your mixes',
     yourLibrary: 'Your library',
     favorites: 'Favorites',
     artists: 'Artists you play',
+    playMix: 'Play mix',
   },
   nextUp: {
     title: 'Next up',

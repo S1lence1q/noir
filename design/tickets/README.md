@@ -59,6 +59,7 @@ Exact behavior, layout, copy, tokens, states.
 | T10 | musicGraph service — **DONE** (reviewed; empty/failed results cached 10 min only). Deezer goes through the Vite dev proxy `/deezer`, like `/api-apple`: works in `npm run dev`, not in a static build | L | | Luna (high) |
 | T04 | Playlists — **DONE** (side add-panel, fly-to-list, entrance). Open: drag song onto sidebar playlist, ⌘N | L | | Opus → Luna for the open bits |
 | T14 | Now Playing: one object — **A+B DONE** (cover flies bar↔canvas, glow removed, centered). D spray wave **parked** (decision 005). Open: C "Playing from"/similar (after T10) | M | | Opus |
+| T12 | Daily mixes + Home shelf — **DONE** (`services/mixes/dailyMixes.ts`) | L | | Opus |
 
 ### Original index
 

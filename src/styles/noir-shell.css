@@ -1533,6 +1533,12 @@
   margin: 0;
 }
 
+.noir-home-mix-card {
+  width: 208px;
+  flex-shrink: 0;
+  margin: 0;
+}
+
 .noir-home-artist {
   width: 128px;
   flex-shrink: 0;
