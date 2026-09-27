@@ -337,7 +337,9 @@ export function useSearchLogic({
       setArtistTracks(cached.tracks);
       setIsLoadingArtist(false);
     } else {
+      // Cold open: keep skeletons until Popular + discography land together — no 3-then-10 jump.
       setArtistTracks([]);
+      setIsLoadingArtist(true);
     }
 
     setRecentArtists((prev) => {
@@ -350,15 +352,6 @@ export function useSearchLogic({
     });
 
     try {
-      // Popular first — usable within ~1s even on cold open
-      const popular = await loadArtistPopularTracks(displayArtist.name, 10);
-      if (generation !== profileGenRef.current) return;
-
-      if (popular.length > 0) {
-        setArtistTracks((prev) => (prev.length > 0 ? mergeArtistTrackLists(popular, prev) : popular));
-        setIsLoadingArtist(false);
-      }
-
       if (displayArtist.thumbnail && !isPlaceholderOrEmpty(displayArtist.thumbnail)) {
         localStorage.setItem(
           `elva_artist_img_${displayArtist.name.toLowerCase()}`,
@@ -366,25 +359,60 @@ export function useSearchLogic({
         );
       }
 
-      // Background discography (SWR: refresh even if we showed stale cache)
+      const popularPromise = loadArtistPopularTracks(displayArtist.name, 10);
       const needsRefresh = !cached || cached.stale;
-      if (needsRefresh) {
-        const discog = await loadArtistDiscographyWithCache(displayArtist.name, {
+
+      if (cached?.tracks.length && !cached.stale) {
+        // Fresh cache already on screen — enrich covers/ids from Popular without reordering.
+        const popular = await popularPromise;
+        if (generation !== profileGenRef.current) return;
+        if (popular.length > 0) {
+          setArtistTracks((prev) => mergeArtistTrackLists(prev, popular));
+        }
+        return;
+      }
+
+      if (cached?.tracks.length && cached.stale) {
+        // Stale cache visible — refresh underneath; keep current order as head so rows don't jump.
+        const [popular, discog] = await Promise.all([
+          popularPromise,
+          loadArtistDiscographyWithCache(displayArtist.name, {
+            limit: 40,
+            channelId: identity.channelId || displayArtist.channelId,
+            channelType: identity.channelType,
+            identity,
+            skipFetchIfFresh: false,
+          }),
+        ]);
+        if (generation !== profileGenRef.current) return;
+        setArtistTracks((prev) => mergeArtistTrackLists(prev, [...popular, ...discog]));
+        return;
+      }
+
+      // Cold: fetch Popular + discography together, then paint once (skeletons until then).
+      const [popular, discog] = await Promise.all([
+        popularPromise,
+        loadArtistDiscographyWithCache(displayArtist.name, {
           limit: 40,
           channelId: identity.channelId || displayArtist.channelId,
           channelType: identity.channelType,
           identity,
           skipFetchIfFresh: false,
-        });
-        if (generation !== profileGenRef.current) return;
+        }),
+      ]);
+      if (generation !== profileGenRef.current) return;
 
-        if (discog.length > 0) {
-          setArtistTracks((prev) => mergeArtistTrackLists(prev.length ? prev : popular, discog));
-        } else if (!cached?.tracks.length && popular.length === 0) {
-          toast.error('No releases found', {
-            description: `Could not load tracks for ${displayArtist.name}. Try searching for a specific song.`,
-          });
-        }
+      const merged = mergeArtistTrackLists(
+        popular.length > 0 ? popular : discog,
+        discog.length > 0 ? discog : popular
+      );
+
+      if (merged.length > 0) {
+        setArtistTracks(merged);
+      } else {
+        toast.error('No releases found', {
+          description: `Could not load tracks for ${displayArtist.name}. Try searching for a specific song.`,
+        });
       }
     } catch (error) {
       console.error('Failed to load artist profile:', error);
