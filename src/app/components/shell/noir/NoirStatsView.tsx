@@ -198,16 +198,15 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
 
   const topArtist = summary.artists[0] ?? null;
   const secondArtist = summary.artists[1] ?? null;
-  const thirdArtist = summary.artists[2] ?? null;
   const heroSource = topArtist ? artistImages[topArtist.artist] : undefined;
   const clockSource = heroSource;
-  const cornerSource = secondArtist
-    ? artistImages[secondArtist.artist] || heroSource
-    : heroSource;
-  const washA = topArtist ? worldForCollection(topArtist.artist) : 'ember';
-  const washB = secondArtist ? worldForCollection(secondArtist.artist) : 'bone';
-  const washC = thirdArtist ? worldForCollection(thirdArtist.artist) : 'cobalt';
-  const cornerWorld = secondArtist ? worldForCollection(secondArtist.artist) : 'bone';
+  const accentWorldRaw = topArtist ? worldForCollection(topArtist.artist) : 'ember';
+  // Bone/ink washes read as grey mud on black — push them to Ember for stage color.
+  const accentWorld =
+    accentWorldRaw === 'bone' || accentWorldRaw === 'ink' ? 'ember' : accentWorldRaw;
+  const sideWorldRaw = secondArtist ? worldForCollection(secondArtist.artist) : 'cobalt';
+  const sideWorld =
+    sideWorldRaw === 'bone' || sideWorldRaw === 'ink' ? 'cobalt' : sideWorldRaw;
 
   return (
     <>
@@ -216,47 +215,21 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={withReducedMotion(MOTION.panel)}
+        style={
+          {
+            '--stats-accent': washFor(accentWorld, 0.32),
+            '--stats-side': washFor(sideWorld, 0.18),
+          } as CSSProperties
+        }
       >
         <div className="noir-stats-stage" aria-hidden>
-          <div
-            className="noir-stats-wash"
-            style={
-              {
-                '--stats-wash-a': washFor(washA, 0.22),
-                '--stats-wash-b': washFor(washB, 0.16),
-                '--stats-wash-c': washFor(washC, 0.12),
-                '--stats-wash-bone': washFor('bone', 0.08),
-              } as CSSProperties
-            }
-          />
+          <div className="noir-stats-wash" />
           <div className="noir-stats-grain" />
-          <NoirMark
-            size={240}
-            variant="spray"
-            color="var(--noir-text-primary)"
-            className="noir-stats-corner-mark"
-          />
-          <div className="noir-stats-corner-plate">
-            <NoirDitherCover
-              source={cornerSource}
-              world={cornerWorld}
-              seed={secondArtist ? `sound-corner-${secondArtist.artist}` : 'sound-corner'}
-              size={220}
-            />
-          </div>
         </div>
 
         <div className="noir-stats-body">
-        <section className="noir-stats-hero">
-          <NoirDitherCover
-            source={heroSource}
-            world="bone"
-            seed={topArtist ? `sound-hero-${topArtist.artist}` : 'sound-hero'}
-            size={168}
-            madeForYou
-            className="noir-stats-hero-art"
-          />
-          <div className="noir-stats-hero-copy">
+        <section className="noir-stats-hero-band">
+          <div className="noir-stats-hero-band-copy">
             <p className="noir-stats-eyebrow">{strings.stats.thisWeek}</p>
             <p className="noir-stats-hero-value">{formatListened(summary.weekMs)}</p>
             <p className="noir-stats-hero-sub">
@@ -268,6 +241,21 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
                 {strings.stats.yourNumberOne}: {topArtist.artist}
               </p>
             )}
+          </div>
+          <div className="noir-stats-hero-band-art">
+            <NoirDitherCover
+              source={heroSource}
+              world="bone"
+              seed={topArtist ? `sound-hero-${topArtist.artist}` : 'sound-hero'}
+              size={200}
+              madeForYou
+            />
+            <NoirMark
+              size={160}
+              variant="spray"
+              color={COLOR_WORLDS.bone.mark}
+              className="noir-stats-hero-band-mark"
+            />
           </div>
         </section>
 
