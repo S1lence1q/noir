@@ -67,6 +67,12 @@ export function CompactPlayerBar({
 }: CompactPlayerBarProps) {
   const reduced = prefersReducedMotion();
   const songKey = `${song.title}::${song.artist}::${song.artworkUrl}`;
+  // Previous-render value of `expanded`: the title only animates in when coming back from Now Playing.
+  const wasExpandedRef = useRef(expanded);
+  const returningFromExpanded = wasExpandedRef.current && !expanded;
+  useEffect(() => {
+    wasExpandedRef.current = expanded;
+  }, [expanded]);
   const [volume, setVolume] = useState(() => {
     const saved = localStorage.getItem('elva_player_volume');
     return saved !== null ? parseInt(saved, 10) : 70;
@@ -161,14 +167,9 @@ export function CompactPlayerBar({
     >
       <div className="noir-compact-left">
         {/* While Now Playing is open the song identity lives there only; the cover flies between via layoutId. */}
-        <AnimatePresence initial={false}>
+        {/* Plain conditional (no AnimatePresence): an exit wait would leave the title visible twice. */}
         {!expanded && (
-        <motion.div
-          key="compact-identity"
-          className="flex min-w-0 items-center gap-1"
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 1 }}
-        >
+        <div className="flex min-w-0 items-center gap-1">
           <button
             type="button"
             onClick={onExpand}
@@ -179,7 +180,7 @@ export function CompactPlayerBar({
               layoutId={reduced ? undefined : 'np-cover'}
               className="noir-compact-art-wrap"
               style={{ borderRadius: 6 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 30, mass: 0.9 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 34, mass: 0.85 }}
             >
               <AnimatePresence mode="sync" initial={false}>
                 <motion.img
@@ -196,9 +197,9 @@ export function CompactPlayerBar({
             </motion.span>
             <motion.span
               className="noir-compact-meta"
-              initial={reduced ? { opacity: 0 } : { opacity: 0, x: -6 }}
+              initial={returningFromExpanded ? (reduced ? { opacity: 0 } : { opacity: 0, x: -6 }) : false}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.28, ease: EASE_PREMIUM, delay: reduced ? 0 : 0.18 }}
+              transition={{ duration: 0.26, ease: EASE_PREMIUM, delay: reduced ? 0 : 0.22 }}
             >
               <AnimatePresence mode="wait" initial={false}>
                 <motion.span
@@ -229,9 +230,8 @@ export function CompactPlayerBar({
               />
             </button>
           )}
-        </motion.div>
+        </div>
         )}
-        </AnimatePresence>
       </div>
 
       <div className="noir-compact-center">

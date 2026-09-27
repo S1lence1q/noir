@@ -68,7 +68,7 @@ Rules:
 | Sidebar brand | Plate wave (keep) + asterisk | Unchanged; this works |
 | Collection covers (mix / playlist / chart / favorites) | Dither cover | Everywhere a collection is shown: cards, sidebar thumbnails, headers |
 | Artist hero | Dithered artist photo on a color field | Artist page header |
-| Now Playing | Spray wave in the cover's extracted color, reacts to audio | Replaces the current red top glow |
+| Now Playing | Artwork-derived atmosphere (blurred artwork + color wash) — **keep, user-approved 2026-09-27**. Spray wave may be added on top later | Fades in after the cover flight lands |
 | Home greeting | One dither object (e.g. top artist of the week, dithered) | Small, to the right of the greeting. Optional per day |
 | Stats / Replay | Bone cards with dither images | Only here is Bone allowed |
 | Empty states + loading | Spray asterisk or halftone cloud | Low-key, centered |

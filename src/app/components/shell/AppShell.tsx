@@ -68,16 +68,16 @@ export function AppShell({
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <main className="noir-canvas relative min-h-0 flex-1 overflow-hidden">
+        {/* overflow-visible: the Now Playing cover flies up from the bar and must not be clipped at this edge. */}
+        <main className="noir-canvas relative min-h-0 flex-1 overflow-visible">
           <div className="noir-canvas-grain" aria-hidden />
           <motion.div
-            className="relative z-10 h-full w-full"
+            className="relative z-10 h-full w-full overflow-hidden"
             animate={{
               opacity: nowPlayingOpen ? 0 : 1,
               scale: nowPlayingOpen && !reduced ? 0.985 : 1,
-              y: nowPlayingOpen && !reduced ? -8 : 0,
             }}
-            transition={{ duration: reduced ? 0.18 : 0.42, ease: EASE_PREMIUM }}
+            transition={{ duration: reduced ? 0.18 : 0.28, ease: EASE_PREMIUM }}
             style={{ pointerEvents: nowPlayingOpen ? 'none' : 'auto' }}
             aria-hidden={nowPlayingOpen}
           >
@@ -88,10 +88,10 @@ export function AppShell({
           <AnimatePresence>
             {nowPlayingOpen && nowPlaying != null && (
               <motion.div
-                className="absolute inset-0 z-20 overflow-hidden"
+                className="absolute inset-0 z-20"
                 initial={{ opacity: 1 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0, transition: { duration: reduced ? 0.12 : 0.22, ease: EASE_PREMIUM } }}
+                exit={{ opacity: 0, transition: { duration: reduced ? 0.12 : 0.18, ease: EASE_PREMIUM } }}
               >
                 {nowPlaying}
               </motion.div>
