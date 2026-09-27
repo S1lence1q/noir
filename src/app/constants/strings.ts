@@ -159,6 +159,7 @@ export const strings = {
     artistsLike: 'Artists you might like',
     browseTag: (tag: string) => tag,
     emptyTasteDesc: 'Play a few songs you love — Discover fills in from there.',
+    chartArtists: 'Artists on the charts',
     releaseMeta: (artist: string, date: string) => `${artist} · ${date}`,
     playRelease: 'Play album',
     charts: 'Charts',

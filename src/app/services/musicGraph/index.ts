@@ -6,6 +6,7 @@ import {
   getDeezerArtistTopTracks,
   getDeezerNewReleases,
   getDeezerRelatedArtists,
+  getDeezerTrackImage,
 } from './deezer';
 import {
   getLastFmArtistInfo,
@@ -165,6 +166,11 @@ export function getArtistImage(artist: string): Promise<string | undefined> {
   return requestCached(`artist-image:${artistKey(artist)}`, TTL.image, () => getDeezerArtistImage(artist), undefined);
 }
 
+export function getTrackImage(title: string, artist: string): Promise<string | undefined> {
+  const key = `track-image:${artistKey(artist)}:${artistKey(title)}`;
+  return requestCached(key, TTL.image, () => getDeezerTrackImage(title, artist), undefined);
+}
+
 export function getTagTopTracks(tag: string, limit = 20): Promise<GraphTrack[]> {
   const key = `tag-top-tracks:${artistKey(tag)}:${limit}`;
   return requestCached(key, TTL.similar, () => getLastFmTagTopTracks(tag, limit), []);
@@ -185,6 +191,7 @@ declare global {
       getArtistRadio: typeof getArtistRadio;
       getNewReleases: typeof getNewReleases;
       getArtistImage: typeof getArtistImage;
+      getTrackImage: typeof getTrackImage;
       getTagTopTracks: typeof getTagTopTracks;
       getAlbumTracks: typeof getAlbumTracks;
     };
@@ -201,6 +208,7 @@ if (typeof window !== 'undefined' && import.meta.env.DEV) {
     getArtistRadio,
     getNewReleases,
     getArtistImage,
+    getTrackImage,
     getTagTopTracks,
     getAlbumTracks,
   };

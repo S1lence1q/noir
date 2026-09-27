@@ -8,6 +8,7 @@ import {
   getNewReleases,
   getSimilarArtists,
   getTagTopTracks,
+  getTrackImage,
   type GraphArtist,
   type GraphRelease,
   type GraphTrack,
@@ -191,7 +192,14 @@ async function buildTagShelves(tags: string[]): Promise<DiscoverTagShelf[]> {
   const shelves = await Promise.all(
     tags.map(async (tag) => {
       const tracks = await getTagTopTracks(tag, 16);
-      const results = tracks
+      const withArt = await Promise.all(
+        tracks.map(async (track) => {
+          if (track.image) return track;
+          const image = await getTrackImage(track.title, track.artist);
+          return image ? { ...track, image } : track;
+        })
+      );
+      const results = withArt
         .map((track) => graphTrackToSearchResult(track, `tag:${normalizeName(tag)}`))
         .filter((track) => track.title && track.artist);
       if (results.length < MIN_SHELF) return null;

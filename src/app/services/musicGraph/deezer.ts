@@ -156,3 +156,28 @@ export async function getDeezerArtistImage(artist: string): Promise<string | und
   const match = await findArtist(artist);
   return match?.picture_xl || match?.picture_big || match?.picture_medium;
 }
+
+/** Album cover for a track — Last.fm tag charts rarely ship real artwork. */
+export async function getDeezerTrackImage(title: string, artist: string): Promise<string | undefined> {
+  const query = `${cleanName(artist)} ${cleanName(title)}`.trim();
+  if (!query) return undefined;
+
+  const response = await deezerGet<{ data?: DeezerTrack[] }>(
+    `/search/track?q=${encodeURIComponent(query)}&limit=8`
+  );
+  const tracks = response?.data ?? [];
+  if (tracks.length === 0) return undefined;
+
+  const titleKey = normalizeName(title);
+  const artistKey = normalizeName(artist);
+  const ranked = [...tracks].sort((a, b) => {
+    const aTitle = normalizeName(a.title || '') === titleKey ? 1 : 0;
+    const bTitle = normalizeName(b.title || '') === titleKey ? 1 : 0;
+    const aArtist = normalizeName(a.artist?.name || '') === artistKey ? 1 : 0;
+    const bArtist = normalizeName(b.artist?.name || '') === artistKey ? 1 : 0;
+    return bTitle + bArtist - (aTitle + aArtist) || (b.rank ?? 0) - (a.rank ?? 0);
+  });
+
+  const best = ranked[0];
+  return best?.album?.cover_xl || best?.album?.cover_big;
+}

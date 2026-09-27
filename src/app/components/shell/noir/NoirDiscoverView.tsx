@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, Play, RefreshCw } from 'lucide-react';
 import { SearchResult } from '../../../types';
@@ -12,6 +12,7 @@ import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
 import { getListeningEvents } from '../../../services/listening/eventsStore';
+import { topArtists } from '../../../services/listening/tasteProfile';
 import {
   DiscoverArtistCard,
   DiscoverFeed,
@@ -19,6 +20,8 @@ import {
   loadAlbumAsPlaylistTracks,
   loadDiscoverFeed,
 } from '../../../services/discover/discoverFeed';
+import { getPrimaryArtist } from '../../../utils/stringUtils';
+import { normalizeName } from '../../../services/musicGraph/normalize';
 
 export type NoirDiscoverViewProps = {
   onSelectSong: (song: SearchResult) => void;
@@ -69,7 +72,9 @@ export function NoirDiscoverView({
   );
   const [loadError, setLoadError] = useState<string | null>(null);
   const [feed, setFeed] = useState<DiscoverFeed | null>(null);
-  const [feedLoading, setFeedLoading] = useState(true);
+  /** True only while fetching personal shelves — not during cold-start IDB peek. */
+  const [feedLoading, setFeedLoading] = useState(false);
+  const [feedReady, setFeedReady] = useState(false);
 
   const countryData =
     STOREFRONT_COUNTRIES.find((c) => c.code === activeCountry) || { name: 'Denmark', flag: '🇩🇰' };
@@ -121,14 +126,21 @@ export function NoirDiscoverView({
   }, [activeCountry, localHits.length, globalHits.length]);
 
   const loadFeed = useCallback(async () => {
-    setFeedLoading(true);
     try {
       const events = await getListeningEvents();
+      if (topArtists(events, 30).length === 0) {
+        setFeed({ newReleases: [], artistsLike: [], tags: [] });
+        setFeedLoading(false);
+        setFeedReady(true);
+        return;
+      }
+      setFeedLoading(true);
       setFeed(await loadDiscoverFeed(events));
     } catch {
       setFeed({ newReleases: [], artistsLike: [], tags: [] });
     } finally {
       setFeedLoading(false);
+      setFeedReady(true);
     }
   }, []);
 
@@ -171,13 +183,35 @@ export function NoirDiscoverView({
   };
 
   const chartsEmpty = loadError && localHits.length === 0 && globalHits.length === 0;
-  const personalReady = !feedLoading && feed;
+  const personalReady = feedReady && feed;
   const hasPersonal =
     !!personalReady &&
     (feed.newReleases.length > 0 || feed.artistsLike.length > 0 || feed.tags.length > 0);
-  const showChartsSkeleton = chartsLoading && localHits.length === 0 && globalHits.length === 0;
+  const chartsSettled = !chartsLoading;
+  const coldStart = feedReady && !hasPersonal && !feedLoading;
 
-  if (chartsEmpty && !hasPersonal && !feedLoading) {
+  const chartArtists = useMemo(() => {
+    if (!coldStart) return [];
+    const source = localHits.length > 0 ? localHits : globalHits;
+    const seen = new Set<string>();
+    const artists: DiscoverArtistCard[] = [];
+    for (const track of source) {
+      const name = getPrimaryArtist(track.artist);
+      const key = normalizeName(name);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      artists.push({
+        id: `chart-artist:${key}`,
+        name,
+        image: track.thumbnail || undefined,
+        seedArtist: name,
+      });
+      if (artists.length >= 12) break;
+    }
+    return artists.length >= 3 ? artists : [];
+  }, [coldStart, localHits, globalHits]);
+
+  if (chartsEmpty && !hasPersonal && feedReady) {
     return (
       <div className="py-16">
         <p className="text-[15px] text-[color:var(--noir-text-primary)]">{strings.discover.trendingUnavailable}</p>
@@ -196,10 +230,14 @@ export function NoirDiscoverView({
   ].filter((s) => s.playlist.tracks.length > 0);
 
   const reduced = prefersReducedMotion();
+  const chartSlots: Array<{ key: string; playlist: Playlist | null }> = [
+    { key: 'local', playlist: localHits.length > 0 ? localPlaylist : null },
+    { key: 'global', playlist: globalHits.length > 0 ? globalPlaylist : null },
+  ];
 
   return (
     <div className="flex flex-col pb-6">
-      {!hasPersonal && !feedLoading && (
+      {coldStart && (
         <p className="mb-8 max-w-lg px-1 text-[14px] text-[color:var(--noir-text-secondary)]">
           {strings.discover.emptyTasteDesc}
         </p>
@@ -264,6 +302,25 @@ export function NoirDiscoverView({
         </section>
       )}
 
+      {chartArtists.length > 0 && (
+        <section>
+          <h3 className={`noir-section-heading px-1 ${hasPersonal ? '' : '!mt-2'}`}>
+            {strings.discover.chartArtists}
+          </h3>
+          <div className="noir-home-shelf">
+            {chartArtists.map((artist, i) => (
+              <ArtistCard
+                key={artist.id}
+                artist={artist}
+                index={i}
+                reduced={reduced}
+                onOpen={() => onViewArtist?.(artist.name)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       {feed &&
         feed.tags.map((shelf) => (
           <section key={shelf.id}>
@@ -293,34 +350,28 @@ export function NoirDiscoverView({
           </section>
         ))}
 
-      <section className={hasPersonal || feedLoading ? 'mt-[var(--noir-section-gap)]' : undefined}>
-        {hasPersonal && !showChartsSkeleton && (
+      <section className={hasPersonal || feedLoading || chartArtists.length > 0 ? 'mt-[var(--noir-section-gap)]' : undefined}>
+        {(hasPersonal || chartArtists.length > 0) && (
           <h3 className="noir-section-heading !mt-0 px-1">{strings.discover.charts}</h3>
         )}
-        {showChartsSkeleton ? (
-          <div className="noir-discover-charts">
-            {[0, 1].map((i) => (
-              <div key={i} className="noir-skeleton h-[216px] rounded-[var(--noir-radius-lg)]" />
-            ))}
-          </div>
-        ) : (
-          <div className="noir-discover-charts">
-            {[localPlaylist, globalPlaylist]
-              .filter((p) => p.tracks.length > 0)
-              .map((playlist, i) => (
-                <ChartCard
-                  key={playlist.id}
-                  playlist={playlist}
-                  index={i}
-                  onOpen={() => onSelectPlaylist(playlist)}
-                  onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name)}
-                />
-              ))}
-          </div>
-        )}
+        <div className="noir-discover-charts">
+          {chartSlots.map(({ key, playlist }, i) =>
+            playlist ? (
+              <ChartCard
+                key={playlist.id}
+                playlist={playlist}
+                index={i}
+                onOpen={() => onSelectPlaylist(playlist)}
+                onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name)}
+              />
+            ) : chartsLoading ? (
+              <div key={key} className="noir-skeleton h-[216px] rounded-[var(--noir-radius-lg)]" />
+            ) : null
+          )}
+        </div>
       </section>
 
-      {!chartsLoading &&
+      {chartsSettled &&
         rankedSections.map(({ playlist, label }) => (
           <section key={playlist.id}>
             <div className="mb-4 mt-[var(--noir-section-gap)] flex items-baseline justify-between gap-4 px-1">
