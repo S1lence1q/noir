@@ -4,106 +4,80 @@ Read this first in a new chat.
 
 **If you were given a ticket:** read `tickets/README.md` (rules) and then only that ticket. The ticket links to the docs you need.
 
-**If you are planning/reviewing:** `07-roadmap.md` → `05-visual-language.md` → `06-product-vision.md` → `08-craft.md` → `09-surface-audit.md`.
+**If you are the creative director / planning / reviewing:** this file → `tickets/README.md` (status + owners) → `05-visual-language.md` → `08-craft.md` → `06-product-vision.md` → `07-roadmap.md` → `09-surface-audit.md`.
 
 ## Product
 
-**NOIR** is the UI identity. The repo is still `Elva-redesign`; playback stack is Elva. Do not put “Elva” in chrome.
+**NOIR** is the UI identity. The repo is still `Elva-redesign`; playback stack is Elva. Do not put "Elva" in chrome.
 
-**North star:** a precise desktop music app wrapped around expressive visual worlds. Solid Level 1 UI. Level 2/3 graphics used sparingly, with form — not CSS glow, not stock dark SaaS.
+**North star:** a precise music app wrapped around expressive visual worlds. Clean black UI; graphic objects made of grain, generated from the music itself. Aiming for Spotify-level Home/Discover (personal, alive), not just a player + a chart.
 
-**Scope:** UI/UX only. Do not rebuild playback, search, queue, lyrics, charts APIs, localStorage, or color extraction — unless a parked decision explicitly green-lights a slice.
+**Constraints:** personal project, **browser only** (no Electron), zero running costs, local-first.
+
+## How we work (user preferences — important)
+
+- User speaks Danish; answer in Danish. UI copy is English.
+- **Creative director model (Opus) builds the hard/visual work** (graphics, animation, UX-heavy screens). Cheaper models (Luna/Grok) get mechanical, clearly-specced tickets. See owners in `tickets/README.md`.
+- **Save limit:** user takes screenshots themselves. Do not run the browser. Be economical; read only what you need.
+- Build (`npm run build`) after every change; **commit after every finished step** (user has allowed commits).
+- **Never `git add src`** — `src/Cinematic Dark Music Background.jpeg`, `src/Plate Wave Recreation Image.jpeg`, `src/abstract cloud like form.jpeg` are untracked originals and must stay untracked. Stage `src/app src/styles design` explicitly.
+- User reacts to screenshots; iterate quickly. When something "feels off", assume a real problem and find the cause.
+
+## User taste learned (honor these)
+
+- **Clean** above all. Editorial style (giant numbers, cropped type, magazine layouts) = no.
+- **Nothing may jump.** Layout must stay stable when adding/removing things (search fields must not move, lists must not shift under the cursor, headers must not flash).
+- **Animation matters a lot.** "Basic" fades aren't enough; use springs, staggers, shared-element motion (see Now Playing cover flight, playlist entrance, fly-to-list). User called the Now Playing animation "perfect" — use it as the bar.
+- Surfaces: black + white-alpha tints, floating = black + 12% hairline. Opaque greys read as "off" (see `05-visual-language.md` → UI surfaces).
+- Now Playing **artwork gradient atmosphere is wanted** (user-approved) — don't remove it.
+- Two similar-looking lists stacked = confusing. Separate "what's in it" from "where to find more" (playlist side panel pattern).
+- Favorites has its own fixed cover (ember + spray asterisk) — recognizable everywhere.
+- Suggestions are fine but must not be intrusive or always in the way.
 
 ## What is done (2026-09-27)
 
-- Persistent **shell**: sidebar + canvas + compact player (`src/app/components/shell/`)
-- **Player-in-canvas**: expand stays in shell; now-playing view + Next up; old fullscreen `MusicPlayer` parked (hidden for audio only)
-- Compact bar: Spotify-inspired 3-zone layout + seek + song-change animations
-- Recently played: list freeze on play + hero crossfade (no jump-to-top mid-click)
-- Settings as a shell tab; graphics started (plate wave, halftone empty states)
-- Favorites are available from song rows, compact player, Now Playing, search palette, and Library
-- Search is centered on the Cmd+K palette; Home has only a subtle search hint and upload lives in the palette
-- Queue session flow: playlist/chart play-from-index, Next up remove/move, true up-next count, and re-adding tracks that were already played
-- Local files persist through refresh using IndexedDB; local favorites and Recently played can be restored
-- Recently played deduplicates stable YouTube/local identities
-- Empty listening flow: first-use Home actions for Search/Discover and context-aware Next up suggestions (Favorites → Recently played → Discover)
+Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (earlier work), plus this session:
 
-## Direction (locked 2026-09-27)
+- **Design system docs:** `05`–`09`, tickets T01–T10, T14, boards in `design/boards/`, references mapped
+- **Golden samples:** `NoirMark` (asterisk), `NoirToast` + `noirToast()` (replaces mini HUD + volume popup), inline volume value in the bar, empty Next up with Add 10 / Shuffle all + Undo
+- **T01** grid/type/accent (Luna, fixed); song-row grid scoped to `.noir-song-grid`
+- **T06 dither covers:** `NoirDitherCover` + `utils/ditherCover.ts` (Bayer, color worlds, field-dominant inversion, IndexedDB cache). Used on charts, playlists, Discover, Home, sidebar
+- **T04 playlists:** `utils/playlistStore.ts` (single source of truth + undo), `NoirUserPlaylistPage` (click-to-rename, whole-row drag reorder, remove w/ undo, **right side add panel** with search + Favorites/Recents tabs, cover flies into list, entrance animation), Library grid, sidebar "+" and covers
+- **T14 Now Playing:** cover flies bar ↔ canvas (`layoutId="np-cover"` in a `LayoutGroup`), bar identity hidden while open, atmosphere fades in after landing
+- **Home redesign:** greeting + Continue + one dithered object, Jump back in tiles, Your library shelf, artist circles
+- **Discover redesign:** two chart cards + two-column Top 10s (data is still only DK + Global charts)
+- **Artist page:** color-world poster with dithered portrait, Popular + Show all, dedupe
+- **Favorites cover:** `NoirFavoritesCover`
 
-- **Visual:** clean black UI + graphic objects made of grain. Dither covers generated in code from each collection's own artwork, spray asterisk as the mark, plate wave only in the sidebar → [05-visual-language.md](./05-visual-language.md)
-- **Product:** local listening engine + Last.fm + Deezer → radio, "fans also like", personal Home, mixes, stats/Replay, Discover feed → [06-product-vision.md](./06-product-vision.md)
-- **Craft:** every ticket ships states, copy, motion, micro-interactions → [08-craft.md](./08-craft.md)
-- **Existing surfaces:** verdicts per screen (volume popup = KILL, playlists/Home/Discover/Library = REDESIGN) → [09-surface-audit.md](./09-surface-audit.md)
-- **Order + tickets:** [07-roadmap.md](./07-roadmap.md), [tickets/](./tickets/)
-- App runs in the **browser only** (no Electron).
+## Next (in order)
 
-## What is not done
+1. **Luna (high): T09** listening engine, then **T10** musicGraph (needs free Last.fm key in `.env`). Luna also: **T03** shared song menu (suggested design: one global menu host in App opened via `openSongMenu(track, event)` so right-click and "…" are identical everywhere), **T05b**, **T07**, drag-song-to-sidebar-playlist, ⌘N.
+2. **Opus (visual):** spray wave in Now Playing (can start now); after T10: Discover feed shelves (new releases, artists like X, genres) and **mixes with generated covers**; then Stats/Replay (Bone cards).
+3. User has a list of small tweaks to bring — ask for it.
 
-See the roadmap. Start with T01–T03 (shared UI), T09 (engine) can run in parallel. Golden samples T02, T05, T08 are built by the creative director model; other tickets copy their patterns.
+## Do / don't
 
-## Do / don’t
+**Do:** `--noir-*` tokens; `MOTION` tokens + `withReducedMotion`; copy in `strings.ts`; toasts with Undo for reversible actions; one graphic beat per screen; keep `MusicPlayer` mounted (audio engine).
 
-**Do**
-
-- Solid black chrome, `--noir-*` tokens in `src/styles/noir-shell.css`
-- One graphic moment per screen
-- Keep `MusicPlayer` mounted while hidden so audio continues
-- Ask before committing unless the user asked
-- Prefer flow/functionality over new graphics until browsing → queue → next feels obvious
-
-**Don’t**
-
-- Fake `backdrop-filter` / liquid glass on flat black
-- Orange CSS glows or static “atmosphere” banners
-- Redesign Settings as a popup
-- Auto-open fullscreen on play
-- Reopen artist-identity / discography architecture until parked doc is picked up
-- Sprinkle Level 3 everywhere — graphics only in the slots listed in `05-visual-language.md`
-- Editorial typography (giant numbers, cropped type, text printed on covers)
-- Paste JPEG graphics onto screens
+**Don't:** glassmorphism/backdrop blur; opaque grey surfaces; editorial type; paste JPEG graphics; text printed on covers; AnimatePresence exit-waits around shared-layout elements (caused a double title); `overflow: hidden` on ancestors of flying elements (clipped the cover flight).
 
 ## Key files
 
 | Area | Path |
 |------|------|
 | Shell | `src/app/components/shell/AppShell.tsx`, `AppSidebar.tsx`, `CompactPlayerBar.tsx` |
-| Now playing | `src/app/components/shell/noir/NoirNowPlayingView.tsx` |
-| Search palette | `src/app/components/shell/noir/NoirSearchPalette.tsx` |
-| Noir views | `src/app/components/shell/noir/*` |
-| Settings | `src/app/components/shell/noir/NoirSettingsView.tsx` |
-| Tokens | `src/styles/noir-shell.css` |
-| Orchestration | `src/app/App.tsx` |
-| Local media persistence | `src/app/utils/localTrackStorage.ts` |
-| Hidden player | `src/app/components/MusicPlayer.tsx` (audio engine; UI parked) |
-| Design docs | `design/` |
+| Views | `src/app/components/shell/noir/*` (Home, Discover, Library, UserPlaylistPage, PlaylistView, ArtistView, NowPlaying, Settings, SearchPalette) |
+| Graphics | `NoirDitherCover.tsx`, `NoirFavoritesCover.tsx`, `NoirMark.tsx`, `utils/ditherCover.ts` |
+| Feedback | `NoirToast.tsx` (`noirToast`), `utils/hudUtils.ts` (legacy forwarder) |
+| Data | `utils/playlistStore.ts`, `utils/elvaStorage.ts`, `utils/localTrackStorage.ts` |
+| Tokens / motion / copy | `src/styles/noir-shell.css`, `utils/motionPresets.ts`, `constants/strings.ts` |
+| Orchestration | `src/app/App.tsx` (1.7k lines; listens to `noir-open-favorites`, `noir-open-playlist`, `elva-open-search-palette`) |
+| Hidden audio engine | `src/app/components/MusicPlayer.tsx` |
 
 ## State names (legacy)
 
-- `landing` = shell
-- `processing` = resolving a track
-- `ready` = unused for fullscreen overlay (parked)
-- Shell expand = `nowPlayingOpen` (not a second app)
-- Tabs: `search` (Home), `discover`, `myhub` (Library), `settings`
+`landing` = shell · `nowPlayingOpen` = expanded player in canvas · tabs: `search` (Home), `discover`, `myhub` (Library), `settings`.
 
-## User decisions to honor
+## Standing user decisions
 
-- Shell-first, not player-first
-- Settings is a canvas page, not a modal
-- Accent color is not a NOIR shell setting
-- Player-only prefs stay out of shell Settings
-- Expand never leaves NOIR; fullscreen glass player is deferred/parked
-- Graphics: objects with form; skip glow-only AI banners — **deferred until flow is solid**
-- **Artist profiles:** user is tired of guessing the wrong artist — correctness before cleverness when that work opens ([004](./decisions/004-artist-profile.md))
-
-## Next work (in order)
-
-Follow [07-roadmap.md](./07-roadmap.md). Next tickets: T01 → T02 → T03, with T09 in parallel. Artist identity (004) is unparked in T19 via Last.fm/MusicBrainz ids.
-
-## Recent context
-
-- `f8801c92` — Complete NOIR shell playback and favorites UX
-- `4f53b254` — Polish NOIR action controls
-- `f7192904` — Stabilize local track playback
-- `6517ccee` — Polish search and queue empty states
-- `baa3fc96` — Improve empty listening flow
-- Graphics paused by product choice; core listening flow is now the priority.
+Shell-first · Settings is a canvas page · no accent-color setting · expand never leaves NOIR · artist identity correctness before cleverness ([004](./decisions/004-artist-profile.md), unparked via Last.fm/MusicBrainz ids in T10+).
