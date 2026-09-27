@@ -61,6 +61,8 @@ export const strings = {
     showAll: (n: number) => `Show all ${n}`,
     showLess: 'Show less',
     empty: 'No songs found for this artist yet.',
+    whichArtist: 'Which artist?',
+    whichArtistHint: 'A few artists share this name — pick the right one.',
   },
   home: {
     continue: 'Continue',

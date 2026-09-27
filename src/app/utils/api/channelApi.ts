@@ -302,13 +302,60 @@ export const fetchAllChannelUploads = async (
 
 export const fetchArtistDiscography = async (
   artistName: string,
-  limit: number = 120
+  limit: number = 120,
+  options?: {
+    channelId?: string;
+    channelType?: 'topic' | 'vevo' | 'official' | 'provided';
+  }
 ): Promise<{
   tracks: SearchResult[];
-  topicResult: { channelId: string; type: 'topic' | 'vevo' | 'official' } | null;
+  topicResult: { channelId: string; type: 'topic' | 'vevo' | 'official' | 'provided' } | null;
 }> => {
   const name = artistName.trim();
   if (!name) return { tracks: [], topicResult: null };
+
+  const hintChannelId = options?.channelId?.trim();
+  const hintType = options?.channelType;
+
+  // Fast path: known channel — skip Topic resolve + parallel name searches when possible
+  if (hintChannelId) {
+    const channelType: 'topic' | 'vevo' | 'official' | 'provided' =
+      hintType === 'topic' || hintType === 'vevo' || hintType === 'official' || hintType === 'provided'
+        ? hintType
+        : 'provided';
+    let channelTracks: SearchResult[] = [];
+    try {
+      channelTracks = await Promise.race([
+        fetchAllChannelUploads(hintChannelId, limit, {
+          channelType:
+            channelType === 'topic' || channelType === 'vevo' || channelType === 'official'
+              ? channelType
+              : undefined,
+          maxPages: 3,
+          timeBudgetMs: 3500,
+        }),
+        new Promise<SearchResult[]>((resolve) => setTimeout(() => resolve([]), 3600)),
+      ]);
+    } catch {
+      channelTracks = [];
+    }
+
+    if (channelTracks.length >= Math.min(12, limit)) {
+      return {
+        tracks: dedupeSearchResults(channelTracks).slice(0, limit),
+        topicResult: { channelId: hintChannelId, type: channelType },
+      };
+    }
+
+    // Thin channel list — supplement with a single name search
+    const nameSearchTracks = await fetchPaginatedPipedSearch(name, name, Math.ceil(limit / 2), 3).catch(
+      () => [] as SearchResult[]
+    );
+    return {
+      tracks: dedupeSearchResults([...channelTracks, ...nameSearchTracks]).slice(0, limit),
+      topicResult: { channelId: hintChannelId, type: channelType },
+    };
+  }
 
   const perQueryLimit = Math.ceil(limit / 2);
 

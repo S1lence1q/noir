@@ -14,7 +14,7 @@ export function getArtistMatchFromResults(
   return pickArtistCardFromSearchResults(query, results);
 }
 
-/** Shared discography loader (reads/writes elva_discography_v2_* cache). */
+/** Shared discography loader (identity-keyed cache + SWR). */
 export async function loadArtistDiscographyTracks(
   artist: Pick<VerifiedArtist, 'name' | 'channelId'>
 ): Promise<SearchResult[]> {

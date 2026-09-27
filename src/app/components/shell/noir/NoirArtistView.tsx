@@ -4,10 +4,12 @@ import { Play, Radio, Shuffle } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
 import { NoirRankedSongRow } from './NoirRankedSongRow';
 import { NoirDitherCover } from './NoirDitherCover';
+import { NoirArtistDisambiguation } from './NoirArtistDisambiguation';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { COLOR_WORLDS, worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
+import type { ArtistIdentity } from '../../../services/artistIdentity';
 
 export type NoirArtistViewProps = {
   artist: VerifiedArtist;
@@ -21,6 +23,9 @@ export type NoirArtistViewProps = {
   onPlayAll?: () => void;
   onPlayFromIndex?: (index: number) => void;
   onStartRadio?: (track: SearchResult) => void;
+  /** When set, show pick-one UI instead of Popular. */
+  candidates?: ArtistIdentity[] | null;
+  onPickCandidate?: (candidate: ArtistIdentity) => void;
 };
 
 const POPULAR_COUNT = 5;
@@ -59,6 +64,8 @@ export function NoirArtistView({
   onPlayAll,
   onPlayFromIndex,
   onStartRadio,
+  candidates = null,
+  onPickCandidate,
 }: NoirArtistViewProps) {
   const reduced = prefersReducedMotion();
   const [showAll, setShowAll] = useState(false);
@@ -72,6 +79,18 @@ export function NoirArtistView({
     const pick = unique[Math.floor(Math.random() * unique.length)];
     onPlayFromIndex(pick.index);
   };
+
+  if (candidates && candidates.length > 1 && onPickCandidate) {
+    return (
+      <div className="flex w-full flex-col pb-6">
+        <NoirArtistDisambiguation
+          queryName={artist.name}
+          candidates={candidates}
+          onPick={onPickCandidate}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full flex-col pb-6">

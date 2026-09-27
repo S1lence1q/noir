@@ -1,45 +1,44 @@
 # 004 — Artist profile: speed + correct identity
 
-**Status:** Parked — not current focus (2026-09-26). Do after shell player completeness.  
+**Status:** Implemented in client (2026-09-27) — `services/artistIdentity/*`, Popular-first profile load, identity-keyed SWR discography cache, disambiguation UI. Backend cache still optional (see artist identity plan Fase 3).  
 **User pain:** Opening an artist (e.g. search “Kundo” → profile) still feels slow, and we still **guess** whether it is the right artist profile. That guessing is exhausting; identity confidence matters as much as load time.
 
 ## Today (what exists)
 
 - Profile **shell opens immediately** (name / art).
-- Slow part is **discography**: Piped / Invidious channel uploads via `loadArtistDiscographyWithCache`.
-- **localStorage cache** (`elva_discography_v2_*`, ~48h TTL) makes second visits faster.
-- MusicBrainz + Deezer enrich in the background (avatar, tags) — they should not block the track list.
-- Artist card on search uses heuristics (`shouldShowArtistCard`, channel/topic matching). Wrong or ambiguous matches are a real product smell.
+- **Identity resolve** binds `mbid` / `deezerId` / `channelId` + confidence before heavy discography.
+- **Popular-first** from Last.fm/Deezer (~10 tracks) so the profile is usable while Piped loads.
+- **Discography** uses channelId when known; cache keyed by identity (`elva_discography_v3_*`) with stale-while-revalidate.
+- **Disambiguation** when confidence is low (pick among Deezer candidates).
+- **Prefetch** when artist card is shown / hovered.
+- MusicBrainz tags still enrich in the background (non-blocking).
 
-## Goals (later)
+## Goals
 
-1. **Correct artist first** — stop “is this even the right profile?” Guessing is unacceptable long-term.
-2. **Fast reopen** — cache hits should feel instant.
-3. **Faster cold open** — first visit can still need network; make it progressive and prefetchable.
+1. **Correct artist first** — ambiguous names ask the user; IDs preferred over bare names.
+2. **Fast reopen** — SWR + identity-keyed cache.
+3. **Faster cold open** — Popular-first + prefetch; Piped fills in behind.
 
-## Possible improvements (ordered)
+## Remaining / optional
 
 | Priority | Idea | Notes |
 |----------|------|--------|
-| 1 | Stronger **identity** (channelId / Topic / official) before loading a huge list | Prefer explicit channel over name-only search |
-| 2 | **Prefetch on intent** — when artist card is shown or hovered, start discography fetch | Cuts perceived wait on click |
-| 3 | **Stale-while-revalidate** — show expired cache immediately, refresh in background | Feels instant even after TTL |
-| 4 | **Progressive discography** — first ~10 tracks ASAP, rest after | UI usable while network continues |
-| 5 | Better client cache (IndexedDB, longer TTL, store `channelId`) | localStorage is limited |
-| 6 | Own **backend cache** | Biggest win for cold loads; out of current UI-only scope unless asked |
+| 5 | Discography in IndexedDB | Identity already uses graph IndexedDB; discography still localStorage v3 |
+| 6 | Own **backend cache** | Shared cold-load win; out of zero-cost scope unless asked |
 
 ## Hard limit without a backend
 
-Cold load for a never-seen artist always depends on third-party instances. “Always 0 ms” is not realistic client-only. Correctness + prefetch + SWR can still make the product feel trustworthy and fast.
+Cold load for a never-seen artist always depends on third-party instances. “Always 0 ms” is not realistic client-only.
 
 ## Do not
 
-- Rebuild search ranking as a side quest while Phase 1 shell work is open.
 - Block profile open on MusicBrainz.
 - Treat “fast wrong artist” as success.
 
 ## Related code
 
+- `src/app/services/artistIdentity/*` — `resolveArtistIdentity`, identity cache
 - `src/app/hooks/useSearchLogic.ts` — `handleViewArtistProfile`, verified artist card
 - `src/app/utils/artistDiscographyLoader.ts` / `discographyCache.ts`
-- `src/app/utils/api/channelApi.ts` — channel uploads
+- `src/app/utils/api/channelApi.ts` — channel uploads (channelId fast path)
+- `src/app/components/shell/noir/NoirArtistDisambiguation.tsx`

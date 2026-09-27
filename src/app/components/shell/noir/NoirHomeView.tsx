@@ -17,6 +17,7 @@ import { Playlist } from '../../PlaylistDetailsView';
 import { getListeningEvents } from '../../../services/listening/eventsStore';
 import { DailyMix, loadDailyMixes } from '../../../services/mixes/dailyMixes';
 import { worldForCollection } from '../../../utils/ditherCover';
+import { prefetchArtistProfile } from '../../../utils/artistDiscographyLoader';
 
 type SearchPanelPhase = 'idle' | 'loading' | 'results' | 'no-results';
 
@@ -566,6 +567,24 @@ export function NoirHomeView({
                   type="button"
                   data-search-result-index={0}
                   onClick={() => handleViewArtistProfile(verifiedArtist)}
+                  onMouseEnter={() =>
+                    void prefetchArtistProfile({
+                      name: verifiedArtist.name,
+                      channelId: verifiedArtist.channelId,
+                      isTopic: verifiedArtist.isTopic,
+                      mbid: verifiedArtist.mbid,
+                      deezerId: verifiedArtist.deezerId,
+                    })
+                  }
+                  onFocus={() =>
+                    void prefetchArtistProfile({
+                      name: verifiedArtist.name,
+                      channelId: verifiedArtist.channelId,
+                      isTopic: verifiedArtist.isTopic,
+                      mbid: verifiedArtist.mbid,
+                      deezerId: verifiedArtist.deezerId,
+                    })
+                  }
                   className="noir-track-row mb-1 flex w-full items-center gap-4 px-3 py-3 text-left"
                 >
                   <img src={verifiedArtist.thumbnail} alt="" className="noir-art h-12 w-12 object-cover" />

@@ -63,6 +63,9 @@ interface LandingPageProps {
   handleToggleFavorite: (song: SearchResult) => void;
   handleStartRadio?: (song: SearchResult) => void;
   handleViewArtistProfile: (artist: VerifiedArtist) => void;
+  handlePickArtistCandidate?: (candidate: import('../services/artistIdentity').ArtistIdentity) => void;
+  artistCandidates?: import('../services/artistIdentity').ArtistIdentity[] | null;
+  setArtistCandidates?: (candidates: import('../services/artistIdentity').ArtistIdentity[] | null) => void;
   handleViewArtistByName: (name: string, channelId?: string) => void;
   handleUrlSubmit: (url: string) => void;
   handleFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -140,6 +143,9 @@ export function LandingPage({
   handleToggleFavorite,
   handleStartRadio,
   handleViewArtistProfile,
+  handlePickArtistCandidate,
+  artistCandidates = null,
+  setArtistCandidates,
   handleViewArtistByName,
   handleUrlSubmit,
   handleFileSelect,
@@ -294,6 +300,7 @@ export function LandingPage({
               onClose={() => {
                 setSelectedArtist(null);
                 setArtistTracks([]);
+                setArtistCandidates?.(null);
               }}
             >
               <NoirArtistView
@@ -316,6 +323,8 @@ export function LandingPage({
                   }
                 }}
                 onStartRadio={handleStartRadio}
+                candidates={artistCandidates}
+                onPickCandidate={handlePickArtistCandidate}
               />
             </NoirDetailOverlay>
           )}

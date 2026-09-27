@@ -41,21 +41,48 @@ async function deezerGet<T>(path: string): Promise<T | null> {
   }
 }
 
-async function findArtist(artist: string): Promise<DeezerArtist | null> {
+export type DeezerArtistMatch = {
+  id: number;
+  name: string;
+  image?: string;
+  fans?: number;
+  exactName: boolean;
+};
+
+function rankDeezerArtists(artist: string, artists: DeezerArtist[]): DeezerArtistMatch[] {
+  const normalized = normalizeName(artist);
+  return artists
+    .filter((candidate): candidate is DeezerArtist & { name: string } => !!candidate.name)
+    .map((candidate) => ({
+      id: candidate.id,
+      name: candidate.name,
+      image: candidate.picture_xl || candidate.picture_big || candidate.picture_medium,
+      fans: candidate.nb_fan,
+      exactName: normalizeName(candidate.name) === normalized,
+    }))
+    .sort((a, b) => Number(b.exactName) - Number(a.exactName) || (b.fans ?? 0) - (a.fans ?? 0));
+}
+
+/** Ranked Deezer artist matches for identity / disambiguation. */
+export async function searchDeezerArtists(artist: string, limit = 5): Promise<DeezerArtistMatch[]> {
   const response = await deezerGet<{ data?: DeezerArtist[] }>(
     `/search/artist?q=${encodeURIComponent(normalizeName(artist) || cleanName(artist))}&limit=25`
   );
-  const artists = response?.data ?? [];
-  const normalized = normalizeName(artist);
-  return (
-    artists
-      .filter((candidate) => !!candidate.name)
-      .sort((a, b) => {
-        const aExact = normalizeName(a.name!) === normalized ? 1 : 0;
-        const bExact = normalizeName(b.name!) === normalized ? 1 : 0;
-        return bExact - aExact || (b.nb_fan ?? 0) - (a.nb_fan ?? 0);
-      })[0] ?? null
-  );
+  return rankDeezerArtists(artist, response?.data ?? []).slice(0, Math.max(1, limit));
+}
+
+async function findArtist(artist: string): Promise<DeezerArtist | null> {
+  const ranked = await searchDeezerArtists(artist, 1);
+  const top = ranked[0];
+  if (!top) return null;
+  return {
+    id: top.id,
+    name: top.name,
+    nb_fan: top.fans,
+    picture_xl: top.image,
+    picture_big: top.image,
+    picture_medium: top.image,
+  };
 }
 
 function mapTrack(track: DeezerTrack, fallbackArtist: string): GraphTrack | null {

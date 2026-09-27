@@ -52,7 +52,7 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 ## Next (in order)
 
 1. **DONE:** T09 (`services/listening/*`, `useListeningRecorder`, `window.__noirTaste()`; local files keyed by `local:title::artist` since blob URLs change per session), T10 (`services/musicGraph/*`, `window.__noirGraph`, key in `.env`), T03 (`NoirSongMenu.tsx`). **Luna next:** **T05b**, **T07**, drag-song-to-sidebar-playlist, ⌘N. Dev note: hot reload mid-song records an extra short event; clear play history once before real use.
-2. **Opus (visual):** ~~spray wave~~ parked. ~~Discover~~ DONE. ~~Mixes~~ DONE. ~~Radio (T11)~~ **DONE** (`services/radio/buildRadio.ts`, Start radio in ··· menu + radio icon on compact bar / Now Playing / artist hero, autoplay append + Settings). Next: **artist identity**; then Stats/Replay or F7 cold start.
+2. **Opus (visual):** ~~spray wave~~ parked. ~~Discover~~ DONE. ~~Mixes~~ DONE. ~~Radio (T11)~~ DONE. ~~Artist identity~~ **DONE** (`services/artistIdentity/*`, Popular-first + SWR discography + disambiguation). Next: Stats/Replay or F7 cold start; Luna: T05b, T07, drag-to-sidebar, ⌘N.
 3. User has a list of small tweaks to bring — ask for it.
 
 ## Do / don't
@@ -69,7 +69,7 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 | Views | `src/app/components/shell/noir/*` (Home, Discover, Library, UserPlaylistPage, PlaylistView, ArtistView, NowPlaying, Settings, SearchPalette) |
 | Graphics | `NoirDitherCover.tsx`, `NoirFavoritesCover.tsx`, `NoirMark.tsx`, `utils/ditherCover.ts` |
 | Feedback | `NoirToast.tsx` (`noirToast`), `utils/hudUtils.ts` (legacy forwarder) |
-| Data | `utils/playlistStore.ts`, `utils/elvaStorage.ts`, `utils/localTrackStorage.ts`, `services/listening/*`, `services/musicGraph/*`, `services/discover/discoverFeed.ts`, `services/mixes/dailyMixes.ts`, `services/radio/buildRadio.ts` |
+| Data | `utils/playlistStore.ts`, `utils/elvaStorage.ts`, `utils/localTrackStorage.ts`, `services/listening/*`, `services/musicGraph/*`, `services/discover/discoverFeed.ts`, `services/mixes/dailyMixes.ts`, `services/radio/buildRadio.ts`, `services/artistIdentity/*` |
 | Tokens / motion / copy | `src/styles/noir-shell.css`, `utils/motionPresets.ts`, `constants/strings.ts` |
 | Orchestration | `src/app/App.tsx` (1.7k lines; listens to `noir-open-favorites`, `noir-open-playlist`, `elva-open-search-palette`) |
 | Hidden audio engine | `src/app/components/MusicPlayer.tsx` |

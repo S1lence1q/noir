@@ -1584,6 +1584,9 @@ export default function App() {
               handleToggleFavorite={handleToggleFavorite}
               handleStartRadio={handleStartRadio}
               handleViewArtistProfile={searchLogic.handleViewArtistProfile}
+              handlePickArtistCandidate={searchLogic.handlePickArtistCandidate}
+              artistCandidates={searchLogic.artistCandidates}
+              setArtistCandidates={searchLogic.setArtistCandidates}
               handleViewArtistByName={searchLogic.handleViewArtistByName}
               handleUrlSubmit={searchLogic.handleUrlSubmit}
               handleFileSelect={handleFileSelect}
