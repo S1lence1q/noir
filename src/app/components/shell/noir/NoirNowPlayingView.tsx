@@ -53,6 +53,29 @@ type NoirNowPlayingViewProps = {
 const sheetEase = EASE_PREMIUM;
 const BATCH_SIZE = 10;
 
+/** Debug shuffle motion presets — icon spin is shared; only row motion differs. */
+type ShuffleVariantId = 'glide' | 'soft' | 'deal';
+const SHUFFLE_VARIANTS: {
+  id: ShuffleVariantId;
+  label: string;
+  settleMs: number;
+}[] = [
+  { id: 'glide', label: 'Glide', settleMs: 560 },
+  { id: 'soft', label: 'Soft', settleMs: 520 },
+  { id: 'deal', label: 'Deal', settleMs: 620 },
+];
+const SHUFFLE_VARIANT_KEY = 'noir-debug-shuffle-variant';
+
+function readShuffleVariant(): ShuffleVariantId {
+  try {
+    const stored = sessionStorage.getItem(SHUFFLE_VARIANT_KEY);
+    if (stored === 'glide' || stored === 'soft' || stored === 'deal') return stored;
+  } catch {
+    /* ignore */
+  }
+  return 'glide';
+}
+
 function shuffled<T>(items: T[]): T[] {
   const next = [...items];
   for (let i = next.length - 1; i > 0; i--) {
@@ -115,21 +138,38 @@ export function NoirNowPlayingView({
   /** 'shuffle' = longer spring so rows glide after Shuffle; 'drag' = snappy 120 ms settle. */
   const [layoutMode, setLayoutMode] = useState<'drag' | 'shuffle'>('drag');
   const [shufflePulse, setShufflePulse] = useState(0);
+  const [shuffleVariant, setShuffleVariant] = useState<ShuffleVariantId>(readShuffleVariant);
+  const [shuffleDebugOpen, setShuffleDebugOpen] = useState(false);
   const shuffleResetRef = useRef<number | null>(null);
   useEffect(() => {
     setOrder(upNext.map((track) => track.id));
   }, [upNext.map((track) => track.id).join('\0')]);
 
+  const cycleShuffleVariant = () => {
+    setShuffleVariant((current) => {
+      const index = SHUFFLE_VARIANTS.findIndex((item) => item.id === current);
+      const next = SHUFFLE_VARIANTS[(index + 1) % SHUFFLE_VARIANTS.length];
+      try {
+        sessionStorage.setItem(SHUFFLE_VARIANT_KEY, next.id);
+      } catch {
+        /* ignore */
+      }
+      return next.id;
+    });
+  };
+
   const triggerShuffle = () => {
     if (!onShuffleQueue || upNext.length < 2) return;
     if (shuffleResetRef.current != null) window.clearTimeout(shuffleResetRef.current);
     if (!reduced) {
+      const settleMs =
+        SHUFFLE_VARIANTS.find((item) => item.id === shuffleVariant)?.settleMs ?? 560;
       setLayoutMode('shuffle');
       setShufflePulse((n) => n + 1);
       shuffleResetRef.current = window.setTimeout(() => {
         setLayoutMode('drag');
         shuffleResetRef.current = null;
-      }, 560);
+      }, settleMs);
     }
     onShuffleQueue();
   };
@@ -550,6 +590,26 @@ export function NoirNowPlayingView({
                     {strings.nextUp.clear}
                   </button>
                 )}
+                <button
+                  type="button"
+                  className="text-[10px] uppercase tracking-[0.14em] text-[color:var(--noir-text-tertiary)]/45 hover:text-white/55 elva-focus-ring"
+                  onClick={() => {
+                    if (!shuffleDebugOpen) {
+                      setShuffleDebugOpen(true);
+                      return;
+                    }
+                    cycleShuffleVariant();
+                  }}
+                  title={
+                    shuffleDebugOpen
+                      ? `Shuffle motion: ${SHUFFLE_VARIANTS.find((item) => item.id === shuffleVariant)?.label} (click to cycle)`
+                      : 'Debug shuffle motions'
+                  }
+                >
+                  {shuffleDebugOpen
+                    ? SHUFFLE_VARIANTS.find((item) => item.id === shuffleVariant)?.label
+                    : 'dbg'}
+                </button>
               </div>
             </div>
             <Reorder.Group
@@ -565,6 +625,8 @@ export function NoirNowPlayingView({
                     track={track}
                     index={index}
                     layoutMode={layoutMode}
+                    shuffleVariant={shuffleVariant}
+                    shufflePulse={shufflePulse}
                     onDragEnd={() => onReorderQueue?.(orderRef.current)}
                     onSelect={() => onSelectFromQueue(track.id)}
                     onRemove={onRemoveFromQueue ? () => onRemoveFromQueue(track.id) : undefined}
@@ -584,6 +646,8 @@ type QueueTrackItemProps = {
   track: SearchResult;
   index: number;
   layoutMode: 'drag' | 'shuffle';
+  shuffleVariant: ShuffleVariantId;
+  shufflePulse: number;
   onDragEnd: () => void;
   onSelect: () => void;
   onRemove?: () => void;
@@ -594,6 +658,8 @@ function QueueTrackItem({
   track,
   index,
   layoutMode,
+  shuffleVariant,
+  shufflePulse,
   onDragEnd,
   onSelect,
   onRemove,
@@ -601,16 +667,72 @@ function QueueTrackItem({
 }: QueueTrackItemProps) {
   const draggedRef = useRef(false);
   const reduced = prefersReducedMotion();
-  const layoutTransition =
-    layoutMode === 'shuffle' && !reduced
-      ? {
-          type: 'spring' as const,
-          stiffness: 400,
-          damping: 32,
-          mass: 0.78,
-          delay: Math.min(index, 8) * 0.018,
-        }
-      : { duration: 0.12, ease: EASE_PREMIUM };
+  const shuffling = layoutMode === 'shuffle' && !reduced && shufflePulse > 0;
+  const stagger = Math.min(index, 8);
+
+  const layoutTransition = (() => {
+    if (!shuffling) return { duration: 0.12, ease: EASE_PREMIUM };
+    if (shuffleVariant === 'soft') {
+      return {
+        type: 'spring' as const,
+        stiffness: 320,
+        damping: 36,
+        mass: 0.9,
+        delay: stagger * 0.008,
+      };
+    }
+    if (shuffleVariant === 'deal') {
+      return {
+        type: 'spring' as const,
+        stiffness: 460,
+        damping: 28,
+        mass: 0.72,
+        delay: stagger * 0.028,
+      };
+    }
+    // glide
+    return {
+      type: 'spring' as const,
+      stiffness: 400,
+      damping: 32,
+      mass: 0.78,
+      delay: stagger * 0.018,
+    };
+  })();
+
+  const restAnimate = { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' };
+  const shuffleAnimate = (() => {
+    if (!shuffling) return restAnimate;
+    if (shuffleVariant === 'soft') {
+      return {
+        opacity: [0.38, 1],
+        y: 0,
+        scale: [0.985, 1],
+        filter: ['blur(2px)', 'blur(0px)'],
+      };
+    }
+    if (shuffleVariant === 'deal') {
+      return {
+        opacity: [0.7, 1],
+        y: [10, 0],
+        scale: [0.96, 1],
+        filter: 'blur(0px)',
+      };
+    }
+    // glide — layout spring does the work; keep opacity stable
+    return restAnimate;
+  })();
+
+  const shuffleMotionTransition = (() => {
+    if (!shuffling) return MOTION.panel;
+    if (shuffleVariant === 'soft') {
+      return { duration: 0.42, ease: EASE_PREMIUM, delay: stagger * 0.008 };
+    }
+    if (shuffleVariant === 'deal') {
+      return { duration: 0.38, ease: EASE_PREMIUM, delay: stagger * 0.028 };
+    }
+    return MOTION.panel;
+  })();
 
   return (
     <Reorder.Item
@@ -626,7 +748,7 @@ function QueueTrackItem({
       }}
       className="noir-playlist-item select-none"
       initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
+      animate={shuffleAnimate}
       exit={{ opacity: 0, transition: { duration: 0.16 } }}
       whileDrag={{
         scale: 1.02,
@@ -635,7 +757,7 @@ function QueueTrackItem({
         cursor: 'grabbing',
       }}
       transition={{
-        ...MOTION.panel,
+        ...shuffleMotionTransition,
         layout: layoutTransition,
       }}
       onContextMenu={(event) => openSongMenu(track, event)}
