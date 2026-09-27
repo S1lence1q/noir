@@ -69,6 +69,12 @@ export function NoirLibraryView({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
+      {!selectedPlaylist && (
+        <header className="pb-5">
+          <h1 className="noir-page-title">Library</h1>
+          <p className="mt-2 text-[16px] text-[color:var(--noir-text-secondary)]">Favorites and playlists</p>
+        </header>
+      )}
       <div className={`flex gap-1 px-1 pb-6 ${selectedPlaylist ? 'hidden' : ''}`}>
         {SECTIONS.map(({ id, label, icon: Icon }) => {
           const isActive = section === id;
@@ -97,7 +103,7 @@ export function NoirLibraryView({
               key="favorites"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              exit={{ opacity: 0, transition: { duration: 0 } }}
               transition={{ duration: 0.18 }}
             >
               {favorites.length > 0 ? (
@@ -133,7 +139,7 @@ export function NoirLibraryView({
               key="playlists-grid"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              exit={{ opacity: 0, transition: { duration: 0 } }}
               transition={withReducedMotion(MOTION.panel)}
             >
               <p className="mb-5 text-[13px] text-[color:var(--noir-text-secondary)]">
@@ -183,7 +189,7 @@ export function NoirLibraryView({
               key={`playlist-${selectedPlaylist.id}`}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
+              exit={{ opacity: 0, transition: { duration: 0 } }}
               transition={withReducedMotion(MOTION.panel)}
             >
               <NoirUserPlaylistPage

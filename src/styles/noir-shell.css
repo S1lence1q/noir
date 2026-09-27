@@ -1295,17 +1295,18 @@
   max-width: 420px;
   height: 40px;
   padding: 0 12px;
-  border-radius: var(--noir-radius-md);
-  background: rgba(255, 255, 255, 0.06);
-  transition: background-color 0.12s ease;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: transparent;
+  transition: border-color 0.12s ease;
 }
 
 .noir-inline-search:hover {
-  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .noir-inline-search:focus-within {
-  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.32);
 }
 
 .noir-add-row {

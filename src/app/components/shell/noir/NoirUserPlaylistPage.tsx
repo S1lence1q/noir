@@ -357,7 +357,7 @@ function PlaylistAddSection({
     return () => clearTimeout(timer);
   }, [query]);
 
-  const suggestions = isEmpty ? favorites.filter((t) => !playlistHasTrack(playlist, t)).slice(0, 5) : [];
+  const suggestions = favorites.filter((t) => !playlistHasTrack(playlist, t)).slice(0, isEmpty ? 5 : 3);
   const showingSearch = query.trim().length >= 2;
   const list = showingSearch ? results : suggestions;
 
