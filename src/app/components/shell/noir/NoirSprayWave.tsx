@@ -16,7 +16,6 @@ type Rgb = [number, number, number];
 type Shape = { k1: number; k2: number; k3: number; o2: number; o3: number };
 
 const BONE: Rgb = [237, 232, 222];
-const BUCKETS = 7;
 const TAU = Math.PI * 2;
 
 function hashString(value: string): number {
@@ -50,52 +49,51 @@ function inkFromColor(color?: string | null): Rgb {
   if (!match) return BONE;
   const { h, s } = rgbToHsl(Number(match[1]), Number(match[2]), Number(match[3]));
   if (s < 0.08) return BONE;
-  return hslToRgb(h, Math.min(0.9, Math.max(0.55, s * 1.2)), 0.6);
+  return hslToRgb(h, Math.min(0.85, Math.max(0.5, s * 1.1)), 0.64);
 }
 
 function shapeFromSeed(seed: string): Shape {
   const rand = mulberry32(hashString(seed));
   return {
-    k1: 1.1 + rand() * 0.6,
-    k2: 2.2 + rand() * 1.1,
-    k3: 0.8 + rand() * 0.7,
+    k1: 1.15 + rand() * 0.5,
+    k2: 2.3 + rand() * 1.0,
+    k3: 0.7 + rand() * 0.6,
     o2: rand() * TAU,
     o3: rand() * TAU,
   };
 }
 
 type Particles = {
+  count: number;
   u: Float32Array;
   g: Float32Array;
-  len: Float32Array;
-  buckets: Uint32Array[];
+  keep: Float32Array;
+  alpha: Uint8Array;
+  strand: Uint8Array;
 };
 
-/** Fixed particle field; only the wave it rides on moves, so the grain stays attached to the form. */
+/** Fixed grain field; only the wave it rides on moves, so the grain stays attached to the form. */
 function createParticles(count: number): Particles {
   const rand = mulberry32(0x6e6f6972);
   const u = new Float32Array(count);
   const g = new Float32Array(count);
-  const len = new Float32Array(count);
-  const bucketLists: number[][] = Array.from({ length: BUCKETS }, () => []);
+  const keep = new Float32Array(count);
+  const alpha = new Uint8Array(count);
+  const strand = new Uint8Array(count);
 
   for (let i = 0; i < count; i++) {
     const ui = rand();
     const r1 = Math.max(1e-6, rand());
-    const r2 = rand();
-    const gi = Math.max(-2.8, Math.min(2.8, Math.sqrt(-2 * Math.log(r1)) * Math.cos(TAU * r2)));
-    const taper = smoothstep(0, 0.14, ui) * Math.pow(1 - smoothstep(0.58, 1, ui), 1.2);
-    const alpha = Math.exp(-gi * gi * 0.32) * taper * (0.3 + 0.7 * rand());
-
+    const gi = Math.max(-3, Math.min(3, Math.sqrt(-2 * Math.log(r1)) * Math.cos(TAU * rand())));
+    const taper = smoothstep(0, 0.1, ui) * Math.pow(1 - smoothstep(0.5, 1, ui), 1.4);
     u[i] = ui;
     g[i] = gi;
-    len[i] = (1 + Math.pow(rand(), 3) * 7) * (0.6 + Math.abs(gi) * 0.45);
-
-    const bucket = Math.min(BUCKETS - 1, Math.floor(alpha * BUCKETS));
-    if (alpha > 0.02) bucketLists[bucket].push(i);
+    keep[i] = rand();
+    alpha[i] = Math.round((50 + rand() * 90) * taper);
+    strand[i] = Math.abs(gi) > 1.1 && rand() < 0.3 ? Math.round(3 + Math.pow(rand(), 2) * 12) : 0;
   }
 
-  return { u, g, len, buckets: bucketLists.map((list) => Uint32Array.from(list)) };
+  return { count, u, g, keep, alpha, strand };
 }
 
 export function NoirSprayWave({ color, seed, isPlaying, className }: NoirSprayWaveProps) {
@@ -128,32 +126,37 @@ export function NoirSprayWave({ color, seed, isPlaying, className }: NoirSprayWa
     let particles: Particles | null = null;
     let width = 0;
     let height = 0;
-    let dpr = 1;
+    let image: ImageData | null = null;
+    let pixels: Uint32Array | null = null;
+    let acc: Uint16Array | null = null;
 
     const ink: Rgb = [...inkTargetRef.current];
     const shape: Shape = { ...shapeTargetRef.current };
+    // Levels only move when the analyser actually hears something; YouTube (cross-origin iframe) never does.
     let bass = 0;
     let mid = 0;
     let high = 0;
     let play = playingRef.current ? 1 : 0;
     let phase = shape.o3;
-    let silentFor = 0;
     let last = performance.now();
     let raf = 0;
     const bins = new Uint8Array(512);
 
+    // One canvas pixel per CSS pixel, scaled up with `pixelated`: the grain is meant to be visible.
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
-      dpr = Math.min(2, window.devicePixelRatio || 1);
-      width = Math.max(1, Math.round(rect.width * dpr));
-      height = Math.max(1, Math.round(rect.height * dpr));
+      width = Math.max(1, Math.round(rect.width));
+      height = Math.max(1, Math.round(rect.height));
       canvas.width = width;
       canvas.height = height;
-      const count = Math.round(Math.min(14000, Math.max(3000, (rect.width * rect.height) / 11)));
-      if (!particles || particles.u.length !== count) particles = createParticles(count);
+      image = ctx.createImageData(width, height);
+      pixels = new Uint32Array(image.data.buffer);
+      acc = new Uint16Array(width * height);
+      const count = Math.round(Math.min(70000, Math.max(15000, width * height * 0.22)));
+      if (!particles || particles.count !== count) particles = createParticles(count);
     };
 
-    const readAudio = (dt: number, now: number) => {
+    const readAudio = (dt: number) => {
       let tb = 0;
       let tm = 0;
       let th = 0;
@@ -167,18 +170,8 @@ export function NoirSprayWave({ color, seed, isPlaying, className }: NoirSprayWa
         tm /= 40 * 255;
         th /= 140 * 255;
       }
-      silentFor = tb + tm + th < 0.01 ? silentFor + dt : 0;
-
-      // YouTube playback isn't routed through Web Audio; fall back to a slow, music-paced pulse.
-      if (playingRef.current && silentFor > 0.6) {
-        const t = now / 1000;
-        tb = 0.5 + 0.2 * Math.sin(t * 2.1) + 0.1 * Math.sin(t * 5.3 + 1.3);
-        tm = 0.42 + 0.12 * Math.sin(t * 3.1 + 0.7);
-        th = 0.3 + 0.1 * Math.sin(t * 7.1 + 2);
-      }
-
       const follow = (current: number, target: number) =>
-        current + (target - current) * (1 - Math.exp(-dt * (target > current ? 16 : 3.2)));
+        current + (target - current) * (1 - Math.exp(-dt * (target > current ? 18 : 4)));
       bass = follow(bass, tb);
       mid = follow(mid, tm);
       high = follow(high, th);
@@ -186,40 +179,52 @@ export function NoirSprayWave({ color, seed, isPlaying, className }: NoirSprayWa
     };
 
     const draw = () => {
-      if (!particles) return;
-      ctx.clearRect(0, 0, width, height);
+      if (!particles || !image || !pixels || !acc) return;
+      acc.fill(0);
 
       const cy = height / 2;
-      const amp = height * (0.1 + 0.11 * bass);
-      const thick = height * (0.05 + 0.025 * mid);
-      const strand = dpr * (1 + high * 1.8);
-      const fiber = Math.max(1, dpr * 0.75);
-      const { u, g, len, buckets } = particles;
-      const [r, gr, b] = ink.map(Math.round);
+      const amp = height * (0.17 + 0.08 * bass);
+      const thick = height * (0.07 + 0.03 * mid);
+      const strandScale = 1 + high * 1.5;
+      const { count, u, g, keep, alpha, strand } = particles;
+      const w = width;
+      const h = height;
 
-      for (let k = 0; k < BUCKETS; k++) {
-        const list = buckets[k];
-        if (list.length === 0) continue;
-        ctx.fillStyle = `rgba(${r},${gr},${b},${((k + 0.5) / BUCKETS) * 0.9})`;
-        ctx.beginPath();
-        for (let j = 0; j < list.length; j++) {
-          const i = list[j];
-          const ui = u[i];
-          const x = ui * width;
-          const env = 0.55 + 0.45 * smoothstep(0, 0.35, ui);
-          const yc =
-            cy +
-            amp *
-              env *
-              (0.72 * Math.sin(shape.k1 * ui * TAU - phase) +
-                0.28 * Math.sin(shape.k2 * ui * TAU + phase * 0.63 + shape.o2));
-          const t = thick * (0.62 + 0.38 * Math.sin(shape.k3 * ui * TAU + phase * 0.41 + shape.o3));
-          const y = yc + g[i] * t;
-          const h = len[i] * strand;
-          ctx.rect(x, g[i] > 0 ? y : y - h, fiber, h);
+      for (let i = 0; i < count; i++) {
+        const ui = u[i];
+        const wave = Math.sin(shape.k1 * ui * TAU - phase);
+        // Crests are dense, zero crossings are airy (like the reference spray).
+        if (keep[i] > 0.4 + 0.6 * Math.abs(wave) + 0.15 * bass) continue;
+        const env = 0.6 + 0.4 * smoothstep(0, 0.3, ui);
+        const yc = cy + amp * env * (0.78 * wave + 0.22 * Math.sin(shape.k2 * ui * TAU + phase * 0.6 + shape.o2));
+        const t = thick * (0.7 + 0.3 * Math.sin(shape.k3 * ui * TAU + phase * 0.4 + shape.o3));
+        const gi = g[i];
+        const x = (ui * w) | 0;
+        let y = (yc + gi * t) | 0;
+        if (x < 0 || x >= w) continue;
+        const a = alpha[i];
+        if (y >= 0 && y < h) acc[y * w + x] += a;
+
+        const len = (strand[i] * strandScale) | 0;
+        if (len > 0) {
+          const dir = gi > 0 ? 1 : -1;
+          for (let s = 1; s <= len; s++) {
+            y += dir;
+            if (y < 0 || y >= h) break;
+            acc[y * w + x] += (a * (1 - s / (len + 1)) * 0.7) | 0;
+          }
         }
-        ctx.fill();
       }
+
+      const r = Math.round(ink[0]);
+      const gr = Math.round(ink[1]);
+      const b = Math.round(ink[2]);
+      const rgb = (b << 16) | (gr << 8) | r;
+      for (let p = 0; p < acc.length; p++) {
+        const v = acc[p];
+        pixels[p] = v === 0 ? 0 : ((v > 255 ? 255 : v) << 24) | rgb;
+      }
+      ctx.putImageData(image, 0, 0);
     };
 
     const ease = (dt: number) => {
@@ -237,9 +242,9 @@ export function NoirSprayWave({ color, seed, isPlaying, className }: NoirSprayWa
     const frame = (now: number) => {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      readAudio(dt, now);
+      readAudio(dt);
       ease(dt);
-      phase += dt * (0.5 + bass * 1.2) * play;
+      phase += dt * (0.35 + bass * 1.4) * play;
       draw();
       raf = requestAnimationFrame(frame);
     };
@@ -247,9 +252,6 @@ export function NoirSprayWave({ color, seed, isPlaying, className }: NoirSprayWa
     const drawStatic = () => {
       ink.splice(0, 3, ...inkTargetRef.current);
       Object.assign(shape, shapeTargetRef.current);
-      bass = 0.5;
-      mid = 0.5;
-      high = 0.3;
       draw();
     };
 
@@ -274,5 +276,5 @@ export function NoirSprayWave({ color, seed, isPlaying, className }: NoirSprayWa
     };
   }, []);
 
-  return <canvas ref={canvasRef} className={className} aria-hidden />;
+  return <canvas ref={canvasRef} className={className} style={{ imageRendering: 'pixelated' }} aria-hidden />;
 }
