@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { ChevronUp, Compass, Heart, Plus, Shuffle, X } from 'lucide-react';
+import { ChevronUp, Compass, Heart, Plus, Radio, Shuffle, X } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion, withReducedMotion } from '../../../utils/motionPresets';
@@ -23,6 +23,8 @@ type NoirNowPlayingViewProps = {
   colors?: { primary: string; secondary: string; accent: string } | null;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
+  /** Start a radio station from the current song. */
+  onStartRadio?: () => void;
   favoriteTracks?: SearchResult[];
   quickAddTracks?: SearchResult[];
   onAddToQueue?: (track: SearchResult, options?: { silent?: boolean }) => void;
@@ -66,6 +68,7 @@ export function NoirNowPlayingView({
   colors,
   isFavorite = false,
   onToggleFavorite,
+  onStartRadio,
   favoriteTracks = [],
   quickAddTracks = [],
   onAddToQueue,
@@ -263,6 +266,17 @@ export function NoirNowPlayingView({
             <h1 className="noir-now-playing-title">{song.title}</h1>
             <div className="mt-2 flex items-center gap-3">
               <p className="noir-now-playing-artist !mt-0">{song.artist}</p>
+              {onStartRadio && (
+                <button
+                  type="button"
+                  onClick={onStartRadio}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white elva-focus-ring"
+                  aria-label={strings.songMenu.startRadio}
+                  title={strings.songMenu.startRadio}
+                >
+                  <Radio className="h-4 w-4" strokeWidth={1.75} />
+                </button>
+              )}
               {onToggleFavorite && (
                 <button
                   type="button"

@@ -61,6 +61,7 @@ interface LandingPageProps {
   handlePlayPlaylist: (tracks: SearchResult[], label?: string, startIndex?: number) => void;
   handlePlayNext: (song: SearchResult) => void;
   handleToggleFavorite: (song: SearchResult) => void;
+  handleStartRadio?: (song: SearchResult) => void;
   handleViewArtistProfile: (artist: VerifiedArtist) => void;
   handleViewArtistByName: (name: string, channelId?: string) => void;
   handleUrlSubmit: (url: string) => void;
@@ -137,6 +138,7 @@ export function LandingPage({
   handlePlayPlaylist,
   handlePlayNext,
   handleToggleFavorite,
+  handleStartRadio,
   handleViewArtistProfile,
   handleViewArtistByName,
   handleUrlSubmit,
@@ -313,6 +315,7 @@ export function LandingPage({
                     handlePlayPlaylist(artistTracks, selectedArtist.name, index);
                   }
                 }}
+                onStartRadio={handleStartRadio}
               />
             </NoirDetailOverlay>
           )}

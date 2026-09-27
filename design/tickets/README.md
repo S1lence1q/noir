@@ -50,7 +50,7 @@ Exact behavior, layout, copy, tokens, states.
 | Id | Title | Size | Golden | Owner |
 |----|-------|------|--------|-------|
 | T01 | Layout grid, type hierarchy, accent token — **DONE** | M | | Luna |
-| T03 | Shared song menu + right-click — **DONE** (`components/NoirSongMenu.tsx`: `openSongMenu()` + one `NoirSongMenuHost`; reviewed, surface → `.noir-menu`). Start radio disabled until radio exists | M | | Luna |
+| T03 | Shared song menu + right-click — **DONE** (`components/NoirSongMenu.tsx`: `openSongMenu()` + one `NoirSongMenuHost`; reviewed, surface → `.noir-menu`). Start radio wired via T11 | M | | Luna |
 | T04 | Playlists redesign | L | | Opus |
 | T05b | Next up header + "queue ends soon" | S | | Luna |
 | T06 | Dither covers — **DONE** on playlist/chart headers + Discover; Favorites header + sidebar thumbs move to T04 | M | | Opus |

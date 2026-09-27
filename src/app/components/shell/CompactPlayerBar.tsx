@@ -7,6 +7,7 @@ import {
   ListMusic,
   Pause,
   Play,
+  Radio,
   SkipBack,
   SkipForward,
   Volume1,
@@ -15,6 +16,7 @@ import {
 } from 'lucide-react';
 import { ShellPlaybackState } from './types';
 import { EASE_PREMIUM, prefersReducedMotion } from '../../utils/motionPresets';
+import { strings } from '../../constants/strings';
 
 type SongPreview = {
   title: string;
@@ -31,6 +33,7 @@ type CompactPlayerBarProps = {
   onExpand: () => void;
   onOpenQueue?: () => void;
   onToggleFavorite?: () => void;
+  onStartRadio?: () => void;
 };
 
 function formatTime(seconds: number): string {
@@ -64,6 +67,7 @@ export function CompactPlayerBar({
   onExpand,
   onOpenQueue,
   onToggleFavorite,
+  onStartRadio,
 }: CompactPlayerBarProps) {
   const reduced = prefersReducedMotion();
   const songKey = `${song.title}::${song.artist}::${song.artworkUrl}`;
@@ -216,6 +220,17 @@ export function CompactPlayerBar({
               </AnimatePresence>
             </motion.span>
           </button>
+          {onStartRadio && (
+            <button
+              type="button"
+              onClick={onStartRadio}
+              className="noir-compact-ctrl shrink-0"
+              aria-label={strings.songMenu.startRadio}
+              title={strings.songMenu.startRadio}
+            >
+              <Radio className="h-4 w-4" strokeWidth={1.75} />
+            </button>
+          )}
           {onToggleFavorite && (
             <button
               type="button"

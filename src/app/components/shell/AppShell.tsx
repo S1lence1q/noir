@@ -31,6 +31,7 @@ type AppShellProps = {
   onOpenPlaylist?: (playlistId: string) => void;
   onDropSongToPlaylist?: (playlistId: string, track: SearchResult) => void;
   onToggleFavorite?: () => void;
+  onStartRadio?: () => void;
 };
 
 export function AppShell({
@@ -54,6 +55,7 @@ export function AppShell({
   onOpenPlaylist,
   onDropSongToPlaylist,
   onToggleFavorite,
+  onStartRadio,
 }: AppShellProps) {
   const reduced = prefersReducedMotion();
 
@@ -115,6 +117,7 @@ export function AppShell({
               onExpand={onExpandPlayer}
               onOpenQueue={onOpenQueue}
               onToggleFavorite={onToggleFavorite}
+              onStartRadio={onStartRadio}
             />
           ) : null}
         </AnimatePresence>

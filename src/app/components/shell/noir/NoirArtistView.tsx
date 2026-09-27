@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Play, Shuffle } from 'lucide-react';
+import { Play, Radio, Shuffle } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
 import { NoirRankedSongRow } from './NoirRankedSongRow';
 import { NoirDitherCover } from './NoirDitherCover';
@@ -20,6 +20,7 @@ export type NoirArtistViewProps = {
   onToggleFavorite?: (track: SearchResult) => void;
   onPlayAll?: () => void;
   onPlayFromIndex?: (index: number) => void;
+  onStartRadio?: (track: SearchResult) => void;
 };
 
 const POPULAR_COUNT = 5;
@@ -57,6 +58,7 @@ export function NoirArtistView({
   onToggleFavorite,
   onPlayAll,
   onPlayFromIndex,
+  onStartRadio,
 }: NoirArtistViewProps) {
   const reduced = prefersReducedMotion();
   const [showAll, setShowAll] = useState(false);
@@ -124,6 +126,21 @@ export function NoirArtistView({
             >
               <Shuffle className="h-[18px] w-[18px]" strokeWidth={1.9} />
             </button>
+            {onStartRadio && (
+              <button
+                type="button"
+                disabled={unique.length === 0}
+                onClick={() => {
+                  const seed = unique[0]?.track;
+                  if (seed) onStartRadio(seed);
+                }}
+                className="noir-artist-icon elva-focus-ring"
+                aria-label={strings.artist.startRadio}
+                title={strings.artist.startRadio}
+              >
+                <Radio className="h-[18px] w-[18px]" strokeWidth={1.9} />
+              </button>
+            )}
           </div>
         </div>
       </motion.section>

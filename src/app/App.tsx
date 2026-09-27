@@ -864,6 +864,19 @@ export default function App() {
     }
   };
 
+  const songDataAsSearchResult = (): SearchResult | null => {
+    if (!songData) return null;
+    return {
+      id: songData.id || songData.videoId || songData.audioUrl || `${songData.title}-${songData.artist}`,
+      title: songData.title,
+      artist: songData.artist,
+      thumbnail: songData.artworkUrl,
+      videoId: songData.videoId || '',
+      audioUrl: songData.audioUrl,
+      channelId: songData.channelId,
+    };
+  };
+
   const handleStartRadio = async (seed: SearchResult) => {
     noirToast({ text: strings.radio.starting, cover: seed.thumbnail });
     try {
@@ -885,6 +898,11 @@ export default function App() {
       console.warn('[radio] Start radio failed', error);
       noirToast({ text: strings.radio.failed });
     }
+  };
+
+  const handleStartRadioFromPlayer = () => {
+    const seed = songDataAsSearchResult();
+    if (seed) void handleStartRadio(seed);
   };
 
   const handleAppendRadio = async (seed: SearchResult) => {
@@ -1480,6 +1498,7 @@ export default function App() {
                     })
                 : undefined
             }
+            onStartRadio={songData ? handleStartRadioFromPlayer : undefined}
             nowPlaying={
               songData ? (
                 <NoirNowPlayingView
@@ -1501,6 +1520,7 @@ export default function App() {
                       channelId: songData.channelId,
                     })
                   }
+                  onStartRadio={handleStartRadioFromPlayer}
                   favoriteTracks={favorites}
                   quickAddTracks={recentlyPlayed}
                   onAddToQueue={handleAddToQueue}
@@ -1562,6 +1582,7 @@ export default function App() {
               handlePlayPlaylist={handlePlayPlaylist}
               handlePlayNext={handlePlayNext}
               handleToggleFavorite={handleToggleFavorite}
+              handleStartRadio={handleStartRadio}
               handleViewArtistProfile={searchLogic.handleViewArtistProfile}
               handleViewArtistByName={searchLogic.handleViewArtistByName}
               handleUrlSubmit={searchLogic.handleUrlSubmit}

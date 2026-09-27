@@ -18,6 +18,7 @@ Start radio from any song; when the queue is about to end, keep playing similar 
 - `src/app/components/shell/noir/NoirSettingsView.tsx`
 
 ## Acceptance
-- [ ] Start radio from ··· menu plays station
+- [x] Start radio from ··· menu plays station
+- [x] Visible radio control on compact bar, Now Playing, artist hero
 - [ ] Queue-ends Keep playing appends similar tracks
 - [ ] Autoplay setting respected

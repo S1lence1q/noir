@@ -56,6 +56,7 @@ export const strings = {
     songCount: (n: number) => (n === 1 ? '1 song' : `${n} songs`),
     play: 'Play',
     shuffle: 'Shuffle',
+    startRadio: 'Start radio',
     popular: 'Popular',
     showAll: (n: number) => `Show all ${n}`,
     showLess: 'Show less',

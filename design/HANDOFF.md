@@ -52,7 +52,7 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 ## Next (in order)
 
 1. **DONE:** T09 (`services/listening/*`, `useListeningRecorder`, `window.__noirTaste()`; local files keyed by `local:title::artist` since blob URLs change per session), T10 (`services/musicGraph/*`, `window.__noirGraph`, key in `.env`), T03 (`NoirSongMenu.tsx`). **Luna next:** **T05b**, **T07**, drag-song-to-sidebar-playlist, ⌘N. Dev note: hot reload mid-song records an extra short event; clear play history once before real use.
-2. **Opus (visual):** ~~spray wave~~ parked. ~~Discover~~ DONE. ~~Mixes~~ DONE. ~~Radio (T11)~~ **DONE** (`services/radio/buildRadio.ts`, Start radio in menu, autoplay append + Settings). Next: **artist identity**; then Stats/Replay or F7 cold start.
+2. **Opus (visual):** ~~spray wave~~ parked. ~~Discover~~ DONE. ~~Mixes~~ DONE. ~~Radio (T11)~~ **DONE** (`services/radio/buildRadio.ts`, Start radio in ··· menu + radio icon on compact bar / Now Playing / artist hero, autoplay append + Settings). Next: **artist identity**; then Stats/Replay or F7 cold start.
 3. User has a list of small tweaks to bring — ask for it.
 
 ## Do / don't
