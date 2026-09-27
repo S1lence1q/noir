@@ -40,6 +40,8 @@ export const strings = {
     closeNowPlaying: 'Close now playing',
     upNext: 'Up next',
     upNextOpen: 'Viewing up next',
+    showUpNext: 'Show up next',
+    hideUpNext: 'Hide up next',
   },
   queue: {
     upNext: 'Up Next',

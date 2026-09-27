@@ -269,6 +269,29 @@ export default function App() {
     isLyricsSynced,
   } = useLyrics(songData ?? EMPTY_LYRICS_SONG, shellPlayback.currentTime);
 
+  const [sidePanelOpen, setSidePanelOpen] = useState(() => {
+    try {
+      return localStorage.getItem('elva_np_side_panel') !== '0';
+    } catch {
+      return true;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem('elva_np_side_panel', sidePanelOpen ? '1' : '0');
+    } catch {}
+  }, [sidePanelOpen]);
+
+  const toggleQueueRail = () => {
+    if (!songData) return;
+    if (!nowPlayingOpen) {
+      setSidePanelOpen(true);
+      setNowPlayingOpen(true);
+      return;
+    }
+    setSidePanelOpen((open) => !open);
+  };
+
   const backToHomeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [colorsSongData, setColorsSongData] = useState<any>(null);
   const colorsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -1581,11 +1604,9 @@ export default function App() {
               if (!songData) return;
               setNowPlayingOpen((open) => !open);
             }}
-            onOpenQueue={() => {
-              if (!songData) return;
-              setNowPlayingOpen(true);
-            }}
+            onToggleQueue={toggleQueueRail}
             showCompactPlayer
+            queueRailOpen={sidePanelOpen}
             queueCount={(() => {
               const activeKey = songData ? getPlaybackSongKey(songData) : null;
               if (!activeKey) return queue.length;
@@ -1672,6 +1693,7 @@ export default function App() {
                   isLoadingLyrics={isLoadingLyrics}
                   isLyricsSynced={isLyricsSynced}
                   currentLyricIndex={currentLyricIndex}
+                  sidePanelOpen={sidePanelOpen}
                 />
               ) : undefined
             }

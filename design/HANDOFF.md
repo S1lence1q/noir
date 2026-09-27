@@ -48,7 +48,7 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 - **T08** Mark: sidebar + Library empty spray + search loading spin
 - **T09–T12, T11:** listening/taste, musicGraph, radio/autoplay, daily mixes + Home
 - **T14 A+B:** cover flight bar ↔ canvas; bar identity hidden while open; atmosphere after landing
-- **T14 C (partial):** `Playing from {source}` under artist (clickable when resolvable). Artist-profile play uses **Playing from Popular**. `queueSource` cleared when starting a song **outside** the current queue. Similar artists **parked**. Soft Shuffle in Next up. **Lyrics: toggle + `L` swap Next up ↔ lyrics column** (reuse `useLyrics`).
+- **T14 C:** `Playing from {source}` (Popular from artist). Soft Shuffle. **Lyrics beside cover** (`L` / meta link). **Queue bar button toggles** Next up rail. Similar parked; D parked.
 - **Home:** greeting + Continue + dithered object, Jump back in, library shelf, artist circles
 - **Discover:** taste feed shelves + chart cards (no redundant Top 10 under Charts)
 - **Artist page:** dithered poster, Popular, dedupe; identity via Last.fm/MusicBrainz/Deezer; reopen same profile does not reload
@@ -76,7 +76,7 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 | Graphics | `NoirDitherCover.tsx`, `NoirFavoritesCover.tsx`, `NoirMark.tsx`, `utils/ditherCover.ts` |
 | Feedback | `NoirToast.tsx` (`noirToast`), `utils/hudUtils.ts` (legacy forwarder) |
 | Data | `utils/playlistStore.ts`, `utils/elvaStorage.ts`, `utils/localTrackStorage.ts`, `services/listening/*`, `services/musicGraph/*`, `services/discover/discoverFeed.ts`, `services/mixes/dailyMixes.ts`, `services/radio/buildRadio.ts`, `services/artistIdentity/*` |
-| Lyrics | `hooks/useLyrics.ts`, `utils/lyricsUtils.ts`, `shell/noir/NoirLyricsColumn.tsx` (NP column) |
+| Lyrics | `hooks/useLyrics.ts`, `utils/lyricsUtils.ts`, `shell/noir/NoirLyricsColumn.tsx` (beside cover in NP) |
 | Tokens / motion / copy | `src/styles/noir-shell.css`, `utils/motionPresets.ts`, `constants/strings.ts` |
 | Orchestration | `src/app/App.tsx` (listens to `noir-open-favorites`, `noir-open-playlist`, `elva-open-search-palette`) |
 | Hidden audio engine | `src/app/components/MusicPlayer.tsx` |

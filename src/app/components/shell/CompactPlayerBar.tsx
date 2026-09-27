@@ -30,10 +30,13 @@ type CompactPlayerBarProps = {
   song: SongPreview;
   playback: ShellPlaybackState;
   expanded?: boolean;
+  /** True when the Now Playing up-next rail is visible. */
+  queueRailOpen?: boolean;
   queueCount?: number;
   isFavorite?: boolean;
   onExpand: () => void;
-  onOpenQueue?: () => void;
+  /** Toggle up-next rail (opens NP if needed). */
+  onToggleQueue?: () => void;
   onToggleFavorite?: () => void;
   onStartRadio?: () => void;
   onOpenArtist?: () => void;
@@ -65,10 +68,11 @@ export function CompactPlayerBar({
   song,
   playback,
   expanded = false,
+  queueRailOpen = false,
   queueCount = 0,
   isFavorite = false,
   onExpand,
-  onOpenQueue,
+  onToggleQueue,
   onToggleFavorite,
   onStartRadio,
   onOpenArtist,
@@ -377,25 +381,23 @@ export function CompactPlayerBar({
       <div className="noir-compact-right">
         <button
           type="button"
-          onClick={() => {
-            if (!expanded) onOpenQueue?.();
-          }}
-          className={`noir-compact-queue${expanded ? ' noir-compact-queue--active' : ''}`}
+          onClick={() => onToggleQueue?.()}
+          className={`noir-compact-queue${expanded && queueRailOpen ? ' noir-compact-queue--active' : ''}`}
+          aria-pressed={expanded && queueRailOpen}
           aria-label={
-            expanded
-              ? strings.compact.upNextOpen
+            expanded && queueRailOpen
+              ? strings.compact.hideUpNext
               : upNextCount > 0
-                ? `${strings.compact.upNext}, ${upNextCount}`
-                : strings.compact.upNext
+                ? `${strings.compact.showUpNext}, ${upNextCount}`
+                : strings.compact.showUpNext
           }
           title={
-            expanded
-              ? strings.compact.upNextOpen
+            expanded && queueRailOpen
+              ? strings.compact.hideUpNext
               : upNextCount > 0
                 ? `${upNextCount} up next`
-                : strings.compact.upNext
+                : strings.compact.showUpNext
           }
-          aria-current={expanded ? 'true' : undefined}
         >
           <ListMusic className="h-4 w-4 shrink-0" strokeWidth={1.75} />
           {upNextCount > 0 && (

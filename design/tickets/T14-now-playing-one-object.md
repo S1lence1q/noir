@@ -26,9 +26,9 @@ Opening Now Playing feels like the song you're hearing moves up and opens. The s
 
 ### C. Content the bar can't show (after T10)
 - ~~Line under the source: `Similar: A, B, C`~~ **Parked (2026-09-27):** not permanent in the title block. Revisit as artist-page “Fans also like” or on-demand in NP.
-- **Lyrics (DONE — 2026-09-27):**
-  - Side panel modes: **Next up** | **Lyrics** (tabs in column header). No floating top-right button.
-  - Panel can **collapse**; peek control reopens. `L` opens NP + lyrics mode (+ expands panel).
+- **Lyrics (DONE — revised 2026-09-27):**
+  - Lyrics sit **beside the cover** in the NP stage (reference layout). Toggle via `L` or discreet “Show/Hide lyrics” under meta — no floating top-right control.
+  - Right rail is **Next up only**; compact-bar queue button **toggles** the rail open/closed (opens NP if needed).
   - Reuses `useLyrics` + LRCLIB / custom; seek via `elva-seek`. UI in `NoirLyricsColumn`.
   - States: loading, synced scroll, plain, empty — `strings.lyrics`.
   - Reduced motion: instant scroll; still readable.
@@ -56,8 +56,9 @@ Opening Now Playing feels like the song you're hearing moves up and opens. The s
 - [x] Closing reverses it; transport/scrubber don't jump; no ghost title over canvas
 - [x] Title not shown twice while open
 - [x] Playing from under artist when source exists
-- [x] Lyrics toggle (`L` + button) swaps Next up ↔ lyrics in the right column
+- [x] Lyrics beside cover (`L` + meta link); queue rail separate
 - [x] Synced / plain / empty / loading states work
+- [x] Compact-bar queue button toggles up-next rail
 - [x] Reduced motion: no flying cover; lyrics still usable
 
 ## Don't
