@@ -5,7 +5,12 @@ import {
   resolveArtistIdentity,
   type ArtistIdentity,
 } from '../services/artistIdentity';
-import { getArtistTopTracks } from '../services/musicGraph';
+import {
+  getArtistTopTracks,
+  getTrackImage,
+  type GraphTrack,
+} from '../services/musicGraph';
+import { getDeezerArtistTopTracks } from '../services/musicGraph/deezer';
 import { graphTrackToSearchResult } from '../services/discover/discoverFeed';
 import { normalizeName } from '../services/musicGraph/normalize';
 import type { SearchResult } from '../types';
@@ -14,7 +19,7 @@ function trackKey(track: SearchResult): string {
   return `${normalizeName(track.artist)}::${normalizeName(track.title)}`;
 }
 
-/** Prefer playable (videoId) rows when merging Popular + discography. */
+/** Prefer playable (videoId) rows when merging Popular + discography; keep any real cover. */
 export function mergeArtistTrackLists(
   preferred: SearchResult[],
   incoming: SearchResult[]
@@ -30,8 +35,11 @@ export function mergeArtistTrackLists(
       map.set(key, track);
       continue;
     }
+    const thumbnail = existing.thumbnail?.trim() || track.thumbnail?.trim() || '';
     if (!existing.videoId && track.videoId) {
-      map.set(key, { ...existing, ...track, thumbnail: track.thumbnail || existing.thumbnail });
+      map.set(key, { ...existing, ...track, thumbnail: track.thumbnail?.trim() || thumbnail });
+    } else if (!existing.thumbnail?.trim() && track.thumbnail?.trim()) {
+      map.set(key, { ...existing, thumbnail: track.thumbnail });
     }
   }
   const preferredKeys = new Set(preferred.map(trackKey));
@@ -125,13 +133,45 @@ export const loadArtistDiscographyWithCache = async (
   return tracks.length > 0 ? tracks : cached?.tracks || [];
 };
 
-/** Fast Popular list from Last.fm/Deezer — playable after YouTube resolve on click. */
+/** Fast Popular list from Last.fm/Deezer — enrich missing art via Deezer covers. */
 export async function loadArtistPopularTracks(
   artistName: string,
   limit = 10
 ): Promise<SearchResult[]> {
   const tracks = await getArtistTopTracks(artistName, limit);
-  return tracks.map((track) =>
+
+  // Last.fm tops rarely ship real artwork; overlay Deezer album covers by title, then per-track search.
+  let deezerByTitle = new Map<string, GraphTrack>();
+  if (tracks.some((track) => !track.image)) {
+    try {
+      const deezerTops = await getDeezerArtistTopTracks(artistName, Math.max(limit, 25));
+      deezerByTitle = new Map(
+        deezerTops
+          .filter((track) => track.image)
+          .map((track) => [normalizeName(track.title) || track.title.toLowerCase(), track])
+      );
+    } catch {
+      // optional
+    }
+  }
+
+  const withArt = await Promise.all(
+    tracks.map(async (track) => {
+      if (track.image) return track;
+      const matched = deezerByTitle.get(normalizeName(track.title) || track.title.toLowerCase());
+      if (matched?.image) {
+        return { ...track, image: matched.image, durationSec: track.durationSec ?? matched.durationSec };
+      }
+      try {
+        const image = await getTrackImage(track.title, track.artist);
+        return image ? { ...track, image } : track;
+      } catch {
+        return track;
+      }
+    })
+  );
+
+  return withArt.map((track) =>
     graphTrackToSearchResult(track, `popular:${normalizeName(artistName)}`)
   );
 }
