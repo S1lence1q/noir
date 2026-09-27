@@ -55,7 +55,7 @@ Exact behavior, layout, copy, tokens, states.
 | T05b | Next up header + "queue ends soon" | S | | Luna |
 | T06 | Dither covers — **DONE** on playlist/chart headers + Discover; Favorites header + sidebar thumbs move to T04 | M | | Opus |
 | T07 | Asset cleanup (hero part of step 1 done in T06) | S | | Luna |
-| T09 | Listening events + taste profile | M | | Luna (high) |
+| T09 | Listening events + taste profile — **DONE** (reviewed; tab-hide fix). `source` is only `local`/`queue` for now; real source context comes with T14 C "Playing from" | M | | Luna (high) |
 | T10 | musicGraph service | L | | Luna (high) |
 | T04 | Playlists — **DONE** (side add-panel, fly-to-list, entrance). Open: drag song onto sidebar playlist, ⌘N | L | | Opus → Luna for the open bits |
 | T14 | Now Playing: one object — **A+B DONE** (cover flies bar↔canvas, glow removed, centered). D spray wave **parked** (decision 005). Open: C "Playing from"/similar (after T10) | M | | Opus |

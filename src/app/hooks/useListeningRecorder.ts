@@ -94,12 +94,16 @@ export function useListeningRecorder(
         ? Math.round(durationRef.current * 1000)
         : active.event.durationMs;
     const listenedMs = Math.round(active.listenedMs);
+    // Provisional outcome, so a refresh or crash mid-song still leaves a correct event.
+    const outcome = getOutcome(listenedMs, durationMs);
     active.event.durationMs = durationMs;
     active.event.listenedMs = listenedMs;
+    active.event.outcome = outcome;
     enqueue(() =>
       updateListeningEvent(active.event.id, {
         durationMs,
         listenedMs,
+        outcome,
       })
     );
   };
@@ -247,12 +251,11 @@ export function useListeningRecorder(
   }, [playback.currentTime, playback.duration]);
 
   useEffect(() => {
+    // Music keeps playing in a hidden tab, so hiding only saves progress; the play itself continues.
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        finishEvent();
-      } else if (isPlayingRef.current && currentSongKey) {
-        startEvent();
-      }
+      if (document.visibilityState !== 'hidden') return;
+      flushPlayingTime(Date.now(), isPlayingRef.current);
+      persistActive();
     };
     const handlePageHide = () => finishEvent();
 

@@ -51,7 +51,7 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 
 ## Next (in order)
 
-1. **Luna (high): T09** listening engine, then **T10** musicGraph (needs free Last.fm key in `.env`). Luna also: **T03** shared song menu (suggested design: one global menu host in App opened via `openSongMenu(track, event)` so right-click and "…" are identical everywhere), **T05b**, **T07**, drag-song-to-sidebar-playlist, ⌘N.
+1. **Luna (high): T09 DONE** (`services/listening/*`, `useListeningRecorder`, dev helper `window.__noirTaste()`), next **T10** musicGraph (needs free Last.fm key in `.env`). Luna also: **T03** shared song menu (suggested design: one global menu host in App opened via `openSongMenu(track, event)` so right-click and "…" are identical everywhere), **T05b**, **T07**, drag-song-to-sidebar-playlist, ⌘N.
 2. **Opus (visual):** ~~spray wave in Now Playing~~ **parked 2026-09-27** (see [005](./decisions/005-no-now-playing-wave.md)). After T10: Discover feed shelves (new releases, artists like X, genres) and **mixes with generated covers**; then Stats/Replay (Bone cards).
 3. User has a list of small tweaks to bring — ask for it.
 
