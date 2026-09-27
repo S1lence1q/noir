@@ -52,7 +52,7 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 ## Next (in order)
 
 1. **Luna (high): T09** listening engine, then **T10** musicGraph (needs free Last.fm key in `.env`). Luna also: **T03** shared song menu (suggested design: one global menu host in App opened via `openSongMenu(track, event)` so right-click and "…" are identical everywhere), **T05b**, **T07**, drag-song-to-sidebar-playlist, ⌘N.
-2. **Opus (visual):** spray wave in Now Playing (can start now); after T10: Discover feed shelves (new releases, artists like X, genres) and **mixes with generated covers**; then Stats/Replay (Bone cards).
+2. **Opus (visual):** spray wave in Now Playing — **v1 built** (`NoirSprayWave.tsx`: fixed particle field of vertical fibers riding a two-sine wave, color = lifted `colors.primary` or Bone for greyscale, bass → amplitude/speed, mid → thickness, high → strand length; YouTube isn't routed through Web Audio so it falls back to a synthetic pulse while playing; glides to rest when paused; static in reduced motion; emerges from behind the cover to the right, never behind text). Tune from screenshots. After T10: Discover feed shelves (new releases, artists like X, genres) and **mixes with generated covers**; then Stats/Replay (Bone cards).
 3. User has a list of small tweaks to bring — ask for it.
 
 ## Do / don't
@@ -67,7 +67,7 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 |------|------|
 | Shell | `src/app/components/shell/AppShell.tsx`, `AppSidebar.tsx`, `CompactPlayerBar.tsx` |
 | Views | `src/app/components/shell/noir/*` (Home, Discover, Library, UserPlaylistPage, PlaylistView, ArtistView, NowPlaying, Settings, SearchPalette) |
-| Graphics | `NoirDitherCover.tsx`, `NoirFavoritesCover.tsx`, `NoirMark.tsx`, `utils/ditherCover.ts` |
+| Graphics | `NoirDitherCover.tsx`, `NoirFavoritesCover.tsx`, `NoirMark.tsx`, `NoirSprayWave.tsx`, `utils/ditherCover.ts` |
 | Feedback | `NoirToast.tsx` (`noirToast`), `utils/hudUtils.ts` (legacy forwarder) |
 | Data | `utils/playlistStore.ts`, `utils/elvaStorage.ts`, `utils/localTrackStorage.ts` |
 | Tokens / motion / copy | `src/styles/noir-shell.css`, `utils/motionPresets.ts`, `constants/strings.ts` |

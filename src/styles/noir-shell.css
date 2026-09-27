@@ -847,8 +847,25 @@
   padding: 40px 32px 40px 48px;
 }
 
+.noir-now-playing-art-row {
+  position: relative;
+  display: flex;
+}
+
+/* Sits within the cover's height so it never runs behind the title. */
+.noir-now-playing-wave {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(min(100%, 52vh, 440px) * 0.3);
+  right: 0;
+  z-index: 0;
+}
+
 .noir-now-playing-art-slot {
   position: relative;
+  z-index: 1;
   width: min(100%, 52vh, 440px);
   aspect-ratio: 1;
   overflow: hidden;

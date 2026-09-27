@@ -5,6 +5,7 @@ import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion, withReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
 import { NoirMark } from './NoirMark';
+import { NoirSprayWave } from './NoirSprayWave';
 import { noirToast } from './NoirToast';
 
 type NowPlayingSong = {
@@ -19,6 +20,7 @@ type NoirNowPlayingViewProps = {
   song: NowPlayingSong;
   queue: SearchResult[];
   colors?: { primary: string; secondary: string; accent: string } | null;
+  isPlaying?: boolean;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
   favoriteTracks?: SearchResult[];
@@ -56,6 +58,7 @@ export function NoirNowPlayingView({
   song,
   queue,
   colors,
+  isPlaying = false,
   isFavorite = false,
   onToggleFavorite,
   favoriteTracks = [],
@@ -133,6 +136,16 @@ export function NoirNowPlayingView({
       </motion.div>
 
       <div className="noir-now-playing-stage">
+        <div className="noir-now-playing-art-row">
+        <motion.div
+          className="noir-now-playing-wave"
+          aria-hidden
+          initial={{ opacity: 0, x: reduced ? 0 : -24 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: reduced ? 0.2 : 0.9, ease: sheetEase, delay: reduced ? 0 : 0.45 }}
+        >
+          <NoirSprayWave color={colors?.primary} seed={songKey} isPlaying={isPlaying} className="h-full w-full" />
+        </motion.div>
         <motion.div
           layoutId={reduced ? undefined : 'np-cover'}
           className="noir-now-playing-art-slot"
@@ -156,6 +169,7 @@ export function NoirNowPlayingView({
             />
           </AnimatePresence>
         </motion.div>
+        </div>
         <motion.div
           className="min-w-0"
           initial={reduced ? { opacity: 0 } : { opacity: 0, y: 10 }}

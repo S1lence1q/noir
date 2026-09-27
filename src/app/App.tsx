@@ -1383,6 +1383,7 @@ export default function App() {
                   song={songData}
                   queue={queue}
                   colors={songColors}
+                  isPlaying={isMiniPlaying}
                   isFavorite={isTrackFavorite(favorites, {
                     id: songData.id || songData.videoId || songData.audioUrl,
                     videoId: songData.videoId,

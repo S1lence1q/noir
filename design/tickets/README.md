@@ -58,7 +58,7 @@ Exact behavior, layout, copy, tokens, states.
 | T09 | Listening events + taste profile | M | | Luna (high) |
 | T10 | musicGraph service | L | | Luna (high) |
 | T04 | Playlists — **DONE** (side add-panel, fly-to-list, entrance). Open: drag song onto sidebar playlist, ⌘N | L | | Opus → Luna for the open bits |
-| T14 | Now Playing: one object — **A+B DONE** (cover flies bar↔canvas, glow removed, centered). Open: C "Playing from"/similar (after T10), D spray wave | M | | Opus |
+| T14 | Now Playing: one object — **A+B DONE** (cover flies bar↔canvas, glow removed, centered). D spray wave **v1 built** (`NoirSprayWave`, awaiting screenshot review). Open: C "Playing from"/similar (after T10) | M | | Opus |
 
 ### Original index
 
