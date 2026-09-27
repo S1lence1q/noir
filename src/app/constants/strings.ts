@@ -24,6 +24,14 @@ export const strings = {
       likes: 'No favorites saved yet.',
     },
   },
+  home: {
+    continue: 'Continue',
+    nowPlaying: 'Now playing',
+    jumpBackIn: 'Jump back in',
+    yourLibrary: 'Your library',
+    favorites: 'Favorites',
+    artists: 'Artists you play',
+  },
   nextUp: {
     title: 'Next up',
     emptyTitle: 'Nothing up next',

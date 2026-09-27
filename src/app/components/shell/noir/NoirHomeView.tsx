@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Compass, Pause, Play, Search, X } from 'lucide-react';
+import { Compass, Pause, Play, Plus, Search } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { shouldShowArtistCard } from '../../../utils/apiUtils';
@@ -9,7 +9,10 @@ import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { ThemeColors } from '../../themeUtils';
 import { SearchLoadingState } from '../../SearchLoadingState';
 import { NoirSongRow } from './NoirSongRow';
-import { EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
+import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
+import { worldForCollection } from '../../../utils/ditherCover';
+import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
+import { NoirDitherCover } from './NoirDitherCover';
 
 type SearchPanelPhase = 'idle' | 'loading' | 'results' | 'no-results';
 
@@ -64,6 +67,14 @@ export function NoirHomeView({
   const [localQuery, setLocalQuery] = useState(searchQuery);
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reduced = prefersReducedMotion();
+  const playlists = usePlaylists();
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 5) return strings.greeting.lateNight;
+    if (hour < 12) return strings.greeting.morning;
+    if (hour < 18) return strings.greeting.afternoon;
+    return strings.greeting.evening;
+  }, []);
 
   // Keep list order stable while on Home after a play — otherwise the clicked
   // row jumps into the hero and vanishes from the list mid-interaction.
@@ -149,7 +160,7 @@ export function NoirHomeView({
   const inSearchMode = panelPhase !== 'idle';
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col">
+    <div className="relative h-full min-h-0 overflow-y-auto scrollbar-none">
       <div className="flex shrink-0 items-center justify-between gap-3 px-5 pb-3 pt-5">
         <button
           type="button"
@@ -172,66 +183,87 @@ export function NoirHomeView({
       </div>
 
       {panelPhase === 'idle' && featuredTrack ? (
-        <div className="noir-content noir-home-hero-wrap shrink-0 pt-2">
-          <button
-            type="button"
-            onClick={() => playFromHome(featuredTrack)}
-            className="noir-home-hero group relative z-[1] h-[min(42vh,380px)] w-full overflow-hidden rounded-[var(--noir-radius-xl)] text-left elva-focus-ring"
-          >
-            <AnimatePresence mode="sync" initial={false}>
-              <motion.img
-                key={featuredTrack.id || featuredTrack.thumbnail}
-                src={featuredTrack.thumbnail}
-                alt=""
-                className="absolute inset-0 h-full w-full object-cover"
-                initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.04 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.06 }}
-                transition={{ duration: reduced ? 0.2 : 0.45, ease: EASE_PREMIUM }}
-              />
-            </AnimatePresence>
-            <div className="noir-hero-overlay absolute inset-0" />
-            <div className="noir-hero-overlay-side absolute inset-0" />
-            <div className="noir-hero-grain" aria-hidden />
-            <div className="noir-hero-vignette" aria-hidden />
-
-            <div className="absolute bottom-0 left-0 max-w-2xl px-7 pb-8 pt-16">
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={featuredTrack.id || featuredTrack.title}
-                  initial={reduced ? { opacity: 0 } : { opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduced ? { opacity: 0 } : { opacity: 0, y: -8 }}
-                  transition={{ duration: reduced ? 0.15 : 0.32, ease: EASE_PREMIUM }}
-                >
-                  <h1 className="text-[clamp(1.75rem,4.5vw,3.25rem)] font-semibold leading-[1.05] tracking-[-0.03em] text-white">
-                    {featuredTrack.title}
-                  </h1>
-                  <p className="mt-2 text-[clamp(0.95rem,1.8vw,1.2rem)] text-white/55">
-                    {featuredTrack.artist}
-                  </p>
-                </motion.div>
-              </AnimatePresence>
-              <span
-                className={`mt-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-medium text-white transition-colors ${
-                  isFeaturedPlaying
-                    ? 'bg-white/18 group-hover:bg-white/22'
-                    : 'bg-white/10 group-hover:bg-white/15'
-                }`}
+        <div className="noir-content shrink-0 pt-4">
+          <div className="noir-home-greeting">
+            <div className="min-w-0 flex-1">
+              <motion.h1
+                className="noir-home-greeting-title"
+                initial={reduced ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.42, ease: EASE_PREMIUM }}
               >
-                {isFeaturedPlaying ? (
-                  <Pause className="h-3.5 w-3.5 fill-current" />
-                ) : (
-                  <Play className="h-3.5 w-3.5 fill-current" />
-                )}
-                {isFeaturedPlaying ? 'Now playing' : isFeaturedActive ? 'Resume' : 'Play'}
-              </span>
+                {greeting}
+              </motion.h1>
+              <motion.div
+                initial={reduced ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.42, ease: EASE_PREMIUM, delay: 0.06 }}
+              >
+                <p className="noir-label mt-6">
+                  {isFeaturedPlaying ? strings.home.nowPlaying : strings.home.continue}
+                </p>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={featuredTrack.id || featuredTrack.title}
+                    initial={reduced ? { opacity: 0 } : { opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={reduced ? { opacity: 0 } : { opacity: 0, y: -4 }}
+                    transition={{ duration: 0.26, ease: EASE_PREMIUM }}
+                  >
+                    <p className="noir-home-continue-title">{featuredTrack.title}</p>
+                    <p className="noir-home-continue-artist">{featuredTrack.artist}</p>
+                  </motion.div>
+                </AnimatePresence>
+                <motion.button
+                  type="button"
+                  onClick={() => playFromHome(featuredTrack)}
+                  className="noir-play-round mt-5 elva-focus-ring"
+                  aria-label={isFeaturedPlaying ? 'Pause' : 'Play'}
+                  whileTap={{ scale: 0.94 }}
+                  transition={MOTION.tap}
+                >
+                  {isFeaturedPlaying ? (
+                    <Pause className="h-5 w-5 fill-current" />
+                  ) : (
+                    <Play className="ml-0.5 h-5 w-5 fill-current" />
+                  )}
+                </motion.button>
+              </motion.div>
             </div>
-          </button>
+
+            <motion.button
+              type="button"
+              onClick={() => playFromHome(featuredTrack)}
+              className="noir-home-object group elva-focus-ring"
+              aria-label={`${strings.home.continue}: ${featuredTrack.title}`}
+              initial={reduced ? false : { opacity: 0, scale: 0.94, rotate: 2 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 220, damping: 24, delay: 0.08 }}
+              whileHover={reduced ? undefined : { rotate: -1.5, scale: 1.02 }}
+            >
+              <AnimatePresence mode="popLayout" initial={false}>
+                <motion.span
+                  key={featuredTrack.id || featuredTrack.thumbnail}
+                  className="block"
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.02 }}
+                  transition={{ duration: 0.36, ease: EASE_PREMIUM }}
+                >
+                  <NoirDitherCover
+                    source={featuredTrack.thumbnail}
+                    world={worldForCollection(featuredTrack.artist || featuredTrack.id)}
+                    seed={`home:${featuredTrack.id}`}
+                    size={220}
+                  />
+                </motion.span>
+              </AnimatePresence>
+            </motion.button>
+          </div>
         </div>
       ) : null}
 
-      <div className="relative z-[1] min-h-0 flex-1 overflow-y-auto scrollbar-none">
+      <div className="relative z-[1] pb-10">
         <AnimatePresence mode="wait">
           {panelPhase === 'idle' && (
             <motion.div
@@ -279,52 +311,127 @@ export function NoirHomeView({
               )}
 
               {listRecents.length > 0 && (
-                <section className="mb-10">
-                  <h2 className="noir-section-heading px-1">
-                    Recently played
-                  </h2>
-                  <div className="flex flex-col gap-0.5">
-                    {listRecents.map((track) => (
-                      <motion.div
-                        key={track.id}
-                        layout={!reduced}
-                        transition={{ duration: 0.32, ease: EASE_PREMIUM }}
+                <section>
+                  <h2 className="noir-section-heading !mt-2 px-1">{strings.home.jumpBackIn}</h2>
+                  <div className="noir-home-tiles">
+                    {listRecents.slice(0, 6).map((track, i) => {
+                      const playing = isTrackPlaying(track) && isPlaying;
+                      return (
+                        <motion.button
+                          key={track.id}
+                          type="button"
+                          layout={!reduced}
+                          onClick={() => playFromHome(track)}
+                          className="noir-home-tile group elva-focus-ring"
+                          data-playing={playing ? 'true' : 'false'}
+                          initial={reduced ? false : { opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.1 + i * 0.03 }}
+                        >
+                          <img src={track.thumbnail} alt="" className="noir-home-tile-art" />
+                          <span className="min-w-0 flex-1">
+                            <span className="noir-song-title block truncate">{track.title}</span>
+                            <span className="noir-song-meta block truncate">{track.artist}</span>
+                          </span>
+                          <span className="noir-home-tile-play" aria-hidden>
+                            {playing ? (
+                              <span className="noir-playing-bars">
+                                <span />
+                                <span />
+                                <span />
+                              </span>
+                            ) : loadingSongId === track.id ? (
+                              <span className="h-4 w-4 animate-spin rounded-full border border-black/20 border-t-black" />
+                            ) : (
+                              <Play className="ml-0.5 h-4 w-4 fill-current" />
+                            )}
+                          </span>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+
+              {(favorites.length > 0 || playlists.length > 0) && (
+                <section>
+                  <h2 className="noir-section-heading px-1">{strings.home.yourLibrary}</h2>
+                  <div className="noir-home-shelf">
+                    {favorites.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => window.dispatchEvent(new Event('noir-open-favorites'))}
+                        className="noir-collection-card noir-home-shelf-card elva-focus-ring"
                       >
-                        <NoirSongRow
-                          track={track}
-                          isLoading={loadingSongId === track.id}
-                          isPlaying={isTrackPlaying(track) && isPlaying}
-                          isFavorite={isTrackFavorite(favorites, track)}
-                          onPlay={() => playFromHome(track)}
-                          onAddToQueue={handleAddToQueue}
-                          onPlayNext={handlePlayNext}
-                          onToggleFavorite={handleToggleFavorite}
+                        <NoirDitherCover
+                          source={favorites[0]?.thumbnail}
+                          world="ember"
+                          seed="favorites"
+                          size={168}
+                          madeForYou
                         />
-                      </motion.div>
+                        <span className="min-w-0">
+                          <span className="noir-song-title block truncate">{strings.home.favorites}</span>
+                          <span className="noir-song-meta mt-0.5 block truncate">
+                            {strings.playlist.songCount(favorites.length)}
+                          </span>
+                        </span>
+                      </button>
+                    )}
+                    {playlists.map((playlist) => (
+                      <button
+                        key={playlist.id}
+                        type="button"
+                        onClick={() =>
+                          window.dispatchEvent(new CustomEvent('noir-open-playlist', { detail: { id: playlist.id } }))
+                        }
+                        className="noir-collection-card noir-home-shelf-card elva-focus-ring"
+                      >
+                        <NoirDitherCover
+                          source={playlist.tracks[0]?.thumbnail}
+                          world={worldForCollection(playlist.id)}
+                          seed={playlist.id}
+                          size={168}
+                        />
+                        <span className="min-w-0">
+                          <span className="noir-song-title block truncate">{playlist.name}</span>
+                          <span className="noir-song-meta mt-0.5 block truncate">
+                            {strings.playlist.songCount(playlist.tracks.length)}
+                          </span>
+                        </span>
+                      </button>
                     ))}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        window.dispatchEvent(new CustomEvent('noir-open-playlist', { detail: { id: createPlaylist().id } }))
+                      }
+                      className="noir-collection-card noir-home-shelf-card elva-focus-ring"
+                    >
+                      <span className="noir-collection-card-new !h-[168px] !w-[168px]">
+                        <Plus className="h-6 w-6" strokeWidth={1.5} />
+                      </span>
+                      <span className="noir-song-title block truncate">{strings.playlist.newPlaylist}</span>
+                    </button>
                   </div>
                 </section>
               )}
 
               {recentArtists.length > 0 && (
                 <section>
-                  <h2 className="noir-section-heading px-1">
-                    Artists
-                  </h2>
-                  <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-none">
+                  <h2 className="noir-section-heading px-1">{strings.home.artists}</h2>
+                  <div className="noir-home-shelf">
                     {recentArtists.slice(0, 12).map((artist) => (
                       <button
                         key={artist.id || artist.name}
                         type="button"
                         onClick={() => handleViewArtistProfile(artist)}
-                        className="w-[84px] shrink-0 text-left elva-focus-ring"
+                        className="noir-home-artist group elva-focus-ring"
                       >
-                        <div className="noir-art aspect-square w-full overflow-hidden bg-[color:var(--noir-gray-dark)]">
+                        <span className="noir-home-artist-art">
                           <img src={artist.thumbnail} alt="" className="h-full w-full object-cover" />
-                        </div>
-                        <p className="mt-2 truncate text-[12px] text-[color:var(--noir-text-primary)]">
-                          {artist.name}
-                        </p>
+                        </span>
+                        <span className="noir-song-title mt-3 block truncate text-center">{artist.name}</span>
                       </button>
                     ))}
                   </div>

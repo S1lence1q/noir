@@ -962,6 +962,26 @@ export default function App() {
     setActiveTab('myhub');
   };
 
+  // Home shelves open Library destinations without prop-drilling through LandingPage.
+  useEffect(() => {
+    const onOpenFavorites = () => {
+      setLibraryFocus((prev) => ({ section: 'favorites', playlistId: null, requestId: prev.requestId + 1 }));
+      setActiveTab('myhub');
+    };
+    const onOpenPlaylist = (e: Event) => {
+      const playlistId = (e as CustomEvent<{ id?: string }>).detail?.id;
+      if (!playlistId) return;
+      setLibraryFocus((prev) => ({ section: 'playlists', playlistId, requestId: prev.requestId + 1 }));
+      setActiveTab('myhub');
+    };
+    window.addEventListener('noir-open-favorites', onOpenFavorites);
+    window.addEventListener('noir-open-playlist', onOpenPlaylist);
+    return () => {
+      window.removeEventListener('noir-open-favorites', onOpenFavorites);
+      window.removeEventListener('noir-open-playlist', onOpenPlaylist);
+    };
+  }, []);
+
   const scrollToLandingSection = (index: number) => {
     const tab = index === 0 ? 'search' : index === 1 ? 'discover' : 'myhub';
     setActiveTab(tab);
