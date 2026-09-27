@@ -402,6 +402,8 @@
   grid-template-columns: 32px 48px minmax(0, 1fr) minmax(96px, auto);
   align-items: center;
   column-gap: 14px;
+  width: 100%;
+  min-width: 0;
 }
 
 .noir-song-grid.noir-track-row--unranked {
@@ -1316,12 +1318,12 @@
   border-color: rgba(255, 255, 255, 0.32);
 }
 
-/* Playlist page: list on the left, add panel on the right.
-   Second column is always reserved in the grid (0→340px via :has) so the
-   panel never auto-places under the list during enter/exit. */
+/* Playlist page: list left, add panel right.
+   Second track is minmax(0, 0px)→340px (not 0fr — fr mins to content and
+   blows the grid on resize). layoutRoot on the list column is set in JSX. */
 .noir-playlist-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 0fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0px);
   column-gap: 0;
   row-gap: 40px;
   align-items: start;
@@ -1349,6 +1351,7 @@
   max-height: calc(100vh - 96px - 48px);
   padding: 16px 12px 8px;
   border-left: 1px solid var(--noir-rule-faint);
+  background: var(--noir-canvas);
 }
 
 .noir-add-panel-list {
@@ -1401,10 +1404,7 @@
 }
 
 @media (max-width: 1000px) {
-  .noir-playlist-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
+  .noir-playlist-layout,
   .noir-playlist-layout:has(.noir-add-panel) {
     grid-template-columns: minmax(0, 1fr);
     column-gap: 0;

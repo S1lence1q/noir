@@ -164,7 +164,7 @@ export function NoirUserPlaylistPage({
 
   return (
     <div className="noir-playlist-layout">
-      <div className="min-w-0 pb-6">
+      <motion.div className="min-w-0 pb-6" layoutRoot>
         <button type="button" onClick={onBack} className="noir-back-link elva-focus-ring">
           <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
           {strings.playlist.back}
@@ -330,7 +330,7 @@ export function NoirUserPlaylistPage({
             </span>
           </motion.div>
         )}
-      </div>
+      </motion.div>
 
       <div className="noir-add-panel-rail">
         <AnimatePresence initial={false}>
@@ -386,7 +386,8 @@ function PlaylistTrackItem({
           draggedRef.current = false;
         }, 0);
       }}
-      className="noir-playlist-item select-none"
+      className="noir-playlist-item select-none w-full"
+      style={{ width: '100%' }}
       initial={{ opacity: 0, y: -8, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.985, transition: { duration: 0.16 } }}
