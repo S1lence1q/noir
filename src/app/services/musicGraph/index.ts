@@ -49,6 +49,8 @@ const TTL = {
   image: 30 * DAY_MS,
 };
 
+const EMPTY_TTL_MS = 10 * 60 * 1000;
+
 const inFlight = new Map<string, Promise<unknown>>();
 const loggedCacheFailures = new Set<string>();
 
@@ -76,8 +78,10 @@ function requestCached<T>(
     }
 
     const value = await loader();
+    // Failures and a missing key also come back empty; don't pin those for days.
+    const isEmpty = value === undefined || value === null || (Array.isArray(value) && value.length === 0);
     try {
-      await setGraphCache(key, value, ttlMs);
+      await setGraphCache(key, value, isEmpty ? EMPTY_TTL_MS : ttlMs);
     } catch (error) {
       logCacheFailure(key, error);
     }

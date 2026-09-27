@@ -52,10 +52,20 @@ declare global {
   }
 }
 
+function isLocalSong(song: RecorderSong) {
+  return !!song.id?.startsWith('local_') || !!song.audioUrl?.startsWith('blob:');
+}
+
 function sourceForSong(song: RecorderSong): ListeningSource {
-  return song.id?.startsWith('local_') || song.audioUrl?.startsWith('blob:')
-    ? 'local'
-    : 'queue';
+  return isLocalSong(song) ? 'local' : 'queue';
+}
+
+/** Local files get a new blob URL and id on every import/reload, so identify them by their tags instead. */
+function listeningKeyForSong(song: RecorderSong): string | null {
+  if (isLocalSong(song)) {
+    return `local:${song.title.trim().toLocaleLowerCase()}::${song.artist.trim().toLocaleLowerCase()}`;
+  }
+  return getPlaybackSongKey(song);
 }
 
 function getOutcome(listenedMs: number, durationMs?: number): ListeningEvent['outcome'] {
@@ -125,7 +135,7 @@ export function useListeningRecorder(
       title: songData.title,
       artist: songData.artist,
       source: sourceForSong(songData),
-      sourceId: songData.id || current.songKey,
+      sourceId: isLocalSong(songData) ? undefined : songData.id || current.songKey,
     });
 
     activeRef.current = {
@@ -159,7 +169,7 @@ export function useListeningRecorder(
     );
   };
 
-  const currentSongKey = song ? getPlaybackSongKey(song) : null;
+  const currentSongKey = song ? listeningKeyForSong(song) : null;
   songRef.current = currentSongKey && song ? { song, songKey: currentSongKey } : null;
 
   useEffect(() => {

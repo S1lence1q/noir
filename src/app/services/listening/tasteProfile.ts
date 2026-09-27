@@ -2,6 +2,8 @@ import type { ListeningEvent } from './eventsStore';
 import { getPlaybackSongKey } from '../../utils/playbackSongKey';
 
 const CACHE_TTL_MS = 10 * 60 * 1000;
+/** Placeholder names from untagged local files; they say nothing about taste. */
+const UNKNOWN_ARTISTS = new Set(['unknown artist', 'unknown', 'ukendt kunstner']);
 const WEIGHTS = {
   completed: 1,
   partial: 0.5,
@@ -87,7 +89,7 @@ export function topArtists(events: ReadonlyArray<ListeningEvent>, days?: number)
 
     for (const event of recentEvents(events, days)) {
       const artist = event.artist.trim();
-      if (!artist) continue;
+      if (!artist || UNKNOWN_ARTISTS.has(artist.toLocaleLowerCase())) continue;
       const key = artist.toLocaleLowerCase();
       const current = artists.get(key) ?? { artist, score: 0, plays: 0 };
       current.score += weight(event);

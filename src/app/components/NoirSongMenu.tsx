@@ -272,7 +272,7 @@ export function NoirSongMenuHost({
       initial={{ opacity: 0, scale: 0.96, y: -4 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={withReducedMotion(MOTION.panel)}
-      className="fixed z-[10000] flex w-[232px] flex-col gap-0.5 rounded-[var(--noir-radius-md)] border border-white/[0.12] bg-[color:var(--noir-elevated)] p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.65)]"
+      className="noir-menu fixed z-[10000] flex w-[232px] flex-col gap-0.5 !p-1.5"
       style={{ top: menuPosition.top, left: menuPosition.left }}
       onPointerDown={(event) => event.stopPropagation()}
     >
@@ -353,7 +353,7 @@ export function NoirSongMenuHost({
       initial={{ opacity: 0, x: -4 }}
       animate={{ opacity: 1, x: 0 }}
       transition={withReducedMotion(MOTION.panel)}
-      className="fixed z-[10001] flex max-h-[min(420px,calc(100vh-16px))] w-[248px] flex-col rounded-[var(--noir-radius-md)] border border-white/[0.12] bg-[color:var(--noir-elevated)] p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.65)]"
+      className="noir-menu fixed z-[10001] flex max-h-[min(420px,calc(100vh-16px))] w-[248px] flex-col !p-1.5"
       style={{
         top: menuPosition.top,
         left:
