@@ -96,37 +96,13 @@ export function NoirNowPlayingView({
 
   return (
     <div className="noir-now-playing">
-      <div className="noir-now-playing-atmosphere" aria-hidden>
-        <AnimatePresence mode="sync" initial={false}>
-          <motion.img
-            key={song.artworkUrl}
-            src={song.artworkUrl}
-            alt=""
-            className="noir-now-playing-atmosphere-img"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.28 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: reduced ? 0.2 : 0.55, ease: sheetEase }}
-          />
-        </AnimatePresence>
-        <motion.div
-          key={songKey + '-wash'}
-          className="noir-now-playing-atmosphere-wash"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.55 }}
-          transition={{ duration: reduced ? 0.2 : 0.5, ease: sheetEase }}
-          style={
-            colors
-              ? {
-                  background: `radial-gradient(ellipse 80% 70% at 28% 58%, ${colors.primary} 0%, transparent 62%), radial-gradient(ellipse 50% 50% at 70% 20%, ${colors.secondary} 0%, transparent 55%)`,
-                }
-              : undefined
-          }
-        />
-      </div>
-
       <div className="noir-now-playing-stage">
-        <div className="noir-now-playing-art-slot">
+        <motion.div
+          layoutId={reduced ? undefined : 'np-cover'}
+          className="noir-now-playing-art-slot"
+          style={{ borderRadius: 18, boxShadow: '0 28px 80px rgba(0,0,0,0.55)' }}
+          transition={{ type: 'spring', stiffness: 260, damping: 30, mass: 0.9 }}
+        >
           <AnimatePresence mode="sync" initial={false}>
             <motion.img
               key={song.artworkUrl}
@@ -143,7 +119,13 @@ export function NoirNowPlayingView({
               }
             />
           </AnimatePresence>
-        </div>
+        </motion.div>
+        <motion.div
+          className="min-w-0"
+          initial={reduced ? { opacity: 0 } : { opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reduced ? 0.15 : 0.42, ease: sheetEase, delay: reduced ? 0 : 0.16 }}
+        >
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={songKey}
@@ -173,11 +155,15 @@ export function NoirNowPlayingView({
             </div>
           </motion.div>
         </AnimatePresence>
+        </motion.div>
       </div>
 
-      <aside
+      <motion.aside
         className="noir-now-playing-queue"
         aria-label={upNext.length > 0 ? 'Next up' : 'Queue suggestions'}
+        initial={reduced ? { opacity: 0 } : { opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: reduced ? 0.15 : 0.45, ease: sheetEase, delay: reduced ? 0 : 0.1 }}
       >
         {upNext.length === 0 ? (
           <motion.div
@@ -330,7 +316,7 @@ export function NoirNowPlayingView({
             </div>
           </>
         )}
-      </aside>
+      </motion.aside>
     </div>
   );
 }

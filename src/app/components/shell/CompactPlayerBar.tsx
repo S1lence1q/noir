@@ -160,14 +160,27 @@ export function CompactPlayerBar({
       }
     >
       <div className="noir-compact-left">
-        <div className="flex min-w-0 items-center gap-1">
+        {/* While Now Playing is open the song identity lives there only; the cover flies between via layoutId. */}
+        <AnimatePresence initial={false}>
+        {!expanded && (
+        <motion.div
+          key="compact-identity"
+          className="flex min-w-0 items-center gap-1"
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 1 }}
+        >
           <button
             type="button"
             onClick={onExpand}
             className="noir-compact-now group elva-focus-ring"
-            aria-label={expanded ? 'Back to library' : 'Now playing'}
+            aria-label="Now playing"
           >
-            <span className="noir-compact-art-wrap">
+            <motion.span
+              layoutId={reduced ? undefined : 'np-cover'}
+              className="noir-compact-art-wrap"
+              style={{ borderRadius: 6 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 30, mass: 0.9 }}
+            >
               <AnimatePresence mode="sync" initial={false}>
                 <motion.img
                   key={song.artworkUrl}
@@ -180,8 +193,13 @@ export function CompactPlayerBar({
                   transition={{ duration: reduced ? 0.15 : 0.32, ease: EASE_PREMIUM }}
                 />
               </AnimatePresence>
-            </span>
-            <span className="noir-compact-meta">
+            </motion.span>
+            <motion.span
+              className="noir-compact-meta"
+              initial={reduced ? { opacity: 0 } : { opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.28, ease: EASE_PREMIUM, delay: reduced ? 0 : 0.18 }}
+            >
               <AnimatePresence mode="wait" initial={false}>
                 <motion.span
                   key={songKey}
@@ -195,9 +213,9 @@ export function CompactPlayerBar({
                   <span className="noir-compact-artist">{song.artist}</span>
                 </motion.span>
               </AnimatePresence>
-            </span>
+            </motion.span>
           </button>
-          {onToggleFavorite && !expanded && (
+          {onToggleFavorite && (
             <button
               type="button"
               onClick={onToggleFavorite}
@@ -211,7 +229,9 @@ export function CompactPlayerBar({
               />
             </button>
           )}
-        </div>
+        </motion.div>
+        )}
+        </AnimatePresence>
       </div>
 
       <div className="noir-compact-center">

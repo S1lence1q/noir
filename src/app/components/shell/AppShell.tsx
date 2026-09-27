@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
 import { AppSidebar } from './AppSidebar';
 import { CompactPlayerBar } from './CompactPlayerBar';
 import { AppTab, ShellPlaybackState } from './types';
@@ -55,6 +55,7 @@ export function AppShell({
   const reduced = prefersReducedMotion();
 
   return (
+    <LayoutGroup id="noir-shell">
     <div className="noir-shell absolute inset-0 z-10 flex h-full w-full overflow-hidden">
       <AppSidebar
         activeTab={activeTab}
@@ -83,18 +84,14 @@ export function AppShell({
             {children}
           </motion.div>
 
+          {/* No transform on this layer: the cover inside flies from the bar via a shared layoutId. */}
           <AnimatePresence>
             {nowPlayingOpen && nowPlaying != null && (
               <motion.div
                 className="absolute inset-0 z-20 overflow-hidden"
-                initial={reduced ? { opacity: 0 } : { opacity: 0, y: '22%' }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={reduced ? { opacity: 0 } : { opacity: 0, y: '16%' }}
-                transition={
-                  reduced
-                    ? { duration: 0.18 }
-                    : { type: 'spring', stiffness: 320, damping: 34, mass: 0.85 }
-                }
+                initial={{ opacity: 1 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, transition: { duration: reduced ? 0.12 : 0.22, ease: EASE_PREMIUM } }}
               >
                 {nowPlaying}
               </motion.div>
@@ -119,5 +116,6 @@ export function AppShell({
         </AnimatePresence>
       </div>
     </div>
+    </LayoutGroup>
   );
 }
