@@ -52,7 +52,7 @@ Exact behavior, layout, copy, tokens, states.
 | T01 | Layout grid, type hierarchy, accent token — **DONE** | M | | Luna |
 | T02 | Toast system + kill volume popup — **DONE (golden)** | M | yes | Opus |
 | T03 | Shared song menu + right-click — **DONE** | M | | Luna |
-| T04 | Playlists — **DONE** (side panel, fly-to-list, drag-to-sidebar). Open: ⌘N | L | | Opus → Luna ⌘N |
+| T04 | Playlists — **DONE** (side panel, fly-to-list, drag-to-sidebar). ⌘N wired + in shortcuts map | L | | Opus → Luna ⌘N |
 | T05 | Queue craft — empty Next up **DONE (golden)**; see T05b for leftovers | M | yes | Opus/Luna |
 | T05b | Next up header + "queue ends soon" — verify/polish (header mostly in; ends overlaps T11) | S | | Luna |
 | T06 | Dither covers — **DONE** | M | | Opus |
@@ -62,7 +62,7 @@ Exact behavior, layout, copy, tokens, states.
 | T10 | musicGraph (Last.fm + Deezer) — **DONE** | L | | Luna |
 | T11 | Radio + autoplay — **DONE** | M | | Opus |
 | T12 | Daily mixes + Home shelf — **DONE** | L | | Opus |
-| T14 | Now Playing one object — **A+B DONE**; D parked; open: **C** Playing from / similar / lyrics | M | | Opus |
+| T14 | Now Playing one object — **A+B DONE**; C Playing from + similar **DONE**; lyrics still open; D parked | M | | Opus |
 
 ### Original index
 

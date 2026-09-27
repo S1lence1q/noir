@@ -119,6 +119,7 @@ export default function App() {
 
   const [activeTab, setActiveTabState] = useState<'search' | 'discover' | 'myhub' | 'settings'>('search');
   const [nowPlayingOpen, setNowPlayingOpen] = useState(false);
+  const [queueSource, setQueueSource] = useState<string | null>(null);
   const [isMiniPlaying, setIsMiniPlaying] = useState(true);
   const [shellPlayback, setShellPlayback] = useState<ShellPlaybackState>({
     currentTime: 0,
@@ -881,6 +882,7 @@ export default function App() {
     if (tracks.length === 0) return;
 
     const index = Math.max(0, Math.min(startIndex, tracks.length - 1));
+    setQueueSource(label?.trim() || null);
     setQueue(tracks);
     startQueuePrefetch(tracks, tracks[index].id);
     await handleSelectSong(tracks[index]);
@@ -1112,6 +1114,35 @@ export default function App() {
       requestId: prev.requestId + 1,
     }));
     setActiveTab('myhub');
+  };
+
+  const canOpenQueueSource = (() => {
+    if (!queueSource) return false;
+    if (queueSource === strings.home.favorites || queueSource === 'Favorites') return true;
+    if (/^Radio · .+/.test(queueSource)) return true;
+    return readPlaylists().some((item) => item.name === queueSource);
+  })();
+
+  const openQueueSource = () => {
+    if (!queueSource) return;
+
+    if (queueSource === strings.home.favorites || queueSource === 'Favorites') {
+      setNowPlayingOpen(false);
+      openLibraryFavorites();
+      return;
+    }
+
+    const radioMatch = /^Radio · (.+)$/.exec(queueSource);
+    if (radioMatch?.[1]) {
+      openArtistByName(radioMatch[1]);
+      return;
+    }
+
+    const playlist = readPlaylists().find((item) => item.name === queueSource);
+    if (playlist) {
+      setNowPlayingOpen(false);
+      openLibraryPlaylist(playlist.id);
+    }
   };
 
   // Home shelves open Library destinations without prop-drilling through LandingPage.
@@ -1566,6 +1597,8 @@ export default function App() {
                   }
                   onStartRadio={handleStartRadioFromPlayer}
                   onOpenArtist={openArtistFromPlayer}
+                  onOpenSimilarArtist={(name) => openArtistByName(name)}
+                  onOpenQueueSource={canOpenQueueSource ? openQueueSource : undefined}
                   favoriteTracks={favorites}
                   quickAddTracks={recentlyPlayed}
                   onAddToQueue={handleAddToQueue}
@@ -1576,6 +1609,7 @@ export default function App() {
                   onClearQueue={handleClearQueue}
                   onShuffleQueue={handleShuffleQueue}
                   onReorderQueue={handleReorderQueue}
+                  queueSource={queueSource ?? undefined}
                   playback={{
                     currentTime: shellPlayback.currentTime,
                     duration: shellPlayback.duration,

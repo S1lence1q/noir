@@ -118,6 +118,11 @@ export const strings = {
     addedMany: (n: number) => (n === 1 ? 'Added 1 song to queue' : `Added ${n} songs to queue`),
     undo: 'Undo',
   },
+  nowPlaying: {
+    playingFrom: (source: string) => `Playing from ${source}`,
+    openSource: 'Open source',
+    similar: 'Similar',
+  },
   playlist: {
     label: 'Playlist',
     back: 'Library',

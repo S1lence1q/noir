@@ -69,6 +69,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
                 { keys: ['←', '→'], desc: 'Seek 5s backward / forward' },
                 { keys: ['L'], desc: 'Flip artwork / toggle live lyrics' },
                 { keys: ['Q'], desc: 'Toggle active queue drawer' },
+                { keys: [isMac ? '⌘' : 'Ctrl', 'N'], desc: 'Create a new playlist' },
                 { keys: [isMac ? '⌘' : 'Ctrl', ','], desc: 'Open settings menu' },
                 { keys: ['?'], desc: 'Toggle keyboard shortcut map' },
                 { keys: ['Esc'], desc: 'Close any active overlays / map' }

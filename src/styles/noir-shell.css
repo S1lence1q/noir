@@ -946,6 +946,46 @@
   color: var(--noir-text-secondary);
 }
 
+.noir-now-playing-meta {
+  margin-top: 10px;
+  max-width: 100%;
+  font: var(--noir-type-meta);
+  color: var(--noir-text-tertiary);
+}
+
+.noir-now-playing-source {
+  display: inline;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: inherit;
+  text-align: left;
+}
+
+button.noir-now-playing-source:hover {
+  color: var(--noir-text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.noir-now-playing-similar {
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.noir-now-playing-similar-link {
+  color: inherit;
+}
+
+.noir-now-playing-similar-link:hover {
+  color: var(--noir-text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .noir-now-playing-queue {
   position: relative;
   z-index: 1;

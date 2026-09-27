@@ -12,6 +12,7 @@ import { useQueueEndPrompt } from '../../../hooks/useQueueEndPrompt';
 import { displayArtistName } from '../../../utils/stringUtils';
 import { hasRealArtwork } from '../../../utils/artwork';
 import { worldForCollection } from '../../../utils/ditherCover';
+import { getSimilarArtists } from '../../../services/musicGraph';
 import { NoirDitherCover } from './NoirDitherCover';
 
 type NowPlayingSong = {
@@ -32,6 +33,10 @@ type NoirNowPlayingViewProps = {
   onStartRadio?: () => void;
   /** Open the artist profile for the current song. */
   onOpenArtist?: () => void;
+  /** Open a related artist from the Similar line. */
+  onOpenSimilarArtist?: (artistName: string) => void;
+  /** Open the collection named in queueSource (playlist, Favorites, radio seed…). */
+  onOpenQueueSource?: () => void;
   favoriteTracks?: SearchResult[];
   quickAddTracks?: SearchResult[];
   onAddToQueue?: (track: SearchResult, options?: { silent?: boolean }) => void;
@@ -78,6 +83,8 @@ export function NoirNowPlayingView({
   onToggleFavorite,
   onStartRadio,
   onOpenArtist,
+  onOpenSimilarArtist,
+  onOpenQueueSource,
   favoriteTracks = [],
   quickAddTracks = [],
   onAddToQueue,
@@ -92,6 +99,7 @@ export function NoirNowPlayingView({
   queueSource,
 }: NoirNowPlayingViewProps) {
   const reduced = prefersReducedMotion();
+  const [similarArtists, setSimilarArtists] = useState<string[]>([]);
   const currentKey = getPlaybackSongKey(song);
   const currentIndex = currentKey
     ? queue.findIndex((item) => getPlaybackSongKey(item) === currentKey)
@@ -106,6 +114,31 @@ export function NoirNowPlayingView({
   useEffect(() => {
     setOrder(upNext.map((track) => track.id));
   }, [upNext.map((track) => track.id).join('\0')]);
+
+  const artistName = displayArtistName(song.artist);
+  useEffect(() => {
+    let cancelled = false;
+    setSimilarArtists([]);
+    if (!artistName || artistName === 'Unknown Artist' || artistName === 'Web Stream') {
+      return;
+    }
+    void getSimilarArtists(artistName, 3)
+      .then((artists) => {
+        if (cancelled) return;
+        const names = artists
+          .map((a) => displayArtistName(a.name))
+          .filter((name) => name && name.toLowerCase() !== artistName.toLowerCase())
+          .slice(0, 3);
+        setSimilarArtists(names);
+      })
+      .catch(() => {
+        if (!cancelled) setSimilarArtists([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [artistName]);
+
   const byId = new Map(upNext.map((track) => [track.id, track]));
   const orderedUpNext = order.map((id) => byId.get(id)).filter((track): track is SearchResult => !!track);
   const songKey = currentKey ?? `${song.title}::${song.artist}`;
@@ -344,6 +377,44 @@ export function NoirNowPlayingView({
                 </button>
               )}
             </div>
+            {(queueSource || similarArtists.length > 0) && (
+              <div className="noir-now-playing-meta">
+                {queueSource &&
+                  (onOpenQueueSource ? (
+                    <button
+                      type="button"
+                      className="noir-now-playing-source elva-focus-ring rounded-sm"
+                      onClick={onOpenQueueSource}
+                      title={strings.nowPlaying.openSource}
+                    >
+                      {strings.nowPlaying.playingFrom(queueSource)}
+                    </button>
+                  ) : (
+                    <p className="noir-now-playing-source">{strings.nowPlaying.playingFrom(queueSource)}</p>
+                  ))}
+                {similarArtists.length > 0 && (
+                  <p className="noir-now-playing-similar">
+                    <span>{strings.nowPlaying.similar}: </span>
+                    {similarArtists.map((name, index) => (
+                      <span key={name}>
+                        {index > 0 && ', '}
+                        {onOpenSimilarArtist ? (
+                          <button
+                            type="button"
+                            className="noir-now-playing-similar-link elva-focus-ring rounded-sm"
+                            onClick={() => onOpenSimilarArtist(name)}
+                          >
+                            {name}
+                          </button>
+                        ) : (
+                          name
+                        )}
+                      </span>
+                    ))}
+                  </p>
+                )}
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
         </motion.div>
@@ -455,11 +526,6 @@ export function NoirNowPlayingView({
                 <p className="text-[14px] font-medium text-[color:var(--noir-text-primary)]">
                   {strings.nextUp.headerTitle(upNext.length)}
                 </p>
-                {queueSource && (
-                  <p className="mt-1 text-[12px] text-[color:var(--noir-text-tertiary)]">
-                    {strings.nextUp.playingFrom(queueSource)}
-                  </p>
-                )}
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {onShuffleQueue && (
