@@ -10,6 +10,7 @@ import { COLOR_WORLDS } from '../../../utils/ditherCover';
 
 export type NoirReplayStoryProps = {
   cards: ReplayCard[];
+  coverSource?: string;
   onClose: () => void;
 };
 
@@ -78,7 +79,7 @@ function downloadBoneCard(card: ReplayCard) {
   }, 'image/png');
 }
 
-export function NoirReplayStory({ cards, onClose }: NoirReplayStoryProps) {
+export function NoirReplayStory({ cards, coverSource, onClose }: NoirReplayStoryProps) {
   const [index, setIndex] = useState(0);
   const card = cards[index];
   const isLast = index >= cards.length - 1;
@@ -124,7 +125,7 @@ export function NoirReplayStory({ cards, onClose }: NoirReplayStoryProps) {
         transition={withReducedMotion(MOTION.panel)}
       >
         <div className="noir-replay-card-art">
-          <NoirDitherCover world="bone" seed={card.seed} size={220} madeForYou />
+          <NoirDitherCover world="bone" source={coverSource} seed={card.seed} size={220} madeForYou />
           <NoirMark size={28} variant="vector" color={COLOR_WORLDS.bone.mark} className="noir-replay-card-mark" />
         </div>
         <p className="noir-replay-eyebrow">{card.eyebrow}</p>

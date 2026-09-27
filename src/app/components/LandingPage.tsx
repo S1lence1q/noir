@@ -428,6 +428,7 @@ export function LandingPage({
                 <NoirPageScaffold>
                   <NoirLibraryView
                     favorites={favorites}
+                    recentTracks={recentlyPlayed}
                     focus={libraryFocus}
                     onPlaylistOpenChange={onLibraryPlaylistOpenChange}
                     onToggleFavorite={handleToggleFavorite}

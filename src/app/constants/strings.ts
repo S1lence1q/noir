@@ -227,6 +227,7 @@ export const strings = {
     thisWeek: 'This week',
     thisMonth: 'Last 30 days',
     streak: (n: number) => (n === 1 ? '1-day streak' : `${n}-day streak`),
+    yourNumberOne: 'Your #1',
     topArtists: 'Top artists',
     topTracks: 'Top tracks',
     listeningClock: 'Listening clock',

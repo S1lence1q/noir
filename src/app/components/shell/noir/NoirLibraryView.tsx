@@ -22,6 +22,7 @@ export type LibraryFocus = {
 
 export type NoirLibraryViewProps = {
   favorites: SearchResult[];
+  recentTracks?: SearchResult[];
   focus?: LibraryFocus | null;
   onPlaylistOpenChange?: (playlistId: string | null) => void;
   onToggleFavorite: (song: SearchResult) => void;
@@ -39,6 +40,7 @@ const SECTIONS: { id: LibrarySection; label: string; icon: typeof Heart }[] = [
 
 export function NoirLibraryView({
   favorites,
+  recentTracks = [],
   focus = null,
   onPlaylistOpenChange,
   onToggleFavorite,
@@ -222,7 +224,7 @@ export function NoirLibraryView({
               exit={{ opacity: 0, transition: { duration: 0 } }}
               transition={withReducedMotion(MOTION.panel)}
             >
-              <NoirStatsView />
+              <NoirStatsView favorites={favorites} recentTracks={recentTracks} />
             </motion.div>
           )}
         </AnimatePresence>

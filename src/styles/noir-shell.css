@@ -2640,39 +2640,80 @@ button.noir-now-playing-source:hover {
 }
 
 .noir-stats-block--clock {
+  display: block;
+}
+
+.noir-stats-clock-card {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 32px;
-}
-
-.noir-stats-clock-copy {
-  flex: 1;
-  min-width: 160px;
-}
-
-.noir-stats-clock-peak {
-  margin: 0;
-  font-size: 14px;
-  color: var(--noir-text-secondary);
-}
-
-.noir-stats-dial {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.noir-stats-dial-svg {
-  display: block;
+  align-items: stretch;
+  gap: 0;
+  max-width: 560px;
   border-radius: var(--noir-radius-lg);
+  overflow: hidden;
+  background: #ede8de;
 }
 
-.noir-stats-dial-mark {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
+.noir-stats-clock-art {
+  flex-shrink: 0;
+  border-radius: 0 !important;
+}
+
+.noir-stats-clock-meta {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px 22px;
+  color: #0b0b0b;
+}
+
+.noir-stats-clock-meta .noir-stats-eyebrow {
+  color: rgba(11, 11, 11, 0.45);
+  margin: 0;
+}
+
+.noir-stats-clock-peak-lg {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  color: #0b0b0b;
+}
+
+.noir-stats-clock-artist {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(11, 11, 11, 0.55);
+}
+
+.noir-stats-hour-strip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.noir-stats-hour-dot {
+  flex: 1;
+  height: 6px;
+  border-radius: 2px;
+  background: #0b0b0b;
+}
+
+.noir-stats-hour-dot.is-peak {
+  background: #e85002;
+  opacity: 1 !important;
+  height: 10px;
+}
+
+.noir-stats-hero-top {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--noir-text-secondary);
 }
 
 .noir-replay {

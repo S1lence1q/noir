@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { strings } from '../../../constants/strings';
+import type { SearchResult } from '../../../types';
 import { getListeningEvents, type ListeningEvent } from '../../../services/listening/eventsStore';
 import {
   buildListeningClock,
@@ -14,18 +15,69 @@ import {
   topArtists,
   topTracks,
   totalListenedMs,
+  type TasteArtist,
+  type TasteTrack,
 } from '../../../services/listening/tasteProfile';
+import { getArtistImage, getTrackImage } from '../../../services/musicGraph';
 import { worldForCollection } from '../../../utils/ditherCover';
+import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
 import { NoirDitherCover } from './NoirDitherCover';
-import { NoirListeningClock } from './NoirListeningClock';
 import { NoirMark } from './NoirMark';
 import { NoirReplayStory } from './NoirReplayStory';
 
-export function NoirStatsView() {
+export type NoirStatsViewProps = {
+  favorites?: SearchResult[];
+  recentTracks?: SearchResult[];
+};
+
+function localPool(favorites: SearchResult[], recentTracks: SearchResult[]) {
+  return [...favorites, ...recentTracks];
+}
+
+function localArtistThumb(artist: string, pool: SearchResult[]) {
+  const key = artist.toLocaleLowerCase();
+  return pool.find((t) => t.artist.trim().toLocaleLowerCase() === key && t.thumbnail)?.thumbnail;
+}
+
+function localTrackThumb(track: TasteTrack, pool: SearchResult[]) {
+  const byKey = pool.find((t) => getPlaybackSongKey(t) === track.songKey && t.thumbnail);
+  if (byKey?.thumbnail) return byKey.thumbnail;
+  const title = track.title.toLocaleLowerCase();
+  const artist = track.artist.toLocaleLowerCase();
+  return pool.find(
+    (t) =>
+      t.thumbnail &&
+      t.title.toLocaleLowerCase() === title &&
+      t.artist.toLocaleLowerCase() === artist
+  )?.thumbnail;
+}
+
+/** Soft 24h intensity strip — sits under the Bone clock card, not a dial. */
+function HourStrip({ hours, peakHour }: { hours: number[]; peakHour: number }) {
+  const max = Math.max(1, ...hours);
+  return (
+    <div className="noir-stats-hour-strip" aria-hidden>
+      {hours.map((count, hour) => (
+        <span
+          key={hour}
+          className={`noir-stats-hour-dot${hour === peakHour && count > 0 ? ' is-peak' : ''}`}
+          style={{ opacity: count === 0 ? 0.2 : 0.35 + (count / max) * 0.65 }}
+          title={`${formatHourLabel(hour)} · ${count}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsViewProps) {
   const [events, setEvents] = useState<ListeningEvent[] | null>(null);
+  const [artistImages, setArtistImages] = useState<Record<string, string>>({});
+  const [trackImages, setTrackImages] = useState<Record<string, string>>({});
   const [replayOpen, setReplayOpen] = useState(false);
   const [replayCards, setReplayCards] = useState<ReplayCard[] | null>(null);
+
+  const pool = useMemo(() => localPool(favorites, recentTracks), [favorites, recentTracks]);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,9 +102,59 @@ export function NoirStatsView() {
     const clock = buildListeningClock(events, 30);
     const streak = streakDays(events);
     const replay = buildMonthlyReplayCards(events);
-    const heroSeed = `sound-week-${artists[0]?.artist ?? 'empty'}-${Math.round(weekMs / 60_000)}`;
-    return { weekMs, monthMs, artists, tracks, clock, streak, replay, heroSeed };
+    return { weekMs, monthMs, artists, tracks, clock, streak, replay };
   }, [events]);
+
+  useEffect(() => {
+    if (!summary) return;
+    let cancelled = false;
+
+    const resolveArtists = async (artists: TasteArtist[]) => {
+      const next: Record<string, string> = {};
+      await Promise.all(
+        artists.map(async (artist) => {
+          const local = localArtistThumb(artist.artist, pool);
+          if (local) {
+            next[artist.artist] = local;
+            return;
+          }
+          const remote = await getArtistImage(artist.artist);
+          if (remote) next[artist.artist] = remote;
+        })
+      );
+      return next;
+    };
+
+    const resolveTracks = async (tracks: TasteTrack[]) => {
+      const next: Record<string, string> = {};
+      await Promise.all(
+        tracks.map(async (track) => {
+          const local = localTrackThumb(track, pool);
+          if (local) {
+            next[track.songKey] = local;
+            return;
+          }
+          const remote = await getTrackImage(track.title, track.artist);
+          if (remote) next[track.songKey] = remote;
+        })
+      );
+      return next;
+    };
+
+    void (async () => {
+      const [artists, tracks] = await Promise.all([
+        resolveArtists(summary.artists),
+        resolveTracks(summary.tracks),
+      ]);
+      if (cancelled) return;
+      setArtistImages(artists);
+      setTrackImages(tracks);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [summary, pool]);
 
   const openReplay = () => {
     if (!summary?.replay) return;
@@ -82,6 +184,10 @@ export function NoirStatsView() {
     );
   }
 
+  const topArtist = summary.artists[0] ?? null;
+  const heroSource = topArtist ? artistImages[topArtist.artist] : undefined;
+  const clockSource = heroSource;
+
   return (
     <>
       <motion.div
@@ -91,7 +197,14 @@ export function NoirStatsView() {
         transition={withReducedMotion(MOTION.panel)}
       >
         <section className="noir-stats-hero">
-          <NoirDitherCover world="bone" seed={summary.heroSeed} size={168} madeForYou className="noir-stats-hero-art" />
+          <NoirDitherCover
+            source={heroSource}
+            world="bone"
+            seed={topArtist ? `sound-hero-${topArtist.artist}` : 'sound-hero'}
+            size={168}
+            madeForYou
+            className="noir-stats-hero-art"
+          />
           <div className="noir-stats-hero-copy">
             <p className="noir-stats-eyebrow">{strings.stats.thisWeek}</p>
             <p className="noir-stats-hero-value">{formatListened(summary.weekMs)}</p>
@@ -99,12 +212,18 @@ export function NoirStatsView() {
               {strings.stats.thisMonth}: {formatListened(summary.monthMs)}
               {summary.streak > 0 ? ` · ${strings.stats.streak(summary.streak)}` : ''}
             </p>
+            {topArtist && (
+              <p className="noir-stats-hero-top">
+                {strings.stats.yourNumberOne}: {topArtist.artist}
+              </p>
+            )}
           </div>
         </section>
 
         {summary.replay && (
           <section className="noir-stats-replay-cta">
             <NoirDitherCover
+              source={heroSource}
               world="bone"
               seed={`replay-cta-${summary.replay.month.year}-${summary.replay.month.month}`}
               size={88}
@@ -132,6 +251,7 @@ export function NoirStatsView() {
                 <li key={artist.artist} className="noir-stats-tile">
                   <span className="noir-stats-tile-art">
                     <NoirDitherCover
+                      source={artistImages[artist.artist]}
                       world={index === 0 ? 'bone' : worldForCollection(artist.artist)}
                       seed={`stats-artist-${artist.artist}`}
                       size={96}
@@ -157,6 +277,7 @@ export function NoirStatsView() {
                 <li key={track.songKey} className="noir-stats-tile">
                   <span className="noir-stats-tile-art">
                     <NoirDitherCover
+                      source={trackImages[track.songKey]}
                       world={index === 0 ? 'bone' : worldForCollection(track.songKey)}
                       seed={`stats-track-${track.songKey}`}
                       size={96}
@@ -176,21 +297,38 @@ export function NoirStatsView() {
         </section>
 
         <section className="noir-stats-block noir-stats-block--clock">
-          <div className="noir-stats-clock-copy">
-            <h2 className="noir-stats-section-title">{strings.stats.listeningClock}</h2>
-            <p className="noir-stats-clock-peak">
-              {summary.clock.peakCount > 0
-                ? strings.stats.peakHour(formatHourLabel(summary.clock.peakHour))
-                : strings.stats.noRankings}
-            </p>
+          <div className="noir-stats-clock-card">
+            <NoirDitherCover
+              source={clockSource}
+              world="bone"
+              seed={topArtist ? `sound-clock-${topArtist.artist}` : 'sound-clock'}
+              size={280}
+              madeForYou
+              className="noir-stats-clock-art"
+            />
+            <div className="noir-stats-clock-meta">
+              <p className="noir-stats-eyebrow">{strings.stats.listeningClock}</p>
+              <p className="noir-stats-clock-peak-lg">
+                {summary.clock.peakCount > 0
+                  ? strings.stats.peakHour(formatHourLabel(summary.clock.peakHour))
+                  : strings.stats.noRankings}
+              </p>
+              {topArtist && (
+                <p className="noir-stats-clock-artist">{topArtist.artist}</p>
+              )}
+              <HourStrip hours={summary.clock.hours} peakHour={summary.clock.peakHour} />
+            </div>
           </div>
-          <NoirListeningClock hours={summary.clock.hours} peakHour={summary.clock.peakHour} size={280} />
         </section>
       </motion.div>
 
       <AnimatePresence>
         {replayOpen && replayCards && (
-          <NoirReplayStory cards={replayCards} onClose={() => setReplayOpen(false)} />
+          <NoirReplayStory
+            cards={replayCards}
+            coverSource={heroSource}
+            onClose={() => setReplayOpen(false)}
+          />
         )}
       </AnimatePresence>
     </>
