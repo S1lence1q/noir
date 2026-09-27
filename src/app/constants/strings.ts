@@ -54,6 +54,8 @@ export const strings = {
     emptyTitle: "Let's fill this up",
     emptyBody: 'Search for songs, or add some you already love.',
     addSongs: 'Add songs',
+    close: 'Close',
+    emptyRow: 'No songs yet. Add a few above.',
     searchPlaceholder: 'Search songs to add',
     searching: 'Searching…',
     noResults: (q: string) => `Nothing for “${q}”.`,

@@ -1309,6 +1309,52 @@
   border-color: rgba(255, 255, 255, 0.32);
 }
 
+.noir-add-panel {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--noir-rule-faint);
+}
+
+.noir-add-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 84px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--noir-text-primary);
+  transition: border-color 0.12s ease, background-color 0.12s ease, color 0.12s ease;
+}
+
+.noir-add-button:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.noir-add-button[data-added='true'] {
+  border-color: transparent;
+  color: var(--noir-accent);
+  cursor: default;
+}
+
+.noir-playlist-empty-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  list-style: none;
+}
+
+.noir-playlist-empty-slot {
+  width: 48px;
+  height: 48px;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  border-radius: var(--noir-radius-sm);
+}
+
 .noir-add-row {
   display: flex;
   align-items: center;

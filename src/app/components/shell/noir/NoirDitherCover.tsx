@@ -35,7 +35,11 @@ export function NoirDitherCover({
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    if (!source) return;
+    if (!source) {
+      setUrl(undefined);
+      setFailed(false);
+      return;
+    }
     const cached = key ? getCachedDitherCover(key) : undefined;
     if (cached) {
       setUrl(cached);

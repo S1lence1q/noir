@@ -221,13 +221,10 @@ export function NoirUserPlaylistPage({
         </div>
       </header>
 
-      {hasTracks && (
-        <Reorder.Group
-          axis="y"
-          values={order}
-          onReorder={setOrder}
-          className="mt-10 flex flex-col gap-0.5"
-        >
+      <PlaylistAddSection playlist={playlist} favorites={favorites} startOpen={!hasTracks} />
+
+      <Reorder.Group axis="y" values={order} onReorder={setOrder} className="mt-8 flex flex-col gap-0.5">
+        <AnimatePresence initial={false}>
           {orderedTracks.map((track, i) => (
             <PlaylistTrackItem
               key={track.id}
@@ -242,10 +239,20 @@ export function NoirUserPlaylistPage({
               onToggleFavorite={onToggleFavorite}
             />
           ))}
-        </Reorder.Group>
-      )}
-
-      <PlaylistAddSection playlist={playlist} favorites={favorites} isEmpty={!hasTracks} />
+          {!hasTracks && (
+            <motion.li
+              key="empty"
+              className="noir-playlist-empty-row"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.12 } }}
+            >
+              <span className="noir-playlist-empty-slot" aria-hidden />
+              <span className="text-[13px] text-[color:var(--noir-text-tertiary)]">{strings.playlist.emptyRow}</span>
+            </motion.li>
+          )}
+        </AnimatePresence>
+      </Reorder.Group>
     </div>
   );
 }
@@ -288,6 +295,9 @@ function PlaylistTrackItem({
         }, 0);
       }}
       className="noir-playlist-item select-none"
+      initial={{ opacity: 0, y: -8, scale: 0.985 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.985, transition: { duration: 0.16 } }}
       whileDrag={{ scale: 1.015, boxShadow: '0 12px 32px rgba(0,0,0,0.65)', zIndex: 5, cursor: 'grabbing' }}
       transition={MOTION.panel}
     >
@@ -319,21 +329,30 @@ function PlaylistTrackItem({
 function PlaylistAddSection({
   playlist,
   favorites,
-  isEmpty,
+  startOpen,
 }: {
   playlist: UserPlaylist;
   favorites: SearchResult[];
-  isEmpty: boolean;
+  startOpen: boolean;
 }) {
+  const pickSuggestions = () => favorites.filter((t) => !playlistHasTrack(playlist, t)).slice(0, 5);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(isEmpty);
+  const [open, setOpen] = useState(startOpen);
+  // Snapshot on open: added rows stay in place (showing "Added") so nothing shifts under the cursor.
+  const [suggestions, setSuggestions] = useState<SearchResult[]>(() => (startOpen ? pickSuggestions() : []));
   const requestRef = useRef(0);
 
-  useEffect(() => {
-    if (isEmpty) setOpen(true);
-  }, [isEmpty]);
+  const openSection = () => {
+    setSuggestions(pickSuggestions());
+    setOpen(true);
+  };
+
+  const closeSection = () => {
+    setQuery('');
+    setOpen(false);
+  };
 
   useEffect(() => {
     const q = query.trim();
@@ -357,7 +376,6 @@ function PlaylistAddSection({
     return () => clearTimeout(timer);
   }, [query]);
 
-  const suggestions = favorites.filter((t) => !playlistHasTrack(playlist, t)).slice(0, isEmpty ? 5 : 3);
   const showingSearch = query.trim().length >= 2;
   const list = showingSearch ? results : suggestions;
 
@@ -367,50 +385,66 @@ function PlaylistAddSection({
     }
   };
 
-  if (!open) {
-    return (
-      <div className="mt-8">
-        <button type="button" onClick={() => setOpen(true)} className="noir-button-secondary elva-focus-ring">
-          <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
-          {strings.playlist.addSongs}
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <section className={isEmpty ? 'mt-12' : 'mt-8'}>
-      {isEmpty && (
-        <div className="mb-5">
-          <h2 className="noir-section-title">{strings.playlist.emptyTitle}</h2>
-          <p className="mt-1.5 text-[14px] text-[color:var(--noir-text-secondary)]">{strings.playlist.emptyBody}</p>
-        </div>
-      )}
+    <div className="mt-8">
+      <AnimatePresence initial={false} mode="popLayout">
+        {!open ? (
+          <motion.button
+            key="add-button"
+            type="button"
+            onClick={openSection}
+            className="noir-button-secondary elva-focus-ring"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.1 } }}
+            transition={withReducedMotion(MOTION.panel)}
+          >
+            <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
+            {strings.playlist.addSongs}
+          </motion.button>
+        ) : (
+          <motion.section
+            key="add-section"
+            className="noir-add-panel"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4, transition: { duration: 0.14 } }}
+            transition={withReducedMotion(MOTION.panel)}
+          >
+            <div className="mb-3 flex items-center justify-between gap-4">
+              <h2 className="noir-section-title">{strings.playlist.addSongs}</h2>
+              <button
+                type="button"
+                onClick={closeSection}
+                className="noir-icon-button !h-8 !w-8 elva-focus-ring"
+                aria-label={strings.playlist.close}
+                title={strings.playlist.close}
+              >
+                <X className="h-4 w-4" strokeWidth={1.75} />
+              </button>
+            </div>
 
       <label className="noir-inline-search">
         <Search className="h-4 w-4 shrink-0 text-[color:var(--noir-text-tertiary)]" strokeWidth={1.75} />
         <input
           value={query}
-          autoFocus={!isEmpty}
+          autoFocus={!startOpen}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Escape' && !isEmpty) {
-              setQuery('');
-              setOpen(false);
+            if (e.key === 'Escape') {
+              if (query) setQuery('');
+              else closeSection();
             }
           }}
           placeholder={strings.playlist.searchPlaceholder}
           className="min-w-0 flex-1 bg-transparent text-[14px] text-[color:var(--noir-text-primary)] outline-none placeholder:text-[color:var(--noir-text-tertiary)]"
         />
-        {(query || !isEmpty) && (
+        {query && (
           <button
             type="button"
-            onClick={() => {
-              setQuery('');
-              if (!isEmpty) setOpen(false);
-            }}
+            onClick={() => setQuery('')}
             className="text-[color:var(--noir-text-tertiary)] hover:text-white"
-            aria-label="Close"
+            aria-label="Clear"
           >
             <X className="h-4 w-4" strokeWidth={1.75} />
           </button>
@@ -435,20 +469,37 @@ function PlaylistAddSection({
                   <p className="noir-song-title truncate">{track.title}</p>
                   <p className="noir-song-meta truncate">{track.artist}</p>
                 </div>
-                <button
+                <motion.button
                   type="button"
                   disabled={inPlaylist}
                   onClick={() => add(track)}
-                  className="noir-button-secondary elva-focus-ring disabled:opacity-50"
+                  className="noir-add-button elva-focus-ring"
+                  data-added={inPlaylist ? 'true' : 'false'}
+                  whileTap={inPlaylist ? undefined : { scale: 0.94 }}
+                  transition={MOTION.tap}
                 >
-                  {inPlaylist ? <Check className="h-3.5 w-3.5" strokeWidth={2.25} /> : <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />}
-                  {inPlaylist ? strings.playlist.added : strings.playlist.add}
-                </button>
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.span
+                      key={inPlaylist ? 'added' : 'add'}
+                      className="flex items-center gap-1.5"
+                      initial={{ opacity: 0, scale: 0.7 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.7 }}
+                      transition={withReducedMotion(MOTION.panel)}
+                    >
+                      {inPlaylist ? <Check className="h-3.5 w-3.5" strokeWidth={2.25} /> : <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />}
+                      {inPlaylist ? strings.playlist.added : strings.playlist.add}
+                    </motion.span>
+                  </AnimatePresence>
+                </motion.button>
               </div>
             );
           })}
         </div>
       </div>
-    </section>
+          </motion.section>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
