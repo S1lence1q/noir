@@ -17,6 +17,7 @@ import { NoirHomeView } from './shell/noir/NoirHomeView';
 import { NoirLibraryView } from './shell/noir/NoirLibraryView';
 import { NoirPageScaffold } from './shell/noir/NoirPageScaffold';
 import { NoirSettingsView } from './shell/noir/NoirSettingsView';
+import { strings } from '../constants/strings';
 
 interface LandingPageProps {
   isIntroActive: boolean;
@@ -314,12 +315,12 @@ export function LandingPage({
                 onToggleFavorite={handleToggleFavorite}
                 onPlayAll={() => {
                   if (artistTracks.length > 0) {
-                    handlePlayPlaylist(artistTracks, selectedArtist.name);
+                    handlePlayPlaylist(artistTracks, strings.artist.popular);
                   }
                 }}
                 onPlayFromIndex={(index) => {
                   if (artistTracks.length > 0) {
-                    handlePlayPlaylist(artistTracks, selectedArtist.name, index);
+                    handlePlayPlaylist(artistTracks, strings.artist.popular, index);
                   }
                 }}
                 onStartRadio={handleStartRadio}

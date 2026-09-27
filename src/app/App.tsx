@@ -1140,6 +1140,7 @@ export default function App() {
   const canOpenQueueSource = (() => {
     if (!queueSource) return false;
     if (queueSource === strings.home.favorites || queueSource === 'Favorites') return true;
+    if (queueSource === strings.artist.popular && !!songData?.artist) return true;
     if (/^Radio · .+/.test(queueSource)) return true;
     return readPlaylists().some((item) => item.name === queueSource);
   })();
@@ -1150,6 +1151,11 @@ export default function App() {
     if (queueSource === strings.home.favorites || queueSource === 'Favorites') {
       setNowPlayingOpen(false);
       openLibraryFavorites();
+      return;
+    }
+
+    if (queueSource === strings.artist.popular && songData?.artist) {
+      openArtistByName(songData.artist, songData.channelId);
       return;
     }
 
