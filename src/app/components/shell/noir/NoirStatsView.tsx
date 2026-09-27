@@ -234,11 +234,17 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
             <p className="noir-stats-hero-value">{formatListened(summary.weekMs)}</p>
             <p className="noir-stats-hero-sub">
               {strings.stats.thisMonth}: {formatListened(summary.monthMs)}
-              {summary.streak > 0 ? ` · ${strings.stats.streak(summary.streak)}` : ''}
+              {summary.streak > 0 ? (
+                <>
+                  {' · '}
+                  <span className="noir-stats-accent-text">{strings.stats.streak(summary.streak)}</span>
+                </>
+              ) : null}
             </p>
             {topArtist && (
               <p className="noir-stats-hero-top">
-                {strings.stats.yourNumberOne}: {topArtist.artist}
+                <span className="noir-stats-accent-text">{strings.stats.yourNumberOne}</span>
+                {`: ${topArtist.artist}`}
               </p>
             )}
           </div>
@@ -249,11 +255,12 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
               seed={topArtist ? `sound-hero-${topArtist.artist}` : 'sound-hero'}
               size={200}
               madeForYou
+              radius={28}
             />
             <NoirMark
               size={160}
               variant="spray"
-              color={COLOR_WORLDS.bone.mark}
+              color={COLOR_WORLDS.ember.field}
               className="noir-stats-hero-band-mark"
             />
           </div>
@@ -267,6 +274,7 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
               seed={`replay-cta-${summary.replay.month.year}-${summary.replay.month.month}`}
               size={88}
               madeForYou
+              radius={22}
               className="noir-stats-replay-art"
             />
             <div className="min-w-0 flex-1">
@@ -285,21 +293,25 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
           {summary.artists.length === 0 ? (
             <p className="text-[13px] text-[color:var(--noir-text-tertiary)]">{strings.stats.noRankings}</p>
           ) : (
-            <ol className="noir-stats-tiles">
+            <ol className="noir-stats-soft-list">
               {summary.artists.map((artist, index) => (
-                <li key={artist.artist} className="noir-stats-tile">
-                  <span className="noir-stats-tile-art">
+                <li key={artist.artist} className={`noir-stats-soft-row${index === 0 ? ' is-lead' : ''}`}>
+                  <span className="noir-stats-soft-n" aria-hidden>
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <span className="noir-stats-soft-art">
                     <NoirDitherCover
                       source={artistImages[artist.artist]}
-                      world={index === 0 ? 'bone' : worldForCollection(artist.artist)}
+                      world={index === 0 ? 'bone' : 'ink'}
                       seed={`stats-artist-${artist.artist}`}
-                      size={96}
-                      madeForYou={index === 0}
+                      size={index === 0 ? 64 : 52}
+                      radius={999}
                     />
-                    <span className="noir-stats-tile-rank">{index + 1}</span>
                   </span>
-                  <span className="noir-stats-tile-label truncate">{artist.artist}</span>
-                  <span className="noir-stats-tile-meta">{strings.stats.plays(artist.plays)}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="noir-stats-soft-label truncate">{artist.artist}</span>
+                    <span className="noir-stats-soft-meta">{strings.stats.plays(artist.plays)}</span>
+                  </span>
                 </li>
               ))}
             </ol>
@@ -311,24 +323,26 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
           {summary.tracks.length === 0 ? (
             <p className="text-[13px] text-[color:var(--noir-text-tertiary)]">{strings.stats.noRankings}</p>
           ) : (
-            <ol className="noir-stats-tiles">
+            <ol className="noir-stats-soft-list">
               {summary.tracks.map((track, index) => (
-                <li key={track.songKey} className="noir-stats-tile">
-                  <span className="noir-stats-tile-art">
+                <li key={track.songKey} className={`noir-stats-soft-row${index === 0 ? ' is-lead' : ''}`}>
+                  <span className="noir-stats-soft-n" aria-hidden>
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <span className="noir-stats-soft-art">
                     <NoirDitherCover
                       source={trackImages[track.songKey]}
-                      world={index === 0 ? 'bone' : worldForCollection(track.songKey)}
+                      world={index === 0 ? 'bone' : 'ink'}
                       seed={`stats-track-${track.songKey}`}
-                      size={96}
-                      madeForYou={index === 0}
+                      size={index === 0 ? 64 : 52}
+                      radius={18}
                     />
-                    <span className="noir-stats-tile-rank">{index + 1}</span>
                   </span>
-                  <span className="min-w-0">
-                    <span className="noir-stats-tile-label block truncate">{track.title}</span>
-                    <span className="noir-stats-tile-meta block truncate">{track.artist}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="noir-stats-soft-label truncate">{track.title}</span>
+                    <span className="noir-stats-soft-meta truncate">{track.artist}</span>
                   </span>
-                  <span className="noir-stats-tile-meta shrink-0">{strings.stats.plays(track.plays)}</span>
+                  <span className="noir-stats-soft-meta shrink-0">{strings.stats.plays(track.plays)}</span>
                 </li>
               ))}
             </ol>
@@ -343,6 +357,7 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
               seed={topArtist ? `sound-clock-${topArtist.artist}` : 'sound-clock'}
               size={280}
               madeForYou
+              radius={0}
               className="noir-stats-clock-art"
             />
             <div className="noir-stats-clock-meta">

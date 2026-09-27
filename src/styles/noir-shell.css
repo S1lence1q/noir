@@ -2497,8 +2497,8 @@ button.noir-now-playing-source:hover {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 50% 40% at 88% 6%, var(--stats-accent, rgba(232, 80, 2, 0.32)) 0%, transparent 62%),
-    radial-gradient(ellipse 36% 32% at 6% 72%, var(--stats-side, rgba(31, 63, 191, 0.18)) 0%, transparent 58%);
+    radial-gradient(ellipse 58% 46% at 72% 0%, var(--stats-accent, rgba(232, 80, 2, 0.38)) 0%, transparent 64%),
+    radial-gradient(ellipse 40% 34% at 8% 88%, var(--stats-side, rgba(31, 63, 191, 0.14)) 0%, transparent 60%);
 }
 
 .noir-stats-grain {
@@ -2557,10 +2557,22 @@ button.noir-now-playing-source:hover {
   gap: 24px;
   min-height: 200px;
   padding: 28px 28px 28px 32px;
-  border-radius: var(--noir-radius-lg);
+  border-radius: 28px;
   background: #ede8de;
   color: #0b0b0b;
   overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(232, 80, 2, 0.12);
+}
+
+.noir-stats-hero-band::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18%;
+  bottom: 18%;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--noir-accent);
 }
 
 .noir-stats-hero-band-copy {
@@ -2571,6 +2583,7 @@ button.noir-now-playing-source:hover {
   justify-content: center;
   min-width: 0;
   flex: 1;
+  padding-left: 8px;
 }
 
 .noir-stats-hero-band .noir-stats-eyebrow {
@@ -2586,6 +2599,11 @@ button.noir-now-playing-source:hover {
   color: rgba(11, 11, 11, 0.55);
 }
 
+.noir-stats-accent-text {
+  color: var(--noir-accent);
+  font-weight: 600;
+}
+
 .noir-stats-hero-band-art {
   position: relative;
   flex-shrink: 0;
@@ -2597,7 +2615,7 @@ button.noir-now-playing-source:hover {
   position: absolute;
   right: -36px;
   bottom: -40px;
-  opacity: 0.2;
+  opacity: 0.28;
   pointer-events: none;
 }
 
@@ -2627,7 +2645,7 @@ button.noir-now-playing-source:hover {
   align-items: center;
   gap: 20px;
   padding: 16px 18px;
-  border-radius: var(--noir-radius-md);
+  border-radius: 22px;
   background: #ede8de;
   color: #0b0b0b;
 }
@@ -2662,51 +2680,66 @@ button.noir-now-playing-source:hover {
   background: #1a1a1a;
 }
 
-.noir-stats-tiles {
+.noir-stats-soft-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.noir-stats-tile {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-width: 0;
+  gap: 4px;
+  max-width: 520px;
 }
 
-.noir-stats-tile-art {
-  position: relative;
-  width: 96px;
-  height: 96px;
-}
-
-.noir-stats-tile-rank {
-  position: absolute;
-  left: 6px;
-  top: 6px;
+.noir-stats-soft-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.72);
-  color: #ede8de;
-  font: var(--noir-type-label);
-  font-variant-numeric: tabular-nums;
+  gap: 14px;
+  min-height: 60px;
+  padding: 8px 10px 8px 4px;
+  border-radius: 18px;
 }
 
-.noir-stats-tile-label {
+.noir-stats-soft-row.is-lead {
+  background: rgba(255, 255, 255, 0.04);
+  padding-right: 14px;
+}
+
+.noir-stats-soft-n {
+  width: 28px;
+  flex-shrink: 0;
+  font: var(--noir-type-meta);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--noir-text-tertiary);
+}
+
+.noir-stats-soft-row.is-lead .noir-stats-soft-n {
+  color: var(--noir-accent);
+  font-weight: 600;
+}
+
+.noir-stats-soft-art {
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.noir-stats-soft-art .noir-dither-cover {
+  display: block;
+}
+
+.noir-stats-soft-label {
+  display: block;
   font: var(--noir-type-row);
   color: var(--noir-text-primary);
 }
 
-.noir-stats-tile-meta {
+.noir-stats-soft-row.is-lead .noir-stats-soft-label {
+  font-weight: 600;
+}
+
+.noir-stats-soft-meta {
+  display: block;
+  margin-top: 2px;
   font: var(--noir-type-meta);
   color: var(--noir-text-tertiary);
 }
@@ -2721,7 +2754,7 @@ button.noir-now-playing-source:hover {
   align-items: stretch;
   gap: 0;
   max-width: 560px;
-  border-radius: var(--noir-radius-lg);
+  border-radius: 28px;
   overflow: hidden;
   background: #ede8de;
 }
@@ -2909,10 +2942,6 @@ button.noir-now-playing-source:hover {
 }
 
 @media (max-width: 720px) {
-  .noir-stats-tiles {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .noir-stats-hero-band {
     flex-direction: column;
     align-items: flex-start;
