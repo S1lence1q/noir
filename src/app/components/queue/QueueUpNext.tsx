@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import type { AccentColor } from '../themeUtils';
 import { ACCENT_THEMES } from '../themeUtils';
 import type { QueueItem, SearchResult } from './types';
-import { SongRowOptions } from '../SongRowOptions';
+import { openSongMenu, SongRowOptions } from '../SongRowOptions';
 import { listItemEnter } from '../../utils/motionPresets';
 import { strings } from '../../constants/strings';
 
@@ -162,6 +162,14 @@ export function QueueUpNext({
                   exit={{ opacity: 0, height: 0, marginBottom: 0 }}
                   transition={{ duration: 0.18 }}
                   onClick={() => onSelect(item.id)}
+                  onContextMenu={(event) =>
+                    openSongMenu(trackData, event, {
+                      onPlayNext,
+                      onAddToQueue,
+                      onToggleFavorite,
+                      isFavorite: isFav,
+                    })
+                  }
                   className={`group relative w-full flex items-center justify-between p-3.5 rounded-2xl transition-all duration-200 cursor-grab active:cursor-grabbing ${
                     isCurrent
                       ? 'bg-white/[0.05]'

@@ -6,6 +6,31 @@ export function hasCustomProfileName(name: string): boolean {
 }
 
 export const strings = {
+  songMenu: {
+    playNext: 'Play next',
+    addToQueue: 'Add to queue',
+    startRadio: 'Start radio',
+    addToPlaylist: 'Add to playlist',
+    favorite: 'Favorite',
+    removeFavorite: 'Remove favorite',
+    goToArtist: 'Go to artist',
+    removeFromPlaylist: 'Remove from this playlist',
+    removeFromQueue: 'Remove from queue',
+    comingSoon: 'Coming soon',
+    newPlaylist: 'New playlist',
+    searchPlaceholder: 'Search playlists',
+    moreOptions: 'More options',
+    closePlaylistSubmenu: 'Close playlist submenu',
+    menuLabel: (title: string) => `${title} menu`,
+    addedToQueue: 'Added to queue',
+    alreadyInQueue: 'Already in queue',
+    playingNext: 'Playing next',
+    addedTo: (name: string) => `Added to ${name}`,
+    addedToFavorites: 'Added to favorites',
+    removedFromFavorites: 'Removed from favorites',
+    removedFromQueue: 'Removed from queue',
+    undo: 'Undo',
+  },
   search: {
     keyboardHint: '↑↓ navigate · Enter open · Esc clear',
   },

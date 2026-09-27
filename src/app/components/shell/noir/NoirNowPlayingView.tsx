@@ -6,6 +6,7 @@ import { EASE_PREMIUM, MOTION, prefersReducedMotion, withReducedMotion } from '.
 import { strings } from '../../../constants/strings';
 import { NoirMark } from './NoirMark';
 import { noirToast } from './NoirToast';
+import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
 
 type NowPlayingSong = {
   title: string;
@@ -297,6 +298,7 @@ export function NoirNowPlayingView({
                   key={track.id}
                   layout={!reduced}
                   className="noir-track-row group flex w-full items-center gap-2 px-2 py-2.5"
+                  onContextMenu={(event) => openSongMenu(track, event)}
                   initial={{ opacity: 0, y: reduced ? 0 : 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, height: 0, margin: 0, paddingTop: 0, paddingBottom: 0 }}
@@ -345,6 +347,7 @@ export function NoirNowPlayingView({
                         <X className="h-3.5 w-3.5" strokeWidth={2} />
                       </button>
                     )}
+                    <SongRowOptions track={track} onAddToQueue={onAddToQueue} />
                   </div>
                 </motion.div>
               ))}

@@ -315,6 +315,7 @@ export function NoirUserPlaylistPage({
                 onAddToQueue={onAddToQueue}
                 onPlayNext={onPlayNext}
                 onToggleFavorite={onToggleFavorite}
+                onRemoveFromPlaylist={handleRemove}
               />
             ))}
           </AnimatePresence>

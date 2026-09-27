@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import { Heart, Plus } from 'lucide-react';
 import { SearchResult } from '../../../types';
-import { SongRowOptions } from '../../SongRowOptions';
+import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
 import { prefersReducedMotion } from '../../../utils/motionPresets';
 
 type NoirRankedSongRowProps = {
@@ -39,6 +39,14 @@ export function NoirRankedSongRow({
       role="button"
       tabIndex={0}
       onClick={onPlay}
+      onContextMenu={(event) =>
+        openSongMenu(track, event, {
+          onPlayNext,
+          onAddToQueue,
+          onToggleFavorite,
+          isFavorite,
+        })
+      }
       onKeyDown={(e) => {
         if (e.key === 'Enter') onPlay();
       }}
@@ -121,6 +129,8 @@ export function NoirRankedSongRow({
             track={track}
             onPlayNext={onPlayNext}
             onAddToQueue={onAddToQueue}
+            onToggleFavorite={onToggleFavorite}
+            isFavorite={isFavorite}
           />
         </div>
       </div>

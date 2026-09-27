@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { Heart, Plus } from 'lucide-react';
 import { SearchResult } from '../../../types';
-import { SongRowOptions } from '../../SongRowOptions';
+import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
 import { prefersReducedMotion } from '../../../utils/motionPresets';
 
 type NoirSongRowProps = {
@@ -16,6 +16,7 @@ type NoirSongRowProps = {
   onAddToQueue: (track: SearchResult) => void;
   onPlayNext?: (track: SearchResult) => void;
   onToggleFavorite?: (track: SearchResult) => void;
+  onRemoveFromPlaylist?: (track: SearchResult) => void;
   showArtistColumn?: boolean;
   showDuration?: boolean;
   /** Rendered in the hover action group, before add-to-queue. */
@@ -39,6 +40,7 @@ export function NoirSongRow({
   onAddToQueue,
   onPlayNext,
   onToggleFavorite,
+  onRemoveFromPlaylist,
   showArtistColumn = true,
   showDuration = false,
   extraAction,
@@ -55,6 +57,15 @@ export function NoirSongRow({
       onClick={() => {
         if (!isLoading) onPlay();
       }}
+      onContextMenu={(event) =>
+        openSongMenu(track, event, {
+          onPlayNext,
+          onAddToQueue,
+          onToggleFavorite,
+          isFavorite,
+          onRemoveFromPlaylist,
+        })
+      }
       onKeyDown={(e) => {
         if (e.key === 'Enter' && !isLoading) onPlay();
       }}
@@ -151,6 +162,9 @@ export function NoirSongRow({
             track={track}
             onPlayNext={onPlayNext}
             onAddToQueue={onAddToQueue}
+            onToggleFavorite={onToggleFavorite}
+            isFavorite={isFavorite}
+            onRemoveFromPlaylist={onRemoveFromPlaylist}
           />
         </div>
       </div>

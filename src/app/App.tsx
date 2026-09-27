@@ -35,8 +35,9 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { AppShell } from './components/shell/AppShell';
 import { ShellPlaybackState } from './components/shell/types';
 import { NoirNowPlayingView } from './components/shell/noir/NoirNowPlayingView';
-import { NoirToastHost } from './components/shell/noir/NoirToast';
+import { NoirToastHost, noirToast } from './components/shell/noir/NoirToast';
 import { NoirSearchPalette } from './components/shell/noir/NoirSearchPalette';
+import { NoirSongMenuHost } from './components/SongRowOptions';
 type AppState = 'landing' | 'processing' | 'ready';
 // landing = shell, processing = resolving a track. `ready` is unused (fullscreen player is parked).
 
@@ -463,10 +464,10 @@ export default function App() {
             item.id !== song.id &&
             !(song.videoId && (item.videoId === song.videoId || item.id === song.videoId))
         );
-        showMiniHUD('Removed from Favorites', 'info');
+        noirToast({ text: strings.songMenu.removedFromFavorites, cover: song.thumbnail });
       } else {
         updated = [...prev, song];
-        showMiniHUD('Added to Favorites', 'success');
+        noirToast({ text: strings.songMenu.addedToFavorites, cover: song.thumbnail });
       }
       localStorage.setItem('elva_favorites', JSON.stringify(updated));
       return updated;
@@ -790,27 +791,37 @@ export default function App() {
   const handleAddToQueue = (result: SearchResult, options?: { silent?: boolean }) => {
     const key = getPlaybackSongKey(result);
     const activeKey = songData ? getPlaybackSongKey(songData) : null;
-    let added = false;
+    const activeIndex = activeKey
+      ? queue.findIndex((item) => getPlaybackSongKey(item) === activeKey)
+      : -1;
+    const pendingStart = activeIndex >= 0 ? activeIndex : 0;
+    const exists = queue.some(
+      (item, index) =>
+        index >= pendingStart &&
+        (item.id === result.id || (key !== null && getPlaybackSongKey(item) === key))
+    );
+    if (exists) {
+      if (!options?.silent) {
+        toast.error(strings.songMenu.alreadyInQueue, { description: result.title });
+      }
+      return;
+    }
+
     setQueue((prev) => {
-      const activeIndex = activeKey
-        ? prev.findIndex((item) => getPlaybackSongKey(item) === activeKey)
-        : -1;
-      const pendingStart = activeIndex >= 0 ? activeIndex : 0;
-      const exists = prev.some(
-        (item, index) =>
-          index >= pendingStart &&
-          (item.id === result.id || (key !== null && getPlaybackSongKey(item) === key))
-      );
-      if (exists) return prev;
-      added = true;
+      if (prev.some((item) => item.id === result.id || (key !== null && getPlaybackSongKey(item) === key))) {
+        return prev;
+      }
       return [...prev, result];
     });
-    if (added) {
-      if (!options?.silent) {
-        showMiniHUD('Added to queue', 'success');
-      }
-    } else if (!options?.silent) {
-      toast.error('Already in queue', { description: result.title });
+    if (!options?.silent) {
+      noirToast({
+        text: strings.songMenu.addedToQueue,
+        cover: result.thumbnail,
+        action: {
+          label: strings.songMenu.undo,
+          onClick: () => setQueue((prev) => prev.filter((item) => item.id !== result.id)),
+        },
+      });
     }
   };
 
@@ -1142,11 +1153,29 @@ export default function App() {
     }
     
     setQueue(newQueue);
-    showMiniHUD('Will play next', 'success');
+    noirToast({
+      text: strings.songMenu.playingNext,
+      cover: result.thumbnail,
+      action: {
+        label: strings.songMenu.undo,
+        onClick: () => setQueue((prev) => prev.filter((item) => item.id !== result.id)),
+      },
+    });
   };
 
   const handleRemoveFromQueue = (id: string) => {
+    const removedIndex = queue.findIndex((item) => item.id === id);
+    const removed = removedIndex >= 0 ? queue[removedIndex] : null;
+    if (!removed) return;
     setQueue((prev) => prev.filter((item) => item.id !== id));
+    return () => {
+      setQueue((prev) => {
+        if (prev.some((item) => item.id === removed.id)) return prev;
+        const next = [...prev];
+        next.splice(Math.min(removedIndex, next.length), 0, removed);
+        return next;
+      });
+    };
   };
 
   const handleMoveInQueue = (id: string, direction: -1 | 1) => {
@@ -1566,6 +1595,15 @@ export default function App() {
           </ErrorBoundary>
         </div>
       )}
+
+      <NoirSongMenuHost
+        onPlayNext={handlePlayNext}
+        onAddToQueue={handleAddToQueue}
+        onToggleFavorite={handleToggleFavorite}
+        onGoToArtist={searchLogic.handleViewArtistByName}
+        onRemoveFromQueue={(track) => handleRemoveFromQueue(track.id)}
+        isFavoriteForTrack={(track) => isTrackFavorite(favorites, track)}
+      />
 
       <NoirToastHost />
 

@@ -18,7 +18,7 @@ interface SongRowOptionsProps {
   onRemoveFromQueue?: (track: SearchResult) => void;
 }
 
-export const SongRowOptions: React.FC<SongRowOptionsProps> = ({
+const LegacySongRowOptions: React.FC<SongRowOptionsProps> = ({
   track,
   onPlayNext,
   onAddToQueue,
@@ -291,3 +291,5 @@ export const SongRowOptions: React.FC<SongRowOptionsProps> = ({
     </div>
   );
 };
+
+export { NoirSongMenuHost, SongRowOptions, openSongMenu } from './NoirSongMenu';
