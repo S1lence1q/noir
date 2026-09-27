@@ -7,6 +7,7 @@ import { strings } from '../../../constants/strings';
 import { NoirMark } from './NoirMark';
 import { noirToast } from './NoirToast';
 import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
+import { useQueueEndPrompt } from '../../../hooks/useQueueEndPrompt';
 
 type NowPlayingSong = {
   title: string;
@@ -28,7 +29,11 @@ type NoirNowPlayingViewProps = {
   onOpenDiscover?: () => void;
   onSelectFromQueue: (id: string) => void;
   onRemoveFromQueue?: (id: string) => void;
+  onClearQueue?: () => (() => void) | void;
+  onShuffleQueue?: () => void;
   onMoveInQueue?: (id: string, direction: -1 | 1) => void;
+  playback?: { currentTime: number; duration: number; isPlaying: boolean };
+  queueSource?: string;
 };
 
 const sheetEase = EASE_PREMIUM;
@@ -65,7 +70,11 @@ export function NoirNowPlayingView({
   onOpenDiscover,
   onSelectFromQueue,
   onRemoveFromQueue,
+  onClearQueue,
+  onShuffleQueue,
   onMoveInQueue,
+  playback = { currentTime: 0, duration: 0, isPlaying: false },
+  queueSource,
 }: NoirNowPlayingViewProps) {
   const reduced = prefersReducedMotion();
   const currentKey = getPlaybackSongKey(song);
@@ -95,8 +104,72 @@ export function NoirNowPlayingView({
     });
   };
 
+  const keepPlaying = () => {
+    if (addPool.length > 0) addTracks(shuffled(addPool).slice(0, BATCH_SIZE));
+  };
+
+  const queueEndPrompt = useQueueEndPrompt({
+    trackKey: songKey,
+    currentTime: playback.currentTime,
+    duration: playback.duration,
+    isPlaying: playback.isPlaying,
+    upNextCount: upNext.length,
+    canKeepPlaying: !!onAddToQueue && addPool.length > 0,
+    onKeepPlaying: keepPlaying,
+  });
+
+  const clearQueue = () => {
+    const restore = onClearQueue?.();
+    noirToast({
+      text: strings.nextUp.queueCleared,
+      action: restore ? { label: strings.nextUp.undo, onClick: restore } : undefined,
+    });
+  };
+
   return (
     <div className="noir-now-playing">
+      <AnimatePresence>
+        {queueEndPrompt.isVisible && (
+          <motion.div
+            className="fixed bottom-[112px] left-1/2 z-[60] w-[min(420px,calc(100vw-32px))] -translate-x-1/2 rounded-[var(--noir-radius-md)] border border-white/[0.12] bg-[color:var(--noir-elevated)] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.65)]"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={withReducedMotion(MOTION.panel)}
+          >
+            <p className="text-[13px] font-medium text-[color:var(--noir-text-primary)]">
+              {strings.nextUp.queueEndsSoon}
+            </p>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <label className="flex items-center gap-2 text-[12px] text-[color:var(--noir-text-tertiary)]">
+                <input
+                  type="checkbox"
+                  checked={queueEndPrompt.dontAskAgain}
+                  onChange={(event) => queueEndPrompt.setDontAskAgain(event.target.checked)}
+                  className="accent-[var(--noir-accent)]"
+                />
+                {strings.nextUp.dontAskAgain}
+              </label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="noir-button-secondary elva-focus-ring"
+                  onClick={() => queueEndPrompt.resolve('dismiss')}
+                >
+                  {strings.nextUp.noThanks}
+                </button>
+                <button
+                  type="button"
+                  className="noir-button-primary elva-focus-ring"
+                  onClick={() => queueEndPrompt.resolve('keep')}
+                >
+                  {strings.nextUp.keepPlaying}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Artwork-derived atmosphere; fades in after the cover has landed so it never competes with the flight. */}
       <motion.div
         className="noir-now-playing-atmosphere"
@@ -285,11 +358,37 @@ export function NoirNowPlayingView({
           </motion.div>
         ) : (
           <>
-            <div className="flex items-baseline justify-between gap-3 px-2 pb-3">
-              <p className="text-[14px] font-medium text-[color:var(--noir-text-primary)]">Next up</p>
-              <p className="text-[12px] tabular-nums text-[color:var(--noir-text-tertiary)]">
-                {upNext.length}
-              </p>
+            <div className="flex items-end justify-between gap-3 px-2 pb-3">
+              <div className="min-w-0">
+                <p className="text-[14px] font-medium text-[color:var(--noir-text-primary)]">
+                  {strings.nextUp.headerTitle(upNext.length)}
+                </p>
+                {queueSource && (
+                  <p className="mt-1 text-[12px] text-[color:var(--noir-text-tertiary)]">
+                    {strings.nextUp.playingFrom(queueSource)}
+                  </p>
+                )}
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                {onShuffleQueue && (
+                  <button
+                    type="button"
+                    className="text-[12px] text-[color:var(--noir-text-tertiary)] hover:text-white elva-focus-ring"
+                    onClick={onShuffleQueue}
+                  >
+                    {strings.nextUp.shuffle}
+                  </button>
+                )}
+                {onClearQueue && (
+                  <button
+                    type="button"
+                    className="text-[12px] text-[color:var(--noir-text-tertiary)] hover:text-white elva-focus-ring"
+                    onClick={clearQueue}
+                  >
+                    {strings.nextUp.clear}
+                  </button>
+                )}
+              </div>
             </div>
             <div className="flex flex-col">
             <AnimatePresence initial={false}>

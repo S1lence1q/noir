@@ -1202,8 +1202,9 @@ export default function App() {
   };
 
   const handleClearQueue = () => {
+    const previousQueue = queue;
     setQueue([]);
-    showMiniHUD('Queue cleared', 'info');
+    return () => setQueue(previousQueue);
   };
 
   const handleSelectFromQueue = (id: string, isCrossfade?: boolean) => {
@@ -1435,7 +1436,14 @@ export default function App() {
                   onOpenDiscover={() => setActiveTab('discover')}
                   onSelectFromQueue={(id) => handleSelectFromQueue(id)}
                   onRemoveFromQueue={handleRemoveFromQueue}
+                  onClearQueue={handleClearQueue}
+                  onShuffleQueue={handleShuffleQueue}
                   onMoveInQueue={handleMoveInQueue}
+                  playback={{
+                    currentTime: shellPlayback.currentTime,
+                    duration: shellPlayback.duration,
+                    isPlaying: isMiniPlaying,
+                  }}
                 />
               ) : undefined
             }
