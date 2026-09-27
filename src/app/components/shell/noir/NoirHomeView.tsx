@@ -77,7 +77,7 @@ export function NoirHomeView({
   const reduced = prefersReducedMotion();
   const playlists = usePlaylists();
   const [mixes, setMixes] = useState<DailyMix[]>([]);
-  const [mixesLoading, setMixesLoading] = useState(false);
+  const [mixesLoading, setMixesLoading] = useState(true);
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 5) return strings.greeting.lateNight;
@@ -136,9 +136,10 @@ export function NoirHomeView({
     void (async () => {
       try {
         const events = await getListeningEvents();
-        const next = await loadDailyMixes(events);
+        const next = await loadDailyMixes(events, recentlyPlayed);
         if (!cancelled) setMixes(next);
-      } catch {
+      } catch (error) {
+        console.warn('[mixes] Failed to load daily mixes', error);
         if (!cancelled) setMixes([]);
       } finally {
         if (!cancelled) setMixesLoading(false);
@@ -147,7 +148,7 @@ export function NoirHomeView({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [recentlyPlayed.length > 0]); // seed once recents exist; day-cache keeps mixes stable
 
   useEffect(() => {
     return () => {

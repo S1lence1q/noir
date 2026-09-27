@@ -8,7 +8,6 @@ import {
   getArtistTags,
   getArtistTopTracks,
   getSimilarArtists,
-  getTrackImage,
   type GraphTrack,
 } from '../musicGraph';
 import { normalizeName } from '../musicGraph/normalize';
@@ -16,9 +15,10 @@ import { graphTrackToSearchResult } from '../discover/discoverFeed';
 
 const MIX_TRACK_COUNT = 25;
 const YOUR_SHARE = 0.4;
-const MIN_SHOW = 3;
+/** Show the shelf once we have at least one usable mix. */
+const MIN_SHOW = 1;
 const MAX_MIXES = 6;
-const CACHE_PREFIX = 'noir_daily_mixes_v1:';
+const CACHE_PREFIX = 'noir_daily_mixes_v2:';
 
 const SKIP_TAGS = new Set([
   'seen live',
@@ -114,18 +114,31 @@ function eventToSearchResult(event: ListeningEvent): SearchResult {
   };
 }
 
-async function enrichThumbnails(tracks: SearchResult[]): Promise<SearchResult[]> {
-  return Promise.all(
-    tracks.map(async (track) => {
-      if (track.thumbnail?.trim()) return track;
-      const image = await getTrackImage(track.title, track.artist);
-      return image ? { ...track, thumbnail: image } : track;
-    })
-  );
+/** Taste from events, or fall back to recently-played artists (Home often has those first). */
+function resolveTaste(
+  events: ReadonlyArray<ListeningEvent>,
+  fallbackTracks: SearchResult[]
+): TasteArtist[] {
+  const fromEvents = topArtists(events, 30);
+  if (fromEvents.length >= 2) return fromEvents.slice(0, 30);
+
+  const scores = new Map<string, TasteArtist>();
+  for (const track of fallbackTracks) {
+    const artist = track.artist?.trim();
+    if (!artist) continue;
+    const key = artist.toLocaleLowerCase();
+    if (key === 'unknown artist' || key === 'unknown') continue;
+    const current = scores.get(key) ?? { artist, score: 0, plays: 0 };
+    current.score += 1;
+    current.plays += 1;
+    scores.set(key, current);
+  }
+  return [...scores.values()].sort((a, b) => b.score - a.score).slice(0, 30);
 }
 
 async function buildMixTracks(
   events: ReadonlyArray<ListeningEvent>,
+  fallbackTracks: SearchResult[],
   clusterArtists: TasteArtist[],
   mixId: string,
   day: string
@@ -134,30 +147,34 @@ async function buildMixTracks(
   const yourTarget = Math.round(MIX_TRACK_COUNT * YOUR_SHARE);
   const similarTarget = MIX_TRACK_COUNT - yourTarget;
 
-  const yourPlays = topTracks(events, 30)
-    .filter((t) => artistKeys.has(normalizeName(t.artist)))
-    .slice(0, yourTarget * 2);
+  const fromPool = new Map<string, SearchResult>();
 
-  const fromEvents = new Map<string, SearchResult>();
-  for (const taste of yourPlays) {
+  for (const taste of topTracks(events, 30)) {
+    if (!artistKeys.has(normalizeName(taste.artist))) continue;
     const event = events.find((e) => e.songKey === taste.songKey);
     if (!event) continue;
     const key = trackKey(event.title, event.artist);
-    if (!fromEvents.has(key)) fromEvents.set(key, eventToSearchResult(event));
+    if (!fromPool.has(key)) fromPool.set(key, eventToSearchResult(event));
   }
-  let yours = [...fromEvents.values()].slice(0, yourTarget);
 
-  // Pad yours with those artists' top tracks if listening history is thin.
+  for (const track of fallbackTracks) {
+    if (!artistKeys.has(normalizeName(track.artist))) continue;
+    const key = trackKey(track.title, track.artist);
+    if (!fromPool.has(key)) fromPool.set(key, track);
+  }
+
+  let yours = [...fromPool.values()].slice(0, yourTarget);
+
   if (yours.length < yourTarget) {
     const pads = await Promise.all(
-      clusterArtists.slice(0, 4).map((a) => getArtistTopTracks(a.artist, 6))
+      clusterArtists.slice(0, 3).map((a) => getArtistTopTracks(a.artist, 8))
     );
     for (const batch of pads) {
       for (const track of batch) {
         const key = trackKey(track.title, track.artist);
-        if (fromEvents.has(key)) continue;
+        if (fromPool.has(key)) continue;
         const result = graphTrackToSearchResult(track, mixId);
-        fromEvents.set(key, result);
+        fromPool.set(key, result);
         yours.push(result);
         if (yours.length >= yourTarget) break;
       }
@@ -169,15 +186,30 @@ async function buildMixTracks(
   const seen = new Set(yours.map((t) => trackKey(t.title, t.artist)));
   const similarPool: GraphTrack[] = [];
 
-  const seedArtists = clusterArtists.slice(0, 3);
-  for (const seed of seedArtists) {
-    const related = await getSimilarArtists(seed.artist, 6);
-    const relatedNames = related
+  // One seed artist is enough for speed; Last.fm is rate-limited.
+  const seed = clusterArtists[0];
+  if (seed) {
+    const related = (await getSimilarArtists(seed.artist, 8))
       .map((r) => r.name)
       .filter((name) => !artistKeys.has(normalizeName(name)))
-      .slice(0, 4);
-    const tops = await Promise.all(relatedNames.map((name) => getArtistTopTracks(name, 5)));
+      .slice(0, 5);
+    const tops = await Promise.all(related.map((name) => getArtistTopTracks(name, 5)));
     for (const batch of tops) {
+      for (const track of batch) {
+        const key = trackKey(track.title, track.artist);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        similarPool.push(track);
+      }
+    }
+  }
+
+  // If similar is thin, pad with more top tracks from the cluster itself.
+  if (similarPool.length < similarTarget) {
+    const more = await Promise.all(
+      clusterArtists.slice(0, 4).map((a) => getArtistTopTracks(a.artist, 8))
+    );
+    for (const batch of more) {
       for (const track of batch) {
         const key = trackKey(track.title, track.artist);
         if (seen.has(key)) continue;
@@ -191,16 +223,15 @@ async function buildMixTracks(
     .slice(0, similarTarget)
     .map((track) => graphTrackToSearchResult(track, mixId));
 
-  const combined = shuffleSeeded([...yours, ...similar], hashString(`${mixId}:all:${day}`)).slice(
+  return shuffleSeeded([...yours, ...similar], hashString(`${mixId}:all:${day}`)).slice(
     0,
     MIX_TRACK_COUNT
   );
-
-  return enrichThumbnails(combined);
 }
 
 async function buildOneMix(
   events: ReadonlyArray<ListeningEvent>,
+  fallbackTracks: SearchResult[],
   tag: string,
   clusterArtists: TasteArtist[],
   day: string
@@ -208,16 +239,15 @@ async function buildOneMix(
   const tagKey = normalizeName(tag) || tag;
   const id = `mix:${day}:${tagKey}`;
   const names = clusterArtists.map((a) => a.artist);
-  const tracks = await buildMixTracks(events, clusterArtists, id, day);
-  if (tracks.length < MIN_SHOW) return null;
+  const tracks = await buildMixTracks(events, fallbackTracks, clusterArtists, id, day);
+  if (tracks.length < 3) return null;
 
   const top = clusterArtists[0];
-  const coverImage = (await getArtistImage(top.artist)) || tracks.find((t) => t.thumbnail)?.thumbnail;
+  const coverImage =
+    (await getArtistImage(top.artist)) || tracks.find((t) => t.thumbnail)?.thumbnail;
 
   const subtitle =
-    names.length <= 3
-      ? names.join(', ')
-      : `${names.slice(0, 3).join(', ')} and more`;
+    names.length <= 3 ? names.join(', ') : `${names.slice(0, 3).join(', ')} and more`;
 
   return {
     id,
@@ -232,25 +262,32 @@ async function buildOneMix(
   };
 }
 
-export async function loadDailyMixes(events: ReadonlyArray<ListeningEvent>): Promise<DailyMix[]> {
+/**
+ * Build 1–6 daily mixes. Uses listening events when present; falls back to
+ * recently-played artists so Home still gets mixes before T09 history is deep.
+ */
+export async function loadDailyMixes(
+  events: ReadonlyArray<ListeningEvent>,
+  fallbackTracks: SearchResult[] = []
+): Promise<DailyMix[]> {
   const day = dayKey();
   const cached = readCache(day);
   if (cached) return cached;
 
-  const taste = topArtists(events, 30).slice(0, 30);
-  if (taste.length < 2) return [];
+  const taste = resolveTaste(events, fallbackTracks);
+  if (taste.length < 1) return [];
 
   const tagged = await Promise.all(
-    taste.map(async (entry) => {
+    taste.slice(0, 20).map(async (entry) => {
       const tags = await getArtistTags(entry.artist);
       const tag = pickPrimaryTag(tags);
-      return tag ? { entry, tag } : null;
+      // No Last.fm tags (local / obscure) → still mixable under a stable bucket.
+      return { entry, tag: tag || 'for you' };
     })
   );
 
   const clusters = new Map<string, TasteArtist[]>();
   for (const row of tagged) {
-    if (!row) continue;
     const list = clusters.get(row.tag) ?? [];
     list.push(row.entry);
     clusters.set(row.tag, list);
@@ -265,17 +302,18 @@ export async function loadDailyMixes(events: ReadonlyArray<ListeningEvent>): Pro
     }))
     .sort((a, b) => b.size - a.size || b.score - a.score);
 
-  // Prefer multi-artist clusters; pad with singles so we can reach MIN_SHOW mixes.
   const multi = ranked.filter((c) => c.size >= 2);
   const singles = ranked.filter((c) => c.size === 1);
   const chosen = [...multi, ...singles].slice(0, MAX_MIXES);
 
-  const mixes: DailyMix[] = [];
-  for (const cluster of chosen) {
-    const mix = await buildOneMix(events, cluster.tag, cluster.artists, day);
-    if (mix) mixes.push(mix);
-    if (mixes.length >= MAX_MIXES) break;
-  }
+  // Build a few in parallel — sequential was too slow on Home.
+  const built = await Promise.all(
+    chosen.map((cluster) =>
+      buildOneMix(events, fallbackTracks, cluster.tag, cluster.artists, day)
+    )
+  );
+
+  const mixes = built.filter((mix): mix is DailyMix => !!mix).slice(0, MAX_MIXES);
 
   if (mixes.length >= MIN_SHOW) {
     writeCache(day, mixes);
