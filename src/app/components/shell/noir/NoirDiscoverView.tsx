@@ -4,7 +4,6 @@ import { ArrowRight, Play, RefreshCw } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
 import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
-import { NoirRankedSongRow } from './NoirRankedSongRow';
 import { NoirSongRow } from './NoirSongRow';
 import { NoirDitherCover } from './NoirDitherCover';
 import { worldForCollection } from '../../../utils/ditherCover';
@@ -187,7 +186,6 @@ export function NoirDiscoverView({
   const hasPersonal =
     !!personalReady &&
     (feed.newReleases.length > 0 || feed.artistsLike.length > 0 || feed.tags.length > 0);
-  const chartsSettled = !chartsLoading;
   const coldStart = feedReady && !hasPersonal && !feedLoading;
 
   const chartArtists = useMemo(() => {
@@ -223,11 +221,6 @@ export function NoirDiscoverView({
       </div>
     );
   }
-
-  const rankedSections = [
-    { playlist: localPlaylist, label: strings.discover.topIn(countryData.name) },
-    { playlist: globalPlaylist, label: strings.discover.topGlobal },
-  ].filter((s) => s.playlist.tracks.length > 0);
 
   const reduced = prefersReducedMotion();
   const chartSlots: Array<{ key: string; playlist: Playlist | null }> = [
@@ -370,36 +363,6 @@ export function NoirDiscoverView({
           )}
         </div>
       </section>
-
-      {chartsSettled &&
-        rankedSections.map(({ playlist, label }) => (
-          <section key={playlist.id}>
-            <div className="mb-4 mt-[var(--noir-section-gap)] flex items-baseline justify-between gap-4 px-1">
-              <h3 className="noir-section-title">{label}</h3>
-              <button
-                type="button"
-                onClick={() => onSelectPlaylist(playlist)}
-                className="noir-link elva-focus-ring"
-              >
-                {strings.discover.showAll}
-              </button>
-            </div>
-            <div className="noir-discover-ranked">
-              {playlist.tracks.slice(0, 10).map((track, i) => (
-                <NoirRankedSongRow
-                  key={track.id}
-                  rank={i + 1}
-                  track={track}
-                  isFavorite={isTrackFavorite(favorites, track)}
-                  onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name, i)}
-                  onAddToQueue={onAddToQueue}
-                  onPlayNext={onPlayNext}
-                  onToggleFavorite={onToggleFavorite}
-                />
-              ))}
-            </div>
-          </section>
-        ))}
     </div>
   );
 }
