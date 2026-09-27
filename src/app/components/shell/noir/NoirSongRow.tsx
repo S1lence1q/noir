@@ -5,6 +5,8 @@ import { SearchResult } from '../../../types';
 import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
 import { prefersReducedMotion } from '../../../utils/motionPresets';
 import { encodePlaylistTrack, PLAYLIST_TRACK_DRAG_MIME } from '../../../utils/playlistStore';
+import { worldForCollection } from '../../../utils/ditherCover';
+import { NoirDitherCover } from './NoirDitherCover';
 
 type NoirSongRowProps = {
   track: SearchResult;
@@ -47,6 +49,7 @@ export function NoirSongRow({
   extraAction,
 }: NoirSongRowProps) {
   const reduced = prefersReducedMotion();
+  const hasThumb = !!track.thumbnail?.trim();
 
   return (
     <motion.div
@@ -81,20 +84,29 @@ export function NoirSongRow({
       whileTap={reduced || isLoading ? undefined : { scale: 0.985 }}
       transition={{ type: 'spring', stiffness: 520, damping: 34 }}
     >
-      <div className="noir-art relative h-12 w-12 overflow-hidden bg-[color:var(--noir-gray-dark)]">
-        <motion.img
-          src={track.thumbnail}
-          alt=""
-          className={`h-full w-full object-cover ${isLoading ? 'opacity-50' : ''}`}
-          whileTap={reduced || isLoading ? undefined : { scale: 0.92 }}
-          transition={{ type: 'spring', stiffness: 450, damping: 30 }}
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            if (track.videoId) {
-              e.currentTarget.src = `https://img.youtube.com/vi/${track.videoId}/mqdefault.jpg`;
-            }
-          }}
-        />
+      <div className={`noir-art relative h-12 w-12 overflow-hidden ${hasThumb ? 'bg-[color:var(--noir-gray-dark)]' : ''}`}>
+        {hasThumb ? (
+          <motion.img
+            src={track.thumbnail}
+            alt=""
+            className={`h-full w-full object-cover ${isLoading ? 'opacity-50' : ''}`}
+            whileTap={reduced || isLoading ? undefined : { scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              if (track.videoId) {
+                e.currentTarget.src = `https://img.youtube.com/vi/${track.videoId}/mqdefault.jpg`;
+              }
+            }}
+          />
+        ) : (
+          <NoirDitherCover
+            world={worldForCollection(track.id)}
+            seed={track.id}
+            size={48}
+            radius={0}
+          />
+        )}
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50">
             <div className="h-4 w-4 animate-spin rounded-full border border-white/20 border-t-white" />

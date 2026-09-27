@@ -175,25 +175,9 @@ export function NoirDiscoverView({
   const hasPersonal =
     !!personalReady &&
     (feed.newReleases.length > 0 || feed.artistsLike.length > 0 || feed.tags.length > 0);
+  const showChartsSkeleton = chartsLoading && localHits.length === 0 && globalHits.length === 0;
 
-  if (chartsLoading && feedLoading) {
-    return (
-      <div className="flex flex-col gap-10 pb-6">
-        <div className="noir-home-shelf">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="noir-skeleton h-[188px] w-[168px] shrink-0 rounded-[var(--noir-radius-md)]" />
-          ))}
-        </div>
-        <div className="noir-discover-charts">
-          {[0, 1].map((i) => (
-            <div key={i} className="noir-skeleton h-[216px] rounded-[var(--noir-radius-lg)]" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (chartsEmpty && !hasPersonal) {
+  if (chartsEmpty && !hasPersonal && !feedLoading) {
     return (
       <div className="py-16">
         <p className="text-[15px] text-[color:var(--noir-text-primary)]">{strings.discover.trendingUnavailable}</p>
@@ -216,23 +200,33 @@ export function NoirDiscoverView({
   return (
     <div className="flex flex-col pb-6">
       {!hasPersonal && !feedLoading && (
-        <div className="mb-8 max-w-lg px-1">
-          <p className="noir-label">{strings.discover.emptyTasteTitle}</p>
-          <p className="mt-2 text-[14px] text-[color:var(--noir-text-secondary)]">
-            {strings.discover.emptyTasteDesc}
-          </p>
-        </div>
+        <p className="mb-8 max-w-lg px-1 text-[14px] text-[color:var(--noir-text-secondary)]">
+          {strings.discover.emptyTasteDesc}
+        </p>
       )}
 
       {feedLoading && (
-        <section className="mb-2">
-          <div className="noir-skeleton mb-4 h-5 w-48 rounded" />
-          <div className="noir-home-shelf">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="noir-skeleton h-[188px] w-[168px] shrink-0 rounded-[var(--noir-radius-md)]" />
-            ))}
-          </div>
-        </section>
+        <>
+          <section>
+            <div className="noir-skeleton mb-4 mt-2 h-5 w-52 rounded px-1" />
+            <div className="noir-home-shelf">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="noir-skeleton h-[188px] w-[168px] shrink-0 rounded-[var(--noir-radius-md)]" />
+              ))}
+            </div>
+          </section>
+          <section>
+            <div className="noir-skeleton mb-4 mt-[var(--noir-section-gap)] h-5 w-44 rounded px-1" />
+            <div className="noir-home-shelf">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex w-[128px] shrink-0 flex-col items-center px-2.5">
+                  <div className="noir-skeleton h-[108px] w-[108px] rounded-full" />
+                  <div className="noir-skeleton mt-3 h-3.5 w-20 rounded" />
+                </div>
+              ))}
+            </div>
+          </section>
+        </>
       )}
 
       {feed && feed.newReleases.length > 0 && (
@@ -299,9 +293,17 @@ export function NoirDiscoverView({
           </section>
         ))}
 
-      {!chartsLoading && (
-        <section className={hasPersonal ? 'mt-[var(--noir-section-gap)]' : undefined}>
-          {hasPersonal && <h3 className="noir-section-heading !mt-0 px-1">{strings.discover.charts}</h3>}
+      <section className={hasPersonal || feedLoading ? 'mt-[var(--noir-section-gap)]' : undefined}>
+        {hasPersonal && !showChartsSkeleton && (
+          <h3 className="noir-section-heading !mt-0 px-1">{strings.discover.charts}</h3>
+        )}
+        {showChartsSkeleton ? (
+          <div className="noir-discover-charts">
+            {[0, 1].map((i) => (
+              <div key={i} className="noir-skeleton h-[216px] rounded-[var(--noir-radius-lg)]" />
+            ))}
+          </div>
+        ) : (
           <div className="noir-discover-charts">
             {[localPlaylist, globalPlaylist]
               .filter((p) => p.tracks.length > 0)
@@ -315,37 +317,38 @@ export function NoirDiscoverView({
                 />
               ))}
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
-      {rankedSections.map(({ playlist, label }) => (
-        <section key={playlist.id}>
-          <div className="mb-4 mt-[var(--noir-section-gap)] flex items-baseline justify-between gap-4 px-1">
-            <h3 className="noir-section-title">{label}</h3>
-            <button
-              type="button"
-              onClick={() => onSelectPlaylist(playlist)}
-              className="noir-link elva-focus-ring"
-            >
-              {strings.discover.showAll}
-            </button>
-          </div>
-          <div className="noir-discover-ranked">
-            {playlist.tracks.slice(0, 10).map((track, i) => (
-              <NoirRankedSongRow
-                key={track.id}
-                rank={i + 1}
-                track={track}
-                isFavorite={isTrackFavorite(favorites, track)}
-                onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name, i)}
-                onAddToQueue={onAddToQueue}
-                onPlayNext={onPlayNext}
-                onToggleFavorite={onToggleFavorite}
-              />
-            ))}
-          </div>
-        </section>
-      ))}
+      {!chartsLoading &&
+        rankedSections.map(({ playlist, label }) => (
+          <section key={playlist.id}>
+            <div className="mb-4 mt-[var(--noir-section-gap)] flex items-baseline justify-between gap-4 px-1">
+              <h3 className="noir-section-title">{label}</h3>
+              <button
+                type="button"
+                onClick={() => onSelectPlaylist(playlist)}
+                className="noir-link elva-focus-ring"
+              >
+                {strings.discover.showAll}
+              </button>
+            </div>
+            <div className="noir-discover-ranked">
+              {playlist.tracks.slice(0, 10).map((track, i) => (
+                <NoirRankedSongRow
+                  key={track.id}
+                  rank={i + 1}
+                  track={track}
+                  isFavorite={isTrackFavorite(favorites, track)}
+                  onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name, i)}
+                  onAddToQueue={onAddToQueue}
+                  onPlayNext={onPlayNext}
+                  onToggleFavorite={onToggleFavorite}
+                />
+              ))}
+            </div>
+          </section>
+        ))}
     </div>
   );
 }
@@ -440,9 +443,6 @@ function ArtistCard({
         />
       </span>
       <span className="noir-song-title mt-3 block truncate text-center">{artist.name}</span>
-      <span className="noir-song-meta mt-0.5 block truncate text-center">
-        {strings.discover.artistsLikeFrom(artist.seedArtist)}
-      </span>
     </motion.button>
   );
 }

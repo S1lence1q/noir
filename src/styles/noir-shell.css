@@ -416,6 +416,14 @@
   grid-template-columns: 48px minmax(0, 1fr) 56px minmax(96px, auto);
 }
 
+.noir-song-grid.noir-track-row--no-art {
+  grid-template-columns: 32px minmax(0, 1fr) minmax(96px, auto);
+}
+
+.noir-song-grid.noir-track-row--no-art.noir-track-row--with-duration {
+  grid-template-columns: 32px minmax(0, 1fr) 56px minmax(96px, auto);
+}
+
 .noir-song-title {
   font: var(--noir-type-row);
   color: var(--noir-text-primary);

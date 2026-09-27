@@ -4,6 +4,8 @@ import { SearchResult } from '../../../types';
 import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
 import { prefersReducedMotion } from '../../../utils/motionPresets';
 import { encodePlaylistTrack, PLAYLIST_TRACK_DRAG_MIME } from '../../../utils/playlistStore';
+import { worldForCollection } from '../../../utils/ditherCover';
+import { NoirDitherCover } from './NoirDitherCover';
 
 type NoirRankedSongRowProps = {
   rank: number;
@@ -14,6 +16,8 @@ type NoirRankedSongRowProps = {
   onPlayNext?: (track: SearchResult) => void;
   onToggleFavorite?: (track: SearchResult) => void;
   showDuration?: boolean;
+  /** Hide the cover column (e.g. album where every row shares one cover). */
+  hideArt?: boolean;
 };
 
 function formatDuration(duration: number) {
@@ -31,9 +35,11 @@ export function NoirRankedSongRow({
   onPlayNext,
   onToggleFavorite,
   showDuration = false,
+  hideArt = false,
 }: NoirRankedSongRowProps) {
   const reduced = prefersReducedMotion();
   const rankLabel = String(rank).padStart(2, '0');
+  const hasThumb = !!track.thumbnail?.trim();
 
   return (
     <motion.div
@@ -58,7 +64,7 @@ export function NoirRankedSongRow({
       }}
       className={`noir-track-row noir-song-grid group cursor-pointer px-3 py-3 ${
         showDuration ? 'noir-track-row--with-duration' : ''
-      }`}
+      } ${hideArt ? 'noir-track-row--no-art' : ''}`}
       whileTap={reduced ? undefined : { scale: 0.985 }}
       transition={{ type: 'spring', stiffness: 520, damping: 34 }}
     >
@@ -71,21 +77,32 @@ export function NoirRankedSongRow({
         {rankLabel}
       </span>
 
-      <div className="noir-art relative h-12 w-12 overflow-hidden bg-[color:var(--noir-gray-dark)]">
-        <motion.img
-          src={track.thumbnail}
-          alt=""
-          className="h-full w-full object-cover"
-          whileTap={reduced ? undefined : { scale: 0.92 }}
-          transition={{ type: 'spring', stiffness: 450, damping: 30 }}
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            if (track.videoId) {
-              e.currentTarget.src = `https://img.youtube.com/vi/${track.videoId}/mqdefault.jpg`;
-            }
-          }}
-        />
-      </div>
+      {!hideArt && (
+        <div className={`noir-art relative h-12 w-12 overflow-hidden ${hasThumb ? 'bg-[color:var(--noir-gray-dark)]' : ''}`}>
+          {hasThumb ? (
+            <motion.img
+              src={track.thumbnail}
+              alt=""
+              className="h-full w-full object-cover"
+              whileTap={reduced ? undefined : { scale: 0.92 }}
+              transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                if (track.videoId) {
+                  e.currentTarget.src = `https://img.youtube.com/vi/${track.videoId}/mqdefault.jpg`;
+                }
+              }}
+            />
+          ) : (
+            <NoirDitherCover
+              world={worldForCollection(track.id)}
+              seed={track.id}
+              size={48}
+              radius={0}
+            />
+          )}
+        </div>
+      )}
 
       <div className="min-w-0">
         <p className="noir-song-title truncate">

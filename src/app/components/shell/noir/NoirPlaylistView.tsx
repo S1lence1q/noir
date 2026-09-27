@@ -5,6 +5,7 @@ import { NoirRankedSongRow } from './NoirRankedSongRow';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { NoirDitherCover } from './NoirDitherCover';
+import { strings } from '../../../constants/strings';
 
 export type NoirPlaylistViewProps = {
   playlist: Playlist;
@@ -16,16 +17,23 @@ export type NoirPlaylistViewProps = {
   onToggleFavorite?: (track: SearchResult) => void;
 };
 
+function allSameCover(tracks: SearchResult[], fallback: string) {
+  if (tracks.length === 0) return false;
+  const first = (tracks[0]?.thumbnail || fallback).trim();
+  if (!first) return false;
+  return tracks.every((track) => (track.thumbnail || fallback).trim() === first);
+}
+
 export function NoirPlaylistView({
   playlist,
   favorites = [],
-  onSelectSong,
   onAddToQueue,
   onPlayPlaylist,
   onPlayNext,
   onToggleFavorite,
 }: NoirPlaylistViewProps) {
   const cover = playlist.tracks[0]?.thumbnail ?? playlist.thumbnail;
+  const hideArt = allSameCover(playlist.tracks, playlist.thumbnail);
 
   return (
     <div className="flex w-full flex-col gap-10">
@@ -39,16 +47,16 @@ export function NoirPlaylistView({
             <p className="mt-2 text-[14px] text-[color:var(--noir-text-secondary)]">{playlist.description}</p>
           )}
           <p className="mt-1 text-[13px] text-[color:var(--noir-text-tertiary)]">
-            {playlist.tracks.length} tracks
+            {strings.playlist.songCount(playlist.tracks.length)}
           </p>
           {playlist.tracks.length > 0 && (
             <button
               type="button"
               onClick={() => onPlayPlaylist(playlist.tracks, playlist.name)}
-              className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-[13px] font-medium text-white hover:bg-white/15 elva-focus-ring"
+              className="noir-button-primary mt-4 elva-focus-ring"
             >
               <Play className="h-3.5 w-3.5 fill-current" />
-              Play all
+              {strings.playlist.playAll}
             </button>
           )}
         </div>
@@ -62,6 +70,7 @@ export function NoirPlaylistView({
                 key={track.id}
                 rank={i + 1}
                 track={track}
+                hideArt={hideArt}
                 isFavorite={isTrackFavorite(favorites, track)}
                 onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name, i)}
                 onAddToQueue={onAddToQueue}
@@ -72,7 +81,7 @@ export function NoirPlaylistView({
           </div>
         ) : (
           <p className="py-12 text-center text-[14px] text-[color:var(--noir-text-secondary)]">
-            This playlist is empty.
+            {strings.playlist.emptyRow}
           </p>
         )}
       </section>
