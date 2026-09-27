@@ -324,7 +324,6 @@ export function useSearchLogic({
 
     setSelectedArtist(displayArtist);
     setArtistCandidates(null);
-    setIsLoadingArtist(true);
 
     const cacheKey = identityCacheKey(identity);
 
@@ -337,8 +336,7 @@ export function useSearchLogic({
       setArtistTracks(cached.tracks);
       setIsLoadingArtist(false);
     } else {
-      // Cold open: keep skeletons until Popular + discography land together — no 3-then-10 jump.
-      setArtistTracks([]);
+      // Keep any rows already painted from the name-level warm peek; don't blank the list.
       setIsLoadingArtist(true);
     }
 
@@ -476,14 +474,23 @@ export function useSearchLogic({
     };
     const handPickedUrl = getHandPickedImage(cleanedName);
 
-    // Shell opens immediately
+    // Shell opens immediately — warm discography from cache by name so revisit isn't empty skeletons.
+    const warm = peekCachedDiscographyEntry(cleanedName, {
+      allowStale: true,
+      artistName: cleanedName,
+    });
     setSelectedArtist({
       ...artistClean,
       thumbnail: handPickedUrl || artistClean.thumbnail,
     });
     setArtistCandidates(null);
-    setIsLoadingArtist(true);
-    setArtistTracks([]);
+    if (warm?.tracks.length) {
+      setArtistTracks(warm.tracks);
+      setIsLoadingArtist(false);
+    } else {
+      setArtistTracks([]);
+      setIsLoadingArtist(true);
+    }
 
     try {
       const identity = await resolveArtistIdentity({

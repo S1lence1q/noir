@@ -54,13 +54,8 @@ export async function resolveArtistIdentity(input: ResolveArtistInput): Promise<
     cached.confidence !== 'low' &&
     (!input.channelId || cached.channelId === input.channelId || !cached.channelId)
   ) {
-    // Heal identities that once cached a track cover as the artist image.
-    const graphImage = await getArtistImage(name).catch(() => undefined);
     let next = cached;
-    if (graphImage && graphImage !== cached.image) {
-      next = { ...cached, image: graphImage };
-      void setCachedIdentity(next);
-    } else if (input.channelId && !cached.channelId) {
+    if (input.channelId && !cached.channelId) {
       next = {
         ...cached,
         channelId: input.channelId,
@@ -69,6 +64,14 @@ export async function resolveArtistIdentity(input: ResolveArtistInput): Promise<
       };
       void setCachedIdentity(next);
     }
+    // Heal artist image in the background — never block opening a profile we already know.
+    void getArtistImage(name)
+      .then((graphImage) => {
+        if (graphImage && graphImage !== next.image) {
+          void setCachedIdentity({ ...next, image: graphImage });
+        }
+      })
+      .catch(() => {});
     return next;
   }
 

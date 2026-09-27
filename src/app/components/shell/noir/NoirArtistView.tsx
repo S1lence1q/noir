@@ -120,7 +120,9 @@ export function NoirArtistView({
           <p className="noir-artist-hero-label">{strings.artist.label}</p>
           <h1 className="noir-artist-hero-name">{artist.name}</h1>
           <p className="noir-artist-hero-meta">
-            {isLoading ? strings.artist.loading : strings.artist.songCount(unique.length)}
+            {isLoading && unique.length === 0
+              ? strings.artist.loading
+              : strings.artist.songCount(unique.length)}
           </p>
           <div className="mt-6 flex items-center gap-2">
             <motion.button
@@ -166,13 +168,7 @@ export function NoirArtistView({
 
       <section className="mt-10">
         <h2 className="noir-section-title mb-4 px-1">{strings.artist.popular}</h2>
-        {isLoading ? (
-          <div className="flex flex-col gap-1">
-            {Array.from({ length: POPULAR_COUNT }).map((_, i) => (
-              <div key={i} className="noir-skeleton h-[72px] rounded-[var(--noir-radius-md)]" />
-            ))}
-          </div>
-        ) : unique.length > 0 ? (
+        {unique.length > 0 ? (
           <>
             <div className="flex flex-col gap-0.5">
               <AnimatePresence initial={false}>
@@ -203,6 +199,12 @@ export function NoirArtistView({
               </button>
             )}
           </>
+        ) : isLoading ? (
+          <div className="flex flex-col gap-1">
+            {Array.from({ length: POPULAR_COUNT }).map((_, i) => (
+              <div key={i} className="noir-skeleton h-[72px] rounded-[var(--noir-radius-md)]" />
+            ))}
+          </div>
         ) : (
           <p className="px-1 py-8 text-[14px] text-[color:var(--noir-text-secondary)]">{strings.artist.empty}</p>
         )}
