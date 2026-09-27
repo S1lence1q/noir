@@ -915,17 +915,18 @@
   flex: 1;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  /* Default stretch / start — same left-anchored composition as pre-lyrics NP. */
+  align-items: stretch;
   gap: 24px;
   padding: 40px 32px 40px 48px;
 }
 
-/* Row group: identity alone (centered) or identity + lyrics expanding to the right. */
+/* Identity left-anchored; lyrics grow to the right without recentering the cover. */
 .noir-now-playing-stage-row {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0;
   min-width: 0;
   max-width: 100%;
@@ -933,8 +934,7 @@
 
 .noir-now-playing-identity {
   display: flex;
-  width: min(52vh, 440px);
-  max-width: 100%;
+  width: min(100%, 52vh, 440px);
   min-width: 0;
   flex-direction: column;
   justify-content: center;
@@ -1151,7 +1151,6 @@ button.noir-now-playing-source:hover {
   }
 
   .noir-now-playing-stage {
-    align-items: stretch;
     padding: 28px 24px 24px;
   }
 
@@ -1162,7 +1161,6 @@ button.noir-now-playing-source:hover {
 
   .noir-now-playing-identity {
     width: min(100%, 52vh, 440px);
-    align-self: center;
   }
 
   .noir-now-playing-stage-lyrics {
