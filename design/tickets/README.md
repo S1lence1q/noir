@@ -50,14 +50,19 @@ Exact behavior, layout, copy, tokens, states.
 | Id | Title | Size | Golden | Owner |
 |----|-------|------|--------|-------|
 | T01 | Layout grid, type hierarchy, accent token — **DONE** | M | | Luna |
-| T03 | Shared song menu + right-click — **DONE** (`components/NoirSongMenu.tsx`: `openSongMenu()` + one `NoirSongMenuHost`; reviewed, surface → `.noir-menu`). Start radio wired via T11 | M | | Luna |
-| T04 | Playlists redesign | L | | Opus |
-| T04 | Playlists — **DONE** (side add-panel, fly-to-list, entrance, drag-to-sidebar). Open: ⌘N | L | | Opus → Luna for ⌘N |
-| T05b | Next up header + "queue ends soon" — header/shuffle/clear largely in; queue-ends overlaps T11 autoplay — verify/polish | S | | Luna |
-| T07 | Asset cleanup — partially done (heroes/glow); finish unused-asset delete/rename checklist | S | | Luna |
-| T14 | Now Playing: one object — **A+B DONE**. D parked. Open: **C** "Playing from"/similar/lyrics slot | M | | Opus |
-| T12 | Daily mixes + Home shelf — **DONE** (`services/mixes/dailyMixes.ts`) | L | | Opus |
-| T11 | Radio + autoplay — **DONE** (`services/radio/buildRadio.ts`) | M | | Opus |
+| T02 | Toast system + kill volume popup — **DONE (golden)** | M | yes | Opus |
+| T03 | Shared song menu + right-click — **DONE** | M | | Luna |
+| T04 | Playlists — **DONE** (side panel, fly-to-list, drag-to-sidebar). Open: ⌘N | L | | Opus → Luna ⌘N |
+| T05 | Queue craft — empty Next up **DONE (golden)**; see T05b for leftovers | M | yes | Opus/Luna |
+| T05b | Next up header + "queue ends soon" — verify/polish (header mostly in; ends overlaps T11) | S | | Luna |
+| T06 | Dither covers — **DONE** | M | | Opus |
+| T07 | Asset cleanup — **partial**; finish unused-asset checklist | S | | Luna |
+| T08 | `NoirMark` — component + sidebar **DONE (golden)**; loading/empty use still open | S | yes | Opus |
+| T09 | Listening events + taste profile — **DONE** | M | | Luna |
+| T10 | musicGraph (Last.fm + Deezer) — **DONE** | L | | Luna |
+| T11 | Radio + autoplay — **DONE** | M | | Opus |
+| T12 | Daily mixes + Home shelf — **DONE** | L | | Opus |
+| T14 | Now Playing one object — **A+B DONE**; D parked; open: **C** Playing from / similar / lyrics | M | | Opus |
 
 ### Original index
 
