@@ -1,5 +1,5 @@
-import halftoneCloud from '../../../../assets/noir/shape-halftone-cloud.jpeg';
-import plateWave from '../../../../assets/noir/Plate Wave Recreation Image.jpeg';
+import halftoneCloud from '../../../../assets/noir/empty-halftone-cloud.jpeg';
+import plateWave from '../../../../assets/noir/brand-plate-wave.jpeg';
 
 export const noirGraphics = {
   halftoneCloud,
