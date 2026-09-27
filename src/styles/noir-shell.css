@@ -2484,69 +2484,47 @@ button.noir-now-playing-source:hover {
   padding: 0 0 56px;
   max-width: min(100%, var(--noir-content-max));
   isolation: isolate;
-  /* No filled background — a wash here + rounded Bone child = visible kant in corners */
 }
 
 .noir-stats-stage {
   pointer-events: none;
   position: absolute;
-  inset: 0;
+  inset: -80px -40px 0;
   z-index: 0;
   overflow: visible;
 }
 
-/* Soft color disc */
-.noir-stats-aura {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(56px);
-  opacity: 0.85;
-}
-
-.noir-stats-aura--primary {
-  top: -100px;
-  right: -40px;
-  width: 440px;
-  height: 440px;
-  background: radial-gradient(circle at 42% 40%, var(--stats-aura-a, rgba(232, 80, 2, 0.5)) 0%, transparent 68%);
-}
-
-.noir-stats-aura--secondary {
-  left: -80px;
-  bottom: 6%;
-  width: 340px;
-  height: 340px;
-  background: radial-gradient(circle at 50% 50%, var(--stats-aura-b, rgba(31, 63, 191, 0.4)) 0%, transparent 70%);
-  opacity: 0.7;
-}
-
-/* Grain sits ON the color, same circular mask — this is the “fed” ref feel */
-.noir-stats-grain-orb {
-  position: absolute;
-  border-radius: 50%;
+/*
+  Real grain atmosphere (blå_gradient / warm light-leak refs).
+  Screen blend: black pixels vanish → soft bloom, no filled box = no Bone corner kant.
+*/
+.noir-stats-atmosphere {
   pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 120px 120px;
-  mix-blend-mode: overlay;
-  opacity: 0.65;
-  -webkit-mask-image: radial-gradient(circle, #000 0%, #000 32%, transparent 72%);
-  mask-image: radial-gradient(circle, #000 0%, #000 32%, transparent 72%);
+  position: absolute;
+  display: block;
+  object-fit: cover;
+  mix-blend-mode: screen;
+  user-select: none;
 }
 
-.noir-stats-grain-orb--a {
-  top: -90px;
-  right: -30px;
-  width: 420px;
+.noir-stats-atmosphere--primary {
+  top: -40px;
+  right: -80px;
+  width: min(780px, 110%);
+  height: 460px;
+  opacity: 1;
+  -webkit-mask-image: radial-gradient(ellipse 68% 62% at 58% 42%, #000 8%, #000 38%, transparent 78%);
+  mask-image: radial-gradient(ellipse 68% 62% at 58% 42%, #000 8%, #000 38%, transparent 78%);
+}
+
+.noir-stats-atmosphere--secondary {
+  left: -120px;
+  top: 220px;
+  width: min(560px, 85%);
   height: 420px;
-}
-
-.noir-stats-grain-orb--b {
-  left: -70px;
-  bottom: 4%;
-  width: 320px;
-  height: 320px;
-  opacity: 0.45;
-  mix-blend-mode: soft-light;
+  opacity: 0.85;
+  -webkit-mask-image: radial-gradient(ellipse 70% 65% at 40% 50%, #000 5%, #000 32%, transparent 76%);
+  mask-image: radial-gradient(ellipse 70% 65% at 40% 50%, #000 5%, #000 32%, transparent 76%);
 }
 
 .noir-stats > :not(.noir-stats-stage) {

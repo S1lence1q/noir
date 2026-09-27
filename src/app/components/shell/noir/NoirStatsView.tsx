@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import atmosphereCool from '../../../../assets/noir/atmosphere-cool.png';
+import atmosphereWarm from '../../../../assets/noir/atmosphere-warm.jpeg';
 import { strings } from '../../../constants/strings';
 import type { SearchResult } from '../../../types';
 import { getListeningEvents, type ListeningEvent } from '../../../services/listening/eventsStore';
@@ -31,14 +33,13 @@ export type NoirStatsViewProps = {
   recentTracks?: SearchResult[];
 };
 
-function hexToRgba(hex: string, alpha: number) {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
-}
-
-/** Soft stage color — Bone/Ink become Ember so aura never reads as grey mud. */
+/** Soft stage mood — Bone/Ink map to warm so the field never reads grey. */
 function auraWorld(world: ColorWorld): ColorWorld {
   return world === 'bone' || world === 'ink' ? 'ember' : world;
+}
+
+function atmosphereFor(world: ColorWorld) {
+  return world === 'cobalt' || world === 'moss' ? atmosphereCool : atmosphereWarm;
 }
 
 function localPool(favorites: SearchResult[], recentTracks: SearchResult[]) {
@@ -207,18 +208,21 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={withReducedMotion(MOTION.panel)}
-        style={
-          {
-            '--stats-aura-a': hexToRgba(COLOR_WORLDS[primaryAura].field, 0.55),
-            '--stats-aura-b': hexToRgba(COLOR_WORLDS[secondaryAura].field, 0.42),
-          } as CSSProperties
-        }
       >
+        {/* Real grain atmosphere (ref), not CSS wash — screen blend so blacks vanish = no kant */}
         <div className="noir-stats-stage" aria-hidden>
-          <div className="noir-stats-aura noir-stats-aura--primary" />
-          <div className="noir-stats-aura noir-stats-aura--secondary" />
-          <div className="noir-stats-grain-orb noir-stats-grain-orb--a" />
-          <div className="noir-stats-grain-orb noir-stats-grain-orb--b" />
+          <img
+            className="noir-stats-atmosphere noir-stats-atmosphere--primary"
+            src={atmosphereFor(primaryAura)}
+            alt=""
+            draggable={false}
+          />
+          <img
+            className="noir-stats-atmosphere noir-stats-atmosphere--secondary"
+            src={atmosphereFor(secondaryAura)}
+            alt=""
+            draggable={false}
+          />
         </div>
 
         <section className="noir-stats-hero-band">
