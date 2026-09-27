@@ -390,9 +390,17 @@ function PlaylistTrackItem({
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, transition: { duration: 0.16 } }}
-      whileDrag={{ boxShadow: '0 12px 32px rgba(0,0,0,0.65)', zIndex: 5, cursor: 'grabbing' }}
-      // Reorder uses layout projection; never animate layout or rows stretch on resize.
-      transition={{ ...MOTION.panel, layout: { duration: 0 } }}
+      whileDrag={{
+        scale: 1.02,
+        boxShadow: '0 12px 32px rgba(0,0,0,0.65)',
+        zIndex: 5,
+        cursor: 'grabbing',
+      }}
+      // Layout spring for sibling slide; 120 ms settle matches craft. Width is fixed by the add-rail so resize stretch stays gone.
+      transition={{
+        ...MOTION.panel,
+        layout: { duration: 0.12, ease: EASE_PREMIUM },
+      }}
     >
       <NoirSongRow
         track={track}

@@ -569,11 +569,15 @@ function QueueTrackItem({ track, onDragEnd, onSelect, onRemove, onAddToQueue }: 
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, transition: { duration: 0.16 } }}
       whileDrag={{
+        scale: 1.02,
         boxShadow: '0 12px 32px rgba(0,0,0,0.65)',
         zIndex: 5,
         cursor: 'grabbing',
       }}
-      transition={{ ...MOTION.panel, layout: { duration: 0 } }}
+      transition={{
+        ...MOTION.panel,
+        layout: { duration: 0.12, ease: EASE_PREMIUM },
+      }}
       onContextMenu={(event) => openSongMenu(track, event)}
     >
       <div className="noir-track-row group flex w-full items-center gap-2 px-2 py-2.5">
