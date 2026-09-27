@@ -62,7 +62,7 @@ Exact behavior, layout, copy, tokens, states.
 | T10 | musicGraph (Last.fm + Deezer) — **DONE** | L | | Luna |
 | T11 | Radio + autoplay — **DONE** | M | | Opus |
 | T12 | Daily mixes + Home shelf — **DONE** | L | | Opus |
-| T14 | Now Playing one object — **A+B DONE**; C Playing from + similar **DONE**; lyrics still open; D parked | M | | Opus |
+| T14 | Now Playing one object — **A+B DONE**; C Playing from **DONE**, similar parked (not in title block); lyrics still open; D parked | M | | Opus |
 
 ### Original index
 

@@ -23,7 +23,7 @@ Opening Now Playing feels like the song you're hearing moves up and opens. The s
 - Favorite sits right of the artist (already). It is the **only** favorite control while open.
 
 ### C. Content the bar can't show (after T10)
-- Line under the source: `Similar: A, B, C` (3 artist links from `getSimilarArtists`, tertiary). Hidden if empty.
+- ~~Line under the source: `Similar: A, B, C`~~ **Parked (2026-09-27):** not permanent in the title block — felt like a footnote and fought the composition. Revisit as artist-page “Fans also like” or on-demand in NP.
 - Lyrics toggle button (`L`) top-right of the canvas, opening the existing lyrics in place of the Next up column. Keep existing lyrics logic; only reposition.
 
 ### D. Graphic slot (after T06, separate small ticket)

@@ -121,7 +121,6 @@ export const strings = {
   nowPlaying: {
     playingFrom: (source: string) => `Playing from ${source}`,
     openSource: 'Open source',
-    similar: 'Similar',
   },
   playlist: {
     label: 'Playlist',

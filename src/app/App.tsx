@@ -1597,7 +1597,6 @@ export default function App() {
                   }
                   onStartRadio={handleStartRadioFromPlayer}
                   onOpenArtist={openArtistFromPlayer}
-                  onOpenSimilarArtist={(name) => openArtistByName(name)}
                   onOpenQueueSource={canOpenQueueSource ? openQueueSource : undefined}
                   favoriteTracks={favorites}
                   quickAddTracks={recentlyPlayed}

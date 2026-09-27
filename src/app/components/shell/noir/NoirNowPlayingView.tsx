@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion, Reorder } from 'motion/react';
+import { AnimatePresence, motion, Reorder, useIsPresent } from 'motion/react';
 import { Compass, Heart, Plus, Radio, Shuffle, X } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
@@ -12,7 +12,6 @@ import { useQueueEndPrompt } from '../../../hooks/useQueueEndPrompt';
 import { displayArtistName } from '../../../utils/stringUtils';
 import { hasRealArtwork } from '../../../utils/artwork';
 import { worldForCollection } from '../../../utils/ditherCover';
-import { getSimilarArtists } from '../../../services/musicGraph';
 import { NoirDitherCover } from './NoirDitherCover';
 
 type NowPlayingSong = {
@@ -33,8 +32,6 @@ type NoirNowPlayingViewProps = {
   onStartRadio?: () => void;
   /** Open the artist profile for the current song. */
   onOpenArtist?: () => void;
-  /** Open a related artist from the Similar line. */
-  onOpenSimilarArtist?: (artistName: string) => void;
   /** Open the collection named in queueSource (playlist, Favorites, radio seed…). */
   onOpenQueueSource?: () => void;
   favoriteTracks?: SearchResult[];
@@ -83,7 +80,6 @@ export function NoirNowPlayingView({
   onToggleFavorite,
   onStartRadio,
   onOpenArtist,
-  onOpenSimilarArtist,
   onOpenQueueSource,
   favoriteTracks = [],
   quickAddTracks = [],
@@ -99,7 +95,12 @@ export function NoirNowPlayingView({
   queueSource,
 }: NoirNowPlayingViewProps) {
   const reduced = prefersReducedMotion();
-  const [similarArtists, setSimilarArtists] = useState<string[]>([]);
+  /** While cover flies home, keep layoutId mounted but fade everything else so title/queue don't ghost. */
+  const isPresent = useIsPresent();
+  const chromeFade = {
+    opacity: isPresent ? 1 : 0,
+    transition: { duration: reduced ? 0.1 : 0.16, ease: sheetEase },
+  };
   const currentKey = getPlaybackSongKey(song);
   const currentIndex = currentKey
     ? queue.findIndex((item) => getPlaybackSongKey(item) === currentKey)
@@ -114,30 +115,6 @@ export function NoirNowPlayingView({
   useEffect(() => {
     setOrder(upNext.map((track) => track.id));
   }, [upNext.map((track) => track.id).join('\0')]);
-
-  const artistName = displayArtistName(song.artist);
-  useEffect(() => {
-    let cancelled = false;
-    setSimilarArtists([]);
-    if (!artistName || artistName === 'Unknown Artist' || artistName === 'Web Stream') {
-      return;
-    }
-    void getSimilarArtists(artistName, 3)
-      .then((artists) => {
-        if (cancelled) return;
-        const names = artists
-          .map((a) => displayArtistName(a.name))
-          .filter((name) => name && name.toLowerCase() !== artistName.toLowerCase())
-          .slice(0, 3);
-        setSimilarArtists(names);
-      })
-      .catch(() => {
-        if (!cancelled) setSimilarArtists([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [artistName]);
 
   const byId = new Map(upNext.map((track) => [track.id, track]));
   const orderedUpNext = order.map((id) => byId.get(id)).filter((track): track is SearchResult => !!track);
@@ -243,8 +220,12 @@ export function NoirNowPlayingView({
         className="noir-now-playing-atmosphere"
         aria-hidden
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: reduced ? 0.2 : 0.7, ease: sheetEase, delay: reduced ? 0 : 0.2 }}
+        animate={{ opacity: isPresent ? 1 : 0 }}
+        transition={
+          isPresent
+            ? { duration: reduced ? 0.2 : 0.7, ease: sheetEase, delay: reduced ? 0 : 0.2 }
+            : chromeFade.transition
+        }
       >
         <AnimatePresence mode="sync" initial={false}>
           {hasRealArtwork(song.artworkUrl) ? (
@@ -325,7 +306,11 @@ export function NoirNowPlayingView({
         <motion.div
           className="min-w-0"
           initial={reduced ? { opacity: 0 } : { opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={
+            isPresent
+              ? { opacity: 1, y: 0 }
+              : { opacity: 0, y: 0, transition: chromeFade.transition }
+          }
           transition={{ duration: reduced ? 0.15 : 0.34, ease: sheetEase, delay: reduced ? 0 : 0.1 }}
         >
         <AnimatePresence mode="wait" initial={false}>
@@ -377,41 +362,19 @@ export function NoirNowPlayingView({
                 </button>
               )}
             </div>
-            {(queueSource || similarArtists.length > 0) && (
+            {queueSource && (
               <div className="noir-now-playing-meta">
-                {queueSource &&
-                  (onOpenQueueSource ? (
-                    <button
-                      type="button"
-                      className="noir-now-playing-source elva-focus-ring rounded-sm"
-                      onClick={onOpenQueueSource}
-                      title={strings.nowPlaying.openSource}
-                    >
-                      {strings.nowPlaying.playingFrom(queueSource)}
-                    </button>
-                  ) : (
-                    <p className="noir-now-playing-source">{strings.nowPlaying.playingFrom(queueSource)}</p>
-                  ))}
-                {similarArtists.length > 0 && (
-                  <p className="noir-now-playing-similar">
-                    <span>{strings.nowPlaying.similar}: </span>
-                    {similarArtists.map((name, index) => (
-                      <span key={name}>
-                        {index > 0 && ', '}
-                        {onOpenSimilarArtist ? (
-                          <button
-                            type="button"
-                            className="noir-now-playing-similar-link elva-focus-ring rounded-sm"
-                            onClick={() => onOpenSimilarArtist(name)}
-                          >
-                            {name}
-                          </button>
-                        ) : (
-                          name
-                        )}
-                      </span>
-                    ))}
-                  </p>
+                {onOpenQueueSource ? (
+                  <button
+                    type="button"
+                    className="noir-now-playing-source elva-focus-ring rounded-sm"
+                    onClick={onOpenQueueSource}
+                    title={strings.nowPlaying.openSource}
+                  >
+                    {strings.nowPlaying.playingFrom(queueSource)}
+                  </button>
+                ) : (
+                  <p className="noir-now-playing-source">{strings.nowPlaying.playingFrom(queueSource)}</p>
                 )}
               </div>
             )}
@@ -424,7 +387,11 @@ export function NoirNowPlayingView({
         className="noir-now-playing-queue"
         aria-label={upNext.length > 0 ? 'Next up' : 'Queue suggestions'}
         initial={reduced ? { opacity: 0 } : { opacity: 0, x: 16 }}
-        animate={{ opacity: 1, x: 0 }}
+        animate={
+          isPresent
+            ? { opacity: 1, x: 0 }
+            : { opacity: 0, x: 0, transition: chromeFade.transition }
+        }
         transition={{ duration: reduced ? 0.15 : 0.4, ease: sheetEase, delay: reduced ? 0 : 0.14 }}
       >
         {upNext.length === 0 ? (

@@ -52,7 +52,7 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 ## Next (in order)
 
 1. **DONE:** T09, T10, T03. Drag-song-to-sidebar-playlist **DONE**. **Luna next:** **T05b** (Next up header leftovers if any + queue-ends polish vs T11 autoplay), **T07**, ⌘N new playlist. Dev note: hot reload mid-song records an extra short event; clear play history once before real use.
-2. **Opus (visual):** ~~spray wave~~ parked. ~~Discover~~ DONE. ~~Mixes~~ DONE. ~~Radio (T11)~~ DONE. ~~Artist identity~~ DONE. Compact bar open/close affordances tightened (close on left, queue opens only). **T14 C** Playing from + similar artists under NP title **DONE** (lyrics still open). Next: Stats/Replay or F7 cold start.
+2. **Opus (visual):** ~~spray wave~~ parked. ~~Discover~~ DONE. ~~Mixes~~ DONE. ~~Radio (T11)~~ DONE. ~~Artist identity~~ DONE. Compact bar open/close affordances tightened (close on left, queue opens only). **T14 C** Playing from under NP title **DONE**; similar artists **parked** (not permanent in title block — revisit as artist-page / on-demand). Lyrics still open. Next: Stats/Replay or F7 cold start.
 3. User has a list of small tweaks to bring — ask for it.
 
 ## Do / don't
