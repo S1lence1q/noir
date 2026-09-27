@@ -92,14 +92,14 @@ export function AppShell({
             {children}
           </motion.div>
 
-          {/* No transform on this layer: the cover inside flies from the bar via a shared layoutId. */}
+          {/* No transform / opacity fade on this layer during exit — that kills the np-cover flight. */}
           <AnimatePresence>
             {nowPlayingOpen && nowPlaying != null && (
               <motion.div
                 className="absolute inset-0 z-20"
                 initial={{ opacity: 1 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0, transition: { duration: reduced ? 0.12 : 0.18, ease: EASE_PREMIUM } }}
+                exit={{ opacity: 1, transition: { duration: reduced ? 0.2 : 0.42 } }}
               >
                 {nowPlaying}
               </motion.div>

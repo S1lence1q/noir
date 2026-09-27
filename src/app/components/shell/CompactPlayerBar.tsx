@@ -173,9 +173,28 @@ export function CompactPlayerBar({
           : { type: 'spring', stiffness: 380, damping: 36, mass: 0.8 }
       }
     >
-      <div className="noir-compact-left">
-        {/* Empty while open so np-cover can fly back into this slot (T14). Close lives on the right. */}
-        {/* Plain conditional (no AnimatePresence): an exit wait would leave the title visible twice. */}
+      <div className="noir-compact-left" data-expanded={expanded ? 'true' : 'false'}>
+        {/* Cover flight (layoutId) must stay a plain mount/unmount — never wrap it in AnimatePresence. */}
+        {/* Close fades on its own absolute layer so it never replaces the cover landing slot. */}
+        <AnimatePresence>
+          {expanded && (
+            <motion.button
+              key="np-close"
+              type="button"
+              onClick={onExpand}
+              className="noir-compact-close elva-focus-ring"
+              aria-label={strings.compact.closeNowPlaying}
+              title={strings.compact.closeNowPlaying}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: reduced ? 0.1 : 0.18, ease: EASE_PREMIUM } }}
+              transition={{ duration: reduced ? 0.12 : 0.22, ease: EASE_PREMIUM }}
+            >
+              <ChevronDown className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+              <span className="noir-compact-close-label">{strings.playlist.close}</span>
+            </motion.button>
+          )}
+        </AnimatePresence>
         {!expanded && (
         <div className="flex min-w-0 items-center gap-1">
           <button
@@ -220,6 +239,7 @@ export function CompactPlayerBar({
                   </motion.div>
                 )}
               </AnimatePresence>
+              <span className="noir-compact-art-hint" aria-hidden />
             </motion.span>
             <motion.span
               className="noir-compact-meta"
@@ -430,19 +450,6 @@ export function CompactPlayerBar({
             </div>
           </div>
         </div>
-
-        {expanded && (
-          <button
-            type="button"
-            onClick={onExpand}
-            className="noir-compact-close elva-focus-ring"
-            aria-label={strings.compact.closeNowPlaying}
-            title={strings.compact.closeNowPlaying}
-          >
-            <ChevronDown className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-            <span className="noir-compact-close-label">{strings.playlist.close}</span>
-          </button>
-        )}
       </div>
     </motion.footer>
   );

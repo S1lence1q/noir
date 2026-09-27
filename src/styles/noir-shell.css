@@ -53,8 +53,14 @@
 }
 
 .noir-compact-left {
+  position: relative;
   min-width: 0;
+  min-height: 64px;
   justify-self: start;
+}
+
+.noir-compact-left[data-expanded='true'] {
+  min-width: 108px;
 }
 
 .noir-compact-now {
@@ -73,12 +79,21 @@
   overflow: hidden;
   border-radius: 6px;
   background: var(--noir-elevated);
-  transition: filter 0.15s ease, transform 0.15s ease;
+  /* No CSS transform/filter here — layoutId flight owns transform. */
 }
 
-.noir-compact-now:hover .noir-compact-art-wrap {
-  filter: brightness(1.08);
-  transform: scale(1.02);
+/* Expand hint on a sibling overlay so it never fights shared-element projection. */
+.noir-compact-art-hint {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0);
+  transition: background-color 0.15s ease;
+}
+
+.noir-compact-now:hover .noir-compact-art-hint {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .noir-compact-art {
@@ -121,11 +136,15 @@
 }
 
 .noir-compact-close {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
   display: inline-flex;
-  height: 36px;
+  height: 64px;
   align-items: center;
-  gap: 6px;
-  padding: 0 10px 0 8px;
+  gap: 8px;
+  padding: 0 12px 0 4px;
   border-radius: var(--noir-radius-md);
   color: var(--noir-text-secondary);
   transition: color 0.15s ease, background-color 0.15s ease;
