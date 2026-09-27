@@ -57,7 +57,7 @@ Exact behavior, layout, copy, tokens, states.
 | T05b | Next up header + "queue ends soon" — verify/polish (header mostly in; ends overlaps T11) | S | | Luna |
 | T06 | Dither covers — **DONE** | M | | Opus |
 | T07 | Asset cleanup — **partial**; finish unused-asset checklist | S | | Luna |
-| T08 | `NoirMark` — component + sidebar **DONE (golden)**; loading/empty use still open | S | yes | Opus |
+| T08 | `NoirMark` — component + sidebar + Library empty + search loading **DONE (golden)** | S | yes | Opus |
 | T09 | Listening events + taste profile — **DONE** | M | | Luna |
 | T10 | musicGraph (Last.fm + Deezer) — **DONE** | L | | Luna |
 | T11 | Radio + autoplay — **DONE** | M | | Opus |
@@ -75,7 +75,7 @@ Exact behavior, layout, copy, tokens, states.
 | T05 | Queue craft — empty queue **DONE (golden)**; header + "queue ends soon" still open | M | yes |
 | T06 | `NoirDitherCover` renderer | M | |
 | T07 | Asset cleanup | S | |
-| T08 | `NoirMark` asterisk — component + sidebar **DONE (golden)**; loading/empty-state use still open | S | yes |
+| T08 | `NoirMark` asterisk — component + sidebar + Library empty + search loading **DONE (golden)** | S | yes |
 
 ## Golden sample files (copy these patterns)
 

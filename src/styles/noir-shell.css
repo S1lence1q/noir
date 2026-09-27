@@ -544,6 +544,16 @@
   mask-image: radial-gradient(ellipse 62% 58% at 50% 50%, #000 22%, transparent 72%);
 }
 
+.noir-library-empty-mark {
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  right: 8%;
+  z-index: 0;
+  opacity: 0.6;
+  transform: translateY(-55%);
+}
+
 .noir-accent-wave-hero {
   pointer-events: none;
   position: absolute;

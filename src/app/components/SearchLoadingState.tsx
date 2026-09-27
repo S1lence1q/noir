@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { EASE_PREMIUM } from '../utils/motionPresets';
+import { NoirMark } from './shell/noir/NoirMark';
 
 type SearchLoadingStateProps = {
   /** Tighter vertical padding for sidebar / queue */
@@ -17,18 +18,9 @@ export function SearchLoadingState({ compact = false }: SearchLoadingStateProps)
         initial={{ opacity: 0, scale: 0.92 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: EASE_PREMIUM }}
-        className="relative w-9 h-9"
+        className="text-[color:var(--noir-text-secondary)]"
       >
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }}
-          className="absolute inset-0 rounded-full border border-white/[0.08] border-t-white/70"
-        />
-        <motion.div
-          animate={{ opacity: [0.15, 0.35, 0.15], scale: [1, 1.08, 1] }}
-          transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute inset-1 rounded-full bg-white/[0.03]"
-        />
+        <NoirMark size={24} spin />
       </motion.div>
       <motion.p
         initial={{ opacity: 0, y: 6 }}
