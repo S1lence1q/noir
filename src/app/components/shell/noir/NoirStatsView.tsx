@@ -234,17 +234,11 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
             <p className="noir-stats-hero-value">{formatListened(summary.weekMs)}</p>
             <p className="noir-stats-hero-sub">
               {strings.stats.thisMonth}: {formatListened(summary.monthMs)}
-              {summary.streak > 0 ? (
-                <>
-                  {' · '}
-                  <span className="noir-stats-accent-text">{strings.stats.streak(summary.streak)}</span>
-                </>
-              ) : null}
+              {summary.streak > 0 ? ` · ${strings.stats.streak(summary.streak)}` : ''}
             </p>
             {topArtist && (
               <p className="noir-stats-hero-top">
-                <span className="noir-stats-accent-text">{strings.stats.yourNumberOne}</span>
-                {`: ${topArtist.artist}`}
+                {strings.stats.yourNumberOne}: {topArtist.artist}
               </p>
             )}
           </div>
@@ -260,7 +254,7 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
             <NoirMark
               size={160}
               variant="spray"
-              color={COLOR_WORLDS.ember.field}
+              color={COLOR_WORLDS.bone.mark}
               className="noir-stats-hero-band-mark"
             />
           </div>

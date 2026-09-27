@@ -2561,18 +2561,6 @@ button.noir-now-playing-source:hover {
   background: #ede8de;
   color: #0b0b0b;
   overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(232, 80, 2, 0.12);
-}
-
-.noir-stats-hero-band::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 18%;
-  bottom: 18%;
-  width: 4px;
-  border-radius: 0 4px 4px 0;
-  background: var(--noir-accent);
 }
 
 .noir-stats-hero-band-copy {
@@ -2583,7 +2571,6 @@ button.noir-now-playing-source:hover {
   justify-content: center;
   min-width: 0;
   flex: 1;
-  padding-left: 8px;
 }
 
 .noir-stats-hero-band .noir-stats-eyebrow {
@@ -2599,11 +2586,6 @@ button.noir-now-playing-source:hover {
   color: rgba(11, 11, 11, 0.55);
 }
 
-.noir-stats-accent-text {
-  color: var(--noir-accent);
-  font-weight: 600;
-}
-
 .noir-stats-hero-band-art {
   position: relative;
   flex-shrink: 0;
@@ -2615,7 +2597,7 @@ button.noir-now-playing-source:hover {
   position: absolute;
   right: -36px;
   bottom: -40px;
-  opacity: 0.28;
+  opacity: 0.18;
   pointer-events: none;
 }
 
@@ -2714,7 +2696,7 @@ button.noir-now-playing-source:hover {
 }
 
 .noir-stats-soft-row.is-lead .noir-stats-soft-n {
-  color: var(--noir-accent);
+  color: var(--noir-text-primary);
   font-weight: 600;
 }
 
