@@ -2479,12 +2479,13 @@ button.noir-now-playing-source:hover {
 .noir-stats {
   display: flex;
   flex-direction: column;
-  gap: 36px;
-  padding-bottom: 48px;
-  max-width: 640px;
+  gap: 40px;
+  padding-bottom: 56px;
+  max-width: 720px;
 }
 
 .noir-stats--empty {
+  position: relative;
   padding-top: 48px;
 }
 
@@ -2500,12 +2501,32 @@ button.noir-now-playing-source:hover {
   height: 120px;
 }
 
+.noir-stats-skeleton--hero {
+  width: 100%;
+  max-width: 100%;
+  height: 168px;
+}
+
 .noir-stats-eyebrow {
   margin: 0 0 8px;
   font: var(--noir-type-label);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--noir-text-tertiary);
+}
+
+.noir-stats-hero {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.noir-stats-hero-art {
+  flex-shrink: 0;
+}
+
+.noir-stats-hero-copy {
+  min-width: 0;
 }
 
 .noir-stats-hero-value {
@@ -2532,12 +2553,15 @@ button.noir-now-playing-source:hover {
 .noir-stats-replay-cta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 20px;
-  padding: 20px 22px;
+  padding: 16px 18px;
   border-radius: var(--noir-radius-md);
   background: #ede8de;
   color: #0b0b0b;
+}
+
+.noir-stats-replay-art {
+  flex-shrink: 0;
 }
 
 .noir-stats-replay-cta .noir-stats-eyebrow {
@@ -2557,6 +2581,7 @@ button.noir-now-playing-source:hover {
 
 .noir-stats-replay-cta .noir-button-primary {
   flex-shrink: 0;
+  margin-left: auto;
   background: #0b0b0b;
   color: #ede8de;
 }
@@ -2565,57 +2590,89 @@ button.noir-now-playing-source:hover {
   background: #1a1a1a;
 }
 
-.noir-stats-rank {
+.noir-stats-tiles {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.noir-stats-tile {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
+  min-width: 0;
 }
 
-.noir-stats-rank li {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) auto;
+.noir-stats-tile-art {
+  position: relative;
+  width: 96px;
+  height: 96px;
+}
+
+.noir-stats-tile-rank {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 44px;
-  padding: 6px 4px;
-}
-
-.noir-stats-rank-n {
-  font: var(--noir-type-meta);
-  color: var(--noir-text-tertiary);
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #ede8de;
+  font: var(--noir-type-label);
   font-variant-numeric: tabular-nums;
 }
 
-.noir-stats-rank-label {
+.noir-stats-tile-label {
   font: var(--noir-type-row);
   color: var(--noir-text-primary);
 }
 
-.noir-stats-rank-meta {
+.noir-stats-tile-meta {
   font: var(--noir-type-meta);
   color: var(--noir-text-tertiary);
 }
 
-.noir-stats-clock {
+.noir-stats-block--clock {
   display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  height: 88px;
-  padding-top: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 32px;
 }
 
-.noir-stats-clock-bar {
+.noir-stats-clock-copy {
   flex: 1;
-  min-width: 0;
-  border-radius: 2px 2px 0 0;
-  background: rgba(255, 255, 255, 0.14);
+  min-width: 160px;
 }
 
-.noir-stats-clock-bar.is-peak {
-  background: var(--noir-accent);
+.noir-stats-clock-peak {
+  margin: 0;
+  font-size: 14px;
+  color: var(--noir-text-secondary);
+}
+
+.noir-stats-dial {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.noir-stats-dial-svg {
+  display: block;
+  border-radius: var(--noir-radius-lg);
+}
+
+.noir-stats-dial-mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 .noir-replay {
@@ -2738,10 +2795,22 @@ button.noir-now-playing-source:hover {
   pointer-events: none;
 }
 
-@media (max-width: 640px) {
-  .noir-stats-replay-cta {
+@media (max-width: 720px) {
+  .noir-stats-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .noir-stats-hero {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .noir-stats-replay-cta {
+    flex-wrap: wrap;
+  }
+
+  .noir-stats-replay-cta .noir-button-primary {
+    margin-left: 0;
   }
 
   .noir-stats-hero-value {

@@ -15,24 +15,12 @@ import {
   topTracks,
   totalListenedMs,
 } from '../../../services/listening/tasteProfile';
+import { worldForCollection } from '../../../utils/ditherCover';
 import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
+import { NoirDitherCover } from './NoirDitherCover';
+import { NoirListeningClock } from './NoirListeningClock';
+import { NoirMark } from './NoirMark';
 import { NoirReplayStory } from './NoirReplayStory';
-
-function ListeningClockBars({ hours, peakHour }: { hours: number[]; peakHour: number }) {
-  const max = Math.max(1, ...hours);
-  return (
-    <div className="noir-stats-clock" aria-hidden>
-      {hours.map((count, hour) => (
-        <span
-          key={hour}
-          className={`noir-stats-clock-bar${hour === peakHour && count > 0 ? ' is-peak' : ''}`}
-          style={{ height: `${Math.max(8, Math.round((count / max) * 100))}%` }}
-          title={`${formatHourLabel(hour)} · ${count}`}
-        />
-      ))}
-    </div>
-  );
-}
 
 export function NoirStatsView() {
   const [events, setEvents] = useState<ListeningEvent[] | null>(null);
@@ -62,7 +50,8 @@ export function NoirStatsView() {
     const clock = buildListeningClock(events, 30);
     const streak = streakDays(events);
     const replay = buildMonthlyReplayCards(events);
-    return { weekMs, monthMs, artists, tracks, clock, streak, replay };
+    const heroSeed = `sound-week-${artists[0]?.artist ?? 'empty'}-${Math.round(weekMs / 60_000)}`;
+    return { weekMs, monthMs, artists, tracks, clock, streak, replay, heroSeed };
   }, [events]);
 
   const openReplay = () => {
@@ -74,7 +63,7 @@ export function NoirStatsView() {
   if (events === null) {
     return (
       <div className="noir-stats" aria-busy="true">
-        <div className="noir-stats-skeleton" />
+        <div className="noir-stats-skeleton noir-stats-skeleton--hero" />
         <div className="noir-stats-skeleton noir-stats-skeleton--wide" />
         <div className="noir-stats-skeleton" />
       </div>
@@ -84,8 +73,9 @@ export function NoirStatsView() {
   if (!summary || events.length === 0) {
     return (
       <div className="noir-stats noir-stats--empty">
-        <p className="text-[15px] text-[color:var(--noir-text-primary)]">{strings.stats.emptyTitle}</p>
-        <p className="mt-2 max-w-sm text-[14px] text-[color:var(--noir-text-secondary)]">
+        <NoirMark size={120} variant="spray" color="var(--noir-text-tertiary)" className="noir-library-empty-mark" />
+        <p className="relative text-[15px] text-[color:var(--noir-text-primary)]">{strings.stats.emptyTitle}</p>
+        <p className="relative mt-2 max-w-sm text-[14px] text-[color:var(--noir-text-secondary)]">
           {strings.stats.emptyBody}
         </p>
       </div>
@@ -101,17 +91,27 @@ export function NoirStatsView() {
         transition={withReducedMotion(MOTION.panel)}
       >
         <section className="noir-stats-hero">
-          <p className="noir-stats-eyebrow">{strings.stats.thisWeek}</p>
-          <p className="noir-stats-hero-value">{formatListened(summary.weekMs)}</p>
-          <p className="noir-stats-hero-sub">
-            {strings.stats.thisMonth}: {formatListened(summary.monthMs)}
-            {summary.streak > 0 ? ` · ${strings.stats.streak(summary.streak)}` : ''}
-          </p>
+          <NoirDitherCover world="bone" seed={summary.heroSeed} size={168} madeForYou className="noir-stats-hero-art" />
+          <div className="noir-stats-hero-copy">
+            <p className="noir-stats-eyebrow">{strings.stats.thisWeek}</p>
+            <p className="noir-stats-hero-value">{formatListened(summary.weekMs)}</p>
+            <p className="noir-stats-hero-sub">
+              {strings.stats.thisMonth}: {formatListened(summary.monthMs)}
+              {summary.streak > 0 ? ` · ${strings.stats.streak(summary.streak)}` : ''}
+            </p>
+          </div>
         </section>
 
         {summary.replay && (
           <section className="noir-stats-replay-cta">
-            <div>
+            <NoirDitherCover
+              world="bone"
+              seed={`replay-cta-${summary.replay.month.year}-${summary.replay.month.month}`}
+              size={88}
+              madeForYou
+              className="noir-stats-replay-art"
+            />
+            <div className="min-w-0 flex-1">
               <p className="noir-stats-eyebrow">{strings.stats.replayEyebrow}</p>
               <p className="noir-stats-section-title">{summary.replay.month.label}</p>
               <p className="noir-stats-replay-hint">{strings.stats.replayHint}</p>
@@ -127,12 +127,20 @@ export function NoirStatsView() {
           {summary.artists.length === 0 ? (
             <p className="text-[13px] text-[color:var(--noir-text-tertiary)]">{strings.stats.noRankings}</p>
           ) : (
-            <ol className="noir-stats-rank">
+            <ol className="noir-stats-tiles">
               {summary.artists.map((artist, index) => (
-                <li key={artist.artist}>
-                  <span className="noir-stats-rank-n">{index + 1}</span>
-                  <span className="noir-stats-rank-label">{artist.artist}</span>
-                  <span className="noir-stats-rank-meta">{strings.stats.plays(artist.plays)}</span>
+                <li key={artist.artist} className="noir-stats-tile">
+                  <span className="noir-stats-tile-art">
+                    <NoirDitherCover
+                      world={index === 0 ? 'bone' : worldForCollection(artist.artist)}
+                      seed={`stats-artist-${artist.artist}`}
+                      size={96}
+                      madeForYou={index === 0}
+                    />
+                    <span className="noir-stats-tile-rank">{index + 1}</span>
+                  </span>
+                  <span className="noir-stats-tile-label truncate">{artist.artist}</span>
+                  <span className="noir-stats-tile-meta">{strings.stats.plays(artist.plays)}</span>
                 </li>
               ))}
             </ol>
@@ -144,29 +152,39 @@ export function NoirStatsView() {
           {summary.tracks.length === 0 ? (
             <p className="text-[13px] text-[color:var(--noir-text-tertiary)]">{strings.stats.noRankings}</p>
           ) : (
-            <ol className="noir-stats-rank">
+            <ol className="noir-stats-tiles">
               {summary.tracks.map((track, index) => (
-                <li key={track.songKey}>
-                  <span className="noir-stats-rank-n">{index + 1}</span>
-                  <span className="min-w-0">
-                    <span className="noir-stats-rank-label block truncate">{track.title}</span>
-                    <span className="noir-stats-rank-meta block truncate">{track.artist}</span>
+                <li key={track.songKey} className="noir-stats-tile">
+                  <span className="noir-stats-tile-art">
+                    <NoirDitherCover
+                      world={index === 0 ? 'bone' : worldForCollection(track.songKey)}
+                      seed={`stats-track-${track.songKey}`}
+                      size={96}
+                      madeForYou={index === 0}
+                    />
+                    <span className="noir-stats-tile-rank">{index + 1}</span>
                   </span>
-                  <span className="noir-stats-rank-meta shrink-0">{strings.stats.plays(track.plays)}</span>
+                  <span className="min-w-0">
+                    <span className="noir-stats-tile-label block truncate">{track.title}</span>
+                    <span className="noir-stats-tile-meta block truncate">{track.artist}</span>
+                  </span>
+                  <span className="noir-stats-tile-meta shrink-0">{strings.stats.plays(track.plays)}</span>
                 </li>
               ))}
             </ol>
           )}
         </section>
 
-        <section className="noir-stats-block">
-          <h2 className="noir-stats-section-title">{strings.stats.listeningClock}</h2>
-          <p className="mb-3 text-[13px] text-[color:var(--noir-text-secondary)]">
-            {summary.clock.peakCount > 0
-              ? strings.stats.peakHour(formatHourLabel(summary.clock.peakHour))
-              : strings.stats.noRankings}
-          </p>
-          <ListeningClockBars hours={summary.clock.hours} peakHour={summary.clock.peakHour} />
+        <section className="noir-stats-block noir-stats-block--clock">
+          <div className="noir-stats-clock-copy">
+            <h2 className="noir-stats-section-title">{strings.stats.listeningClock}</h2>
+            <p className="noir-stats-clock-peak">
+              {summary.clock.peakCount > 0
+                ? strings.stats.peakHour(formatHourLabel(summary.clock.peakHour))
+                : strings.stats.noRankings}
+            </p>
+          </div>
+          <NoirListeningClock hours={summary.clock.hours} peakHour={summary.clock.peakHour} size={280} />
         </section>
       </motion.div>
 
