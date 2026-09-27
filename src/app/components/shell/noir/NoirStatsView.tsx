@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { strings } from '../../../constants/strings';
 import type { SearchResult } from '../../../types';
@@ -19,7 +19,7 @@ import {
   type TasteTrack,
 } from '../../../services/listening/tasteProfile';
 import { getArtistImage, getTrackImage } from '../../../services/musicGraph';
-import { worldForCollection } from '../../../utils/ditherCover';
+import { COLOR_WORLDS, worldForCollection, type ColorWorld } from '../../../utils/ditherCover';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
 import { NoirDitherCover } from './NoirDitherCover';
@@ -30,6 +30,18 @@ export type NoirStatsViewProps = {
   favorites?: SearchResult[];
   recentTracks?: SearchResult[];
 };
+
+function hexToRgba(hex: string, alpha: number) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function washFor(world: ColorWorld, alpha: number) {
+  return hexToRgba(COLOR_WORLDS[world].field, alpha);
+}
 
 function localPool(favorites: SearchResult[], recentTracks: SearchResult[]) {
   return [...favorites, ...recentTracks];
@@ -185,8 +197,17 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
   }
 
   const topArtist = summary.artists[0] ?? null;
+  const secondArtist = summary.artists[1] ?? null;
+  const thirdArtist = summary.artists[2] ?? null;
   const heroSource = topArtist ? artistImages[topArtist.artist] : undefined;
   const clockSource = heroSource;
+  const cornerSource = secondArtist
+    ? artistImages[secondArtist.artist] || heroSource
+    : heroSource;
+  const washA = topArtist ? worldForCollection(topArtist.artist) : 'ember';
+  const washB = secondArtist ? worldForCollection(secondArtist.artist) : 'bone';
+  const washC = thirdArtist ? worldForCollection(thirdArtist.artist) : 'cobalt';
+  const cornerWorld = secondArtist ? worldForCollection(secondArtist.artist) : 'bone';
 
   return (
     <>
@@ -196,6 +217,36 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
         animate={{ opacity: 1 }}
         transition={withReducedMotion(MOTION.panel)}
       >
+        <div className="noir-stats-stage" aria-hidden>
+          <div
+            className="noir-stats-wash"
+            style={
+              {
+                '--stats-wash-a': washFor(washA, 0.22),
+                '--stats-wash-b': washFor(washB, 0.16),
+                '--stats-wash-c': washFor(washC, 0.12),
+                '--stats-wash-bone': washFor('bone', 0.08),
+              } as CSSProperties
+            }
+          />
+          <div className="noir-stats-grain" />
+          <NoirMark
+            size={240}
+            variant="spray"
+            color="var(--noir-text-primary)"
+            className="noir-stats-corner-mark"
+          />
+          <div className="noir-stats-corner-plate">
+            <NoirDitherCover
+              source={cornerSource}
+              world={cornerWorld}
+              seed={secondArtist ? `sound-corner-${secondArtist.artist}` : 'sound-corner'}
+              size={220}
+            />
+          </div>
+        </div>
+
+        <div className="noir-stats-body">
         <section className="noir-stats-hero">
           <NoirDitherCover
             source={heroSource}
@@ -320,6 +371,7 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
             </div>
           </div>
         </section>
+        </div>
       </motion.div>
 
       <AnimatePresence>

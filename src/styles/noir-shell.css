@@ -2477,11 +2477,68 @@ button.noir-now-playing-source:hover {
 
 /* —— Stats / Your sound + NOIR Replay —— */
 .noir-stats {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-bottom: 56px;
+  max-width: 760px;
+  overflow: hidden;
+}
+
+.noir-stats-stage {
+  pointer-events: none;
+  position: absolute;
+  inset: -8% -12% -20% -8%;
+  z-index: 0;
+}
+
+.noir-stats-wash {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 48% at 12% 8%, var(--stats-wash-a, rgba(232, 80, 2, 0.2)) 0%, transparent 58%),
+    radial-gradient(ellipse 48% 42% at 92% 18%, var(--stats-wash-b, rgba(237, 232, 222, 0.14)) 0%, transparent 55%),
+    radial-gradient(ellipse 42% 38% at 78% 78%, var(--stats-wash-c, rgba(31, 63, 191, 0.12)) 0%, transparent 52%),
+    radial-gradient(ellipse 70% 50% at 40% 100%, var(--stats-wash-bone, rgba(237, 232, 222, 0.08)) 0%, transparent 60%);
+}
+
+.noir-stats-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.2;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+.noir-stats-corner-mark {
+  position: absolute;
+  top: -2%;
+  right: 2%;
+  opacity: 0.14;
+  transform: rotate(12deg);
+}
+
+.noir-stats-corner-plate {
+  position: absolute;
+  right: -4%;
+  bottom: 8%;
+  width: 220px;
+  height: 220px;
+  opacity: 0.55;
+  transform: rotate(-8deg);
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 40% 40%, #000 20%, transparent 72%);
+  mask-image: radial-gradient(ellipse 70% 70% at 40% 40%, #000 20%, transparent 72%);
+  filter: saturate(0.9);
+}
+
+.noir-stats-body {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 40px;
-  padding-bottom: 56px;
-  max-width: 720px;
 }
 
 .noir-stats--empty {
