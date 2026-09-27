@@ -58,7 +58,7 @@ const sheetEase = EASE_PREMIUM;
 const BATCH_SIZE = 10;
 const SHUFFLE_SETTLE_MS = 540;
 /** Fixed lyrics panel width — animate 0 ↔ this so hide/show doesn't snap the cover. */
-const LYRICS_PANEL_WIDTH = 360;
+const LYRICS_PANEL_WIDTH = 420;
 
 function shuffled<T>(items: T[]): T[] {
   const next = [...items];

@@ -955,11 +955,11 @@
 
 .noir-now-playing-stage-lyrics-inner {
   display: flex;
-  width: 360px;
+  width: 420px;
   height: 100%;
   min-height: 0;
   flex-direction: column;
-  padding-left: 40px;
+  padding-left: 36px;
   box-sizing: border-box;
 }
 
@@ -969,10 +969,10 @@
 }
 
 .noir-now-playing-lyrics-label {
-  margin: 0 0 8px 4px;
-  font-size: 11px;
+  margin: 0 0 12px 2px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--noir-text-tertiary);
 }
@@ -1084,44 +1084,52 @@ button.noir-now-playing-source:hover {
 }
 
 .noir-lyrics-scroll {
-  mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 88%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 88%, transparent 100%);
 }
 
 .noir-lyrics-line {
   display: block;
   width: 100%;
-  padding: 10px 4px;
+  padding: 9px 2px;
   text-align: left;
   border-radius: var(--noir-radius-sm);
   border: none;
   background: transparent;
-  color: var(--noir-text-tertiary);
-  font-size: 17px;
+  color: rgba(255, 255, 255, 0.34);
+  font-size: 23px;
   font-weight: 550;
-  line-height: 1.35;
-  letter-spacing: -0.015em;
+  line-height: 1.22;
+  letter-spacing: -0.035em;
   cursor: pointer;
-  transition: color 0.2s ease, opacity 0.2s ease;
+  transition:
+    color 0.35s var(--noir-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    opacity 0.35s var(--noir-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    transform 0.35s var(--noir-ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+.noir-lyrics-line.is-past {
+  color: rgba(255, 255, 255, 0.26);
 }
 
 .noir-lyrics-line:hover {
-  color: var(--noir-text-secondary);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .noir-lyrics-line.is-active {
   color: var(--noir-text-primary);
   font-weight: 650;
+  transform: translateX(3px);
 }
 
 .noir-lyrics-plain {
   margin: 0;
-  padding: 6px 4px;
-  color: var(--noir-text-secondary);
-  font-size: 15px;
-  font-weight: 500;
+  padding: 7px 2px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 19px;
+  font-weight: 520;
   line-height: 1.5;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.025em;
 }
 
 .noir-now-playing-queue-empty {

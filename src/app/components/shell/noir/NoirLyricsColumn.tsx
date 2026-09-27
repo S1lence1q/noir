@@ -57,22 +57,23 @@ export function NoirLyricsColumn({
             </p>
           </div>
         ) : isSynced ? (
-          <div className="flex flex-col gap-0.5 pt-4">
+          <div className="flex flex-col gap-0 pt-2">
             {lyrics.map((line, idx) => {
               const active = idx === currentIndex;
+              const past = currentIndex >= 0 && idx < currentIndex;
               return (
                 <button
                   key={`${line.time}-${idx}`}
                   type="button"
                   ref={active ? activeRef : null}
-                  className={`noir-lyrics-line elva-focus-ring ${active ? 'is-active' : ''}`}
+                  className={`noir-lyrics-line elva-focus-ring${active ? ' is-active' : ''}${past ? ' is-past' : ''}`}
                   onClick={() => onSeek(line.time)}
                 >
                   {line.text || ' '}
                 </button>
               );
             })}
-            <div className="h-[40%] shrink-0" aria-hidden />
+            <div className="h-[42%] shrink-0" aria-hidden />
           </div>
         ) : (
           <div className="flex flex-col gap-1 pt-1">
