@@ -21,7 +21,7 @@ import {
   type TasteTrack,
 } from '../../../services/listening/tasteProfile';
 import { getArtistImage, getTrackImage } from '../../../services/musicGraph';
-import { COLOR_WORLDS, worldForCollection, type ColorWorld } from '../../../utils/ditherCover';
+import { COLOR_WORLDS, worldForCollection } from '../../../utils/ditherCover';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
 import { NoirDitherCover } from './NoirDitherCover';
@@ -32,15 +32,6 @@ export type NoirStatsViewProps = {
   favorites?: SearchResult[];
   recentTracks?: SearchResult[];
 };
-
-/** Soft stage mood — Bone/Ink map to warm so the field never reads grey. */
-function auraWorld(world: ColorWorld): ColorWorld {
-  return world === 'bone' || world === 'ink' ? 'ember' : world;
-}
-
-function atmosphereFor(world: ColorWorld) {
-  return world === 'cobalt' || world === 'moss' ? atmosphereCool : atmosphereWarm;
-}
 
 function localPool(favorites: SearchResult[], recentTracks: SearchResult[]) {
   return [...favorites, ...recentTracks];
@@ -195,36 +186,34 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
   }
 
   const topArtist = summary.artists[0] ?? null;
-  const secondArtist = summary.artists[1] ?? null;
   const heroSource = topArtist ? artistImages[topArtist.artist] : undefined;
   const clockSource = heroSource;
-  const primaryAura = auraWorld(topArtist ? worldForCollection(topArtist.artist) : 'ember');
-  const secondaryAura = auraWorld(secondArtist ? worldForCollection(secondArtist.artist) : 'cobalt');
 
   return (
     <>
-      <motion.div
-        className="noir-stats"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={withReducedMotion(MOTION.panel)}
-      >
-        {/* Real grain atmosphere (ref), not CSS wash — screen blend so blacks vanish = no kant */}
+      <div className="noir-stats">
+        {/* Outside motion opacity — screen blend needs the real black canvas */}
         <div className="noir-stats-stage" aria-hidden>
           <img
-            className="noir-stats-atmosphere noir-stats-atmosphere--primary"
-            src={atmosphereFor(primaryAura)}
+            className="noir-stats-atmosphere noir-stats-atmosphere--cool"
+            src={atmosphereCool}
             alt=""
             draggable={false}
           />
           <img
-            className="noir-stats-atmosphere noir-stats-atmosphere--secondary"
-            src={atmosphereFor(secondaryAura)}
+            className="noir-stats-atmosphere noir-stats-atmosphere--warm"
+            src={atmosphereWarm}
             alt=""
             draggable={false}
           />
         </div>
 
+        <motion.div
+          className="noir-stats-body"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={withReducedMotion(MOTION.panel)}
+        >
         <section className="noir-stats-hero-band">
           <div className="noir-stats-hero-band-copy">
             <p className="noir-stats-eyebrow">{strings.stats.thisWeek}</p>
@@ -379,7 +368,8 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
             </div>
           </div>
         </section>
-      </motion.div>
+        </motion.div>
+      </div>
 
       <AnimatePresence>
         {replayOpen && replayCards && (

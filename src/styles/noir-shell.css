@@ -2483,53 +2483,59 @@ button.noir-now-playing-source:hover {
   gap: 40px;
   padding: 0 0 56px;
   max-width: min(100%, var(--noir-content-max));
-  isolation: isolate;
+  /* no isolation — screen blend needs the real black canvas behind */
 }
 
 .noir-stats-stage {
   pointer-events: none;
   position: absolute;
-  inset: -80px -40px 0;
+  inset: 0;
   z-index: 0;
-  overflow: visible;
+  overflow: hidden;
 }
 
 /*
-  Real grain atmosphere (blå_gradient / warm light-leak refs).
-  Screen blend: black pixels vanish → soft bloom, no filled box = no Bone corner kant.
+  Real grain refs (blå_gradient + warm light-leak).
+  Sit in the black void BELOW Bone — never tucked under its corner (that = kant).
+  No mix-blend (Library motion opacity kills it). Dark pixels vanish into #000;
+  bright grainy light-leaks stay visible.
 */
 .noir-stats-atmosphere {
   pointer-events: none;
   position: absolute;
   display: block;
   object-fit: cover;
-  mix-blend-mode: screen;
   user-select: none;
 }
 
-.noir-stats-atmosphere--primary {
-  top: -40px;
-  right: -80px;
-  width: min(780px, 110%);
-  height: 460px;
-  opacity: 1;
-  -webkit-mask-image: radial-gradient(ellipse 68% 62% at 58% 42%, #000 8%, #000 38%, transparent 78%);
-  mask-image: radial-gradient(ellipse 68% 62% at 58% 42%, #000 8%, #000 38%, transparent 78%);
+.noir-stats-atmosphere--cool {
+  top: 120px;
+  left: -6%;
+  width: 112%;
+  height: 680px;
+  opacity: 0.92;
+  filter: brightness(1.35) contrast(1.15) saturate(1.3);
+  -webkit-mask-image: radial-gradient(ellipse 74% 60% at 48% 40%, #000 0%, #000 30%, transparent 76%);
+  mask-image: radial-gradient(ellipse 74% 60% at 48% 40%, #000 0%, #000 30%, transparent 76%);
 }
 
-.noir-stats-atmosphere--secondary {
-  left: -120px;
-  top: 220px;
-  width: min(560px, 85%);
-  height: 420px;
-  opacity: 0.85;
-  -webkit-mask-image: radial-gradient(ellipse 70% 65% at 40% 50%, #000 5%, #000 32%, transparent 76%);
-  mask-image: radial-gradient(ellipse 70% 65% at 40% 50%, #000 5%, #000 32%, transparent 76%);
+.noir-stats-atmosphere--warm {
+  top: 260px;
+  right: -10%;
+  width: 72%;
+  height: 540px;
+  opacity: 0.8;
+  filter: brightness(1.25) contrast(1.1) saturate(1.2);
+  -webkit-mask-image: radial-gradient(ellipse 68% 58% at 55% 45%, #000 0%, #000 24%, transparent 74%);
+  mask-image: radial-gradient(ellipse 68% 58% at 55% 45%, #000 0%, #000 24%, transparent 74%);
 }
 
-.noir-stats > :not(.noir-stats-stage) {
+.noir-stats-body {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
 }
 
 .noir-stats--empty {
