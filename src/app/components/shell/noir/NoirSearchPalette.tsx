@@ -269,7 +269,7 @@ export function NoirSearchPalette({
                             title={liked ? 'Remove from favorites' : 'Add to favorites'}
                           >
                             <Heart
-                              className={`h-3.5 w-3.5 ${liked ? 'fill-current text-red-400' : ''}`}
+                              className={`h-3.5 w-3.5 ${liked ? 'fill-current text-[color:var(--noir-accent)]' : ''}`}
                               strokeWidth={liked ? 0 : 1.75}
                             />
                           </button>

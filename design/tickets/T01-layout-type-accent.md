@@ -17,16 +17,18 @@ Add to `src/styles/noir-shell.css`:
 --noir-accent: #e85002;         /* existing — the ONLY accent */
 --noir-accent-soft: rgba(232, 80, 2, 0.14);
 
---noir-type-page:    600 28px/1.15;  /* page titles: Home, Library */
---noir-type-section: 600 18px/1.3;   /* section headings: Recently played */
---noir-type-row:     500 14px/1.35;  /* row titles */
---noir-type-meta:    400 12px/1.35;  /* artist, counts, times — text-secondary */
---noir-type-label:   600 11px/1.2;   /* uppercase micro labels, letter-spacing .08em, text-tertiary */
+--noir-font: 'Outfit', sans-serif;  /* `font` shorthand is invalid without a family */
+--noir-type-page:    600 28px/1.15 var(--noir-font);  /* page titles: Home, Library */
+--noir-type-section: 600 18px/1.3 var(--noir-font);   /* section headings: Recently played */
+--noir-type-row:     500 14px/1.35 var(--noir-font);  /* row titles */
+--noir-type-meta:    400 12px/1.35 var(--noir-font);  /* artist, counts, times — text-secondary */
+--noir-type-label:   600 11px/1.2 var(--noir-font);   /* uppercase micro labels, letter-spacing .08em, text-tertiary */
 ```
 
 - One wrapper class `.noir-content` (max-width `--noir-content-max`, margin-inline auto, padding-inline `--noir-gutter`) used by Home, Discover, Library, collection pages (chart/playlist), artist, Settings. Settings content column max 720px inside it.
 - Section headings use `--noir-type-section`, 16 px margin below, `--noir-section-gap` above.
 - Song rows: grid columns `[#/cover] [title+artist 1fr] [meta 160px] [duration 56px] [actions 96px]`. Meta = album or "12 min ago" depending on list; hide the meta column under 900 px canvas width.
+- **Never render a column without data.** Meta must never repeat the artist. If a list has no meta data, drop the meta column for that list. If no row has a duration, drop the duration column (no "—" placeholders).
 - Row actions (favorite, add, more) are hidden until row hover/focus **everywhere**. Exception: a favorited song shows its filled favorite icon at all times.
 - Favorite icon color = `--noir-accent` everywhere (replace coral/pink).
 

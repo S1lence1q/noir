@@ -165,7 +165,7 @@ export function NoirNowPlayingView({
                   title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                 >
                   <Heart
-                    className={`h-4 w-4 ${isFavorite ? 'fill-current text-red-400' : ''}`}
+                    className={`h-4 w-4 ${isFavorite ? 'fill-current text-[color:var(--noir-accent)]' : ''}`}
                     strokeWidth={isFavorite ? 0 : 1.75}
                   />
                 </button>

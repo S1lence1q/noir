@@ -3,6 +3,8 @@ import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
 import { NoirRankedSongRow } from './NoirRankedSongRow';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
+import { worldForCollection } from '../../../utils/ditherCover';
+import { NoirDitherCover } from './NoirDitherCover';
 
 export type NoirPlaylistViewProps = {
   playlist: Playlist;
@@ -26,9 +28,9 @@ export function NoirPlaylistView({
   const cover = playlist.tracks[0]?.thumbnail ?? playlist.thumbnail;
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-10">
+    <div className="flex w-full flex-col gap-10">
       <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:items-end sm:text-left">
-        <img src={cover} alt="" className="noir-art h-36 w-36 shrink-0 object-cover sm:h-40 sm:w-40" />
+        <NoirDitherCover source={cover} world={worldForCollection(playlist.id)} seed={playlist.id} size={160} />
         <div className="min-w-0 flex-1">
           <h1 className="text-[clamp(1.5rem,3.5vw,2.25rem)] font-semibold leading-tight tracking-[-0.03em] text-[color:var(--noir-text-primary)]">
             {playlist.name}

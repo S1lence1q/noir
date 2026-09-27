@@ -6,6 +6,7 @@ export interface SearchResult {
   videoId: string;
   channelId?: string;
   audioUrl?: string;
+  duration?: number;
 }
 
 export interface VerifiedArtist {

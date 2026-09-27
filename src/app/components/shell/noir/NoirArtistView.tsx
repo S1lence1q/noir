@@ -29,7 +29,7 @@ export function NoirArtistView({
   onPlayFromIndex,
 }: NoirArtistViewProps) {
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-10">
+    <div className="flex w-full flex-col gap-10">
       <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:items-end sm:text-left">
         <img
           src={artist.thumbnail}

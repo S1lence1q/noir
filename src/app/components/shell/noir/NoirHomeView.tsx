@@ -172,7 +172,7 @@ export function NoirHomeView({
       </div>
 
       {panelPhase === 'idle' && featuredTrack ? (
-        <div className="noir-home-hero-wrap shrink-0 px-5 pt-2">
+        <div className="noir-content noir-home-hero-wrap shrink-0 pt-2">
           <button
             type="button"
             onClick={() => playFromHome(featuredTrack)}
@@ -239,7 +239,7 @@ export function NoirHomeView({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="relative px-6 py-6"
+              className="noir-content relative py-6"
             >
               {!featuredTrack && (
                 <div className="noir-home-start-card mb-10 max-w-xl">
@@ -280,7 +280,7 @@ export function NoirHomeView({
 
               {listRecents.length > 0 && (
                 <section className="mb-10">
-                  <h2 className="mb-3 px-1 text-[16px] font-semibold text-[color:var(--noir-text-primary)]">
+                  <h2 className="noir-section-heading px-1">
                     Recently played
                   </h2>
                   <div className="flex flex-col gap-0.5">
@@ -308,7 +308,7 @@ export function NoirHomeView({
 
               {recentArtists.length > 0 && (
                 <section>
-                  <h2 className="mb-4 px-1 text-[16px] font-semibold text-[color:var(--noir-text-primary)]">
+                  <h2 className="noir-section-heading px-1">
                     Artists
                   </h2>
                   <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-none">
@@ -334,13 +334,13 @@ export function NoirHomeView({
           )}
 
           {panelPhase === 'loading' && (
-            <motion.div key="loading" className="px-6 py-16">
+            <motion.div key="loading" className="noir-content py-16">
               <SearchLoadingState />
             </motion.div>
           )}
 
           {panelPhase === 'results' && (
-            <motion.div key="results" className="px-6 py-6">
+            <motion.div key="results" className="noir-content py-6">
               <p className="mb-5 px-1 text-[14px] text-[color:var(--noir-text-secondary)]">
                 Results for &ldquo;{lastSearchedQuery}&rdquo;
               </p>
@@ -388,7 +388,7 @@ export function NoirHomeView({
           )}
 
           {panelPhase === 'no-results' && (
-            <motion.div key="empty" className="px-6 py-20">
+            <motion.div key="empty" className="noir-content py-20">
               <p className="text-[color:var(--noir-text-secondary)]">No results for &ldquo;{lastSearchedQuery}&rdquo;</p>
               <button
                 type="button"

@@ -34,7 +34,9 @@ export function NoirDetailOverlay({ children, onClose, title }: NoirDetailOverla
         <div className="w-10" aria-hidden />
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto scrollbar-none px-6 pb-10">{children}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto scrollbar-none pb-10">
+        <div className="noir-content">{children}</div>
+      </div>
     </motion.div>
   );
 }

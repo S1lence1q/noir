@@ -4,7 +4,8 @@ import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
 import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { NoirRankedSongRow } from './NoirRankedSongRow';
-import { NoirGraphicAccent } from './NoirGraphicAccent';
+import { NoirDitherCover } from './NoirDitherCover';
+import { worldForCollection } from '../../../utils/ditherCover';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 
 import topHitsDenmark from '../../../../top_hits_denmark.png';
@@ -142,28 +143,26 @@ export function NoirDiscoverView({
             <button
               type="button"
               onClick={() => onSelectPlaylist(localPlaylist)}
-              className="group relative h-[min(36vh,280px)] w-full overflow-hidden rounded-[var(--noir-radius-xl)] text-left elva-focus-ring"
+              className="group flex w-full items-end gap-6 text-left elva-focus-ring"
             >
-              <img
-                src={featured.thumbnail}
-                alt=""
-                className="absolute inset-0 h-full w-full object-cover"
+              <NoirDitherCover
+                source={featured.thumbnail}
+                world={worldForCollection(localPlaylist.id)}
+                seed={localPlaylist.id}
+                size={220}
+                className="transition-transform duration-300 group-hover:scale-[1.015]"
               />
-              <NoirGraphicAccent graphic="plateWave" className="noir-accent-wave-hero" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-black/20" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/25 to-transparent" />
-
-              <div className="absolute bottom-0 left-0 max-w-xl p-6">
-                <p className="text-[12px] font-medium uppercase tracking-[0.14em] text-white/40">
-                  #{countryData.name} · 01
+              <div className="min-w-0 pb-1">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--noir-text-tertiary)]">
+                  {localPlaylist.name} · No. 1
                 </p>
-                <h2 className="mt-1 text-[clamp(1.4rem,3vw,2rem)] font-semibold leading-tight tracking-[-0.02em] text-white">
+                <h2 className="mt-2 truncate text-[clamp(1.6rem,3vw,2.25rem)] font-semibold leading-tight tracking-[-0.02em] text-[color:var(--noir-text-primary)]">
                   {featured.title}
                 </h2>
-                <p className="mt-1.5 text-[14px] text-white/55">{featured.artist}</p>
+                <p className="mt-1 text-[14px] text-[color:var(--noir-text-secondary)]">{featured.artist}</p>
                 <span
                   onClick={(e) => playChart(e, localPlaylist.name, localHits)}
-                  className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-white/15"
+                  className="noir-button-primary mt-5"
                 >
                   <Play className="h-3.5 w-3.5 fill-current" />
                   Play chart
@@ -173,7 +172,7 @@ export function NoirDiscoverView({
           )}
 
           <section>
-            <h3 className="mb-3 px-1 text-[15px] font-semibold text-[color:var(--noir-text-primary)]">
+            <h3 className="noir-section-heading px-1">
               Charts
             </h3>
             <div className="flex flex-col gap-0.5">
@@ -183,10 +182,11 @@ export function NoirDiscoverView({
                   onClick={() => onSelectPlaylist(localPlaylist)}
                   className="noir-track-row flex w-full items-center gap-3 px-3 py-3 text-left elva-focus-ring"
                 >
-                  <img
-                    src={localHits[0]?.thumbnail}
-                    alt=""
-                    className="noir-art h-12 w-12 shrink-0 object-cover"
+                  <NoirDitherCover
+                    source={localHits[0]?.thumbnail}
+                    world={worldForCollection(localPlaylist.id)}
+                    seed={localPlaylist.id}
+                    size={48}
                   />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[14px] font-medium text-[color:var(--noir-text-primary)]">
@@ -205,10 +205,11 @@ export function NoirDiscoverView({
                   onClick={() => onSelectPlaylist(globalPlaylist)}
                   className="noir-track-row flex w-full items-center gap-3 px-3 py-3 text-left elva-focus-ring"
                 >
-                  <img
-                    src={globalHits[0]?.thumbnail}
-                    alt=""
-                    className="noir-art h-12 w-12 shrink-0 object-cover"
+                  <NoirDitherCover
+                    source={globalHits[0]?.thumbnail}
+                    world={worldForCollection(globalPlaylist.id)}
+                    seed={globalPlaylist.id}
+                    size={48}
                   />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[14px] font-medium text-[color:var(--noir-text-primary)]">
@@ -225,7 +226,7 @@ export function NoirDiscoverView({
 
           {localTracks.length > 0 && (
             <section className="relative">
-              <h3 className="mb-3 px-1 text-[15px] font-semibold text-[color:var(--noir-text-primary)]">
+              <h3 className="noir-section-heading px-1">
                 {countryData.name}
               </h3>
               <div className="flex flex-col gap-0.5">

@@ -17,15 +17,11 @@ export function NoirPageScaffold({
 }: NoirPageScaffoldProps) {
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className={`shrink-0 px-6 ${titleSize === 'compact' ? 'pb-2 pt-5' : 'pb-4 pt-6'}`}>
-        <div className="flex items-end justify-between gap-6">
+      <header className={`shrink-0 ${titleSize === 'compact' ? 'pb-2 pt-5' : 'pb-4 pt-6'}`}>
+        <div className="noir-content flex items-end justify-between gap-6">
           <div>
             <h1
-              className={
-                titleSize === 'compact'
-                  ? 'text-[24px] font-semibold tracking-[-0.02em] text-[color:var(--noir-text-primary)]'
-                  : 'text-[30px] font-semibold tracking-[-0.02em] text-[color:var(--noir-text-primary)]'
-              }
+                className={`noir-page-title ${titleSize === 'compact' ? 'text-[24px]' : ''}`}
             >
               {title}
             </h1>
@@ -37,7 +33,9 @@ export function NoirPageScaffold({
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto scrollbar-none px-6 pb-10">{children}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto scrollbar-none pb-10">
+        <div className="noir-content">{children}</div>
+      </div>
     </div>
   );
 }

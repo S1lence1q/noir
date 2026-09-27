@@ -12,7 +12,14 @@ type NoirRankedSongRowProps = {
   onAddToQueue: (track: SearchResult) => void;
   onPlayNext?: (track: SearchResult) => void;
   onToggleFavorite?: (track: SearchResult) => void;
+  showDuration?: boolean;
 };
+
+function formatDuration(duration: number) {
+  const minutes = Math.floor(duration / 60);
+  const seconds = Math.floor(duration % 60).toString().padStart(2, '0');
+  return `${minutes}:${seconds}`;
+}
 
 export function NoirRankedSongRow({
   rank,
@@ -22,6 +29,7 @@ export function NoirRankedSongRow({
   onAddToQueue,
   onPlayNext,
   onToggleFavorite,
+  showDuration = false,
 }: NoirRankedSongRowProps) {
   const reduced = prefersReducedMotion();
   const rankLabel = String(rank).padStart(2, '0');
@@ -34,12 +42,14 @@ export function NoirRankedSongRow({
       onKeyDown={(e) => {
         if (e.key === 'Enter') onPlay();
       }}
-      className="noir-track-row group flex cursor-pointer items-center gap-3.5 px-3 py-3"
+      className={`noir-track-row noir-song-grid group cursor-pointer px-3 py-3 ${
+        showDuration ? 'noir-track-row--with-duration' : ''
+      }`}
       whileTap={reduced ? undefined : { scale: 0.985 }}
       transition={{ type: 'spring', stiffness: 520, damping: 34 }}
     >
       <span
-        className={`w-8 shrink-0 tabular-nums text-[14px] font-medium leading-none ${
+        className={`tabular-nums text-[14px] font-medium leading-none ${
           rank === 1 ? 'text-white/35' : 'text-[color:var(--noir-text-tertiary)]'
         }`}
         aria-hidden
@@ -47,7 +57,7 @@ export function NoirRankedSongRow({
         {rankLabel}
       </span>
 
-      <div className="noir-art relative h-12 w-12 shrink-0 overflow-hidden bg-[color:var(--noir-gray-dark)]">
+      <div className="noir-art relative h-12 w-12 overflow-hidden bg-[color:var(--noir-gray-dark)]">
         <motion.img
           src={track.thumbnail}
           alt=""
@@ -63,22 +73,25 @@ export function NoirRankedSongRow({
         />
       </div>
 
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[15px] font-medium text-[color:var(--noir-text-primary)]">
+      <div className="min-w-0">
+        <p className="noir-song-title truncate">
           {track.title}
         </p>
-        <p className="truncate text-[14px] text-[color:var(--noir-text-secondary)]">{track.artist}</p>
+        <p className="noir-song-meta mt-0.5 truncate">{track.artist}</p>
       </div>
 
+      {showDuration && (
+        <span className="noir-song-duration">
+          {track.duration !== undefined ? formatDuration(track.duration) : null}
+        </span>
+      )}
       <div
-        className="noir-track-actions ml-auto flex shrink-0 items-center justify-end gap-0.5"
+        className="noir-track-actions flex items-center justify-end gap-0.5"
         onClick={(e) => e.stopPropagation()}
       >
         {onToggleFavorite && (
           <div
-            className={`transition-opacity ${
-              isFavorite ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100'
-            }`}
+            className={isFavorite ? 'opacity-100' : undefined}
           >
             <button
               type="button"
@@ -88,13 +101,13 @@ export function NoirRankedSongRow({
               title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             >
               <Heart
-                className={`h-4 w-4 ${isFavorite ? 'fill-current text-red-400' : ''}`}
+                className={`h-4 w-4 ${isFavorite ? 'fill-current text-[color:var(--noir-accent)]' : ''}`}
                 strokeWidth={isFavorite ? 0 : 1.75}
               />
             </button>
           </div>
         )}
-        <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+        <div className="flex items-center gap-0.5">
           <button
             type="button"
             onClick={() => onAddToQueue(track)}

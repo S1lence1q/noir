@@ -16,7 +16,14 @@ type NoirSongRowProps = {
   onPlayNext?: (track: SearchResult) => void;
   onToggleFavorite?: (track: SearchResult) => void;
   showArtistColumn?: boolean;
+  showDuration?: boolean;
 };
+
+function formatDuration(duration: number) {
+  const minutes = Math.floor(duration / 60);
+  const seconds = Math.floor(duration % 60).toString().padStart(2, '0');
+  return `${minutes}:${seconds}`;
+}
 
 export function NoirSongRow({
   track,
@@ -30,6 +37,7 @@ export function NoirSongRow({
   onPlayNext,
   onToggleFavorite,
   showArtistColumn = true,
+  showDuration = false,
 }: NoirSongRowProps) {
   const reduced = prefersReducedMotion();
 
@@ -46,11 +54,13 @@ export function NoirSongRow({
       onKeyDown={(e) => {
         if (e.key === 'Enter' && !isLoading) onPlay();
       }}
-      className="noir-track-row group flex cursor-pointer items-center gap-3.5 px-3 py-3"
+      className={`noir-track-row noir-song-grid noir-track-row--unranked group cursor-pointer px-3 py-3 ${
+        showDuration ? 'noir-track-row--with-duration' : ''
+      }`}
       whileTap={reduced || isLoading ? undefined : { scale: 0.985 }}
       transition={{ type: 'spring', stiffness: 520, damping: 34 }}
     >
-      <div className="noir-art relative h-12 w-12 shrink-0 overflow-hidden bg-[color:var(--noir-gray-dark)]">
+      <div className="noir-art relative h-12 w-12 overflow-hidden bg-[color:var(--noir-gray-dark)]">
         <motion.img
           src={track.thumbnail}
           alt=""
@@ -80,9 +90,9 @@ export function NoirSongRow({
         )}
       </div>
 
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0">
         <p
-          className={`truncate text-[15px] font-medium ${
+          className={`noir-song-title truncate ${
             isPlaying
               ? 'text-white'
               : 'text-[color:var(--noir-text-primary)]'
@@ -91,19 +101,22 @@ export function NoirSongRow({
           {track.title}
         </p>
         {showArtistColumn && (
-          <p className="truncate text-[14px] text-[color:var(--noir-text-secondary)]">{track.artist}</p>
+          <p className="noir-song-meta mt-0.5 truncate">{track.artist}</p>
         )}
       </div>
 
+      {showDuration && (
+        <span className="noir-song-duration">
+          {track.duration !== undefined ? formatDuration(track.duration) : null}
+        </span>
+      )}
       <div
-        className="noir-track-actions ml-auto flex shrink-0 items-center justify-end gap-0.5"
+        className="noir-track-actions flex items-center justify-end gap-0.5"
         onClick={(e) => e.stopPropagation()}
       >
         {onToggleFavorite && (
           <div
-            className={`transition-opacity ${
-              isFavorite ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100'
-            }`}
+            className={isFavorite ? 'opacity-100' : undefined}
           >
             <button
               type="button"
@@ -113,13 +126,13 @@ export function NoirSongRow({
               title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             >
               <Heart
-                className={`h-4 w-4 ${isFavorite ? 'fill-current text-red-400' : ''}`}
+                className={`h-4 w-4 ${isFavorite ? 'fill-current text-[color:var(--noir-accent)]' : ''}`}
                 strokeWidth={isFavorite ? 0 : 1.75}
               />
             </button>
           </div>
         )}
-        <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+        <div className="flex items-center gap-0.5">
           <button
             type="button"
             onClick={() => onAddToQueue(track)}
