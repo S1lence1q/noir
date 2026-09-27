@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Heart, ListMusic, Plus } from 'lucide-react';
+import { Heart, ListMusic, Plus, AudioLines } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { NoirSongRow } from './NoirSongRow';
 import { NoirMark } from './NoirMark';
 import { NoirDitherCover } from './NoirDitherCover';
 import { NoirUserPlaylistPage } from './NoirUserPlaylistPage';
+import { NoirStatsView } from './NoirStatsView';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
 
-type LibrarySection = 'favorites' | 'playlists';
+type LibrarySection = 'favorites' | 'playlists' | 'stats';
 
 export type LibraryFocus = {
   section: LibrarySection;
@@ -33,6 +34,7 @@ export type NoirLibraryViewProps = {
 const SECTIONS: { id: LibrarySection; label: string; icon: typeof Heart }[] = [
   { id: 'favorites', label: 'Favorites', icon: Heart },
   { id: 'playlists', label: 'Playlists', icon: ListMusic },
+  { id: 'stats', label: strings.stats.tab, icon: AudioLines },
 ];
 
 export function NoirLibraryView({
@@ -66,13 +68,16 @@ export function NoirLibraryView({
   };
 
   const selectedPlaylist = playlists.find((p) => p.id === selectedPlaylistId) ?? null;
+  const showHeader = !selectedPlaylist;
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      {!selectedPlaylist && (
+      {showHeader && (
         <header className="pb-5">
           <h1 className="noir-page-title">Library</h1>
-          <p className="mt-2 text-[16px] text-[color:var(--noir-text-secondary)]">Favorites and playlists</p>
+          <p className="mt-2 text-[16px] text-[color:var(--noir-text-secondary)]">
+            Favorites, playlists, and your sound
+          </p>
         </header>
       )}
       <div className={`flex gap-1 px-1 pb-6 ${selectedPlaylist ? 'hidden' : ''}`}>
@@ -206,6 +211,18 @@ export function NoirLibraryView({
                 onPlayNext={onPlayNext}
                 onToggleFavorite={onToggleFavorite}
               />
+            </motion.div>
+          )}
+
+          {section === 'stats' && (
+            <motion.div
+              key="stats"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0 } }}
+              transition={withReducedMotion(MOTION.panel)}
+            >
+              <NoirStatsView />
             </motion.div>
           )}
         </AnimatePresence>

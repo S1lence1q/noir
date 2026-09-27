@@ -63,6 +63,7 @@ Exact behavior, layout, copy, tokens, states.
 | T11 | Radio + autoplay — **DONE** | M | | Opus |
 | T12 | Daily mixes + Home shelf — **DONE** | L | | Opus |
 | T14 | Now Playing — **A+B+C DONE** (lyrics beside cover, queue rail toggle, Soft Shuffle); similar/D parked | M | | Opus |
+| T17 | Your sound + NOIR Replay — **DONE** (Library tab, Bone story, Save image) | M | | Opus |
 
 ### Original index
 
