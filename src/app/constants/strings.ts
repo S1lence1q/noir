@@ -128,6 +128,14 @@ export const strings = {
     show: 'Show lyrics',
     hide: 'Hide lyrics',
   },
+  error: {
+    brand: 'NOIR',
+    title: 'Something broke',
+    body: 'The UI hit a snag. Music might still be playing — reload, or try to recover.',
+    reload: 'Reload',
+    recover: 'Try to recover',
+    persist: 'Still stuck? Hard-refresh the tab.',
+  },
   nowPlaying: {
     playingFrom: (source: string) => `Playing from ${source}`,
     openSource: 'Open source',
