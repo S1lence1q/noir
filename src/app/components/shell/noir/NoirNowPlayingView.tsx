@@ -532,16 +532,15 @@ function QueueTrackItem({ track, onDragEnd, onSelect, onRemove, onAddToQueue }: 
         }, 0);
       }}
       className="noir-playlist-item select-none"
-      initial={{ opacity: 0, y: -8, scale: 0.985 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.985, transition: { duration: 0.16 } }}
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, transition: { duration: 0.16 } }}
       whileDrag={{
-        scale: 1.015,
         boxShadow: '0 12px 32px rgba(0,0,0,0.65)',
         zIndex: 5,
         cursor: 'grabbing',
       }}
-      transition={MOTION.panel}
+      transition={{ ...MOTION.panel, layout: { duration: 0 } }}
       onContextMenu={(event) => openSongMenu(track, event)}
     >
       <div className="noir-track-row group flex w-full items-center gap-2 px-2 py-2.5">

@@ -164,7 +164,7 @@ export function NoirUserPlaylistPage({
 
   return (
     <div className="noir-playlist-layout">
-      <motion.div className="min-w-0 pb-6" layoutRoot>
+      <div className="min-w-0 pb-6">
         <button type="button" onClick={onBack} className="noir-back-link elva-focus-ring">
           <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
           {strings.playlist.back}
@@ -330,7 +330,7 @@ export function NoirUserPlaylistPage({
             </span>
           </motion.div>
         )}
-      </motion.div>
+      </div>
 
       <div className="noir-add-panel-rail">
         <AnimatePresence initial={false}>
@@ -386,13 +386,13 @@ function PlaylistTrackItem({
           draggedRef.current = false;
         }, 0);
       }}
-      className="noir-playlist-item select-none w-full"
-      style={{ width: '100%' }}
-      initial={{ opacity: 0, y: -8, scale: 0.985 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.985, transition: { duration: 0.16 } }}
-      whileDrag={{ scale: 1.015, boxShadow: '0 12px 32px rgba(0,0,0,0.65)', zIndex: 5, cursor: 'grabbing' }}
-      transition={MOTION.panel}
+      className="noir-playlist-item select-none"
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, transition: { duration: 0.16 } }}
+      whileDrag={{ boxShadow: '0 12px 32px rgba(0,0,0,0.65)', zIndex: 5, cursor: 'grabbing' }}
+      // Reorder uses layout projection; never animate layout or rows stretch on resize.
+      transition={{ ...MOTION.panel, layout: { duration: 0 } }}
     >
       <NoirSongRow
         track={track}
