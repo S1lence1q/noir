@@ -1,5 +1,6 @@
-import { AnimatePresence, motion } from 'motion/react';
-import { ChevronUp, Compass, Heart, Plus, Radio, Shuffle, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, Reorder } from 'motion/react';
+import { Compass, Heart, Plus, Radio, Shuffle, X } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion, withReducedMotion } from '../../../utils/motionPresets';
@@ -8,6 +9,7 @@ import { NoirMark } from './NoirMark';
 import { noirToast } from './NoirToast';
 import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
 import { useQueueEndPrompt } from '../../../hooks/useQueueEndPrompt';
+import { displayArtistName } from '../../../utils/stringUtils';
 
 type NowPlayingSong = {
   title: string;
@@ -37,7 +39,8 @@ type NoirNowPlayingViewProps = {
   onRemoveFromQueue?: (id: string) => void;
   onClearQueue?: () => (() => void) | void;
   onShuffleQueue?: () => void;
-  onMoveInQueue?: (id: string, direction: -1 | 1) => void;
+  /** Persist a new up-next order (track ids after the playing song). */
+  onReorderQueue?: (orderedUpNextIds: string[]) => void;
   playback?: { currentTime: number; duration: number; isPlaying: boolean };
   queueSource?: string;
 };
@@ -81,7 +84,7 @@ export function NoirNowPlayingView({
   onRemoveFromQueue,
   onClearQueue,
   onShuffleQueue,
-  onMoveInQueue,
+  onReorderQueue,
   playback = { currentTime: 0, duration: 0, isPlaying: false },
   queueSource,
 }: NoirNowPlayingViewProps) {
@@ -94,6 +97,12 @@ export function NoirNowPlayingView({
     currentIndex >= 0
       ? queue.slice(currentIndex + 1)
       : queue.filter((item) => getPlaybackSongKey(item) !== currentKey);
+  const [order, setOrder] = useState(() => upNext.map((track) => track.id));
+  useEffect(() => {
+    setOrder(upNext.map((track) => track.id));
+  }, [upNext.map((track) => track.id).join('\0')]);
+  const byId = new Map(upNext.map((track) => [track.id, track]));
+  const orderedUpNext = order.map((id) => byId.get(id)).filter((track): track is SearchResult => !!track);
   const songKey = currentKey ?? `${song.title}::${song.artist}`;
   const favoriteAdds = uniqueByKey(favoriteTracks.filter((track) => getPlaybackSongKey(track) !== currentKey));
   const recentAdds = uniqueByKey(quickAddTracks.filter((track) => getPlaybackSongKey(track) !== currentKey));
@@ -433,71 +442,105 @@ export function NoirNowPlayingView({
                 )}
               </div>
             </div>
-            <div className="flex flex-col">
-            <AnimatePresence initial={false}>
-              {upNext.map((track, i) => (
-                <motion.div
-                  key={track.id}
-                  layout={!reduced}
-                  className="noir-track-row group flex w-full items-center gap-2 px-2 py-2.5"
-                  onContextMenu={(event) => openSongMenu(track, event)}
-                  initial={{ opacity: 0, y: reduced ? 0 : 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, height: 0, margin: 0, paddingTop: 0, paddingBottom: 0 }}
-                  transition={{ duration: 0.28, ease: sheetEase }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => onSelectFromQueue(track.id)}
-                    className="flex min-w-0 flex-1 items-center gap-3 text-left elva-focus-ring"
-                  >
-                    <img
-                      src={track.thumbnail}
-                      alt=""
-                      className="noir-art h-11 w-11 shrink-0 object-cover"
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[14px] font-medium text-[color:var(--noir-text-primary)]">
-                        {track.title}
-                      </span>
-                      <span className="block truncate text-[13px] text-[color:var(--noir-text-tertiary)]">
-                        {track.artist}
-                      </span>
-                    </span>
-                  </button>
-
-                  <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-                    {onMoveInQueue && i > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => onMoveInQueue(track.id, -1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-[color:var(--noir-text-tertiary)] hover:bg-white/[0.08] hover:text-white"
-                        aria-label="Move up in queue"
-                        title="Move up"
-                      >
-                        <ChevronUp className="h-3.5 w-3.5" strokeWidth={2} />
-                      </button>
-                    )}
-                    {onRemoveFromQueue && (
-                      <button
-                        type="button"
-                        onClick={() => onRemoveFromQueue(track.id)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-[color:var(--noir-text-tertiary)] hover:bg-white/[0.08] hover:text-white"
-                        aria-label="Remove from queue"
-                        title="Remove"
-                      >
-                        <X className="h-3.5 w-3.5" strokeWidth={2} />
-                      </button>
-                    )}
-                    <SongRowOptions track={track} onAddToQueue={onAddToQueue} />
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-            </div>
+            <Reorder.Group
+              axis="y"
+              values={order}
+              onReorder={setOrder}
+              className="flex flex-col gap-0.5"
+            >
+              <AnimatePresence initial={false}>
+                {orderedUpNext.map((track) => (
+                  <QueueTrackItem
+                    key={track.id}
+                    track={track}
+                    onDragEnd={() => onReorderQueue?.(order)}
+                    onSelect={() => onSelectFromQueue(track.id)}
+                    onRemove={onRemoveFromQueue ? () => onRemoveFromQueue(track.id) : undefined}
+                    onAddToQueue={onAddToQueue}
+                  />
+                ))}
+              </AnimatePresence>
+            </Reorder.Group>
           </>
         )}
       </motion.aside>
     </div>
+  );
+}
+
+type QueueTrackItemProps = {
+  track: SearchResult;
+  onDragEnd: () => void;
+  onSelect: () => void;
+  onRemove?: () => void;
+  onAddToQueue?: (track: SearchResult, options?: { silent?: boolean }) => void;
+};
+
+function QueueTrackItem({ track, onDragEnd, onSelect, onRemove, onAddToQueue }: QueueTrackItemProps) {
+  const draggedRef = useRef(false);
+
+  return (
+    <Reorder.Item
+      value={track.id}
+      onDragStart={() => {
+        draggedRef.current = true;
+      }}
+      onDragEnd={() => {
+        onDragEnd();
+        window.setTimeout(() => {
+          draggedRef.current = false;
+        }, 0);
+      }}
+      className="noir-playlist-item select-none"
+      initial={{ opacity: 0, y: -8, scale: 0.985 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.985, transition: { duration: 0.16 } }}
+      whileDrag={{
+        scale: 1.015,
+        boxShadow: '0 12px 32px rgba(0,0,0,0.65)',
+        zIndex: 5,
+        cursor: 'grabbing',
+      }}
+      transition={MOTION.panel}
+      onContextMenu={(event) => openSongMenu(track, event)}
+    >
+      <div className="noir-track-row group flex w-full items-center gap-2 px-2 py-2.5">
+        <button
+          type="button"
+          onClick={() => {
+            if (!draggedRef.current) onSelect();
+          }}
+          className="flex min-w-0 flex-1 items-center gap-3 text-left elva-focus-ring"
+        >
+          <img src={track.thumbnail} alt="" className="noir-art h-11 w-11 shrink-0 object-cover" />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[14px] font-medium text-[color:var(--noir-text-primary)]">
+              {track.title}
+            </span>
+            <span className="block truncate text-[13px] text-[color:var(--noir-text-tertiary)]">
+              {displayArtistName(track.artist)}
+            </span>
+          </span>
+        </button>
+
+        <div
+          className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          {onRemove && (
+            <button
+              type="button"
+              onClick={onRemove}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[color:var(--noir-text-tertiary)] hover:bg-white/[0.08] hover:text-white"
+              aria-label="Remove from queue"
+              title="Remove"
+            >
+              <X className="h-3.5 w-3.5" strokeWidth={2} />
+            </button>
+          )}
+          <SongRowOptions track={track} onAddToQueue={onAddToQueue} />
+        </div>
+      </div>
+    </Reorder.Item>
   );
 }

@@ -1284,26 +1284,26 @@ export default function App() {
     };
   };
 
-  const handleMoveInQueue = (id: string, direction: -1 | 1) => {
+  const handleReorderQueue = (orderedUpNextIds: string[]) => {
     setQueue((prev) => {
-      const from = prev.findIndex((item) => item.id === id);
-      if (from < 0) return prev;
-      const to = from + direction;
-      if (to < 0 || to >= prev.length) return prev;
-
       const activeKey = songData ? getPlaybackSongKey(songData) : null;
       const currentIndex = activeKey
         ? prev.findIndex((item) => getPlaybackSongKey(item) === activeKey)
         : -1;
-      // Keep the playing track fixed; only reorder within up-next
-      if (currentIndex >= 0 && (from <= currentIndex || to <= currentIndex)) {
-        return prev;
+      const byId = new Map(prev.map((item) => [item.id, item]));
+      const reorderedTail = orderedUpNextIds
+        .map((id) => byId.get(id))
+        .filter((item): item is SearchResult => !!item);
+
+      if (currentIndex >= 0) {
+        return [...prev.slice(0, currentIndex + 1), ...reorderedTail];
       }
 
-      const next = [...prev];
-      const [item] = next.splice(from, 1);
-      next.splice(to, 0, item);
-      return next;
+      const playing =
+        activeKey != null
+          ? prev.filter((item) => getPlaybackSongKey(item) === activeKey)
+          : [];
+      return [...playing, ...reorderedTail];
     });
   };
 
@@ -1316,14 +1316,6 @@ export default function App() {
   const handleSelectFromQueue = (id: string, isCrossfade?: boolean) => {
     const song = queue.find(item => item.id === id);
     if (song) handleSelectSong(song, isCrossfade);
-  };
-
-  const handleReorderQueue = (newIds: string[]) => {
-    const idMap = new Map(queue.map(item => [item.id, item]));
-    const reordered = newIds
-      .map(id => idMap.get(id))
-      .filter((item): item is SearchResult => !!item);
-    setQueue(reordered);
   };
 
   const handleShuffleQueue = () => {
@@ -1550,7 +1542,7 @@ export default function App() {
                   onRemoveFromQueue={handleRemoveFromQueue}
                   onClearQueue={handleClearQueue}
                   onShuffleQueue={handleShuffleQueue}
-                  onMoveInQueue={handleMoveInQueue}
+                  onReorderQueue={handleReorderQueue}
                   playback={{
                     currentTime: shellPlayback.currentTime,
                     duration: shellPlayback.duration,
