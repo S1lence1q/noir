@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { ListEnd, Loader2, Heart, Plus, Search, Upload, UserRound, X } from 'lucide-react';
+import { ChevronRight, Heart, Loader2, Plus, X } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
 import {
   executeSearchAPI,
@@ -10,10 +10,12 @@ import {
   resolveUrlToSearchResult,
   shouldShowArtistCard,
 } from '../../../utils/apiUtils';
+import { getArtistImage } from '../../../services/musicGraph';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
 import { toast } from 'sonner';
+import { NoirMark } from './NoirMark';
 
 type NoirSearchPaletteProps = {
   open: boolean;
@@ -41,6 +43,28 @@ function artistFromQuery(query: string, results: SearchResult[]): VerifiedArtist
   };
 }
 
+function QueueNextIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M4 6h12" />
+      <path d="M4 12h8" />
+      <path d="M4 18h8" />
+      <path d="M16 12l4 3.2V8.8L16 12z" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function NoirSearchPalette({
   open,
   onClose,
@@ -60,6 +84,7 @@ export function NoirSearchPalette({
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
+  const [artistPortrait, setArtistPortrait] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestIdRef = useRef(0);
 
@@ -69,9 +94,12 @@ export function NoirSearchPalette({
     () => (!showingSuggestions && !isSearching ? artistFromQuery(query, results) : null),
     [query, results, showingSuggestions, isSearching]
   );
-  const trackOffset = artistCard && onViewArtist ? 1 : 0;
+  const showArtistRow = !!(artistCard && onViewArtist);
+  const trackOffset = showArtistRow ? 1 : 0;
   const trackRows = showingSuggestions ? suggestions : results;
   const rowCount = trackRows.length + trackOffset;
+  const artistThumb = artistPortrait || artistCard?.thumbnail || '';
+  const artistInitial = (artistCard?.name.trim().charAt(0) || '·').toUpperCase();
 
   useEffect(() => {
     if (!open) return;
@@ -79,6 +107,7 @@ export function NoirSearchPalette({
     setResults([]);
     setIsSearching(false);
     setFocusedIndex(0);
+    setArtistPortrait(null);
     const t = window.setTimeout(() => inputRef.current?.focus(), 30);
     return () => window.clearTimeout(t);
   }, [open]);
@@ -86,6 +115,21 @@ export function NoirSearchPalette({
   useEffect(() => {
     setFocusedIndex(0);
   }, [rowCount, showingSuggestions]);
+
+  useEffect(() => {
+    if (!artistCard?.name) {
+      setArtistPortrait(null);
+      return;
+    }
+    let cancelled = false;
+    setArtistPortrait(null);
+    void getArtistImage(artistCard.name).then((url) => {
+      if (!cancelled && url) setArtistPortrait(url);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [artistCard?.name]);
 
   useEffect(() => {
     if (!open) return;
@@ -141,7 +185,6 @@ export function NoirSearchPalette({
       setIsSearching(false);
       return;
     }
-    // Mark searching immediately so we don't flash empty / fake artist during debounce.
     setIsSearching(true);
     debounceRef.current = setTimeout(() => {
       void runSearch(val);
@@ -190,7 +233,7 @@ export function NoirSearchPalette({
               {isSearching ? (
                 <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[color:var(--noir-text-tertiary)]" />
               ) : (
-                <Search className="h-4 w-4 shrink-0 text-[color:var(--noir-text-tertiary)]" strokeWidth={1.75} />
+                <NoirMark size={14} className="shrink-0 text-[color:var(--noir-text-tertiary)]" />
               )}
               <input
                 ref={inputRef}
@@ -225,11 +268,11 @@ export function NoirSearchPalette({
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="noir-search-palette-upload flex h-7 w-7 items-center justify-center rounded-full"
+                    className="noir-search-palette-file elva-focus-ring"
                     aria-label="Upload audio"
                     title="Upload audio"
                   >
-                    <Upload className="h-4 w-4" strokeWidth={1.75} />
+                    File
                   </button>
                   <input
                     ref={fileInputRef}
@@ -243,10 +286,10 @@ export function NoirSearchPalette({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-[color:var(--noir-text-tertiary)] hover:bg-white/[0.06] hover:text-white"
+                className="noir-search-palette-close elva-focus-ring"
                 aria-label="Close"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" strokeWidth={1.75} />
               </button>
             </div>
 
@@ -264,39 +307,48 @@ export function NoirSearchPalette({
                 results.length === 0 &&
                 !artistCard &&
                 query.trim() && (
-                <p className="noir-search-palette-empty">No results for “{query.trim()}”</p>
-              )}
+                  <p className="noir-search-palette-empty">No results for “{query.trim()}”</p>
+                )}
 
-              <div className="flex flex-col gap-0.5">
-                {artistCard && onViewArtist && (
+              {showArtistRow && artistCard && (
+                <>
+                  <p className="noir-search-palette-label">Artist</p>
                   <button
                     type="button"
                     data-active={focusedIndex === 0 ? 'true' : 'false'}
-                    className="noir-search-palette-row flex w-full items-center gap-3 text-left"
+                    className="noir-search-palette-row noir-search-palette-row--artist"
                     onMouseEnter={() => setFocusedIndex(0)}
                     onClick={() => openArtist(artistCard)}
                   >
-                    {artistCard.thumbnail ? (
-                      <img
-                        src={artistCard.thumbnail}
-                        alt=""
-                        className="noir-art h-10 w-10 shrink-0 object-cover"
-                      />
+                    {artistThumb ? (
+                      <img src={artistThumb} alt="" className="noir-search-artist-avatar" />
                     ) : (
-                      <span className="noir-art flex h-10 w-10 shrink-0 items-center justify-center bg-white/[0.06]">
-                        <UserRound className="h-4 w-4 text-[color:var(--noir-text-tertiary)]" />
+                      <span className="noir-search-artist-avatar noir-search-artist-avatar--fallback">
+                        {artistInitial}
                       </span>
                     )}
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[14px] font-medium text-[color:var(--noir-text-primary)]">
+                    <span className="min-w-0 flex-1 text-left">
+                      <span className="block truncate text-[15px] font-semibold text-[color:var(--noir-text-primary)]">
                         {artistCard.name}
                       </span>
-                      <span className="block truncate text-[13px] text-[color:var(--noir-text-tertiary)]">
-                        {strings.artist.openProfile}
+                      <span className="block truncate text-[12px] text-[color:var(--noir-text-tertiary)]">
+                        {strings.artist.goToArtist}
                       </span>
                     </span>
+                    <ChevronRight
+                      className="h-4 w-4 shrink-0 text-[color:var(--noir-text-tertiary)]"
+                      strokeWidth={1.75}
+                      aria-hidden
+                    />
                   </button>
-                )}
+                </>
+              )}
+
+              {trackRows.length > 0 && !showingSuggestions && (
+                <p className="noir-search-palette-label">Songs</p>
+              )}
+
+              <div className="flex flex-col gap-0.5">
                 {trackRows.map((track, i) => {
                   const rowIndex = i + trackOffset;
                   const active = rowIndex === focusedIndex;
@@ -313,11 +365,7 @@ export function NoirSearchPalette({
                         className="flex min-w-0 flex-1 items-center gap-3 text-left"
                         onClick={() => playRow(track)}
                       >
-                        <img
-                          src={track.thumbnail}
-                          alt=""
-                          className="noir-art h-10 w-10 shrink-0 object-cover"
-                        />
+                        <img src={track.thumbnail} alt="" className="noir-search-track-art" />
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-[14px] font-medium text-[color:var(--noir-text-primary)]">
                             {track.title}
@@ -338,7 +386,7 @@ export function NoirSearchPalette({
                           <button
                             type="button"
                             onClick={() => onToggleFavorite(track)}
-                            className="flex h-8 w-8 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white"
+                            className="noir-search-row-action"
                             aria-label={liked ? 'Remove from favorites' : 'Add to favorites'}
                             title={liked ? 'Remove from favorites' : 'Add to favorites'}
                           >
@@ -351,7 +399,7 @@ export function NoirSearchPalette({
                         <button
                           type="button"
                           onClick={() => onAddToQueue(track)}
-                          className="flex h-8 w-8 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white"
+                          className="noir-search-row-action"
                           aria-label="Add to queue"
                           title="Add to queue"
                         >
@@ -361,11 +409,11 @@ export function NoirSearchPalette({
                           <button
                             type="button"
                             onClick={() => onPlayNext(track)}
-                            className="flex h-8 w-8 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white"
+                            className="noir-search-row-action"
                             aria-label="Play next"
                             title="Play next"
                           >
-                            <ListEnd className="h-3.5 w-3.5" strokeWidth={1.75} />
+                            <QueueNextIcon />
                           </button>
                         )}
                       </div>

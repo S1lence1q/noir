@@ -1047,31 +1047,55 @@
   font-weight: 400;
 }
 
-.noir-search-palette-upload {
+.noir-search-palette-file {
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--noir-text-tertiary);
-  opacity: 0.55;
-  transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.noir-search-palette-upload:hover,
-.noir-search-palette-upload:focus-visible {
+.noir-search-palette-file:hover,
+.noir-search-palette-file:focus-visible {
   background: rgba(255, 255, 255, 0.06);
   color: var(--noir-text-secondary);
-  opacity: 1;
+}
+
+.noir-search-palette-close {
+  display: flex;
+  height: 32px;
+  width: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--noir-text-tertiary);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.noir-search-palette-close:hover,
+.noir-search-palette-close:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--noir-text-primary);
 }
 
 .noir-search-palette-body {
   min-height: 0;
   flex: 1;
   overflow-y: auto;
-  padding: 8px;
+  padding: 4px 8px 10px;
 }
 
 .noir-search-palette-label {
-  padding: 8px 10px 6px;
+  padding: 10px 10px 4px;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--noir-text-tertiary);
 }
@@ -1094,6 +1118,67 @@
 
 .noir-search-palette-row[data-active='true'] {
   background: rgba(255, 255, 255, 0.08);
+}
+
+.noir-search-palette-row--artist {
+  width: 100%;
+  gap: 12px;
+  padding: 10px;
+  margin-bottom: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  text-align: left;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.noir-search-palette-row--artist[data-active='true'],
+.noir-search-palette-row--artist:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.noir-search-artist-avatar {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.noir-search-artist-avatar--fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--noir-text-secondary);
+}
+
+.noir-search-track-art {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.noir-search-row-action {
+  display: flex;
+  height: 32px;
+  width: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--noir-text-secondary);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.noir-search-row-action:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
 }
 
 .noir-search-hint {
