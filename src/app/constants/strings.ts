@@ -42,9 +42,6 @@ export const strings = {
     upNextOpen: 'Viewing up next',
     showUpNext: 'Show up next',
     hideUpNext: 'Hide up next',
-    playingOn: (device: string) => `Playing on ${device}`,
-    thisComputer: 'This computer',
-    browserOutput: 'Browser output',
   },
   queue: {
     upNext: 'Up Next',

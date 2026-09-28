@@ -321,58 +321,6 @@
   color: inherit;
 }
 
-/* Output device chip — icon by default; label on hover / devicechange. */
-.noir-compact-output {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-  max-width: 32px;
-  padding: 0 7px;
-  margin-right: 2px;
-  border-radius: var(--noir-radius-md);
-  color: var(--noir-text-tertiary);
-  overflow: hidden;
-  white-space: nowrap;
-  transition:
-    max-width 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-    color 0.15s ease,
-    background-color 0.15s ease;
-}
-
-.noir-compact-output:hover,
-.noir-compact-output:focus-visible,
-.noir-compact-output[data-revealed='true'] {
-  max-width: 148px;
-  color: var(--noir-text-secondary);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.noir-compact-output-icon {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.noir-compact-output-label {
-  min-width: 0;
-  max-width: 110px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  line-height: 1;
-  opacity: 0;
-  transition: opacity 0.18s ease;
-}
-
-.noir-compact-output:hover .noir-compact-output-label,
-.noir-compact-output:focus-visible .noir-compact-output-label,
-.noir-compact-output[data-revealed='true'] .noir-compact-output-label {
-  opacity: 1;
-}
-
 .noir-compact-volume {
   position: relative;
   display: flex;
