@@ -15,7 +15,7 @@ export const NAV_ICON_SET_LABELS: Record<NavIconSet, string> = {
   pulse: '4 · Beam / scan / bars',
 };
 
-const STORAGE_KEY = 'noir_nav_icons_v1';
+const STORAGE_KEY = 'noir_nav_icons_v2';
 
 function baseProps(
   { size = 18, strokeWidth = 1.75, className = '', ...rest }: NavIconProps,
@@ -86,15 +86,15 @@ function HomePortal(props: NavIconProps) {
   );
 }
 
-/** Discover — four-point burst (echoes the NOIR mark) */
+/** Discover — 4-point spark; equal weight, no hairline diagonals or center blob. */
 function DiscoverBurst(props: NavIconProps) {
   return (
     <svg {...baseProps(props)}>
-      <path d="M12 3.2v17.6" />
-      <path d="M3.2 12h17.6" />
-      <path d="M6.4 6.4l11.2 11.2" opacity="0.55" />
-      <path d="M17.6 6.4L6.4 17.6" opacity="0.55" />
-      <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <path
+        d="M12 3.4l1.55 7.05L20.6 12l-7.05 1.55L12 20.6l-1.55-7.05L3.4 12l7.05-1.55Z"
+        fill="currentColor"
+        stroke="none"
+      />
     </svg>
   );
 }
@@ -205,7 +205,7 @@ export function useNavIconSet() {
     } catch {
       /* ignore */
     }
-    return 'stage';
+    return 'signal';
   });
 
   const cycle = () => {
