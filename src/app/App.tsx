@@ -26,6 +26,14 @@ import { addTrackToPlaylist, createPlaylist, readPlaylists } from './utils/playl
 import { displayArtistName } from './utils/stringUtils';
 import { hasRealArtwork, youtubeThumb } from './utils/artwork';
 import { getTrackImage } from './services/musicGraph';
+import {
+  readPlaybackSession,
+  readShellTab,
+  readShellUiSession,
+  writePlaybackSession,
+  writeShellUiSession,
+  type ShellTab,
+} from './utils/sessionRestore';
 
 // Import newly extracted hooks and components
 import { useScrollTracking } from './hooks/useScrollTracking';
@@ -121,15 +129,19 @@ export default function App() {
     }
   };
 
-  const [activeTab, setActiveTabState] = useState<'search' | 'discover' | 'myhub' | 'settings'>('search');
-  const [nowPlayingOpen, setNowPlayingOpen] = useState(false);
-  const [queueSource, setQueueSource] = useState<string | null>(null);
+  const [activeTab, setActiveTabState] = useState<ShellTab>(() => {
+    const ui = readShellUiSession();
+    return ui?.activeTab ?? readShellTab();
+  });
+  const [nowPlayingOpen, setNowPlayingOpen] = useState(() => !!readShellUiSession()?.nowPlayingOpen);
+  const [queueSource, setQueueSource] = useState<string | null>(() => readPlaybackSession()?.queueSource ?? null);
   const [isMiniPlaying, setIsMiniPlaying] = useState(true);
   const [shellPlayback, setShellPlayback] = useState<ShellPlaybackState>({
     currentTime: 0,
     duration: 0,
     isPlaying: true,
   });
+  const restoreSeekRef = useRef<number | null>(null);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -152,7 +164,7 @@ export default function App() {
   const isAutoScrollingRef = useRef(false);
   const autoScrollTimeoutRef = useRef<any>(null);
 
-  const setActiveTab = (tab: 'search' | 'discover' | 'myhub' | 'settings') => {
+  const setActiveTab = (tab: ShellTab) => {
     setNowPlayingOpen(false);
     setSelectedPlaylist(null);
     setActiveTabState(tab);
@@ -232,8 +244,17 @@ export default function App() {
     section: 'favorites' | 'playlists';
     playlistId: string | null;
     requestId: number;
-  }>({ section: 'favorites', playlistId: null, requestId: 0 });
-  const [libraryOpenPlaylistId, setLibraryOpenPlaylistId] = useState<string | null>(null);
+  }>(() => {
+    const ui = readShellUiSession();
+    return {
+      section: ui?.libraryFocusSection ?? 'favorites',
+      playlistId: ui?.libraryOpenPlaylistId ?? null,
+      requestId: 0,
+    };
+  });
+  const [libraryOpenPlaylistId, setLibraryOpenPlaylistId] = useState<string | null>(
+    () => readShellUiSession()?.libraryOpenPlaylistId ?? null
+  );
 
   const [resolvedVideoIds, setResolvedVideoIds] = useState<Record<string, string>>(() => {
     try {
@@ -244,7 +265,7 @@ export default function App() {
     }
   });
 
-  const [queue, setQueue] = useState<SearchResult[]>([]);
+  const [queue, setQueue] = useState<SearchResult[]>(() => readPlaybackSession()?.queue ?? []);
   const [songData, setSongData] = useState<{
     id?: string;
     title: string;
@@ -253,7 +274,12 @@ export default function App() {
     audioUrl: string;
     videoId?: string;
     channelId?: string;
-  } | null>(null);
+  } | null>(() => {
+    const session = readPlaybackSession();
+    if (!session?.song) return null;
+    restoreSeekRef.current = session.currentTime > 2 ? session.currentTime : null;
+    return session.song;
+  });
   useListeningRecorder(songData, shellPlayback);
 
   const EMPTY_LYRICS_SONG: PlaybackSongData = {
@@ -320,6 +346,42 @@ export default function App() {
   useEffect(() => {
     queueRef.current = queue;
   }, [queue]);
+
+  // Remember shell screen across sleep / tab discard reloads.
+  useEffect(() => {
+    writeShellUiSession({
+      activeTab,
+      nowPlayingOpen,
+      libraryOpenPlaylistId,
+      libraryFocusSection: libraryFocus.section,
+    });
+  }, [activeTab, nowPlayingOpen, libraryOpenPlaylistId, libraryFocus.section]);
+
+  // Remember now-playing + queue so the compact bar comes back after a reload.
+  useEffect(() => {
+    if (!songData) return;
+    const timer = window.setTimeout(() => {
+      writePlaybackSession({
+        song: songData,
+        queue,
+        queueSource,
+        currentTime: shellPlayback.currentTime,
+        wasPlaying: isMiniPlaying,
+      });
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [songData, queue, queueSource, shellPlayback.currentTime, isMiniPlaying]);
+
+  // After restore: seek once the hidden player has loaded.
+  useEffect(() => {
+    const seekTo = restoreSeekRef.current;
+    if (seekTo == null || !songData) return;
+    restoreSeekRef.current = null;
+    const timer = window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('elva-seek', { detail: { time: seekTo } }));
+    }, 900);
+    return () => window.clearTimeout(timer);
+  }, [songData]);
 
   /** Keep Popular / queue thumbs in sync when playback resolves real cover art. */
   const patchTrackInLists = (trackId: string, patch: Partial<SearchResult>) => {

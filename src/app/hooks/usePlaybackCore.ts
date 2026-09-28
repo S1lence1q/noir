@@ -971,14 +971,15 @@ export function usePlaybackCore({
     };
   }, [isPlaying, checkCrossfade]);
 
-  // After sleep / tab blur: AudioContext stays suspended (silent MediaElementSource),
-  // timers throttle so crossfade/next can miss, and YT/HTML media may pause while UI still says playing.
+  // After sleep / tab blur: AudioContext stays suspended (silent MediaElementSource).
+  // Keep this gentle — YT/HTML APIs often lie after sleep (false ENDED / dead iframe).
+  // Auto-skip or force playVideo() here caused long stalls and empty NP bar flashes.
   useEffect(() => {
-    const YT_ENDED = 0;
-    const YT_PLAYING = 1;
+    const YT_PAUSED = 2;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
     const wakePlayback = async () => {
-      if (document.visibilityState === 'hidden') return;
+      if (document.visibilityState !== 'visible') return;
 
       await resumeGlobalAudioContext();
       if (!isPlayingRef.current) return;
@@ -994,19 +995,14 @@ export function usePlaybackCore({
         try {
           const state =
             typeof activeYT.getPlayerState === 'function' ? activeYT.getPlayerState() : null;
-          if (state === YT_ENDED || state === window.YT?.PlayerState?.ENDED) {
-            if (!isCrossfadingRef.current) {
-              void handleNextSongRef.current();
-            }
-            return;
-          }
-          if (state !== YT_PLAYING && state !== window.YT?.PlayerState?.PLAYING) {
+          // Only unpause. Never treat wake as ENDED (false positives → slow next-track resolve).
+          if (state === YT_PAUSED || state === window.YT?.PlayerState?.PAUSED) {
             if (typeof activeYT.playVideo === 'function') {
               activeYT.playVideo();
             }
-            if (activeFader.current < 0.5) {
-              void activeFadeVolume(1, 400);
-            }
+          }
+          if (activeFader.current < 0.5) {
+            void activeFadeVolume(1, 300);
           }
         } catch {
           /* ignore */
@@ -1016,12 +1012,8 @@ export function usePlaybackCore({
 
       if (!activeAudio) return;
 
-      const dur = activeAudio.duration || 0;
-      const ended =
-        activeAudio.ended ||
-        (dur > 0 && Number.isFinite(dur) && activeAudio.currentTime >= dur - 0.35);
-
-      if (ended && !isCrossfadingRef.current) {
+      // Only trust the ended flag — not currentTime heuristics (0/NaN duration after sleep).
+      if (activeAudio.ended && !isCrossfadingRef.current) {
         void handleNextSongRef.current();
         return;
       }
@@ -1030,28 +1022,28 @@ export function usePlaybackCore({
         try {
           await activeAudio.play();
           if (activeFader.current < 0.5) {
-            void activeFadeVolume(1, 400);
+            void activeFadeVolume(1, 300);
           }
         } catch {
-          /* needs another gesture — next click will retry via load/toggle */
+          /* needs another gesture */
         }
       } else if (activeFader.current < 0.15) {
-        // Playing but fader left at 0 after a broken background crossfade / suspend
-        void activeFadeVolume(1, 400);
+        void activeFadeVolume(1, 300);
       }
     };
 
     const onVisible = () => {
-      void wakePlayback();
+      if (document.visibilityState !== 'visible') return;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        void wakePlayback();
+      }, 120);
     };
 
     document.addEventListener('visibilitychange', onVisible);
-    window.addEventListener('pageshow', onVisible);
-    window.addEventListener('focus', onVisible);
     return () => {
       document.removeEventListener('visibilitychange', onVisible);
-      window.removeEventListener('pageshow', onVisible);
-      window.removeEventListener('focus', onVisible);
+      if (debounceTimer) clearTimeout(debounceTimer);
     };
   }, [fadeVolumeA, fadeVolumeB, faderRefA, faderRefB]);
 
