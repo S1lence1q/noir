@@ -4,7 +4,6 @@ import { Playlist } from './PlaylistDetailsView';
 import { AccentColor } from './themeUtils';
 import { BrandingHeader } from './BrandingHeader';
 import { SearchSection } from './SearchSection';
-import { DiscoverView } from './DiscoverView';
 import { NoirDiscoverView } from './shell/noir/NoirDiscoverView';
 import { ProfileHubView } from './ProfileHubView';
 import { ArtistProfileView } from './ArtistProfileView';
@@ -230,15 +229,15 @@ export function LandingPage({
         <span className="elva-section-label">Live Charts</span>
       </div>
 
-      <DiscoverView
+      <NoirDiscoverView
         onSelectSong={handleSelectSong}
         onAddToQueue={handleAddToQueue}
         onPlayPlaylist={handlePlayPlaylist}
         onPlayNext={handlePlayNext}
-        accentColor={accentColor}
         favorites={favorites}
         onToggleFavorite={handleToggleFavorite}
         onSelectPlaylist={setSelectedPlaylist}
+        onViewArtist={handleViewArtistByName}
       />
     </>
   );

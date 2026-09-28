@@ -56,7 +56,7 @@ Exact behavior, layout, copy, tokens, states.
 | T05 | Queue craft — empty Next up **DONE (golden)**; Soft Shuffle in NP; header + queue-ends → T05b **DONE** | M | yes | Opus/Luna |
 | T05b | Next up header + "queue ends soon" — **DONE** (Playing from under header; prompt above compact bar) | S | | Luna |
 | T06 | Dither covers — **DONE** | M | | Opus |
-| T07 | Asset cleanup — **partial**; legacy Discover still pulls `top_hits_*.png` | S | | Luna |
+| T07 | Asset cleanup — **DONE** (legacy Discover + `top_hits_*.png` removed) | S | | Luna |
 | T08 | `NoirMark` — component + sidebar + Library empty + search loading **DONE (golden)** | S | yes | Opus |
 | T09 | Listening events + taste profile — **DONE** | M | | Luna |
 | T10 | musicGraph (Last.fm + Deezer) — **DONE** | L | | Luna |
