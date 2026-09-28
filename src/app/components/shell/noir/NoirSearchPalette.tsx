@@ -233,7 +233,10 @@ export function NoirSearchPalette({
               {isSearching ? (
                 <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[color:var(--noir-text-tertiary)]" />
               ) : (
-                <NoirMark size={14} className="shrink-0 text-[color:var(--noir-text-tertiary)]" />
+                <NoirMark
+                  size={11}
+                  className="shrink-0 text-[color:var(--noir-text-primary)]"
+                />
               )}
               <input
                 ref={inputRef}
