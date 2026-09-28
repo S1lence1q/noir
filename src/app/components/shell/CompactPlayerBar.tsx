@@ -597,10 +597,7 @@ export function CompactPlayerBar({
             <div className="noir-compact-volume-track" aria-hidden>
               <div
                 className="noir-compact-volume-fill"
-                style={{
-                  width: `${projectile !== null ? volume : displayVolume}%`,
-                  opacity: projectile !== null ? 0.55 : 1,
-                }}
+                style={{ width: `${volume}%` }}
               />
             </div>
           </div>
