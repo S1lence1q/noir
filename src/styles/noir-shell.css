@@ -680,60 +680,80 @@
   mask-image: radial-gradient(ellipse 70% 62% at 58% 42%, #000 12%, transparent 74%);
 }
 
-/* Hard gutter: brand graphics may only paint in the empty right edge of the sidebar. */
+/* Brand mark + graphic share the header row — graphic fills empty space right of NOIR. */
+.noir-sidebar-brand-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  min-height: 28px;
+}
+
 .noir-sidebar-brand-slot {
   pointer-events: none;
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 56px;
-  width: 96px;
-  z-index: 0;
+  position: relative;
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-width: 0;
+  height: 44px;
+  margin: -8px -4px -8px 0;
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(to left, #000 0%, #000 35%, transparent 100%);
-  mask-image: linear-gradient(to left, #000 0%, #000 35%, transparent 100%);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 18%,
+    #000 72%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 18%,
+    #000 72%,
+    transparent 100%
+  );
 }
 
 .noir-sidebar-brand-media {
   position: absolute;
-  top: -24px;
-  right: -70px;
-  width: 220px;
+  top: 50%;
+  right: -8%;
+  width: 118%;
   max-width: none;
-  opacity: 0.34;
+  height: 140%;
+  object-fit: cover;
+  object-position: center right;
+  transform: translateY(-50%);
+  opacity: 0.42;
   mix-blend-mode: screen;
 }
 
 .noir-brand-variant-plate {
-  /* baseline plate wave inside the gutter */
+  /* baseline plate wave beside the wordmark */
 }
 
 .noir-brand-variant-grain {
-  opacity: 0.7;
+  opacity: 0.78;
   mix-blend-mode: screen;
 }
 
 .noir-brand-variant-grain--fallback {
   filter: grayscale(1) contrast(1.55) brightness(0.55);
-  opacity: 0.45;
+  opacity: 0.5;
   mix-blend-mode: screen;
 }
 
 .noir-brand-variant-halftone {
-  top: 40px;
-  right: -80px;
-  width: 260px;
-  opacity: 0.18;
+  opacity: 0.28;
   mix-blend-mode: normal;
   filter: contrast(1.15) brightness(0.85);
 }
 
 .noir-brand-chiaroscuro {
   position: absolute;
-  top: -20px;
-  right: -80px;
-  width: 240px;
-  height: 280px;
+  inset: -20% -10% -20% 0;
   overflow: hidden;
 }
 
@@ -743,23 +763,23 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 82% 36%;
+  object-position: 78% 40%;
   filter: grayscale(1) contrast(1.7) brightness(0.38);
-  opacity: 0.55;
+  opacity: 0.62;
   mix-blend-mode: screen;
 }
 
 .noir-brand-chiaroscuro-shaft {
   position: absolute;
-  top: -14%;
-  right: 0;
-  width: 55%;
-  height: 130%;
+  top: -20%;
+  right: 8%;
+  width: 48%;
+  height: 140%;
   background: linear-gradient(
     112deg,
     transparent 0%,
     rgba(249, 249, 249, 0.04) 40%,
-    rgba(249, 249, 249, 0.14) 50%,
+    rgba(249, 249, 249, 0.16) 50%,
     rgba(249, 249, 249, 0.04) 60%,
     transparent 82%
   );
@@ -778,13 +798,13 @@
 
 .noir-brand-asterisk-img {
   position: absolute;
-  top: 12px;
-  right: -56px;
-  width: 168px;
-  height: 168px;
+  top: 50%;
+  left: 50%;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
-  opacity: 0.38;
-  transform: rotate(-14deg);
+  opacity: 0.55;
+  transform: translate(-42%, -48%) rotate(-12deg);
 }
 
 .noir-sidebar-brand-cycle {
@@ -793,8 +813,9 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
   padding: 4px 8px;
-  margin: -4px -8px 16px;
+  margin: -4px -4px -4px -8px;
   border-radius: 8px;
   color: var(--noir-text-primary);
   transition: background-color 0.15s ease;

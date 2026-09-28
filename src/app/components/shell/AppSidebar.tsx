@@ -52,18 +52,20 @@ export function AppSidebar({
 
   return (
     <aside className="elva-shell-sidebar relative flex h-full w-[248px] shrink-0 flex-col overflow-hidden select-none px-3 py-5">
-      <NoirSidebarBrandGraphic variant={variant} />
-      <button
-        type="button"
-        className="noir-sidebar-brand-cycle elva-focus-ring"
-        onClick={cycle}
-        title={`Brand graphic: ${label} — click to cycle`}
-        aria-label={`Brand graphic ${label}. Click to try the next option.`}
-      >
-        <span className="text-[13px] font-bold tracking-[0.34em]">NOIR</span>
-        <NoirMark size={11} className="text-[color:var(--noir-text-primary)]" />
-        <span className="noir-sidebar-brand-hint">{label}</span>
-      </button>
+      <div className="noir-sidebar-brand-row">
+        <button
+          type="button"
+          className="noir-sidebar-brand-cycle elva-focus-ring"
+          onClick={cycle}
+          title={`Brand graphic: ${label} — click to cycle`}
+          aria-label={`Brand graphic ${label}. Click to try the next option.`}
+        >
+          <span className="text-[13px] font-bold tracking-[0.34em]">NOIR</span>
+          <NoirMark size={11} className="text-[color:var(--noir-text-primary)]" />
+          <span className="noir-sidebar-brand-hint">{label}</span>
+        </button>
+        <NoirSidebarBrandGraphic variant={variant} />
+      </div>
 
       <nav className="relative z-[1] flex flex-col gap-1" aria-label="Main navigation">
         {PRIMARY_NAV.map(({ id, label, icon: Icon }) => {
