@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Compass, Home, Library, Plus, Settings } from 'lucide-react';
+import { Plus, Settings } from 'lucide-react';
 import { SearchResult } from '../../types';
 import { MOTION, withReducedMotion } from '../../utils/motionPresets';
 import { AppTab } from './types';
 import { NoirMark } from './noir/NoirMark';
+import { NoirNavDiscover, NoirNavHome, NoirNavLibrary } from './noir/NoirNavIcons';
 import { NoirDitherCover } from './noir/NoirDitherCover';
 import { NoirFavoritesCover } from './noir/NoirFavoritesCover';
 import { worldForCollection } from '../../utils/ditherCover';
@@ -16,10 +17,14 @@ import {
 } from '../../utils/playlistStore';
 import { strings } from '../../constants/strings';
 
-const PRIMARY_NAV: { id: AppTab; label: string; icon: typeof Home }[] = [
-  { id: 'search', label: 'Home', icon: Home },
-  { id: 'discover', label: 'Discover', icon: Compass },
-  { id: 'myhub', label: 'Library', icon: Library },
+const PRIMARY_NAV: {
+  id: AppTab;
+  label: string;
+  Icon: typeof NoirNavHome;
+}[] = [
+  { id: 'search', label: 'Home', Icon: NoirNavHome },
+  { id: 'discover', label: 'Discover', Icon: NoirNavDiscover },
+  { id: 'myhub', label: 'Library', Icon: NoirNavLibrary },
 ];
 
 type AppSidebarProps = {
@@ -58,7 +63,7 @@ export function AppSidebar({
       </div>
 
       <nav className="relative z-[1] flex flex-col gap-1" aria-label="Main navigation">
-        {PRIMARY_NAV.map(({ id, label, icon: Icon }) => {
+        {PRIMARY_NAV.map(({ id, label, Icon }) => {
           const isActive =
             activeTab === id && !sidebarPlaylistActive && !(id === 'myhub' && favoritesActive);
           return (
@@ -70,7 +75,7 @@ export function AppSidebar({
               className="noir-nav-item flex h-11 items-center gap-3 px-3 text-left text-[15px] font-medium elva-focus-ring"
               aria-current={isActive ? 'page' : undefined}
             >
-              <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={isActive ? 2.25 : 1.75} />
+              <Icon size={18} strokeWidth={isActive ? 2.1 : 1.65} className="shrink-0" />
               <span>{label}</span>
             </button>
           );
