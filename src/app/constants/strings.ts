@@ -93,6 +93,7 @@ export const strings = {
     coldStartSeeding: 'Building your taste…',
     coldStartBrowse: 'Browse Discover instead',
     coldStartNoHits: 'No artists matched. Try another spelling.',
+    coldStartChartsEmpty: 'Charts are slow right now — search for three artists you love.',
   },
   radio: {
     starting: 'Starting radio…',

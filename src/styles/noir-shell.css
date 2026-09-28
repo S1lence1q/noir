@@ -689,6 +689,11 @@
   height: 44px;
   border-radius: var(--noir-radius-md);
   background: rgba(255, 255, 255, 0.06);
+  transition: background-color 0.15s ease;
+}
+
+.noir-cold-start-search:focus-within {
+  background: rgba(255, 255, 255, 0.09);
 }
 
 .noir-cold-start-input {
@@ -700,6 +705,13 @@
   color: var(--noir-text-primary);
   font: var(--noir-type-row);
   outline: none;
+  box-shadow: none;
+}
+
+.noir-cold-start-input:focus,
+.noir-cold-start-input:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 .noir-cold-start-input::placeholder {

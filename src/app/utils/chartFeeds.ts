@@ -55,6 +55,11 @@ function readChartCache(storefront: ChartStorefront, allowStale = false): Search
   }
 }
 
+/** Sync peek — used by cold start to paint suggestions without waiting on network. */
+export function getCachedChartTracks(storefront: ChartStorefront): SearchResult[] {
+  return readChartCache(storefront, true) ?? [];
+}
+
 function writeChartCache(storefront: ChartStorefront, tracks: SearchResult[]) {
   try {
     const entry: ChartCacheEntry = { tracks, fetchedAt: Date.now() };
@@ -95,34 +100,46 @@ function mapAppleFeedToTracks(data: unknown, idPrefix: string): SearchResult[] {
  * Loads Apple Music most-played chart.
  * Dev: Vite proxy. Production: direct Apple URL via CORS-safe fetch.
  * Caches successful responses in localStorage; may return stale cache offline.
+ * Network is hard-capped so cold start never waits minutes on a hung proxy.
  */
 export async function fetchAppleMusicChart(
-  storefront: ChartStorefront
+  storefront: ChartStorefront,
+  opts?: { timeoutMs?: number }
 ): Promise<{ tracks: SearchResult[]; fromCache: boolean; error?: string }> {
   const idPrefix = `apple_${storefront}`;
+  const timeoutMs = opts?.timeoutMs ?? 8000;
 
-  // Check cache first (if not expired)
+  // Fresh cache wins immediately.
   const cached = readChartCache(storefront, false);
   if (cached?.length) {
     return { tracks: cached, fromCache: true };
   }
 
+  // Stale cache paints now; still try a live refresh below when possible.
+  const stale = readChartCache(storefront, true);
+
   const fetchOnce = async (): Promise<SearchResult[]> => {
     const url = resolveChartUrl(storefront);
-    const response = import.meta.env.DEV
-      ? await fetch(url)
-      : await robustFetch(url, undefined, false);
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = import.meta.env.DEV
+        ? await fetch(url, { signal: controller.signal })
+        : await robustFetch(url, controller.signal, false);
 
-    if (!response.ok) {
-      throw new Error(`Chart feed HTTP ${response.status}`);
-    }
+      if (!response.ok) {
+        throw new Error(`Chart feed HTTP ${response.status}`);
+      }
 
-    const data = await response.json();
-    const tracks = mapAppleFeedToTracks(data, idPrefix);
-    if (tracks.length === 0) {
-      throw new Error('Chart feed returned no tracks');
+      const data = await response.json();
+      const tracks = mapAppleFeedToTracks(data, idPrefix);
+      if (tracks.length === 0) {
+        throw new Error('Chart feed returned no tracks');
+      }
+      return tracks;
+    } finally {
+      window.clearTimeout(timer);
     }
-    return tracks;
   };
 
   try {
@@ -132,7 +149,6 @@ export async function fetchAppleMusicChart(
   } catch (err) {
     console.warn(`Apple chart (${storefront}) fetch failed:`, err);
 
-    const stale = readChartCache(storefront, true);
     if (stale?.length) {
       return { tracks: stale, fromCache: true, error: 'Showing cached chart — live feed unavailable' };
     }

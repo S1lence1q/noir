@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { Check, Search } from 'lucide-react';
 import { strings } from '../../../constants/strings';
-import { fetchAppleMusicChart } from '../../../utils/chartFeeds';
+import { fetchAppleMusicChart, getCachedChartTracks } from '../../../utils/chartFeeds';
 import { executeSearchAPI } from '../../../utils/api/pipedSearch';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, prefersReducedMotion, withReducedMotion } from '../../../utils/motionPresets';
@@ -21,11 +21,30 @@ export type NoirColdStartProps = {
   onBrowseDiscover?: () => void;
 };
 
+function mergeChartArtists(...lists: ColdStartArtist[][]): ColdStartArtist[] {
+  const seen = new Set<string>();
+  const out: ColdStartArtist[] = [];
+  for (const list of lists) {
+    for (const artist of list) {
+      const key = normalizeName(artist.name) || artist.name.toLowerCase();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      out.push(artist);
+      if (out.length >= 12) return out;
+    }
+  }
+  return out;
+}
+
 export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps) {
   const reduced = prefersReducedMotion();
   const searchId = useId();
-  const [suggestions, setSuggestions] = useState<ColdStartArtist[]>([]);
-  const [suggestionsLoading, setSuggestionsLoading] = useState(true);
+  const instantCache = mergeChartArtists(
+    artistsFromChart(getCachedChartTracks('dk'), 12),
+    artistsFromChart(getCachedChartTracks('us'), 12)
+  );
+  const [suggestions, setSuggestions] = useState<ColdStartArtist[]>(instantCache);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(instantCache.length === 0);
   const [query, setQuery] = useState('');
   const [searchHits, setSearchHits] = useState<ColdStartArtist[]>([]);
   const [searching, setSearching] = useState(false);
@@ -36,14 +55,21 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
 
   useEffect(() => {
     let cancelled = false;
-    setSuggestionsLoading(true);
     void (async () => {
+      const load = async (store: 'dk' | 'us') => {
+        const { tracks } = await fetchAppleMusicChart(store, { timeoutMs: 3500 });
+        return artistsFromChart(tracks, 12);
+      };
+
       try {
-        const { tracks } = await fetchAppleMusicChart('dk');
+        let next = await load('dk');
+        if (!cancelled && next.length === 0) next = await load('us');
         if (cancelled) return;
-        setSuggestions(artistsFromChart(tracks, 12));
+        if (next.length > 0) {
+          setSuggestions((prev) => (prev.length > 0 ? mergeChartArtists(prev, next) : next));
+        }
       } catch {
-        if (!cancelled) setSuggestions([]);
+        /* keep instant cache / empty */
       } finally {
         if (!cancelled) setSuggestionsLoading(false);
       }
@@ -135,7 +161,7 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
           placeholder={strings.home.coldStartSearch}
           autoComplete="off"
           disabled={seeding}
-          className="noir-cold-start-input elva-focus-ring"
+          className="noir-cold-start-input"
         />
         {searching && (
           <span
@@ -160,7 +186,7 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
         </div>
       ) : grid.length === 0 ? (
         <p className="noir-cold-start-empty">
-          {query.trim().length >= 2 ? strings.home.coldStartNoHits : strings.discover.trendingDesc}
+          {query.trim().length >= 2 ? strings.home.coldStartNoHits : strings.home.coldStartChartsEmpty}
         </p>
       ) : (
         <div className="noir-cold-start-grid">
