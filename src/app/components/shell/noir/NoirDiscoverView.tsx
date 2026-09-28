@@ -222,6 +222,14 @@ export function NoirDiscoverView({
     { key: 'global', playlist: globalHits.length > 0 ? globalPlaylist : null },
   ];
 
+  const spotlightTrack = localHits[0] ?? globalHits[0] ?? feed?.tags[0]?.tracks[0] ?? null;
+  const spotlightPool =
+    localHits.length > 0 ? localHits : globalHits.length > 0 ? globalHits : feed?.tags[0]?.tracks ?? [];
+  const movingNow = (localHits.length > 0 ? localHits : globalHits).slice(0, 6);
+  const exploreArtists = feed?.artistsLike?.length ? feed.artistsLike : chartArtists;
+  const tagShelves = feed?.tags ?? [];
+  const [leadTag, ...restTags] = tagShelves;
+
   return (
     <div className="flex flex-col pb-6">
       {coldStart && (
@@ -230,72 +238,112 @@ export function NoirDiscoverView({
         </p>
       )}
 
-      {feedLoading && (
-        <>
-          <section>
-            <div className="noir-skeleton mb-4 mt-2 h-5 w-52 rounded px-1" />
-            <div className="noir-home-shelf">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="noir-skeleton h-[188px] w-[168px] shrink-0 rounded-[var(--noir-radius-md)]" />
-              ))}
-            </div>
-          </section>
-          <section>
-            <div className="noir-skeleton mb-4 mt-[var(--noir-section-gap)] h-5 w-44 rounded px-1" />
-            <div className="noir-home-shelf">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex w-[128px] shrink-0 flex-col items-center px-2.5">
-                  <div className="noir-skeleton h-[108px] w-[108px] rounded-full" />
-                  <div className="noir-skeleton mt-3 h-3.5 w-20 rounded" />
-                </div>
-              ))}
-            </div>
-          </section>
-        </>
+      {feedLoading && !spotlightTrack && (
+        <div className="noir-skeleton mb-10 h-[200px] w-full rounded-[var(--noir-radius-lg)]" />
       )}
 
-      {feed && feed.newReleases.length > 0 && (
+      {spotlightTrack && (
+        <motion.section
+          className="noir-discover-spotlight"
+          initial={reduced ? false : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: EASE_PREMIUM }}
+        >
+          <button
+            type="button"
+            className="noir-discover-spotlight-cover elva-focus-ring"
+            onClick={() => onPlayPlaylist(spotlightPool, strings.discover.onTheCharts, 0)}
+            aria-label={`${strings.discover.playSpotlight}: ${spotlightTrack.title}`}
+          >
+            <NoirDitherCover
+              source={spotlightTrack.thumbnail}
+              world={worldForCollection(spotlightTrack.id || 'spotlight')}
+              seed={spotlightTrack.id || spotlightTrack.title}
+              size={220}
+            />
+          </button>
+          <div className="noir-discover-spotlight-copy min-w-0">
+            <p className="noir-discover-spotlight-eyebrow">{strings.discover.spotlight}</p>
+            <h2 className="noir-discover-spotlight-title">{spotlightTrack.title}</h2>
+            <p className="noir-discover-spotlight-artist">{spotlightTrack.artist}</p>
+            <p className="mt-2 text-[13px] text-[color:var(--noir-text-tertiary)]">
+              {strings.discover.onTheCharts}
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="noir-button-primary elva-focus-ring"
+                onClick={() => onPlayPlaylist(spotlightPool, strings.discover.onTheCharts, 0)}
+              >
+                <Play className="h-3.5 w-3.5 fill-current" />
+                {strings.discover.playSpotlight}
+              </button>
+              {localHits.length > 0 && (
+                <button
+                  type="button"
+                  className="noir-button-secondary elva-focus-ring"
+                  onClick={() => onSelectPlaylist(localPlaylist)}
+                >
+                  {strings.discover.openWorld}
+                </button>
+              )}
+            </div>
+          </div>
+        </motion.section>
+      )}
+
+      {movingNow.length > 0 && (
         <section>
-          <h3 className="noir-section-heading !mt-2 px-1">{strings.discover.newReleases}</h3>
-          <div className="noir-home-shelf">
-            {feed.newReleases.map((release, i) => (
-              <ReleaseCard
-                key={release.id}
-                release={release}
-                index={i}
-                reduced={reduced}
-                onOpen={() => void openRelease(release)}
-                onPlay={() => void playRelease(release)}
-              />
+          <h3 className="noir-section-heading px-1">{strings.discover.movingNow}</h3>
+          <div className="noir-home-tiles">
+            {movingNow.map((track, i) => (
+              <motion.button
+                key={track.id}
+                type="button"
+                className="noir-home-tile group elva-focus-ring"
+                onClick={() =>
+                  onPlayPlaylist(
+                    localHits.length > 0 ? localHits : globalHits,
+                    localHits.length > 0 ? localPlaylist.name : globalPlaylist.name,
+                    i
+                  )
+                }
+                initial={reduced ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.06 + i * 0.03 }}
+              >
+                {track.thumbnail ? (
+                  <img src={track.thumbnail} alt="" className="noir-home-tile-art" />
+                ) : (
+                  <span className="noir-home-tile-art overflow-hidden">
+                    <NoirDitherCover
+                      world={worldForCollection(track.id)}
+                      seed={track.id}
+                      size={48}
+                      radius={0}
+                    />
+                  </span>
+                )}
+                <span className="min-w-0 flex-1">
+                  <span className="noir-song-title block truncate">{track.title}</span>
+                  <span className="noir-song-meta block truncate">{track.artist}</span>
+                </span>
+                <span className="noir-home-tile-play" aria-hidden>
+                  <Play className="ml-0.5 h-4 w-4 fill-current" />
+                </span>
+              </motion.button>
             ))}
           </div>
         </section>
       )}
 
-      {feed && feed.artistsLike.length > 0 && (
+      {exploreArtists.length > 0 && (
         <section>
-          <h3 className="noir-section-heading px-1">{strings.discover.artistsLike}</h3>
-          <div className="noir-home-shelf">
-            {feed.artistsLike.map((artist, i) => (
-              <ArtistCard
-                key={artist.id}
-                artist={artist}
-                index={i}
-                reduced={reduced}
-                onOpen={() => onViewArtist?.(artist.name, undefined, artist.image)}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {chartArtists.length > 0 && (
-        <section>
-          <h3 className={`noir-section-heading px-1 ${hasPersonal ? '' : '!mt-2'}`}>
-            {strings.discover.chartArtists}
+          <h3 className="noir-section-heading px-1">
+            {feed?.artistsLike?.length ? strings.discover.artistsLike : strings.discover.chartArtists}
           </h3>
           <div className="noir-home-shelf">
-            {chartArtists.map((artist, i) => (
+            {exploreArtists.map((artist, i) => (
               <ArtistCard
                 key={artist.id}
                 artist={artist}
@@ -308,8 +356,8 @@ export function NoirDiscoverView({
         </section>
       )}
 
-      <section className={hasPersonal || feedLoading || chartArtists.length > 0 ? 'mt-[var(--noir-section-gap)]' : undefined}>
-        {(hasPersonal || chartArtists.length > 0 || localHits.length > 0 || globalHits.length > 0) && (
+      <section className="mt-[var(--noir-section-gap)]">
+        {(localHits.length > 0 || globalHits.length > 0 || chartsLoading) && (
           <h3 className="noir-section-heading !mt-0 px-1">{strings.discover.charts}</h3>
         )}
         <div className="noir-discover-charts">
@@ -329,50 +377,130 @@ export function NoirDiscoverView({
         </div>
       </section>
 
-      {feed &&
-        feed.tags.map((shelf) => (
-          <section key={shelf.id}>
-            <div className="mb-4 mt-[var(--noir-section-gap)] flex items-baseline justify-between gap-4 px-1">
-              <h3 className="noir-section-title">{shelf.title}</h3>
-              <button
-                type="button"
-                onClick={() => openTagShelf(shelf.title, shelf.tracks, shelf.id)}
-                className="noir-link elva-focus-ring"
-              >
-                {strings.discover.showAll}
-              </button>
-            </div>
-            <div className="noir-home-shelf">
-              {shelf.tracks.slice(0, 10).map((track, i) => (
+      {feed && feed.newReleases.length > 0 && (
+        <section>
+          <h3 className="noir-section-heading px-1">{strings.discover.newReleases}</h3>
+          <div className="noir-home-shelf">
+            {feed.newReleases.map((release, i) => (
+              <ReleaseCard
+                key={release.id}
+                release={release}
+                index={i}
+                reduced={reduced}
+                onOpen={() => void openRelease(release)}
+                onPlay={() => void playRelease(release)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {leadTag && (
+        <section>
+          <div className="mb-4 mt-[var(--noir-section-gap)] flex items-baseline justify-between gap-4 px-1">
+            <h3 className="noir-section-title">{leadTag.title}</h3>
+            <button
+              type="button"
+              onClick={() => openTagShelf(leadTag.title, leadTag.tracks, leadTag.id)}
+              className="noir-link elva-focus-ring"
+            >
+              {strings.discover.showAll}
+            </button>
+          </div>
+          <div className="noir-discover-world">
+            <motion.button
+              type="button"
+              className="noir-discover-world-lead group elva-focus-ring"
+              onClick={() => onPlayPlaylist(leadTag.tracks, leadTag.title, 0)}
+              initial={reduced ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.42, ease: EASE_PREMIUM }}
+            >
+              <NoirDitherCover
+                source={leadTag.tracks[0]?.thumbnail}
+                world={worldForCollection(leadTag.id)}
+                seed={leadTag.id}
+                size={200}
+              />
+              <span className="min-w-0 pt-1">
+                <span className="noir-song-title block truncate text-[16px]">{leadTag.tracks[0]?.title}</span>
+                <span className="noir-song-meta mt-1 block truncate">{leadTag.tracks[0]?.artist}</span>
+              </span>
+            </motion.button>
+            <div className="noir-discover-world-stack">
+              {leadTag.tracks.slice(1, 5).map((track, i) => (
                 <motion.button
                   key={track.id}
                   type="button"
-                  className="noir-collection-card noir-home-shelf-card group elva-focus-ring"
-                  onClick={() => onPlayPlaylist(shelf.tracks, shelf.title, i)}
-                  initial={reduced ? false : { opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: i * 0.03 }}
+                  className="noir-discover-world-row group elva-focus-ring"
+                  onClick={() => onPlayPlaylist(leadTag.tracks, leadTag.title, i + 1)}
+                  initial={reduced ? false : { opacity: 0, x: 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.32, ease: EASE_PREMIUM, delay: 0.08 + i * 0.04 }}
                 >
-                  <span className="relative block">
-                    <NoirDitherCover
-                      source={track.thumbnail}
-                      world={worldForCollection(track.id)}
-                      seed={track.id}
-                      size={140}
-                    />
-                    <span className="noir-discover-release-play noir-play-round !h-9 !w-9 pointer-events-none opacity-0 transition-opacity group-hover:opacity-100">
-                      <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
+                  <span className="noir-discover-world-rank">{i + 2}</span>
+                  {track.thumbnail ? (
+                    <img src={track.thumbnail} alt="" className="noir-discover-world-thumb" />
+                  ) : (
+                    <span className="noir-discover-world-thumb overflow-hidden">
+                      <NoirDitherCover world={worldForCollection(track.id)} seed={track.id} size={44} radius={0} />
                     </span>
-                  </span>
-                  <span className="min-w-0">
+                  )}
+                  <span className="min-w-0 flex-1">
                     <span className="noir-song-title block truncate">{track.title}</span>
-                    <span className="noir-song-meta mt-0.5 block truncate">{track.artist}</span>
+                    <span className="noir-song-meta block truncate">{track.artist}</span>
                   </span>
+                  <Play className="h-3.5 w-3.5 shrink-0 fill-current opacity-0 transition-opacity group-hover:opacity-70" />
                 </motion.button>
               ))}
             </div>
-          </section>
-        ))}
+          </div>
+        </section>
+      )}
+
+      {restTags.map((shelf) => (
+        <section key={shelf.id}>
+          <div className="mb-4 mt-[var(--noir-section-gap)] flex items-baseline justify-between gap-4 px-1">
+            <h3 className="noir-section-title">{shelf.title}</h3>
+            <button
+              type="button"
+              onClick={() => openTagShelf(shelf.title, shelf.tracks, shelf.id)}
+              className="noir-link elva-focus-ring"
+            >
+              {strings.discover.showAll}
+            </button>
+          </div>
+          <div className="noir-home-shelf">
+            {shelf.tracks.slice(0, 10).map((track, i) => (
+              <motion.button
+                key={track.id}
+                type="button"
+                className="noir-collection-card noir-home-shelf-card group elva-focus-ring"
+                onClick={() => onPlayPlaylist(shelf.tracks, shelf.title, i)}
+                initial={reduced ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: i * 0.03 }}
+              >
+                <span className="relative block">
+                  <NoirDitherCover
+                    source={track.thumbnail}
+                    world={worldForCollection(track.id)}
+                    seed={track.id}
+                    size={140}
+                  />
+                  <span className="noir-discover-release-play noir-play-round !h-9 !w-9 pointer-events-none opacity-0 transition-opacity group-hover:opacity-100">
+                    <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
+                  </span>
+                </span>
+                <span className="min-w-0">
+                  <span className="noir-song-title block truncate">{track.title}</span>
+                  <span className="noir-song-meta mt-0.5 block truncate">{track.artist}</span>
+                </span>
+              </motion.button>
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }

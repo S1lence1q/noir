@@ -232,6 +232,11 @@ export const strings = {
     releaseMeta: (artist: string, date: string) => `${artist} · ${date}`,
     playRelease: 'Play album',
     charts: 'Charts',
+    spotlight: 'Spotlight',
+    onTheCharts: 'On the charts now',
+    movingNow: 'Moving now',
+    playSpotlight: 'Play',
+    openWorld: 'Open',
   },
   profileHub: {
     favoritesTitle: 'Your Favorite Library',
