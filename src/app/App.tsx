@@ -49,6 +49,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { AppShell } from './components/shell/AppShell';
 import { ShellPlaybackState } from './components/shell/types';
 import { NoirNowPlayingView } from './components/shell/noir/NoirNowPlayingView';
+import { NoirPlaybackLoading } from './components/shell/noir/NoirPlaybackLoading';
 import { NoirQueueEndPrompt } from './components/shell/noir/NoirQueueEndPrompt';
 import { NoirToastHost, noirToast } from './components/shell/noir/NoirToast';
 import { NoirSearchPalette } from './components/shell/noir/NoirSearchPalette';
@@ -1905,26 +1906,23 @@ export default function App() {
             />
             </ErrorBoundary>
 
-            {appState === 'processing' && !songData && (
-              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-6 bg-[color:var(--noir-canvas)]/90">
-                <div className="relative flex h-12 w-12 items-center justify-center">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    className="h-8 w-8 rounded-full border border-white/10"
-                    style={{ borderTopColor: 'rgba(255, 255, 255, 0.7)' }}
-                  />
-                </div>
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.4 }}
-                  transition={{ delay: 0.1 }}
-                  className="text-xs font-light uppercase tracking-[0.2em] text-white"
-                >
-                  Loading
-                </motion.p>
-              </div>
-            )}
+            <AnimatePresence>
+              {appState === 'processing' && !songData && (
+                <NoirPlaybackLoading
+                  key="playback-loading"
+                  title={
+                    (loadingSongId &&
+                      queue.find((t) => t.id === loadingSongId)?.title) ||
+                    null
+                  }
+                  artist={
+                    (loadingSongId &&
+                      queue.find((t) => t.id === loadingSongId)?.artist) ||
+                    null
+                  }
+                />
+              )}
+            </AnimatePresence>
           </AppShell>
 
       {songData && (
