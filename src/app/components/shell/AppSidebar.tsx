@@ -5,7 +5,6 @@ import { SearchResult } from '../../types';
 import { MOTION, withReducedMotion } from '../../utils/motionPresets';
 import { AppTab } from './types';
 import { NoirMark } from './noir/NoirMark';
-import { NoirSidebarBrandGraphic, useSidebarBrandVariant } from './noir/NoirSidebarBrand';
 import { NoirDitherCover } from './noir/NoirDitherCover';
 import { NoirFavoritesCover } from './noir/NoirFavoritesCover';
 import { worldForCollection } from '../../utils/ditherCover';
@@ -48,25 +47,14 @@ export function AppSidebar({
   const sidebarPlaylists = playlists.slice(0, 8);
   const sidebarPlaylistActive = sidebarPlaylists.some((p) => p.id === selectedPlaylistId);
   const [dragOverPlaylistId, setDragOverPlaylistId] = useState<string | null>(null);
-  const { variant, cycle, label } = useSidebarBrandVariant();
 
   return (
     <aside className="elva-shell-sidebar relative flex h-full w-[248px] shrink-0 flex-col overflow-hidden select-none px-3 py-5">
       <div className="noir-sidebar-brand-row">
-        <button
-          type="button"
-          className="noir-sidebar-brand-cycle elva-focus-ring"
-          onClick={cycle}
-          title={`Brand graphic: ${label} — click to switch`}
-          aria-label={`Brand graphic ${label}. Click to switch.`}
-        >
+        <div className="noir-sidebar-wordmark">
           <span className="text-[13px] font-bold tracking-[0.34em]">NOIR</span>
-          {variant !== 'asterisk' && (
-            <NoirMark size={11} className="text-[color:var(--noir-text-primary)]" />
-          )}
-          <span className="noir-sidebar-brand-hint">{label}</span>
-        </button>
-        <NoirSidebarBrandGraphic variant={variant} />
+          <NoirMark size={11} className="text-[color:var(--noir-text-primary)]" />
+        </div>
       </div>
 
       <nav className="relative z-[1] flex flex-col gap-1" aria-label="Main navigation">

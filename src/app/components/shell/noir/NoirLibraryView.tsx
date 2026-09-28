@@ -4,7 +4,7 @@ import { Heart, ListMusic, Plus, AudioLines } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { NoirSongRow } from './NoirSongRow';
-import { NoirMark } from './NoirMark';
+import { NoirGraphicAccent } from './NoirGraphicAccent';
 import { NoirDitherCover } from './NoirDitherCover';
 import { NoirUserPlaylistPage } from './NoirUserPlaylistPage';
 import { NoirStatsView } from './NoirStatsView';
@@ -158,12 +158,10 @@ export function NoirLibraryView({
                   ))}
                 </div>
               ) : (
-                <div className="relative py-16">
-                  <NoirMark
-                    size={120}
-                    variant="spray"
-                    className="noir-library-empty-mark"
-                    color="var(--noir-text-tertiary)"
+                <div className="relative min-h-[180px] py-16">
+                  <NoirGraphicAccent
+                    graphic="sprayAsterisk"
+                    className="noir-library-empty-spray"
                   />
                   <p className="relative text-[15px] text-[color:var(--noir-text-primary)]">
                     {strings.empty.favoritesTitle}

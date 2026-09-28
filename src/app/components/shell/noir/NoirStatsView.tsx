@@ -26,7 +26,7 @@ import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
 import { NoirDitherCover } from './NoirDitherCover';
 import { NoirIdentityCover } from './NoirIdentityCover';
-import { NoirMark } from './NoirMark';
+import { NoirGraphicAccent } from './NoirGraphicAccent';
 import { NoirReplayStory } from './NoirReplayStory';
 
 export type NoirStatsViewProps = {
@@ -177,7 +177,7 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
   if (!summary || events.length === 0) {
     return (
       <div className="noir-stats noir-stats--empty">
-        <NoirMark size={120} variant="spray" color="var(--noir-text-tertiary)" className="noir-library-empty-mark" />
+        <NoirGraphicAccent graphic="sprayAsterisk" className="noir-library-empty-spray" />
         <p className="relative text-[15px] text-[color:var(--noir-text-primary)]">{strings.stats.emptyTitle}</p>
         <p className="relative mt-2 max-w-sm text-[14px] text-[color:var(--noir-text-secondary)]">
           {strings.stats.emptyBody}

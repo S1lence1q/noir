@@ -651,6 +651,20 @@
   transform: translateY(-55%);
 }
 
+.noir-library-empty-spray {
+  pointer-events: none;
+  position: absolute;
+  top: 42%;
+  right: 4%;
+  z-index: 0;
+  width: min(220px, 42vw);
+  max-width: 260px;
+  opacity: 0.28;
+  transform: translateY(-50%) rotate(-8deg);
+  -webkit-mask-image: radial-gradient(ellipse 70% 68% at 50% 48%, #000 30%, transparent 78%);
+  mask-image: radial-gradient(ellipse 70% 68% at 50% 48%, #000 30%, transparent 78%);
+}
+
 .noir-accent-wave-hero {
   pointer-events: none;
   position: absolute;
@@ -680,162 +694,23 @@
   mask-image: radial-gradient(ellipse 70% 62% at 58% 42%, #000 12%, transparent 74%);
 }
 
-/* Brand mark + graphic share the header row — graphic fills empty space right of NOIR. */
+/* Sidebar wordmark — basic mark as logo; no decorative cycle. */
 .noir-sidebar-brand-row {
   position: relative;
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 0;
   margin-bottom: 16px;
   min-height: 28px;
 }
 
-.noir-sidebar-brand-slot {
-  pointer-events: none;
-  position: relative;
-  flex: 1 1 auto;
-  align-self: center;
-  min-width: 0;
-  height: 52px;
-  margin: -12px 0 -12px 0;
-  overflow: hidden;
-  -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, #000 10%, #000 82%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%);
-  mask-image:
-    linear-gradient(to right, transparent 0%, #000 10%, #000 82%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-}
-
-/* Spray asterisk: PNG already soft-edges — sit tight against the wordmark. */
-.noir-sidebar-brand-slot[data-variant='asterisk'] {
-  height: 56px;
-  margin: -14px -2px -14px -2px;
-  -webkit-mask-image: none;
-  mask-image: none;
-}
-
-.noir-sidebar-brand-media {
-  position: absolute;
-  top: 50%;
-  right: -10%;
-  width: 150%;
-  max-width: none;
-  height: 220%;
-  object-fit: cover;
-  object-position: 70% 36%;
-  transform: translateY(-50%);
-  opacity: 0.5;
-  mix-blend-mode: screen;
-}
-
-/* Grey plate wave: crop into the lit fins, force greyscale. */
-.noir-brand-variant-plate {
-  width: 175%;
-  height: 250%;
-  right: -22%;
-  object-position: 68% 34%;
-  opacity: 0.62;
-  filter: grayscale(1) contrast(1.35) brightness(1.05);
-  mix-blend-mode: screen;
-}
-
-/* New banner waves — already composed for a wide header slot. */
-.noir-sidebar-brand-slot[data-variant='ribbon'],
-.noir-sidebar-brand-slot[data-variant='sparse'],
-.noir-sidebar-brand-slot[data-variant='soft'] {
-  height: 44px;
-  margin: -8px 0 -8px 0;
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    #000 8%,
-    #000 88%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    #000 8%,
-    #000 88%,
-    transparent 100%
-  );
-  -webkit-mask-composite: source-over;
-  mask-composite: add;
-}
-
-.noir-brand-variant-ribbon,
-.noir-brand-variant-sparse,
-.noir-brand-variant-soft {
-  top: 50%;
-  left: 0;
-  right: auto;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center center;
-  transform: translateY(-50%);
-  opacity: 0.72;
-  mix-blend-mode: screen;
-  filter: none;
-}
-
-.noir-brand-variant-sparse {
-  opacity: 0.68;
-}
-
-.noir-brand-variant-soft {
-  opacity: 0.7;
-}
-
-.noir-brand-asterisk-img {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 58px;
-  height: 58px;
-  object-fit: contain;
-  opacity: 0.52;
-  transform: translateY(-51%) rotate(-8deg);
-}
-
-.noir-sidebar-brand-cycle {
-  position: relative;
-  z-index: 1;
+.noir-sidebar-wordmark {
   display: flex;
   align-items: center;
   gap: 4px;
-  flex-shrink: 0;
   padding: 4px 8px;
-  margin: -4px -2px -4px -8px;
-  border-radius: 8px;
+  margin: -4px -8px;
   color: var(--noir-text-primary);
-  transition: background-color 0.15s ease;
-}
-
-.noir-sidebar-brand-cycle:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.noir-sidebar-brand-hint {
-  position: absolute;
-  left: 8px;
-  bottom: -14px;
-  font: var(--noir-type-label);
-  letter-spacing: 0.04em;
-  color: var(--noir-text-tertiary);
-  opacity: 0;
-  pointer-events: none;
-  white-space: nowrap;
-  transition: opacity 0.15s ease;
-}
-
-.noir-sidebar-brand-cycle:hover .noir-sidebar-brand-hint,
-.noir-sidebar-brand-cycle:focus-visible .noir-sidebar-brand-hint {
-  opacity: 0.85;
 }
 
 .noir-home-hero {
