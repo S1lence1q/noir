@@ -5,6 +5,7 @@ import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
 import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { NoirDitherCover } from './NoirDitherCover';
+import { NoirHomeShelf } from './NoirHomeShelf';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
@@ -342,7 +343,7 @@ export function NoirDiscoverView({
           <h3 className="noir-section-heading px-1">
             {feed?.artistsLike?.length ? strings.discover.artistsLike : strings.discover.chartArtists}
           </h3>
-          <div className="noir-home-shelf">
+          <NoirHomeShelf>
             {exploreArtists.map((artist, i) => (
               <ArtistCard
                 key={artist.id}
@@ -352,7 +353,7 @@ export function NoirDiscoverView({
                 onOpen={() => onViewArtist?.(artist.name, undefined, artist.image)}
               />
             ))}
-          </div>
+          </NoirHomeShelf>
         </section>
       )}
 
@@ -380,7 +381,7 @@ export function NoirDiscoverView({
       {feed && feed.newReleases.length > 0 && (
         <section>
           <h3 className="noir-section-heading px-1">{strings.discover.newReleases}</h3>
-          <div className="noir-home-shelf">
+          <NoirHomeShelf>
             {feed.newReleases.map((release, i) => (
               <ReleaseCard
                 key={release.id}
@@ -391,7 +392,7 @@ export function NoirDiscoverView({
                 onPlay={() => void playRelease(release)}
               />
             ))}
-          </div>
+          </NoirHomeShelf>
         </section>
       )}
 
@@ -470,7 +471,7 @@ export function NoirDiscoverView({
               {strings.discover.showAll}
             </button>
           </div>
-          <div className="noir-home-shelf">
+          <NoirHomeShelf>
             {shelf.tracks.slice(0, 10).map((track, i) => (
               <motion.button
                 key={track.id}
@@ -498,7 +499,7 @@ export function NoirDiscoverView({
                 </span>
               </motion.button>
             ))}
-          </div>
+          </NoirHomeShelf>
         </section>
       ))}
     </div>

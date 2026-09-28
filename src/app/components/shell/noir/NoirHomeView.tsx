@@ -13,6 +13,7 @@ import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motio
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import { NoirDitherCover } from './NoirDitherCover';
 import { NoirFavoritesCover } from './NoirFavoritesCover';
+import { NoirHomeShelf } from './NoirHomeShelf';
 import { NoirColdStart } from './NoirColdStart';
 import { Playlist } from '../../PlaylistDetailsView';
 import { getListeningEvents } from '../../../services/listening/eventsStore';
@@ -452,21 +453,21 @@ export function NoirHomeView({
               {mixesLoading && (
                 <section>
                   <div className="noir-skeleton mb-4 mt-[var(--noir-section-gap)] h-5 w-36 rounded px-1" />
-                  <div className="noir-home-shelf">
+                  <NoirHomeShelf>
                     {Array.from({ length: 3 }).map((_, i) => (
                       <div
                         key={i}
                         className="noir-skeleton h-[220px] w-[188px] shrink-0 rounded-[var(--noir-radius-md)]"
                       />
                     ))}
-                  </div>
+                  </NoirHomeShelf>
                 </section>
               )}
 
               {!mixesLoading && mixes.length > 0 && (
                 <section>
                   <h2 className="noir-section-heading px-1">{strings.home.yourMixes}</h2>
-                  <div className="noir-home-shelf">
+                  <NoirHomeShelf>
                     {mixes.map((mix, i) => (
                       <motion.div
                         key={mix.id}
@@ -514,14 +515,14 @@ export function NoirHomeView({
                         </span>
                       </motion.div>
                     ))}
-                  </div>
+                  </NoirHomeShelf>
                 </section>
               )}
 
               {(favorites.length > 0 || playlists.length > 0) && (
                 <section>
                   <h2 className="noir-section-heading px-1">{strings.home.yourLibrary}</h2>
-                  <div className="noir-home-shelf">
+                  <NoirHomeShelf>
                     {favorites.length > 0 && (
                       <button
                         type="button"
@@ -572,14 +573,14 @@ export function NoirHomeView({
                       </span>
                       <span className="noir-song-title block truncate">{strings.playlist.newPlaylist}</span>
                     </button>
-                  </div>
+                  </NoirHomeShelf>
                 </section>
               )}
 
               {playedArtists.length >= 2 && (
                 <section>
                   <h2 className="noir-section-heading px-1">{strings.home.artists}</h2>
-                  <div className="noir-home-shelf">
+                  <NoirHomeShelf>
                     {playedArtists.map((artist) => (
                       <button
                         key={artist.name}
@@ -602,7 +603,7 @@ export function NoirHomeView({
                         <span className="noir-song-title mt-3 block truncate text-center">{artist.name}</span>
                       </button>
                     ))}
-                  </div>
+                  </NoirHomeShelf>
                 </section>
               )}
             </motion.div>
