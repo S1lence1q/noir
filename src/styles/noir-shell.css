@@ -732,14 +732,15 @@
   mix-blend-mode: screen;
 }
 
-/* Grey plate wave: crop into the lit fins, soft feather via slot mask. */
+/* Grey plate wave: crop into the lit fins, force greyscale. */
 .noir-brand-variant-plate {
   width: 175%;
   height: 250%;
   right: -22%;
   object-position: 68% 34%;
-  opacity: 0.58;
-  filter: contrast(1.25) brightness(0.95) saturate(0.75);
+  opacity: 0.62;
+  filter: grayscale(1) contrast(1.35) brightness(1.05);
+  mix-blend-mode: screen;
 }
 
 .noir-brand-asterisk-img {
