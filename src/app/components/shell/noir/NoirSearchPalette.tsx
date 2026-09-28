@@ -261,7 +261,7 @@ export function NoirSearchPalette({
                     }
                   }
                 }}
-                placeholder="Search songs, artists, or paste a link…"
+                placeholder="Search songs or artists…"
                 className="noir-search-palette-input"
                 autoComplete="off"
                 spellCheck={false}
@@ -299,11 +299,6 @@ export function NoirSearchPalette({
             <div className="noir-search-palette-body">
               {showingSuggestions && suggestions.length > 0 && (
                 <p className="noir-search-palette-label">Recent</p>
-              )}
-              {showingSuggestions && suggestions.length === 0 && (
-                <p className="noir-search-palette-empty">
-                  Type to search — or paste a YouTube / Apple Music link.
-                </p>
               )}
               {!showingSuggestions &&
                 !isSearching &&
