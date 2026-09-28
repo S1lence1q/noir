@@ -743,6 +743,54 @@
   mix-blend-mode: screen;
 }
 
+/* New banner waves — already composed for a wide header slot. */
+.noir-sidebar-brand-slot[data-variant='ribbon'],
+.noir-sidebar-brand-slot[data-variant='sparse'],
+.noir-sidebar-brand-slot[data-variant='soft'] {
+  height: 44px;
+  margin: -8px 0 -8px 0;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 8%,
+    #000 88%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 8%,
+    #000 88%,
+    transparent 100%
+  );
+  -webkit-mask-composite: source-over;
+  mask-composite: add;
+}
+
+.noir-brand-variant-ribbon,
+.noir-brand-variant-sparse,
+.noir-brand-variant-soft {
+  top: 50%;
+  left: 0;
+  right: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  transform: translateY(-50%);
+  opacity: 0.72;
+  mix-blend-mode: screen;
+  filter: none;
+}
+
+.noir-brand-variant-sparse {
+  opacity: 0.68;
+}
+
+.noir-brand-variant-soft {
+  opacity: 0.7;
+}
+
 .noir-brand-asterisk-img {
   position: absolute;
   top: 50%;
