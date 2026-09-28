@@ -1,4 +1,4 @@
-# T07 — Asset cleanup
+> **Status:** **Partial.** Plate wave / cloud assets moved under `src/assets/noir/`; cinematic JPEG deleted. Still open: legacy `DiscoverView.tsx` imports `top_hits_denmark.png` / `top_hits_global.png` (live Discover is `NoirDiscoverView`). Do not delete `atmosphere-warm.jpeg` (fallback + Stats). Leave untracked originals alone.
 **Phase:** 3 · **Depends on:** T06 · **Golden sample:** — · **Size:** S
 
 ## Goal

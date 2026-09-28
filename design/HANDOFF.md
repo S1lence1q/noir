@@ -56,14 +56,15 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 - **Discover:** taste feed shelves + chart cards (no redundant Top 10 under Charts)
 - **Artist page:** dithered poster, Popular, dedupe; identity via Last.fm/MusicBrainz/Deezer; reopen same profile does not reload
 - **Compact bar:** Close fades on the left (does not steal cover slot); queue opens only when closed; title/artist underline scoped separately
+- **Browser tab:** title `NOIR` + asterisk favicon (`public/favicon.svg`, linked from `index.html`).
 - **⌘N** new playlist + listed in shortcuts map
+- **Deploy:** GitHub Pages via `.github/workflows/deploy.yml` on push to `main` → live at https://elva.arkivet.xyz/ (also `https://s1lence1q.github.io/elva/` if custom domain is off). Needs repo secrets `VITE_LASTFM_API_KEY` (and optional `VITE_YOUTUBE_API_KEY`).
 
 ## Next (in order)
 
 1. Polish Stats / Replay from screenshots (tags shelf later; richer Replay art) — atmosphere parked.
-2. **T21 cold start DONE** — Pick 3 artists seeds taste on first Home visit.
-3. T07 unused-asset leftovers (`top_hits_*.png` still imported by legacy `DiscoverView.tsx`).
-4. Parked later: Similar artists (artist page / on-demand), spray wave (decision 005), NP graphic slot (T14 D).
+2. T07 leftovers: legacy `DiscoverView.tsx` still imports `top_hits_*.png` (Noir Discover is the live UI).
+3. Parked later: Similar artists (artist page / on-demand), spray wave (decision 005), NP graphic slot (T14 D).
 
 ## Do / don't
 
