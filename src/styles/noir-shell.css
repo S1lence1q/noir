@@ -322,10 +322,25 @@
 }
 
 .noir-compact-volume {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 2px;
   margin-left: 2px;
+  overflow: visible;
+}
+
+.noir-volume-projectile {
+  position: absolute;
+  z-index: 30;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.55), 0 0 22px rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
 }
 
 .noir-compact-volume-seek {

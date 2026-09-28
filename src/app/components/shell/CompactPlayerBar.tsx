@@ -92,11 +92,79 @@ export function CompactPlayerBar({
   const preMuteRef = useRef(volume > 0 ? volume : 70);
   const [volumeValueVisible, setVolumeValueVisible] = useState(false);
   const volumeValueTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [chargeVolume, setChargeVolume] = useState<number | null>(null);
+  const [projectile, setProjectile] = useState<{ x: number; y: number } | null>(null);
+  const volumeWrapRef = useRef<HTMLDivElement>(null);
+  const volumeIconRef = useRef<HTMLButtonElement>(null);
+  const volumeSeekRef = useRef<HTMLDivElement>(null);
+  const chargeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const flightFrameRef = useRef<number | null>(null);
+  const chargeStartRef = useRef(0);
+  const chargeVolumeRef = useRef(0);
 
   const flashVolumeValue = () => {
     setVolumeValueVisible(true);
     if (volumeValueTimerRef.current) clearTimeout(volumeValueTimerRef.current);
     volumeValueTimerRef.current = setTimeout(() => setVolumeValueVisible(false), 800);
+  };
+
+  const stopVolumeGame = () => {
+    if (chargeIntervalRef.current !== null) {
+      clearInterval(chargeIntervalRef.current);
+      chargeIntervalRef.current = null;
+    }
+    if (flightFrameRef.current !== null) {
+      cancelAnimationFrame(flightFrameRef.current);
+      flightFrameRef.current = null;
+    }
+  };
+
+  /** Hold speaker → charge; release → parabolic projectile lands on the volume track. */
+  const launchVolumeProjectile = (targetVal: number) => {
+    stopVolumeGame();
+    const wrap = volumeWrapRef.current;
+    const icon = volumeIconRef.current;
+    const seek = volumeSeekRef.current;
+    if (!wrap || !icon || !seek) {
+      setPlayerVolume(targetVal);
+      return;
+    }
+
+    const wr = wrap.getBoundingClientRect();
+    const ir = icon.getBoundingClientRect();
+    const sr = seek.getBoundingClientRect();
+    const x0 = ir.left + ir.width / 2 - wr.left;
+    const y0 = ir.top + ir.height / 2 - wr.top;
+    const xt = sr.left - wr.left + (targetVal / 100) * sr.width;
+    const yt = sr.top + sr.height / 2 - wr.top;
+
+    const distance = Math.max(8, xt - x0);
+    const gravity = 0.35;
+    const angleDeg = -20 - (targetVal / 100) * 20;
+    const angleRad = (angleDeg * Math.PI) / 180;
+    const sin2Theta = Math.sin(2 * angleRad) || -0.5;
+    const initialSpeed = Math.sqrt((distance * gravity) / -sin2Theta);
+
+    let vx = initialSpeed * Math.cos(angleRad);
+    let vy = initialSpeed * Math.sin(angleRad);
+    let px = x0;
+    let py = y0;
+
+    const step = () => {
+      px += vx;
+      py += vy;
+      vy += gravity;
+      if (py >= yt && vy > 0) {
+        setPlayerVolume(targetVal);
+        setProjectile(null);
+        flightFrameRef.current = null;
+      } else {
+        setProjectile({ x: px, y: py });
+        flightFrameRef.current = requestAnimationFrame(step);
+      }
+    };
+
+    flightFrameRef.current = requestAnimationFrame(step);
   };
 
   useEffect(() => {
@@ -112,6 +180,7 @@ export function CompactPlayerBar({
     return () => {
       window.removeEventListener('elva-volume-change', onVolume);
       if (volumeValueTimerRef.current) clearTimeout(volumeValueTimerRef.current);
+      stopVolumeGame();
     };
   }, []);
 
@@ -162,6 +231,7 @@ export function CompactPlayerBar({
   };
 
   const VolumeIcon = volume === 0 ? VolumeX : volume < 50 ? Volume1 : Volume2;
+  const displayVolume = chargeVolume ?? volume;
   // queueCount from shell is already "up next" (excludes the playing track)
   const upNextCount = Math.max(0, queueCount);
 
@@ -407,23 +477,94 @@ export function CompactPlayerBar({
           )}
         </button>
 
-        <div className="noir-compact-volume">
+        <div className="noir-compact-volume" ref={volumeWrapRef}>
+          {projectile !== null && (
+            <span
+              className="noir-volume-projectile"
+              style={{ left: projectile.x, top: projectile.y }}
+              aria-hidden
+            />
+          )}
           <span
             className="noir-compact-volume-value"
-            style={{ opacity: volumeValueVisible ? 1 : 0 }}
+            style={{ opacity: volumeValueVisible || chargeVolume !== null ? 1 : 0 }}
             aria-hidden
           >
-            {volume}
+            {displayVolume}
           </span>
           <button
+            ref={volumeIconRef}
             type="button"
-            onClick={toggleMute}
-            className="noir-compact-ctrl"
-            aria-label={volume === 0 ? 'Unmute' : 'Mute'}
+            className="noir-compact-ctrl touch-none"
+            aria-label={
+              chargeVolume !== null
+                ? `Charging volume ${chargeVolume}`
+                : volume === 0
+                  ? 'Unmute'
+                  : 'Mute — hold to charge and shoot volume'
+            }
+            title="Hold to charge & shoot volume · Click to mute"
+            onKeyDown={(e) => {
+              if (e.key === ' ') e.preventDefault();
+            }}
+            onPointerDown={(e) => {
+              chargeStartRef.current = performance.now();
+              e.currentTarget.setPointerCapture(e.pointerId);
+              stopVolumeGame();
+              setProjectile(null);
+              setChargeVolume(0);
+              chargeVolumeRef.current = 0;
+              flashVolumeValue();
+              chargeIntervalRef.current = setInterval(() => {
+                const elapsed = performance.now() - chargeStartRef.current;
+                if (elapsed < 180) {
+                  chargeVolumeRef.current = 0;
+                  setChargeVolume(0);
+                  return;
+                }
+                const cycleTime = 2400;
+                const phase = (elapsed - 180) % cycleTime;
+                const vol =
+                  phase < 1200 ? (phase / 1200) * 100 : 200 - (phase / 1200) * 100;
+                const rounded = Math.round(vol);
+                chargeVolumeRef.current = rounded;
+                setChargeVolume(rounded);
+              }, 16);
+            }}
+            onPointerUp={(e) => {
+              e.currentTarget.releasePointerCapture(e.pointerId);
+              e.currentTarget.blur();
+              if (chargeIntervalRef.current) {
+                clearInterval(chargeIntervalRef.current);
+                chargeIntervalRef.current = null;
+              }
+              const holdDuration = performance.now() - chargeStartRef.current;
+              const charged = chargeVolumeRef.current;
+              if (holdDuration >= 180 && charged > 2) {
+                setChargeVolume(null);
+                launchVolumeProjectile(charged);
+              } else {
+                setChargeVolume(null);
+                toggleMute();
+              }
+            }}
+            onPointerCancel={(e) => {
+              e.currentTarget.releasePointerCapture(e.pointerId);
+              e.currentTarget.blur();
+              stopVolumeGame();
+              setChargeVolume(null);
+            }}
           >
-            <VolumeIcon className="h-4 w-4" strokeWidth={1.75} />
+            <motion.span
+              className="inline-flex"
+              animate={{ rotate: chargeVolume !== null ? -(chargeVolume / 100) * 35 : 0 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+            >
+              <VolumeIcon className="h-4 w-4" strokeWidth={1.75} />
+            </motion.span>
           </button>
           <div
+            ref={volumeSeekRef}
             className="noir-compact-volume-seek"
             role="slider"
             tabIndex={0}
@@ -431,10 +572,16 @@ export function CompactPlayerBar({
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={volume}
-            onPointerDown={onVolumePointerDown}
+            onPointerDown={(e) => {
+              stopVolumeGame();
+              setProjectile(null);
+              setChargeVolume(null);
+              onVolumePointerDown(e);
+            }}
             onPointerMove={onVolumePointerMove}
             onWheel={(e) => {
               if (e.deltaY === 0) return;
+              stopVolumeGame();
               setPlayerVolume(volume + (e.deltaY < 0 ? 2 : -2));
             }}
             onKeyDown={(e) => {
@@ -448,7 +595,13 @@ export function CompactPlayerBar({
             }}
           >
             <div className="noir-compact-volume-track" aria-hidden>
-              <div className="noir-compact-volume-fill" style={{ width: `${volume}%` }} />
+              <div
+                className="noir-compact-volume-fill"
+                style={{
+                  width: `${projectile !== null ? volume : displayVolume}%`,
+                  opacity: projectile !== null ? 0.55 : 1,
+                }}
+              />
             </div>
           </div>
         </div>
