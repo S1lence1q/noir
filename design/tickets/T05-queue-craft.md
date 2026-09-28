@@ -1,6 +1,6 @@
 # T05 — Queue craft: empty queue + "queue ends soon"
 
-> **Status:** Empty Next up is DONE (golden sample). "Start radio" fallback shows **Browse Discover** until T11. Remaining for this ticket: **Next up header** and **Queue ends soon**. Reuse `noirToast`, `MOTION`, `.noir-button-*` from the empty state.
+> **Status:** **DONE.** Empty Next up (golden). Next up header: `Next up · N` + Shuffle / Clear + `Playing from {source}` under header. Queue ends soon: toast-card above compact bar (works with NP closed); autoplay ask/on/off in Settings; Keep playing → radio append (T11).
 **Phase:** 5 · **Depends on:** T02 · **Golden sample:** THIS IS ONE (built by Opus) · **Size:** M
 
 ## Goal
@@ -27,9 +27,9 @@ The queue never leaves you in silence without a good next step.
 - small hook `src/app/hooks/useQueueEndPrompt.ts` (new)
 
 ## Acceptance
-- [ ] Empty queue shows the right variant for: has favorites / only history / nothing
-- [ ] Add 10 fills the queue and can be undone
-- [ ] Prompt appears once near the end; "Don't ask again" persists
+- [x] Empty queue shows the right variant for: has favorites / only history / nothing
+- [x] Add 10 fills the queue and can be undone
+- [x] Prompt appears once near the end; "Don't ask again" persists
 
 ## Screenshots to take
 Empty queue (with favorites) · Next up with header · queue-ends prompt.

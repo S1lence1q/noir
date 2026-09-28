@@ -53,8 +53,8 @@ Exact behavior, layout, copy, tokens, states.
 | T02 | Toast system + kill volume popup — **DONE (golden)** | M | yes | Opus |
 | T03 | Shared song menu + right-click — **DONE** | M | | Luna |
 | T04 | Playlists — **DONE** (side panel, fly-to-list, drag-to-sidebar). ⌘N wired + in shortcuts map | L | | Opus → Luna ⌘N |
-| T05 | Queue craft — empty Next up **DONE (golden)**; Soft Shuffle in NP; see T05b for leftovers | M | yes | Opus/Luna |
-| T05b | Next up header + "queue ends soon" — verify/polish (header mostly in; ends overlaps T11) | S | | Luna |
+| T05 | Queue craft — empty Next up **DONE (golden)**; Soft Shuffle in NP; header + queue-ends → T05b **DONE** | M | yes | Opus/Luna |
+| T05b | Next up header + "queue ends soon" — **DONE** (Playing from under header; prompt above compact bar) | S | | Luna |
 | T06 | Dither covers — **DONE** | M | | Opus |
 | T07 | Asset cleanup — **partial**; finish unused-asset checklist | S | | Luna |
 | T08 | `NoirMark` — component + sidebar + Library empty + search loading **DONE (golden)** | S | yes | Opus |
@@ -74,7 +74,7 @@ Exact behavior, layout, copy, tokens, states.
 | T02 | Toast system + kill volume popup — **DONE (golden)** | M | yes |
 | T03 | Shared song menu + right-click | M | |
 | T04 | Playlists redesign | L | |
-| T05 | Queue craft — empty queue **DONE (golden)**; Soft Shuffle in NP; header leftovers → T05b | M | yes |
+| T05 | Queue craft — empty queue **DONE (golden)**; Soft Shuffle in NP; header + queue-ends **DONE** (T05b) | M | yes |
 | T06 | `NoirDitherCover` renderer | M | |
 | T07 | Asset cleanup | S | |
 | T08 | `NoirMark` asterisk — component + sidebar + Library empty + search loading **DONE (golden)** | S | yes |

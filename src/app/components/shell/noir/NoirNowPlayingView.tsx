@@ -9,7 +9,6 @@ import { NoirMark } from './NoirMark';
 import { NoirLyricsColumn } from './NoirLyricsColumn';
 import { noirToast } from './NoirToast';
 import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
-import { useQueueEndPrompt } from '../../../hooks/useQueueEndPrompt';
 import { displayArtistName } from '../../../utils/stringUtils';
 import { hasRealArtwork } from '../../../utils/artwork';
 import { worldForCollection } from '../../../utils/ditherCover';
@@ -36,7 +35,6 @@ type NoirNowPlayingViewProps = {
   favoriteTracks?: SearchResult[];
   quickAddTracks?: SearchResult[];
   onAddToQueue?: (track: SearchResult, options?: { silent?: boolean }) => void;
-  onAppendRadio?: (seed: SearchResult) => void | Promise<void>;
   onOpenDiscover?: () => void;
   onSelectFromQueue: (id: string) => void;
   onRemoveFromQueue?: (id: string) => void;
@@ -89,7 +87,6 @@ export function NoirNowPlayingView({
   favoriteTracks = [],
   quickAddTracks = [],
   onAddToQueue,
-  onAppendRadio,
   onOpenDiscover,
   onSelectFromQueue,
   onRemoveFromQueue,
@@ -174,32 +171,6 @@ export function NoirNowPlayingView({
     });
   };
 
-  const keepPlaying = () => {
-    const seed: SearchResult = {
-      id: song.videoId || song.audioUrl || `${song.title}-${song.artist}`,
-      title: song.title,
-      artist: song.artist,
-      thumbnail: song.artworkUrl,
-      videoId: song.videoId || '',
-      audioUrl: song.audioUrl,
-    };
-    if (onAppendRadio) {
-      void onAppendRadio(seed);
-      return;
-    }
-    if (addPool.length > 0) addTracks(shuffled(addPool).slice(0, BATCH_SIZE));
-  };
-
-  const queueEndPrompt = useQueueEndPrompt({
-    trackKey: songKey,
-    currentTime: playback.currentTime,
-    duration: playback.duration,
-    isPlaying: playback.isPlaying,
-    upNextCount: upNext.length,
-    canKeepPlaying: !!onAddToQueue && (!!onAppendRadio || addPool.length > 0),
-    onKeepPlaying: keepPlaying,
-  });
-
   const clearQueue = () => {
     const restore = onClearQueue?.();
     noirToast({
@@ -210,48 +181,6 @@ export function NoirNowPlayingView({
 
   return (
     <div className={`noir-now-playing${sidePanelOpen ? '' : ' is-side-collapsed'}`}>
-      <AnimatePresence>
-        {queueEndPrompt.isVisible && (
-          <motion.div
-            className="fixed bottom-[112px] left-1/2 z-[60] w-[min(420px,calc(100vw-32px))] -translate-x-1/2 rounded-[var(--noir-radius-md)] border border-white/[0.12] bg-[color:var(--noir-black)] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.65)]"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={withReducedMotion(MOTION.panel)}
-          >
-            <p className="text-[13px] font-medium text-[color:var(--noir-text-primary)]">
-              {strings.nextUp.queueEndsSoon}
-            </p>
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <label className="flex items-center gap-2 text-[12px] text-[color:var(--noir-text-tertiary)]">
-                <input
-                  type="checkbox"
-                  checked={queueEndPrompt.dontAskAgain}
-                  onChange={(event) => queueEndPrompt.setDontAskAgain(event.target.checked)}
-                  className="accent-[var(--noir-accent)]"
-                />
-                {strings.nextUp.dontAskAgain}
-              </label>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  className="noir-button-secondary elva-focus-ring"
-                  onClick={() => queueEndPrompt.resolve('dismiss')}
-                >
-                  {strings.nextUp.noThanks}
-                </button>
-                <button
-                  type="button"
-                  className="noir-button-primary elva-focus-ring"
-                  onClick={() => queueEndPrompt.resolve('keep')}
-                >
-                  {strings.nextUp.keepPlaying}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
       <motion.div
         className="noir-now-playing-atmosphere"
         aria-hidden
@@ -481,11 +410,16 @@ export function NoirNowPlayingView({
             transition={{ duration: reduced ? 0.15 : 0.32, ease: sheetEase, delay: reduced ? 0 : 0.06 }}
           >
             <div className="noir-now-playing-side-header">
-              <p className="text-[14px] font-medium text-[color:var(--noir-text-primary)]">
-                {upNext.length > 0
-                  ? strings.nextUp.headerTitle(upNext.length)
-                  : strings.nextUp.title}
-              </p>
+              <div className="noir-now-playing-side-header-text min-w-0">
+                <p className="text-[14px] font-medium text-[color:var(--noir-text-primary)]">
+                  {upNext.length > 0
+                    ? strings.nextUp.headerTitle(upNext.length)
+                    : strings.nextUp.title}
+                </p>
+                {queueSource && upNext.length > 0 && (
+                  <p className="noir-now-playing-side-source">{strings.nextUp.playingFrom(queueSource)}</p>
+                )}
+              </div>
               <div className="flex shrink-0 items-center gap-2">
                 {upNext.length > 0 && onShuffleQueue && (
                   <motion.button

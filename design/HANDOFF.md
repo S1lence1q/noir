@@ -42,6 +42,7 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 
 - **Design system docs:** `05`–`09`, tickets T01–T14, boards in `design/boards/`, references mapped
 - **Golden samples:** `NoirMark` (asterisk), `NoirToast` + `noirToast()`, inline volume in the bar, empty Next up with Add 10 / Shuffle all + Undo
+- **T05 / T05b:** Empty Next up (golden). Next up header Shuffle/Clear + Playing from under header. Queue ends soon toast above compact bar (NP open or closed); Settings autoplay ask/on/off; Keep playing → radio.
 - **T01** grid/type/accent; song-row grid scoped to `.noir-song-grid`
 - **T06 dither covers:** `NoirDitherCover` + `utils/ditherCover.ts`
 - **T04 playlists:** `playlistStore`, `NoirUserPlaylistPage` (rename, whole-row drag, add panel, fly-to-list). Drag settle restored (scale 1.02 + 120 ms layout; don't set `layout: { duration: 0 }` again)
@@ -61,7 +62,7 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 
 1. Polish Stats / Replay from screenshots (tags shelf later; richer Replay art) — atmosphere parked.
 2. **T21 cold start DONE** — Pick 3 artists seeds taste on first Home visit.
-3. T05b verify · T07 unused-asset leftovers (`top_hits_*.png` still imported by legacy `DiscoverView.tsx`).
+3. T07 unused-asset leftovers (`top_hits_*.png` still imported by legacy `DiscoverView.tsx`).
 4. Parked later: Similar artists (artist page / on-demand), spray wave (decision 005), NP graphic slot (T14 D).
 
 ## Do / don't

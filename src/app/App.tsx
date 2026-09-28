@@ -41,9 +41,11 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { AppShell } from './components/shell/AppShell';
 import { ShellPlaybackState } from './components/shell/types';
 import { NoirNowPlayingView } from './components/shell/noir/NoirNowPlayingView';
+import { NoirQueueEndPrompt } from './components/shell/noir/NoirQueueEndPrompt';
 import { NoirToastHost, noirToast } from './components/shell/noir/NoirToast';
 import { NoirSearchPalette } from './components/shell/noir/NoirSearchPalette';
 import { NoirSongMenuHost } from './components/SongRowOptions';
+import { useQueueEndPrompt } from './hooks/useQueueEndPrompt';
 import {
   buildAutoplayTracks,
   buildRadioTracks,
@@ -1028,6 +1030,79 @@ export default function App() {
     }
   };
 
+  const handleQueueEndKeepPlaying = () => {
+    const seed = songDataAsSearchResult();
+    const activeKey = songData ? getPlaybackSongKey(songData) : null;
+    const pool = (favorites.length > 0 ? favorites : recentlyPlayed).filter(
+      (track) => getPlaybackSongKey(track) !== activeKey
+    );
+    const appendFavorites = () => {
+      if (pool.length === 0) return;
+      const picks = [...pool];
+      for (let i = picks.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [picks[i], picks[j]] = [picks[j], picks[i]];
+      }
+      const batch = picks.slice(0, 10);
+      batch.forEach((track) => handleAddToQueue(track, { silent: true }));
+      noirToast({
+        text: strings.nextUp.addedMany(batch.length),
+        cover: batch[0]?.thumbnail,
+      });
+    };
+
+    if (!seed) {
+      appendFavorites();
+      return;
+    }
+
+    void (async () => {
+      try {
+        const exclude = queue
+          .map((item) => getPlaybackSongKey(item) || `${item.artist}::${item.title}`)
+          .filter(Boolean) as string[];
+        const radioTracks = await buildAutoplayTracks(seed, exclude);
+        if (radioTracks.length === 0) {
+          appendFavorites();
+          if (pool.length === 0) noirToast({ text: strings.radio.empty });
+          return;
+        }
+        radioTracks.forEach((track) => handleAddToQueue(track, { silent: true }));
+        noirToast({
+          text: strings.nextUp.addedMany(radioTracks.length),
+          cover: radioTracks[0]?.thumbnail || seed.thumbnail,
+        });
+      } catch (error) {
+        console.warn('[radio] Queue-end keep playing failed', error);
+        appendFavorites();
+        if (pool.length === 0) noirToast({ text: strings.radio.failed });
+      }
+    })();
+  };
+
+  const queueEndUpNextCount = (() => {
+    const activeKey = songData ? getPlaybackSongKey(songData) : null;
+    if (!activeKey) return queue.length;
+    const idx = queue.findIndex((item) => getPlaybackSongKey(item) === activeKey);
+    if (idx < 0) return queue.length;
+    return Math.max(0, queue.length - idx - 1);
+  })();
+
+  const queueEndTrackKey =
+    (songData && getPlaybackSongKey(songData)) ||
+    (songData ? `${songData.title}::${songData.artist}` : '');
+
+  const queueEndPrompt = useQueueEndPrompt({
+    trackKey: queueEndTrackKey,
+    currentTime: shellPlayback.currentTime,
+    duration: shellPlayback.duration,
+    isPlaying: isMiniPlaying,
+    upNextCount: queueEndUpNextCount,
+    canKeepPlaying:
+      !!songData && (favorites.length > 0 || recentlyPlayed.length > 0 || !!songData.artist),
+    onKeepPlaying: handleQueueEndKeepPlaying,
+  });
+
   // 3. Search and Artist Profiles Logic Hook
   const searchLogic = useSearchLogic({
     setAppState,
@@ -1681,7 +1756,6 @@ export default function App() {
                   favoriteTracks={favorites}
                   quickAddTracks={recentlyPlayed}
                   onAddToQueue={handleAddToQueue}
-                  onAppendRadio={handleAppendRadio}
                   onOpenDiscover={() => setActiveTab('discover')}
                   onSelectFromQueue={(id) => handleSelectFromQueue(id)}
                   onRemoveFromQueue={handleRemoveFromQueue}
@@ -1875,6 +1949,13 @@ export default function App() {
         isFavoriteForTrack={(track) => isTrackFavorite(favorites, track)}
       />
 
+      <NoirQueueEndPrompt
+        isVisible={queueEndPrompt.isVisible}
+        dontAskAgain={queueEndPrompt.dontAskAgain}
+        onDontAskAgainChange={queueEndPrompt.setDontAskAgain}
+        onKeep={() => queueEndPrompt.resolve('keep')}
+        onDismiss={() => queueEndPrompt.resolve('dismiss')}
+      />
       <NoirToastHost />
 
       {/* Onboarding Tour Overlay */}

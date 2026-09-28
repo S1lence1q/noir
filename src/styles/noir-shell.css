@@ -1344,6 +1344,21 @@ button.noir-now-playing-source:hover {
   padding: 0 2px 12px;
 }
 
+.noir-now-playing-side-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.noir-now-playing-side-source {
+  font: var(--noir-type-meta);
+  color: var(--noir-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .noir-now-playing-queue > .noir-now-playing-queue-empty,
 .noir-now-playing-queue > ul {
   flex: 1;
@@ -2536,6 +2551,50 @@ button.noir-now-playing-source:hover {
 
 .noir-toast-action:hover {
   background: rgba(255, 255, 255, 0.08);
+}
+
+/* Queue ends soon — toast-card above compact bar */
+.noir-queue-end-prompt {
+  position: fixed;
+  bottom: 112px;
+  left: 50%;
+  z-index: 60;
+  width: min(420px, calc(100vw - 32px));
+  padding: 16px;
+  border-radius: var(--noir-radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--noir-black);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+}
+
+.noir-queue-end-prompt-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--noir-text-primary);
+}
+
+.noir-queue-end-prompt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.noir-queue-end-prompt-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--noir-text-tertiary);
+  cursor: pointer;
+}
+
+.noir-queue-end-prompt-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 /* Compact bar — inline volume value */
