@@ -4,8 +4,8 @@ import { Compass, Home, Library, Plus, Settings } from 'lucide-react';
 import { SearchResult } from '../../types';
 import { MOTION, withReducedMotion } from '../../utils/motionPresets';
 import { AppTab } from './types';
-import { NoirGraphicAccent } from './noir/NoirGraphicAccent';
 import { NoirMark } from './noir/NoirMark';
+import { NoirSidebarBrandGraphic, useSidebarBrandVariant } from './noir/NoirSidebarBrand';
 import { NoirDitherCover } from './noir/NoirDitherCover';
 import { NoirFavoritesCover } from './noir/NoirFavoritesCover';
 import { worldForCollection } from '../../utils/ditherCover';
@@ -48,16 +48,22 @@ export function AppSidebar({
   const sidebarPlaylists = playlists.slice(0, 8);
   const sidebarPlaylistActive = sidebarPlaylists.some((p) => p.id === selectedPlaylistId);
   const [dragOverPlaylistId, setDragOverPlaylistId] = useState<string | null>(null);
+  const { variant, cycle, label } = useSidebarBrandVariant();
 
   return (
     <aside className="elva-shell-sidebar relative flex h-full w-[248px] shrink-0 flex-col overflow-hidden select-none px-3 py-5">
-      <NoirGraphicAccent graphic="plateWave" className="noir-accent-wave-sidebar" />
-      <div className="relative z-[1] flex items-center gap-1 px-2 pb-5 pt-1">
-        <span className="text-[13px] font-bold tracking-[0.34em] text-[color:var(--noir-text-primary)]">
-          NOIR
-        </span>
+      <NoirSidebarBrandGraphic variant={variant} />
+      <button
+        type="button"
+        className="noir-sidebar-brand-cycle elva-focus-ring"
+        onClick={cycle}
+        title={`Brand graphic: ${label} — click to cycle`}
+        aria-label={`Brand graphic ${label}. Click to try the next option.`}
+      >
+        <span className="text-[13px] font-bold tracking-[0.34em]">NOIR</span>
         <NoirMark size={11} className="text-[color:var(--noir-text-primary)]" />
-      </div>
+        <span className="noir-sidebar-brand-hint">{label}</span>
+      </button>
 
       <nav className="relative z-[1] flex flex-col gap-1" aria-label="Main navigation">
         {PRIMARY_NAV.map(({ id, label, icon: Icon }) => {

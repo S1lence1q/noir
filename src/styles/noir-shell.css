@@ -680,6 +680,125 @@
   mask-image: radial-gradient(ellipse 70% 62% at 58% 42%, #000 12%, transparent 74%);
 }
 
+.noir-brand-variant-grain {
+  opacity: 0.72;
+  mix-blend-mode: screen;
+}
+
+.noir-brand-variant-grain--fallback {
+  filter: grayscale(1) contrast(1.55) brightness(0.55);
+  opacity: 0.45;
+  /* Approximate ember until canvas dither is ready */
+  mix-blend-mode: screen;
+}
+
+.noir-brand-variant-halftone {
+  width: 240px;
+  top: -10px;
+  right: -70px;
+  opacity: 0.16;
+  mix-blend-mode: normal;
+  filter: contrast(1.15) brightness(0.85);
+  -webkit-mask-image: radial-gradient(ellipse 68% 60% at 55% 40%, #000 18%, transparent 72%);
+  mask-image: radial-gradient(ellipse 68% 60% at 55% 40%, #000 18%, transparent 72%);
+}
+
+.noir-brand-chiaroscuro {
+  pointer-events: none;
+  position: absolute;
+  inset: -40px -60px auto auto;
+  z-index: 0;
+  width: 260px;
+  height: 280px;
+  overflow: hidden;
+}
+
+.noir-brand-chiaroscuro-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 70% 40%;
+  filter: grayscale(1) contrast(1.85) brightness(0.42);
+  opacity: 0.9;
+  mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(ellipse 65% 58% at 62% 38%, #000 10%, transparent 70%);
+  mask-image: radial-gradient(ellipse 65% 58% at 62% 38%, #000 10%, transparent 70%);
+}
+
+.noir-brand-chiaroscuro-shaft {
+  position: absolute;
+  top: -10%;
+  right: 8%;
+  width: 42%;
+  height: 120%;
+  background: linear-gradient(
+    118deg,
+    transparent 0%,
+    rgba(249, 249, 249, 0.07) 38%,
+    rgba(249, 249, 249, 0.18) 48%,
+    rgba(249, 249, 249, 0.05) 58%,
+    transparent 78%
+  );
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.noir-brand-chiaroscuro-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+.noir-brand-asterisk {
+  pointer-events: none;
+  position: absolute;
+  top: 8px;
+  right: -28px;
+  z-index: 0;
+  opacity: 0.9;
+  transform: rotate(-8deg);
+}
+
+.noir-sidebar-brand-cycle {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  margin: -4px -8px 16px;
+  border-radius: 8px;
+  color: var(--noir-text-primary);
+  transition: background-color 0.15s ease;
+}
+
+.noir-sidebar-brand-cycle:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.noir-sidebar-brand-hint {
+  position: absolute;
+  left: 8px;
+  bottom: -14px;
+  font: var(--noir-type-label);
+  letter-spacing: 0.04em;
+  color: var(--noir-text-tertiary);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
+}
+
+.noir-sidebar-brand-cycle:hover .noir-sidebar-brand-hint,
+.noir-sidebar-brand-cycle:focus-visible .noir-sidebar-brand-hint {
+  opacity: 0.85;
+}
+
 .noir-home-hero {
   isolation: isolate;
 }
