@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useFadeVolume } from './useFadeVolume';
-import { initAudioAnalyzer, suspendGlobalAudioContext } from '../utils/audioAnalyzer';
+import {
+  initAudioAnalyzer,
+  resumeGlobalAudioContext,
+  suspendGlobalAudioContext,
+} from '../utils/audioAnalyzer';
 import type { PlaybackSongData, PlaybackQueueItem } from '../types/playback';
 import { getPlaybackSongKey } from '../utils/playbackSongKey';
 
@@ -344,25 +348,29 @@ export function usePlaybackCore({
         audioEl.volume = 0;
         
         initAnalyzer(audioEl, sourceRef);
-        
-        if (audioContextRef.current?.state === 'suspended') {
-          void audioContextRef.current.resume();
-        }
+        await resumeGlobalAudioContext();
         
         if (playImmediately) {
-          audioEl.play()
-            .then(() => {
+          try {
+            await audioEl.play();
+            void fadeVolumeFn(1, 800);
+            isTransitioningRef.current = false;
+          } catch (err) {
+            // Sleep / autoplay: one retry after forcing context resume
+            try {
+              await resumeGlobalAudioContext();
+              await audioEl.play();
               void fadeVolumeFn(1, 800);
-              isTransitioningRef.current = false;
-            })
-            .catch((err) => {
-              console.error(err);
-              isTransitioningRef.current = false;
-            });
+            } catch (retryErr) {
+              console.error(retryErr || err);
+            }
+            isTransitioningRef.current = false;
+          }
         } else {
           try {
             audioEl.load();
             audioEl.volume = 0;
+            await resumeGlobalAudioContext();
             void audioEl.play().catch(() => {});
             isTransitioningRef.current = false;
           } catch {}
@@ -479,14 +487,19 @@ export function usePlaybackCore({
         } else if (activeAudio) {
           activeFader.current = 0;
           activeAudio.volume = 0;
-          if (audioContextRef.current?.state === 'suspended') {
-            void audioContextRef.current.resume();
-          }
-          activeAudio.play()
-            .then(() => {
+          try {
+            await resumeGlobalAudioContext();
+            await activeAudio.play();
+            void activeFadeVolume(1, 400);
+          } catch (err) {
+            try {
+              await resumeGlobalAudioContext();
+              await activeAudio.play();
               void activeFadeVolume(1, 400);
-            })
-            .catch(console.error);
+            } catch (retryErr) {
+              console.error(retryErr || err);
+            }
+          }
         }
         setPlaying(true);
       } else {
@@ -801,14 +814,15 @@ export function usePlaybackCore({
       if (isPlaying) {
         activeFader.current = 0;
         activeAudio.volume = 0;
-        if (audioContextRef.current?.state === 'suspended') {
-          void audioContextRef.current.resume();
-        }
-        activeAudio.play()
-          .then(() => {
+        void (async () => {
+          try {
+            await resumeGlobalAudioContext();
+            await activeAudio.play();
             void activeFadeVolume(1, 400);
-          })
-          .catch(console.error);
+          } catch (err) {
+            console.error(err);
+          }
+        })();
       } else {
         activeAudio.pause();
       }
@@ -956,6 +970,114 @@ export function usePlaybackCore({
       }
     };
   }, [isPlaying, checkCrossfade]);
+
+  // After sleep / tab blur: AudioContext stays suspended (silent MediaElementSource),
+  // timers throttle so crossfade/next can miss, and YT/HTML media may pause while UI still says playing.
+  useEffect(() => {
+    const YT_ENDED = 0;
+    const YT_PLAYING = 1;
+
+    const wakePlayback = async () => {
+      if (document.visibilityState === 'hidden') return;
+
+      await resumeGlobalAudioContext();
+      if (!isPlayingRef.current) return;
+
+      const engine = activeEngineRef.current;
+      const activeYT = engine === 'A' ? ytPlayerRefA.current : ytPlayerRefB.current;
+      const activeAudio = engine === 'A' ? audioRefA.current : audioRefB.current;
+      const activeIsYT = engine === 'A' ? isYouTubeRefA.current : isYouTubeRefB.current;
+      const activeFadeVolume = engine === 'A' ? fadeVolumeA : fadeVolumeB;
+      const activeFader = engine === 'A' ? faderRefA : faderRefB;
+
+      if (activeIsYT && activeYT) {
+        try {
+          const state =
+            typeof activeYT.getPlayerState === 'function' ? activeYT.getPlayerState() : null;
+          if (state === YT_ENDED || state === window.YT?.PlayerState?.ENDED) {
+            if (!isCrossfadingRef.current) {
+              void handleNextSongRef.current();
+            }
+            return;
+          }
+          if (state !== YT_PLAYING && state !== window.YT?.PlayerState?.PLAYING) {
+            if (typeof activeYT.playVideo === 'function') {
+              activeYT.playVideo();
+            }
+            if (activeFader.current < 0.5) {
+              void activeFadeVolume(1, 400);
+            }
+          }
+        } catch {
+          /* ignore */
+        }
+        return;
+      }
+
+      if (!activeAudio) return;
+
+      const dur = activeAudio.duration || 0;
+      const ended =
+        activeAudio.ended ||
+        (dur > 0 && Number.isFinite(dur) && activeAudio.currentTime >= dur - 0.35);
+
+      if (ended && !isCrossfadingRef.current) {
+        void handleNextSongRef.current();
+        return;
+      }
+
+      if (activeAudio.paused) {
+        try {
+          await activeAudio.play();
+          if (activeFader.current < 0.5) {
+            void activeFadeVolume(1, 400);
+          }
+        } catch {
+          /* needs another gesture — next click will retry via load/toggle */
+        }
+      } else if (activeFader.current < 0.15) {
+        // Playing but fader left at 0 after a broken background crossfade / suspend
+        void activeFadeVolume(1, 400);
+      }
+    };
+
+    const onVisible = () => {
+      void wakePlayback();
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('pageshow', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('pageshow', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [fadeVolumeA, fadeVolumeB, faderRefA, faderRefB]);
+
+  // Native ended via refs (React onEnded can see a stale activeEngine after long background).
+  useEffect(() => {
+    const audioA = audioRefA.current;
+    const audioB = audioRefB.current;
+
+    const onEndedA = () => {
+      if (isCrossfadingRef.current) return;
+      if (activeEngineRef.current !== 'A') return;
+      void handleNextSongRef.current();
+    };
+    const onEndedB = () => {
+      if (isCrossfadingRef.current) return;
+      if (activeEngineRef.current !== 'B') return;
+      void handleNextSongRef.current();
+    };
+
+    audioA?.addEventListener('ended', onEndedA);
+    audioB?.addEventListener('ended', onEndedB);
+    return () => {
+      audioA?.removeEventListener('ended', onEndedA);
+      audioB?.removeEventListener('ended', onEndedB);
+    };
+  }, []);
 
   // Global event receivers
   useEffect(() => {

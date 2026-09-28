@@ -585,18 +585,12 @@ export function MusicPlayer({
         onLoadedMetadata={(e) => {
           if (activeEngine === 'A') setDuration(e.currentTarget.duration);
         }}
-        onEnded={() => {
-          if (activeEngine === 'A' && !isCrossfadingRef.current) handleNextSong();
-        }}
         className="hidden" 
       />
       <audio 
         ref={audioRefB} 
         onLoadedMetadata={(e) => {
           if (activeEngine === 'B') setDuration(e.currentTarget.duration);
-        }}
-        onEnded={() => {
-          if (activeEngine === 'B' && !isCrossfadingRef.current) handleNextSong();
         }}
         className="hidden" 
       />

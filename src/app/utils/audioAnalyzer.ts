@@ -41,6 +41,17 @@ export function initAudioAnalyzer(
   }
 }
 
+/** After sleep / background, the shared context stays suspended and mutes MediaElementSource output. */
+export async function resumeGlobalAudioContext(): Promise<void> {
+  if (!globalAudioContext) return;
+  if (globalAudioContext.state !== 'suspended') return;
+  try {
+    await globalAudioContext.resume();
+  } catch {
+    /* ignore — caller may retry on next user gesture */
+  }
+}
+
 export function suspendGlobalAudioContext(): void {
   if (globalAudioContext && globalAudioContext.state === 'running') {
     try {
