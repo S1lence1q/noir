@@ -15,6 +15,7 @@ import {
   getLastFmSimilarArtists,
   getLastFmSimilarTracks,
   getLastFmTagTopTracks,
+  getLastFmTrackImage,
 } from './lastfm';
 import { normalizeName } from './normalize';
 
@@ -167,12 +168,34 @@ export function getArtistImage(artist: string, deezerId?: number): Promise<strin
     deezerId != null && Number.isFinite(deezerId)
       ? `artist-image-v2:deezer:${deezerId}`
       : `artist-image-v2:${artistKey(artist)}`;
-  return requestCached(key, TTL.image, () => getDeezerArtistImage(artist, deezerId), undefined);
+  return requestCached(
+    key,
+    TTL.image,
+    async () => {
+      const fromDeezer = await getDeezerArtistImage(artist, deezerId);
+      if (fromDeezer) return fromDeezer;
+      const info = await getLastFmArtistInfo(artist);
+      return info?.image;
+    },
+    undefined
+  );
 }
 
 export function getTrackImage(title: string, artist: string): Promise<string | undefined> {
   const key = `track-image:${artistKey(artist)}:${artistKey(title)}`;
-  return requestCached(key, TTL.image, () => getDeezerTrackImage(title, artist), undefined);
+  return requestCached(
+    key,
+    TTL.image,
+    async () => {
+      const fromDeezer = await getDeezerTrackImage(title, artist);
+      if (fromDeezer) return fromDeezer;
+      const fromLastFm = await getLastFmTrackImage(title, artist);
+      if (fromLastFm) return fromLastFm;
+      const info = await getLastFmArtistInfo(artist);
+      return info?.image;
+    },
+    undefined
+  );
 }
 
 export function getTagTopTracks(tag: string, limit = 20): Promise<GraphTrack[]> {

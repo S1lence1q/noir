@@ -28,14 +28,57 @@ function logFailure(path: string, error: unknown) {
   console.warn(`[musicGraph] Deezer ${key} failed`, error);
 }
 
+/**
+ * Deezer has no usable CORS for SPA hosts. Dev uses the Vite `/deezer` proxy;
+ * production uses Deezer's JSONP (`output=jsonp`) so GitHub Pages works without a backend.
+ */
+function deezerJsonp<T>(path: string, timeoutMs = 5000): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const callback = `__noirDz_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`;
+    const script = document.createElement('script');
+    const timer = window.setTimeout(() => {
+      cleanup();
+      reject(new Error('Deezer JSONP timeout'));
+    }, timeoutMs);
+
+    const cleanup = () => {
+      window.clearTimeout(timer);
+      script.remove();
+      try {
+        delete (window as unknown as Record<string, unknown>)[callback];
+      } catch {
+        (window as unknown as Record<string, unknown>)[callback] = undefined;
+      }
+    };
+
+    (window as unknown as Record<string, unknown>)[callback] = (data: T) => {
+      cleanup();
+      resolve(data);
+    };
+
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('Deezer JSONP network error'));
+    };
+
+    const normalized = path.startsWith('/') ? path : `/${path}`;
+    const sep = normalized.includes('?') ? '&' : '?';
+    script.src = `https://api.deezer.com${normalized}${sep}output=jsonp&callback=${callback}`;
+    document.head.appendChild(script);
+  });
+}
+
 async function deezerGet<T>(path: string): Promise<T | null> {
   try {
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 5000);
-    const response = await fetch(`/deezer${path}`, { signal: controller.signal });
-    window.clearTimeout(timeout);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return (await response.json()) as T;
+    if (import.meta.env.DEV) {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 5000);
+      const response = await fetch(`/deezer${path}`, { signal: controller.signal });
+      window.clearTimeout(timeout);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return (await response.json()) as T;
+    }
+    return await deezerJsonp<T>(path);
   } catch (error) {
     logFailure(path, error);
     return null;

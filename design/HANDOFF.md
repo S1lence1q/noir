@@ -59,7 +59,7 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 - **T07:** Asset cleanup **DONE** — legacy Discover + `top_hits_*.png` removed; slot graphics under `src/assets/noir/`.
 - **Browser tab:** title `NOIR` + asterisk favicon (`public/favicon.svg`, linked from `index.html`).
 - **⌘N** new playlist + listed in shortcuts map
-- **Deploy:** GitHub Pages via `.github/workflows/deploy.yml` on push to `main` → live at https://noir.arkivet.xyz/ (repo `S1lence1q/noir`). Needs repo secret `VITE_LASTFM_API_KEY` (optional `VITE_YOUTUBE_API_KEY`). **Elva** is frozen at `S1lence1q/elva` → https://elva.arkivet.xyz/ (pre-NOIR). Do not push NOIR work to `elva`. Charts on Pages: baked at build (`scripts/prefetch-charts.mjs` → `public/charts/`); Apple RSS has no browser CORS.
+- **Deploy:** GitHub Pages via `.github/workflows/deploy.yml` on push to `main` → live at https://noir.arkivet.xyz/ (repo `S1lence1q/noir`). Needs repo secret `VITE_LASTFM_API_KEY` (optional `VITE_YOUTUBE_API_KEY`). **Elva** is frozen at `S1lence1q/elva` → https://elva.arkivet.xyz/ (pre-NOIR). Do not push NOIR work to `elva`. Charts on Pages: baked at build (`scripts/prefetch-charts.mjs` → `public/charts/`); Apple RSS has no browser CORS. Deezer on Pages: JSONP (Vite `/deezer` proxy is dev-only).
 
 ## Next (in order)
 

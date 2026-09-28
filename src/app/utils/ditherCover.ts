@@ -71,11 +71,8 @@ function hexToRgb(hex: string): [number, number, number] {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
-/** Remote images go through weserv so the canvas isn't tainted; it also crops to a square. */
+/** Prefer same-origin / data URLs; otherwise load via CORS-friendly CDN or weserv. */
 function proxiedSource(source: string, px: number): string {
-  if (/^(blob:|data:)/.test(source) || source.startsWith('/') || source.startsWith(window.location.origin)) {
-    return source;
-  }
   return `https://images.weserv.nl/?url=${encodeURIComponent(source)}&w=${px}&h=${px}&fit=cover&output=png`;
 }
 
@@ -88,6 +85,18 @@ function loadImage(src: string): Promise<HTMLImageElement> {
     img.onerror = () => reject(new Error(`dither: failed to load ${src}`));
     img.src = src;
   });
+}
+
+async function loadSourceImage(source: string, px: number): Promise<HTMLImageElement> {
+  if (/^(blob:|data:)/.test(source) || source.startsWith('/') || source.startsWith(window.location.origin)) {
+    return loadImage(source);
+  }
+  // Apple / Deezer CDNs usually allow anonymous canvas reads — try direct first.
+  try {
+    return await loadImage(source);
+  } catch {
+    return loadImage(proxiedSource(source, Math.min(600, px)));
+  }
 }
 
 const CACHE_VERSION = 'v2';
@@ -231,7 +240,7 @@ export function renderDitherCover(source: string, world: ColorWorld, seed: strin
       memoryCache.set(key, stored);
       return stored;
     }
-    const img = await loadImage(proxiedSource(source, Math.min(600, px)));
+    const img = await loadSourceImage(source, px);
     // Cell size in device px: coarse enough to read as dither, fine enough at thumbnail size.
     const cellPx = px >= 320 ? 4 : px >= 160 ? 3 : 2;
     const url = paint(img, world, seed, px, cellPx);

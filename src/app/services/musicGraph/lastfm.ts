@@ -208,6 +208,22 @@ export async function getLastFmArtistInfo(
   };
 }
 
+export async function getLastFmTrackImage(title: string, artist: string): Promise<string | undefined> {
+  type Response = {
+    track?: {
+      album?: { image?: Array<{ '#text'?: string; size?: string }> };
+      image?: Array<{ '#text'?: string; size?: string }>;
+    };
+  };
+  const response = await requestLastFm<Response>('track.getInfo', {
+    track: cleanName(title),
+    artist: cleanName(artist),
+  });
+  const track = response?.track;
+  if (!track) return undefined;
+  return imageFromLastFm(track.album?.image) || imageFromLastFm(track.image);
+}
+
 export function lastFmCacheName(value: string) {
   return normalizeName(value);
 }
