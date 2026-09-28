@@ -57,8 +57,8 @@ export function AppSidebar({
           type="button"
           className="noir-sidebar-brand-cycle elva-focus-ring"
           onClick={cycle}
-          title={`Brand graphic: ${label} — click to cycle`}
-          aria-label={`Brand graphic ${label}. Click to try the next option.`}
+          title={`Brand graphic: ${label} — click to switch`}
+          aria-label={`Brand graphic ${label}. Click to switch.`}
         >
           <span className="text-[13px] font-bold tracking-[0.34em]">NOIR</span>
           {variant !== 'asterisk' && (
