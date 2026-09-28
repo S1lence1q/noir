@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import plateWave from '../../../../assets/noir/brand-plate-wave.jpeg';
 import sprayAsterisk from '../../../../assets/noir/brand-spray-asterisk.png';
 import halftoneCloud from '../../../../assets/noir/empty-halftone-cloud.jpeg';
@@ -118,63 +118,52 @@ type NoirSidebarBrandProps = {
 export function NoirSidebarBrandGraphic({ variant }: NoirSidebarBrandProps) {
   const grainUrl = useGrainWaveUrl();
 
+  let inner: ReactNode = null;
+
   if (variant === 'plate') {
-    return (
+    inner = (
       <img
         src={plateWave}
         alt=""
-        aria-hidden
-        className="noir-accent-wave-sidebar noir-brand-variant-plate"
+        className="noir-sidebar-brand-media noir-brand-variant-plate"
       />
     );
-  }
-
-  if (variant === 'grain') {
-    return grainUrl ? (
+  } else if (variant === 'grain') {
+    inner = (
       <img
-        src={grainUrl}
+        src={grainUrl || plateWave}
         alt=""
-        aria-hidden
-        className="noir-accent-wave-sidebar noir-brand-variant-grain"
-      />
-    ) : (
-      <img
-        src={plateWave}
-        alt=""
-        aria-hidden
-        className="noir-accent-wave-sidebar noir-brand-variant-grain noir-brand-variant-grain--fallback"
+        className={`noir-sidebar-brand-media noir-brand-variant-grain${
+          grainUrl ? '' : ' noir-brand-variant-grain--fallback'
+        }`}
       />
     );
-  }
-
-  if (variant === 'chiaroscuro') {
-    return (
-      <span className="noir-brand-chiaroscuro" aria-hidden>
+  } else if (variant === 'chiaroscuro') {
+    inner = (
+      <span className="noir-brand-chiaroscuro">
         <img src={plateWave} alt="" className="noir-brand-chiaroscuro-img" />
         <span className="noir-brand-chiaroscuro-shaft" />
         <span className="noir-brand-chiaroscuro-grain" />
       </span>
     );
-  }
-
-  if (variant === 'asterisk') {
-    return (
+  } else if (variant === 'asterisk') {
+    inner = (
+      <img src={sprayAsterisk} alt="" className="noir-brand-asterisk-img" />
+    );
+  } else {
+    inner = (
       <img
-        src={sprayAsterisk}
+        src={halftoneCloud}
         alt=""
-        aria-hidden
-        className="noir-brand-asterisk-img"
+        className="noir-sidebar-brand-media noir-brand-variant-halftone"
       />
     );
   }
 
   return (
-    <img
-      src={halftoneCloud}
-      alt=""
-      aria-hidden
-      className="noir-accent-wave-sidebar noir-brand-variant-halftone"
-    />
+    <div className="noir-sidebar-brand-slot" aria-hidden>
+      {inner}
+    </div>
   );
 }
 
