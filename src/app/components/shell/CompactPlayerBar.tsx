@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   ChevronDown,
+  Headphones,
   Heart,
   ListMusic,
   Pause,
@@ -9,6 +10,7 @@ import {
   Radio,
   SkipBack,
   SkipForward,
+  Speaker,
   Volume1,
   Volume2,
   VolumeX,
@@ -19,6 +21,7 @@ import { strings } from '../../constants/strings';
 import { hasRealArtwork } from '../../utils/artwork';
 import { worldForCollection } from '../../utils/ditherCover';
 import { NoirDitherCover } from './noir/NoirDitherCover';
+import { useAudioOutputLabel } from '../../hooks/useAudioOutputLabel';
 
 type SongPreview = {
   title: string;
@@ -101,6 +104,25 @@ export function CompactPlayerBar({
   const flightFrameRef = useRef<number | null>(null);
   const chargeStartRef = useRef(0);
   const chargeVolumeRef = useRef(0);
+  const audioOutput = useAudioOutputLabel();
+  const [outputLabelRevealed, setOutputLabelRevealed] = useState(false);
+  const outputRevealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (audioOutput.changeToken === 0) return;
+    setOutputLabelRevealed(true);
+    if (outputRevealTimerRef.current) clearTimeout(outputRevealTimerRef.current);
+    outputRevealTimerRef.current = setTimeout(() => setOutputLabelRevealed(false), 2500);
+    return () => {
+      if (outputRevealTimerRef.current) clearTimeout(outputRevealTimerRef.current);
+    };
+  }, [audioOutput.changeToken]);
+
+  const outputDisplayName = audioOutput.hasDeviceName
+    ? audioOutput.label
+    : strings.compact.thisComputer;
+  const outputAria = strings.compact.playingOn(outputDisplayName);
+  const OutputIcon = audioOutput.icon === 'headphones' ? Headphones : Speaker;
 
   const flashVolumeValue = () => {
     setVolumeValueVisible(true);
@@ -476,6 +498,19 @@ export function CompactPlayerBar({
             </span>
           )}
         </button>
+
+        <span
+          className="noir-compact-output"
+          data-revealed={outputLabelRevealed ? 'true' : 'false'}
+          role="status"
+          title={outputAria}
+          aria-label={outputAria}
+        >
+          <OutputIcon className="noir-compact-output-icon" strokeWidth={1.75} aria-hidden />
+          <span className="noir-compact-output-label" aria-hidden>
+            {outputDisplayName}
+          </span>
+        </span>
 
         <div className="noir-compact-volume" ref={volumeWrapRef}>
           {projectile !== null && (
