@@ -61,7 +61,9 @@ export function AppSidebar({
           aria-label={`Brand graphic ${label}. Click to try the next option.`}
         >
           <span className="text-[13px] font-bold tracking-[0.34em]">NOIR</span>
-          <NoirMark size={11} className="text-[color:var(--noir-text-primary)]" />
+          {variant !== 'asterisk' && (
+            <NoirMark size={11} className="text-[color:var(--noir-text-primary)]" />
+          )}
           <span className="noir-sidebar-brand-hint">{label}</span>
         </button>
         <NoirSidebarBrandGraphic variant={variant} />

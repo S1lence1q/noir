@@ -4,24 +4,24 @@ import sprayAsterisk from '../../../../assets/noir/brand-spray-asterisk.png';
 import halftoneCloud from '../../../../assets/noir/empty-halftone-cloud.jpeg';
 
 export const SIDEBAR_BRAND_VARIANTS = [
+  'asterisk',
   'plate',
   'grain',
   'chiaroscuro',
-  'asterisk',
   'halftone',
 ] as const;
 
 export type SidebarBrandVariant = (typeof SIDEBAR_BRAND_VARIANTS)[number];
 
 export const SIDEBAR_BRAND_LABELS: Record<SidebarBrandVariant, string> = {
-  plate: 'Current plate wave',
-  grain: '1 · Grain / dither wave',
-  chiaroscuro: '2 · Light through smoke',
-  asterisk: '3 · Spray asterisk (pin)',
-  halftone: '4 · Halftone cloud',
+  asterisk: 'Spray asterisk',
+  plate: 'Grey plate wave',
+  grain: 'Grain / dither wave',
+  chiaroscuro: 'Light through smoke',
+  halftone: 'Halftone cloud',
 };
 
-const STORAGE_KEY = 'noir_sidebar_brand_v1';
+const STORAGE_KEY = 'noir_sidebar_brand_v2';
 
 function readVariant(): SidebarBrandVariant {
   try {
@@ -32,7 +32,7 @@ function readVariant(): SidebarBrandVariant {
   } catch {
     /* ignore */
   }
-  return 'plate';
+  return 'asterisk';
 }
 
 function writeVariant(v: SidebarBrandVariant) {
@@ -161,7 +161,7 @@ export function NoirSidebarBrandGraphic({ variant }: NoirSidebarBrandProps) {
   }
 
   return (
-    <div className="noir-sidebar-brand-slot" aria-hidden>
+    <div className="noir-sidebar-brand-slot" data-variant={variant} aria-hidden>
       {inner}
     </div>
   );
