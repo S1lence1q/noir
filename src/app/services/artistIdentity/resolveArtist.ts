@@ -1,5 +1,6 @@
 import { getArtistInfo, getArtistImage } from '../musicGraph';
-import { searchDeezerArtists } from '../musicGraph/deezer';
+import { getDeezerArtistPortraitById, searchDeezerArtists } from '../musicGraph/deezer';
+import { artistPortraitUrl } from '../../utils/artwork';
 import { resolveTopicChannelId } from '../../utils/api/channelApi';
 import { getCachedIdentity, setCachedIdentity } from './identityCache';
 import type { ArtistIdentity, ResolveArtistInput } from './types';
@@ -49,7 +50,15 @@ export async function resolveArtistIdentity(input: ResolveArtistInput): Promise<
   const isTopicChannel = !!(input.isTopic || /\btopic\b/i.test(rawName));
 
   const cached = await getCachedIdentity(name);
+  let skipCached = false;
+  if (cached && cached.confidence !== 'low' && !input.deezerId && !input.mbid) {
+    const quick = await searchDeezerArtists(name, 5).catch(() => []);
+    const exactCount = quick.filter((m) => m.exactName).length;
+    if (exactCount >= 2) skipCached = true;
+  }
+
   if (
+    !skipCached &&
     cached &&
     cached.confidence !== 'low' &&
     (!input.channelId || cached.channelId === input.channelId || !cached.channelId)
@@ -65,10 +74,11 @@ export async function resolveArtistIdentity(input: ResolveArtistInput): Promise<
       void setCachedIdentity(next);
     }
     // Heal artist image in the background — never block opening a profile we already know.
-    void getArtistImage(name)
+    void getArtistImage(name, next.deezerId)
       .then((graphImage) => {
-        if (graphImage && graphImage !== next.image) {
-          void setCachedIdentity({ ...next, image: graphImage });
+        const portrait = artistPortraitUrl(graphImage);
+        if (portrait && portrait !== next.image) {
+          void setCachedIdentity({ ...next, image: portrait });
         }
       })
       .catch(() => {});
@@ -88,30 +98,39 @@ export async function resolveArtistIdentity(input: ResolveArtistInput): Promise<
         : withTimeout(resolveTopicChannelId(name), CHANNEL_RESOLVE_MS),
   ]);
 
-  const exactDeezer = deezerMatches.find((m) => m.exactName) || null;
+  const exactMatches = deezerMatches.filter((m) => m.exactName);
+  const exactDeezer = exactMatches[0] || null;
   const topDeezer = exactDeezer || deezerMatches[0] || null;
-  // Prefer real artist photos from the graph over whatever the caller passed
-  // (callers used to pass the currently playing track's cover for unrelated artists).
-  const image =
-    topDeezer?.image ||
-    lastFmInfo?.image ||
-    (await getArtistImage(name).catch(() => undefined)) ||
-    (input.thumbnail && !input.thumbnail.includes('unsplash.com') ? input.thumbnail : undefined);
+  const resolvedDeezerId = input.deezerId ?? topDeezer?.id;
+
+  let image =
+    (resolvedDeezerId != null
+      ? await getDeezerArtistPortraitById(resolvedDeezerId).catch(() => undefined)
+      : undefined) ||
+    artistPortraitUrl(topDeezer?.image) ||
+    artistPortraitUrl(lastFmInfo?.image) ||
+    artistPortraitUrl(await getArtistImage(name, resolvedDeezerId).catch(() => undefined)) ||
+    artistPortraitUrl(input.thumbnail);
+
+  const multiExact =
+    !input.channelId && exactMatches.length >= 2 && !input.deezerId && !input.mbid;
 
   const ambiguous =
-    !input.channelId &&
-    !exactDeezer &&
-    deezerMatches.length >= 2 &&
-    (deezerMatches[0]?.fans ?? 0) > 0 &&
-    (deezerMatches[1]?.fans ?? 0) > 0 &&
-    (deezerMatches[1]!.fans! / Math.max(1, deezerMatches[0]!.fans!)) > 0.35;
+    multiExact ||
+    (!input.channelId &&
+      !exactDeezer &&
+      deezerMatches.length >= 2 &&
+      (deezerMatches[0]?.fans ?? 0) > 0 &&
+      (deezerMatches[1]?.fans ?? 0) > 0 &&
+      (deezerMatches[1]!.fans! / Math.max(1, deezerMatches[0]!.fans!)) > 0.35);
 
-  if (ambiguous && !lastFmInfo?.mbid) {
-    const candidates = deezerMatches.slice(0, 3).map((m) =>
+  if (ambiguous && !lastFmInfo?.mbid && !input.deezerId) {
+    const pool = multiExact ? exactMatches : deezerMatches;
+    const candidates = pool.slice(0, 3).map((m) =>
       candidateFromDeezer(m, {
         channelId: channel?.channelId,
         channelType: channel?.type,
-        image: m.image || image,
+        image: artistPortraitUrl(m.image) || image,
       })
     );
     return {
@@ -140,7 +159,7 @@ export async function resolveArtistIdentity(input: ResolveArtistInput): Promise<
   const identity: ArtistIdentity = {
     canonicalName: lastFmInfo?.name || topDeezer?.name || name,
     mbid: input.mbid || lastFmInfo?.mbid,
-    deezerId: input.deezerId ?? topDeezer?.id,
+    deezerId: resolvedDeezerId,
     channelId: input.channelId || channel?.channelId,
     channelType:
       channel?.type || (input.channelId ? (isTopicChannel ? 'topic' : 'provided') : undefined),

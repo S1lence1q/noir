@@ -71,7 +71,11 @@ export async function searchDeezerArtists(artist: string, limit = 5): Promise<De
   return rankDeezerArtists(artist, response?.data ?? []).slice(0, Math.max(1, limit));
 }
 
-async function findArtist(artist: string): Promise<DeezerArtist | null> {
+async function findArtist(artist: string, deezerId?: number): Promise<DeezerArtist | null> {
+  if (deezerId != null && Number.isFinite(deezerId)) {
+    const byId = await deezerGet<DeezerArtist>(`/artist/${deezerId}`);
+    if (byId?.name) return byId;
+  }
   const ranked = await searchDeezerArtists(artist, 1);
   const top = ranked[0];
   if (!top) return null;
@@ -85,6 +89,11 @@ async function findArtist(artist: string): Promise<DeezerArtist | null> {
   };
 }
 
+export async function getDeezerArtistPortraitById(deezerId: number): Promise<string | undefined> {
+  const artist = await deezerGet<DeezerArtist>(`/artist/${deezerId}`);
+  return artist?.picture_xl || artist?.picture_big || artist?.picture_medium;
+}
+
 function mapTrack(track: DeezerTrack, fallbackArtist: string): GraphTrack | null {
   if (!track.title) return null;
   return {
@@ -94,8 +103,12 @@ function mapTrack(track: DeezerTrack, fallbackArtist: string): GraphTrack | null
   };
 }
 
-export async function getDeezerArtistTopTracks(artist: string, limit: number): Promise<GraphTrack[]> {
-  const match = await findArtist(artist);
+export async function getDeezerArtistTopTracks(
+  artist: string,
+  limit: number,
+  deezerId?: number
+): Promise<GraphTrack[]> {
+  const match = await findArtist(artist, deezerId);
   if (!match) return [];
   const response = await deezerGet<{ data?: DeezerTrack[] }>(
     `/artist/${match.id}/top?limit=${Math.min(100, Math.max(1, limit))}`
@@ -179,8 +192,12 @@ export async function getDeezerAlbumTracks(albumId: number): Promise<GraphTrack[
     }));
 }
 
-export async function getDeezerArtistImage(artist: string): Promise<string | undefined> {
-  const match = await findArtist(artist);
+export async function getDeezerArtistImage(artist: string, deezerId?: number): Promise<string | undefined> {
+  if (deezerId != null && Number.isFinite(deezerId)) {
+    const byId = await getDeezerArtistPortraitById(deezerId);
+    if (byId) return byId;
+  }
+  const match = await findArtist(artist, deezerId);
   return match?.picture_xl || match?.picture_big || match?.picture_medium;
 }
 

@@ -24,7 +24,7 @@ import {
   identityCacheKey,
   type ArtistIdentity,
 } from '../services/artistIdentity';
-import { hasRealArtwork } from '../utils/artwork';
+import { artistPortraitUrl, hasRealArtwork } from '../utils/artwork';
 import '../services/musicGraph';
 
 function artistCardFromQuery(query: string, results: SearchResult[]): VerifiedArtist | null {
@@ -312,12 +312,18 @@ export function useSearchLogic({
     generation: number,
     seedArtist: VerifiedArtist
   ) => {
-    const verified = identityToVerifiedArtist(identity, { thumbnail: seedArtist.thumbnail });
+    const verified = identityToVerifiedArtist(identity, {
+      thumbnail: artistPortraitUrl(seedArtist.thumbnail),
+    });
     const handPickedUrl = getHandPickedImage(verified.name);
     const displayArtist: VerifiedArtist = {
       ...verified,
       name: displayArtistName(verified.name),
-      thumbnail: handPickedUrl || verified.thumbnail || seedArtist.thumbnail,
+      thumbnail:
+        handPickedUrl ||
+        artistPortraitUrl(verified.thumbnail) ||
+        artistPortraitUrl(seedArtist.thumbnail) ||
+        '',
     };
 
     if (generation !== profileGenRef.current) return;
@@ -350,14 +356,19 @@ export function useSearchLogic({
     });
 
     try {
-      if (displayArtist.thumbnail && !isPlaceholderOrEmpty(displayArtist.thumbnail)) {
+      const portraitForCache = artistPortraitUrl(displayArtist.thumbnail);
+      if (portraitForCache && !isPlaceholderOrEmpty(portraitForCache)) {
         localStorage.setItem(
           `elva_artist_img_${displayArtist.name.toLowerCase()}`,
-          displayArtist.thumbnail
+          portraitForCache
         );
       }
 
-      const popularPromise = loadArtistPopularTracks(displayArtist.name, 10);
+      const popularPromise = loadArtistPopularTracks(
+        displayArtist.name,
+        10,
+        identity.deezerId
+      );
       const needsRefresh = !cached || cached.stale;
 
       if (cached?.tracks.length && !cached.stale) {
@@ -495,7 +506,8 @@ export function useSearchLogic({
     const keepInMemory = sameArtistAlreadyOpen(cleanedName) && artistTracks.length > 0;
     setSelectedArtist({
       ...artistClean,
-      thumbnail: handPickedUrl || artistClean.thumbnail,
+      thumbnail:
+        handPickedUrl || artistPortraitUrl(artistClean.thumbnail) || '',
     });
     setArtistCandidates(null);
     if (warm?.tracks.length) {
@@ -513,7 +525,7 @@ export function useSearchLogic({
       const identity = await resolveArtistIdentity({
         name: cleanedName,
         channelId: artistClean.channelId,
-        thumbnail: handPickedUrl || artistClean.thumbnail,
+        thumbnail: artistPortraitUrl(handPickedUrl || artistClean.thumbnail),
         isTopic: artistClean.isTopic,
         mbid: artistClean.mbid,
         deezerId: artistClean.deezerId,
@@ -527,7 +539,11 @@ export function useSearchLogic({
         setSelectedArtist({
           ...artistClean,
           name: displayArtistName(identity.canonicalName || cleanedName),
-          thumbnail: identity.image || handPickedUrl || artistClean.thumbnail,
+          thumbnail:
+            artistPortraitUrl(identity.image) ||
+            handPickedUrl ||
+            artistPortraitUrl(artistClean.thumbnail) ||
+            '',
           confidence: 'low',
         });
         return;
@@ -592,7 +608,7 @@ export function useSearchLogic({
         ...foundInRecent,
         isTopic: foundInRecent.isTopic || wasTopic,
         channelId: channelId || foundInRecent.channelId,
-        ...(hasRealArtwork(thumbnail) ? { thumbnail: thumbnail! } : {}),
+        ...(artistPortraitUrl(thumbnail) ? { thumbnail: artistPortraitUrl(thumbnail)! } : {}),
       });
       return;
     }
@@ -606,8 +622,8 @@ export function useSearchLogic({
       hasRealArtwork(songData.artworkUrl);
     const knownThumb =
       handPicked ||
-      (hasRealArtwork(thumbnail) ? thumbnail! : '') ||
-      (playingIsThisArtist ? songData.artworkUrl : '') ||
+      artistPortraitUrl(thumbnail) ||
+      (playingIsThisArtist ? artistPortraitUrl(songData.artworkUrl) : '') ||
       '';
 
     const tempArtist: VerifiedArtist = {

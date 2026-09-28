@@ -149,7 +149,8 @@ export const loadArtistDiscographyWithCache = async (
 /** Fast Popular list from Last.fm/Deezer — enrich missing art via Deezer covers. */
 export async function loadArtistPopularTracks(
   artistName: string,
-  limit = 10
+  limit = 10,
+  deezerId?: number
 ): Promise<SearchResult[]> {
   const lookupName = displayArtistName(artistName);
   const tracks = await getArtistTopTracks(lookupName, limit);
@@ -158,7 +159,7 @@ export async function loadArtistPopularTracks(
   let deezerTops: GraphTrack[] = [];
   if (tracks.some((track) => !hasRealArtwork(track.image))) {
     try {
-      deezerTops = await getDeezerArtistTopTracks(lookupName, Math.max(limit, 25));
+      deezerTops = await getDeezerArtistTopTracks(lookupName, Math.max(limit, 25), deezerId);
     } catch {
       // optional
     }

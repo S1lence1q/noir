@@ -162,8 +162,12 @@ export function getNewReleases(artist: string, days = 30): Promise<GraphRelease[
   );
 }
 
-export function getArtistImage(artist: string): Promise<string | undefined> {
-  return requestCached(`artist-image:${artistKey(artist)}`, TTL.image, () => getDeezerArtistImage(artist), undefined);
+export function getArtistImage(artist: string, deezerId?: number): Promise<string | undefined> {
+  const key =
+    deezerId != null && Number.isFinite(deezerId)
+      ? `artist-image:deezer:${deezerId}`
+      : `artist-image:${artistKey(artist)}`;
+  return requestCached(key, TTL.image, () => getDeezerArtistImage(artist, deezerId), undefined);
 }
 
 export function getTrackImage(title: string, artist: string): Promise<string | undefined> {
