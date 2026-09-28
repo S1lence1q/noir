@@ -16,7 +16,9 @@ import { NoirFavoritesCover } from './NoirFavoritesCover';
 import { NoirColdStart } from './NoirColdStart';
 import { Playlist } from '../../PlaylistDetailsView';
 import { getListeningEvents } from '../../../services/listening/eventsStore';
+import { topArtists } from '../../../services/listening/tasteProfile';
 import { isTasteEmpty } from '../../../services/listening/seedTaste';
+import { getArtistImage } from '../../../services/musicGraph';
 import { DailyMix, loadDailyMixes } from '../../../services/mixes/dailyMixes';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { prefetchArtistProfile } from '../../../utils/artistDiscographyLoader';
@@ -56,7 +58,7 @@ export function NoirHomeView({
   lastSearchedQuery,
   isSearching,
   searchResults,
-  recentArtists,
+  recentArtists: _recentArtists,
   recentlyPlayed,
   favorites = [],
   verifiedArtist,
@@ -84,6 +86,8 @@ export function NoirHomeView({
   const [mixReloadKey, setMixReloadKey] = useState(0);
   /** null = still checking events; true = show F7 picker */
   const [needsColdStart, setNeedsColdStart] = useState<boolean | null>(null);
+  /** From real plays — not “artists you opened once”. */
+  const [playedArtists, setPlayedArtists] = useState<VerifiedArtist[]>([]);
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 5) return strings.greeting.lateNight;
@@ -142,8 +146,24 @@ export function NoirHomeView({
       try {
         const events = await getListeningEvents();
         if (!cancelled) setNeedsColdStart(isTasteEmpty(events));
+
+        const top = topArtists(events, 30).slice(0, 12);
+        const cards = await Promise.all(
+          top.map(async (entry) => {
+            const image = await getArtistImage(entry.artist);
+            const artist: VerifiedArtist = {
+              name: entry.artist,
+              thumbnail: image || '',
+            };
+            return artist;
+          })
+        );
+        if (!cancelled) setPlayedArtists(cards.filter((a) => a.name.trim().length > 0));
       } catch {
-        if (!cancelled) setNeedsColdStart(false);
+        if (!cancelled) {
+          setNeedsColdStart(false);
+          setPlayedArtists([]);
+        }
       }
     })();
     return () => {
@@ -556,19 +576,28 @@ export function NoirHomeView({
                 </section>
               )}
 
-              {recentArtists.length > 0 && (
+              {playedArtists.length >= 2 && (
                 <section>
                   <h2 className="noir-section-heading px-1">{strings.home.artists}</h2>
                   <div className="noir-home-shelf">
-                    {recentArtists.slice(0, 12).map((artist) => (
+                    {playedArtists.map((artist) => (
                       <button
-                        key={artist.id || artist.name}
+                        key={artist.name}
                         type="button"
                         onClick={() => handleViewArtistProfile(artist)}
                         className="noir-home-artist group elva-focus-ring"
                       >
                         <span className="noir-home-artist-art">
-                          <img src={artist.thumbnail} alt="" className="h-full w-full object-cover" />
+                          {artist.thumbnail ? (
+                            <img src={artist.thumbnail} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <NoirDitherCover
+                              world={worldForCollection(artist.name)}
+                              seed={artist.name}
+                              size={108}
+                              radius={999}
+                            />
+                          )}
                         </span>
                         <span className="noir-song-title mt-3 block truncate text-center">{artist.name}</span>
                       </button>

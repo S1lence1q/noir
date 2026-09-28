@@ -4,10 +4,8 @@ import { ArrowRight, Play, RefreshCw } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
 import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
-import { NoirSongRow } from './NoirSongRow';
 import { NoirDitherCover } from './NoirDitherCover';
 import { worldForCollection } from '../../../utils/ditherCover';
-import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
 import { getListeningEvents } from '../../../services/listening/eventsStore';
@@ -53,11 +51,7 @@ function formatReleaseDate(iso: string) {
 }
 
 export function NoirDiscoverView({
-  onAddToQueue,
   onPlayPlaylist,
-  onPlayNext,
-  onToggleFavorite,
-  favorites = [],
   onSelectPlaylist,
   onViewArtist,
 }: NoirDiscoverViewProps) {
@@ -314,37 +308,8 @@ export function NoirDiscoverView({
         </section>
       )}
 
-      {feed &&
-        feed.tags.map((shelf) => (
-          <section key={shelf.id}>
-            <div className="mb-4 mt-[var(--noir-section-gap)] flex items-baseline justify-between gap-4 px-1">
-              <h3 className="noir-section-title">{shelf.title}</h3>
-              <button
-                type="button"
-                onClick={() => openTagShelf(shelf.title, shelf.tracks, shelf.id)}
-                className="noir-link elva-focus-ring"
-              >
-                {strings.discover.showAll}
-              </button>
-            </div>
-            <div className="flex flex-col gap-0.5">
-              {shelf.tracks.slice(0, 6).map((track, i) => (
-                <NoirSongRow
-                  key={track.id}
-                  track={track}
-                  isFavorite={isTrackFavorite(favorites, track)}
-                  onPlay={() => onPlayPlaylist(shelf.tracks, shelf.title, i)}
-                  onAddToQueue={onAddToQueue}
-                  onPlayNext={onPlayNext}
-                  onToggleFavorite={onToggleFavorite}
-                />
-              ))}
-            </div>
-          </section>
-        ))}
-
       <section className={hasPersonal || feedLoading || chartArtists.length > 0 ? 'mt-[var(--noir-section-gap)]' : undefined}>
-        {(hasPersonal || chartArtists.length > 0) && (
+        {(hasPersonal || chartArtists.length > 0 || localHits.length > 0 || globalHits.length > 0) && (
           <h3 className="noir-section-heading !mt-0 px-1">{strings.discover.charts}</h3>
         )}
         <div className="noir-discover-charts">
@@ -363,6 +328,51 @@ export function NoirDiscoverView({
           )}
         </div>
       </section>
+
+      {feed &&
+        feed.tags.map((shelf) => (
+          <section key={shelf.id}>
+            <div className="mb-4 mt-[var(--noir-section-gap)] flex items-baseline justify-between gap-4 px-1">
+              <h3 className="noir-section-title">{shelf.title}</h3>
+              <button
+                type="button"
+                onClick={() => openTagShelf(shelf.title, shelf.tracks, shelf.id)}
+                className="noir-link elva-focus-ring"
+              >
+                {strings.discover.showAll}
+              </button>
+            </div>
+            <div className="noir-home-shelf">
+              {shelf.tracks.slice(0, 10).map((track, i) => (
+                <motion.button
+                  key={track.id}
+                  type="button"
+                  className="noir-collection-card noir-home-shelf-card group elva-focus-ring"
+                  onClick={() => onPlayPlaylist(shelf.tracks, shelf.title, i)}
+                  initial={reduced ? false : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: i * 0.03 }}
+                >
+                  <span className="relative block">
+                    <NoirDitherCover
+                      source={track.thumbnail}
+                      world={worldForCollection(track.id)}
+                      seed={track.id}
+                      size={140}
+                    />
+                    <span className="noir-discover-release-play noir-play-round !h-9 !w-9 pointer-events-none opacity-0 transition-opacity group-hover:opacity-100">
+                      <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
+                    </span>
+                  </span>
+                  <span className="min-w-0">
+                    <span className="noir-song-title block truncate">{track.title}</span>
+                    <span className="noir-song-meta mt-0.5 block truncate">{track.artist}</span>
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+          </section>
+        ))}
     </div>
   );
 }
