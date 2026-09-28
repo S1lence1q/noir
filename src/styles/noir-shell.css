@@ -470,6 +470,88 @@
   grid-template-columns: 48px minmax(0, 1fr) 56px minmax(96px, auto);
 }
 
+.noir-song-grid.noir-track-row--unranked.noir-track-row--with-added {
+  grid-template-columns: 48px minmax(0, 1fr) minmax(72px, 110px) minmax(96px, auto);
+}
+
+.noir-song-grid.noir-track-row--unranked.noir-track-row--with-duration.noir-track-row--with-added {
+  grid-template-columns: 48px minmax(0, 1fr) 56px minmax(72px, 110px) minmax(96px, auto);
+}
+
+.noir-song-added {
+  overflow: hidden;
+  color: var(--noir-text-tertiary);
+  font: var(--noir-type-meta);
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.noir-favorites-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px 10px;
+}
+
+.noir-favorites-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.noir-favorites-sort-label {
+  font: var(--noir-type-meta);
+  color: var(--noir-text-tertiary);
+  white-space: nowrap;
+}
+
+.noir-favorites-sort-select {
+  appearance: none;
+  border: none;
+  border-radius: var(--noir-radius-sm);
+  background: rgba(255, 255, 255, 0.06)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(249,249,249,0.45)' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 8px center;
+  color: var(--noir-text-primary);
+  font: var(--noir-type-meta);
+  font-weight: 500;
+  padding: 6px 28px 6px 10px;
+  cursor: pointer;
+}
+
+.noir-favorites-sort-select:focus,
+.noir-favorites-sort-select:focus-visible {
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.09);
+}
+
+.noir-favorites-sort-select option {
+  background: #111;
+  color: #f9f9f9;
+}
+
+.noir-favorites-date-heading {
+  font: var(--noir-type-meta);
+  color: var(--noir-text-tertiary);
+  text-align: right;
+  padding-right: 4px;
+  min-width: 72px;
+}
+
+@media (max-width: 640px) {
+  .noir-song-grid.noir-track-row--unranked.noir-track-row--with-added {
+    grid-template-columns: 48px minmax(0, 1fr) minmax(96px, auto);
+  }
+
+  .noir-song-added,
+  .noir-favorites-date-heading {
+    display: none;
+  }
+}
+
 .noir-song-grid.noir-track-row--no-art {
   grid-template-columns: 32px minmax(0, 1fr) minmax(96px, auto);
 }

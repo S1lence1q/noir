@@ -95,6 +95,13 @@ export const strings = {
     coldStartNoHits: 'No artists matched. Try another spelling.',
     coldStartChartsEmpty: 'Charts are slow right now — search for three artists you love.',
   },
+  library: {
+    favoritesSortLabel: 'Sort by',
+    favoritesSortRecent: 'Recently added',
+    favoritesSortTitle: 'Title',
+    favoritesSortArtist: 'Artist',
+    favoritesDateAdded: 'Date added',
+  },
   radio: {
     starting: 'Starting radio…',
     started: (artist: string) => `Playing radio · ${artist}`,

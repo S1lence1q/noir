@@ -2,12 +2,14 @@ import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { Heart, Plus } from 'lucide-react';
 import { SearchResult } from '../../../types';
+import { strings } from '../../../constants/strings';
 import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
 import { prefersReducedMotion } from '../../../utils/motionPresets';
 import { encodePlaylistTrack, PLAYLIST_TRACK_DRAG_MIME } from '../../../utils/playlistStore';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { displayArtistName } from '../../../utils/stringUtils';
 import { hasRealArtwork, youtubeThumb } from '../../../utils/artwork';
+import { formatFavoritedAt } from '../../../utils/favoriteUtils';
 import { NoirDitherCover } from './NoirDitherCover';
 
 type NoirSongRowProps = {
@@ -24,6 +26,8 @@ type NoirSongRowProps = {
   onRemoveFromPlaylist?: (track: SearchResult) => void;
   showArtistColumn?: boolean;
   showDuration?: boolean;
+  /** Epoch ms — shows a Spotify-style “Date added” column when set. */
+  favoritedAt?: number;
   /** Rendered in the hover action group, before add-to-queue. */
   extraAction?: ReactNode;
   /**
@@ -53,6 +57,7 @@ export function NoirSongRow({
   onRemoveFromPlaylist,
   showArtistColumn = true,
   showDuration = false,
+  favoritedAt,
   extraAction,
   allowExternalDrag = true,
 }: NoirSongRowProps) {
@@ -62,6 +67,10 @@ export function NoirSongRow({
     ? track.thumbnail.trim()
     : youtubeThumb(track.videoId, 'mq') || '';
   const hasThumb = !!artUrl;
+  const addedLabel =
+    typeof favoritedAt === 'number' && Number.isFinite(favoritedAt)
+      ? formatFavoritedAt(favoritedAt)
+      : null;
 
   return (
     <motion.div
@@ -95,7 +104,7 @@ export function NoirSongRow({
       }}
       className={`noir-track-row noir-song-grid noir-track-row--unranked group cursor-pointer px-3 py-3 ${
         showDuration ? 'noir-track-row--with-duration' : ''
-      }`}
+      }${addedLabel ? ' noir-track-row--with-added' : ''}`}
       whileTap={reduced || isLoading ? undefined : { scale: 0.985 }}
       transition={{ type: 'spring', stiffness: 520, damping: 34 }}
     >
@@ -157,6 +166,11 @@ export function NoirSongRow({
       {showDuration && (
         <span className="noir-song-duration">
           {track.duration !== undefined ? formatDuration(track.duration) : null}
+        </span>
+      )}
+      {addedLabel && (
+        <span className="noir-song-added" title={strings.library.favoritesDateAdded}>
+          {addedLabel}
         </span>
       )}
       <div

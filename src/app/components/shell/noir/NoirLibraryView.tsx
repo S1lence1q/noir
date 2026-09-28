@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Heart, ListMusic, Plus, AudioLines } from 'lucide-react';
 import { SearchResult } from '../../../types';
@@ -10,6 +10,11 @@ import { NoirUserPlaylistPage } from './NoirUserPlaylistPage';
 import { NoirStatsView } from './NoirStatsView';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
+import {
+  formatFavoritedAt,
+  sortFavorites,
+  type FavoritesSort,
+} from '../../../utils/favoriteUtils';
 import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
 
 type LibrarySection = 'favorites' | 'playlists' | 'stats';
@@ -50,9 +55,15 @@ export function NoirLibraryView({
   onPlayNext,
 }: NoirLibraryViewProps) {
   const [section, setSection] = useState<LibrarySection>(focus?.section ?? 'favorites');
+  const [favoritesSort, setFavoritesSort] = useState<FavoritesSort>('recent');
   const playlists = usePlaylists();
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(
     focus?.playlistId ?? null
+  );
+
+  const sortedFavorites = useMemo(
+    () => sortFavorites(favorites, favoritesSort),
+    [favorites, favoritesSort]
   );
 
   useEffect(() => {
@@ -115,11 +126,30 @@ export function NoirLibraryView({
             >
               {favorites.length > 0 ? (
                 <div className="flex flex-col gap-0.5">
-                  {favorites.map((track) => (
+                  <div className="noir-favorites-toolbar">
+                    <label className="noir-favorites-sort">
+                      <span className="noir-favorites-sort-label">{strings.library.favoritesSortLabel}</span>
+                      <select
+                        value={favoritesSort}
+                        onChange={(e) => setFavoritesSort(e.target.value as FavoritesSort)}
+                        className="noir-favorites-sort-select elva-focus-ring"
+                        aria-label={strings.library.favoritesSortLabel}
+                      >
+                        <option value="recent">{strings.library.favoritesSortRecent}</option>
+                        <option value="title">{strings.library.favoritesSortTitle}</option>
+                        <option value="artist">{strings.library.favoritesSortArtist}</option>
+                      </select>
+                    </label>
+                    <span className="noir-favorites-date-heading" aria-hidden>
+                      {strings.library.favoritesDateAdded}
+                    </span>
+                  </div>
+                  {sortedFavorites.map((track) => (
                     <NoirSongRow
                       key={track.id}
                       track={track}
                       isFavorite
+                      favoritedAt={track.favoritedAt}
                       onPlay={() => onSelectSong(track)}
                       onAddToQueue={onAddToQueue}
                       onPlayNext={onPlayNext}

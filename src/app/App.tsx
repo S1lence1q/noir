@@ -18,7 +18,7 @@ import { isLikelyMusicVideoStream } from './utils/apiUtils';
 import { prefetchChartTracks } from './utils/chartPrefetch';
 import { parseLocalMetadata } from './utils/metadataParser';
 import { getPlaybackSongKey } from './utils/playbackSongKey';
-import { isTrackFavorite } from './utils/favoriteUtils';
+import { ensureFavoritedAt, isTrackFavorite } from './utils/favoriteUtils';
 import { restoreLocalTrack, saveLocalTrack } from './utils/localTrackStorage';
 import { strings } from './constants/strings';
 import { waitForYouTubeApi } from './utils/youtubeApiReady';
@@ -197,7 +197,7 @@ export default function App() {
   const [favorites, setFavorites] = useState<SearchResult[]>(() => {
     try {
       const stored = localStorage.getItem('elva_favorites');
-      return stored ? JSON.parse(stored) : [];
+      return stored ? ensureFavoritedAt(JSON.parse(stored)) : [];
     } catch {
       return [];
     }
@@ -208,7 +208,7 @@ export default function App() {
     void (async () => {
       const stored = localStorage.getItem('elva_favorites');
       const current: SearchResult[] = stored ? JSON.parse(stored) : [];
-      const hydrated = await hydrateLocalTracks(current);
+      const hydrated = ensureFavoritedAt(await hydrateLocalTracks(current));
       if (cancelled) return;
       setFavorites(hydrated);
       localStorage.setItem('elva_favorites', JSON.stringify(hydrated));
@@ -539,7 +539,8 @@ export default function App() {
         );
         noirToast({ text: strings.songMenu.removedFromFavorites, cover: song.thumbnail });
       } else {
-        updated = [...prev, song];
+        // Newest favorites sit at the top of Library.
+        updated = [{ ...song, favoritedAt: Date.now() }, ...prev];
         noirToast({ text: strings.songMenu.addedToFavorites, cover: song.thumbnail });
       }
       localStorage.setItem('elva_favorites', JSON.stringify(updated));

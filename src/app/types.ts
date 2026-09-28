@@ -7,6 +7,8 @@ export interface SearchResult {
   channelId?: string;
   audioUrl?: string;
   duration?: number;
+  /** Epoch ms when the track was added to Favorites (Library / Spotify-style). */
+  favoritedAt?: number;
 }
 
 export type ArtistConfidence = 'high' | 'medium' | 'low';
