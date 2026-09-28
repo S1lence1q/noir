@@ -706,40 +706,42 @@
 .noir-brand-chiaroscuro {
   pointer-events: none;
   position: absolute;
-  inset: -40px -60px auto auto;
+  top: -36px;
+  right: -72px;
   z-index: 0;
-  width: 260px;
-  height: 280px;
+  width: 200px;
+  height: 260px;
   overflow: hidden;
+  /* Keep the mass on the far-right edge — never under nav labels */
+  -webkit-mask-image: linear-gradient(to left, #000 0%, #000 28%, transparent 72%);
+  mask-image: linear-gradient(to left, #000 0%, #000 28%, transparent 72%);
 }
 
 .noir-brand-chiaroscuro-img {
   position: absolute;
   inset: 0;
-  width: 100%;
+  width: 120%;
   height: 100%;
   object-fit: cover;
-  object-position: 70% 40%;
-  filter: grayscale(1) contrast(1.85) brightness(0.42);
-  opacity: 0.9;
+  object-position: 78% 36%;
+  filter: grayscale(1) contrast(1.7) brightness(0.38);
+  opacity: 0.55;
   mix-blend-mode: screen;
-  -webkit-mask-image: radial-gradient(ellipse 65% 58% at 62% 38%, #000 10%, transparent 70%);
-  mask-image: radial-gradient(ellipse 65% 58% at 62% 38%, #000 10%, transparent 70%);
 }
 
 .noir-brand-chiaroscuro-shaft {
   position: absolute;
-  top: -10%;
-  right: 8%;
-  width: 42%;
-  height: 120%;
+  top: -14%;
+  right: 0;
+  width: 48%;
+  height: 130%;
   background: linear-gradient(
-    118deg,
+    112deg,
     transparent 0%,
-    rgba(249, 249, 249, 0.07) 38%,
-    rgba(249, 249, 249, 0.18) 48%,
-    rgba(249, 249, 249, 0.05) 58%,
-    transparent 78%
+    rgba(249, 249, 249, 0.04) 40%,
+    rgba(249, 249, 249, 0.14) 50%,
+    rgba(249, 249, 249, 0.04) 60%,
+    transparent 82%
   );
   mix-blend-mode: soft-light;
   pointer-events: none;
@@ -748,10 +750,12 @@
 .noir-brand-chiaroscuro-grain {
   position: absolute;
   inset: 0;
-  opacity: 0.35;
+  opacity: 0.22;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
   mix-blend-mode: overlay;
+  -webkit-mask-image: inherit;
+  mask-image: inherit;
 }
 
 .noir-brand-asterisk {
