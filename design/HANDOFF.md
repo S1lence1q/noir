@@ -58,7 +58,7 @@ Shell, player-in-canvas, compact bar, Cmd+K search, queue flow, local files (ear
 - **Compact bar:** Close fades on the left (does not steal cover slot); queue opens only when closed; title/artist underline scoped separately
 - **Browser tab:** title `NOIR` + asterisk favicon (`public/favicon.svg`, linked from `index.html`).
 - **⌘N** new playlist + listed in shortcuts map
-- **Deploy:** GitHub Pages via `.github/workflows/deploy.yml` on push to `main` → live at https://elva.arkivet.xyz/ (also `https://s1lence1q.github.io/elva/` if custom domain is off). Needs repo secrets `VITE_LASTFM_API_KEY` (and optional `VITE_YOUTUBE_API_KEY`).
+- **Deploy:** GitHub Pages via `.github/workflows/deploy.yml` on push to `main` → live at https://noir.arkivet.xyz/ (repo `S1lence1q/noir`). Needs repo secret `VITE_LASTFM_API_KEY` (optional `VITE_YOUTUBE_API_KEY`). **Elva** is frozen at `S1lence1q/elva` → https://elva.arkivet.xyz/ (pre-NOIR). Do not push NOIR work to `elva`.
 
 ## Next (in order)
 
