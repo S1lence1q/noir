@@ -5,7 +5,7 @@ import { SearchResult } from '../../types';
 import { MOTION, withReducedMotion } from '../../utils/motionPresets';
 import { AppTab } from './types';
 import { NoirMark } from './noir/NoirMark';
-import { NoirNavDiscover, NoirNavHome, NoirNavLibrary } from './noir/NoirNavIcons';
+import { useNavIconSet } from './noir/NoirNavIcons';
 import { NoirDitherCover } from './noir/NoirDitherCover';
 import { NoirFavoritesCover } from './noir/NoirFavoritesCover';
 import { worldForCollection } from '../../utils/ditherCover';
@@ -16,16 +16,6 @@ import {
   usePlaylists,
 } from '../../utils/playlistStore';
 import { strings } from '../../constants/strings';
-
-const PRIMARY_NAV: {
-  id: AppTab;
-  label: string;
-  Icon: typeof NoirNavHome;
-}[] = [
-  { id: 'search', label: 'Home', Icon: NoirNavHome },
-  { id: 'discover', label: 'Discover', Icon: NoirNavDiscover },
-  { id: 'myhub', label: 'Library', Icon: NoirNavLibrary },
-];
 
 type AppSidebarProps = {
   activeTab: AppTab;
@@ -52,18 +42,31 @@ export function AppSidebar({
   const sidebarPlaylists = playlists.slice(0, 8);
   const sidebarPlaylistActive = sidebarPlaylists.some((p) => p.id === selectedPlaylistId);
   const [dragOverPlaylistId, setDragOverPlaylistId] = useState<string | null>(null);
+  const { Home, Discover, Library, cycle, label } = useNavIconSet();
+  const primaryNav = [
+    { id: 'search' as const, label: 'Home', Icon: Home },
+    { id: 'discover' as const, label: 'Discover', Icon: Discover },
+    { id: 'myhub' as const, label: 'Library', Icon: Library },
+  ];
 
   return (
     <aside className="elva-shell-sidebar relative flex h-full w-[248px] shrink-0 flex-col overflow-hidden select-none px-3 py-5">
       <div className="noir-sidebar-brand-row">
-        <div className="noir-sidebar-wordmark">
+        <button
+          type="button"
+          className="noir-sidebar-wordmark noir-sidebar-wordmark--cycle elva-focus-ring"
+          onClick={cycle}
+          title={`Nav icons: ${label} — click to compare`}
+          aria-label={`Nav icon set ${label}. Click to try the next set.`}
+        >
           <span className="text-[13px] font-bold tracking-[0.34em]">NOIR</span>
           <NoirMark size={11} className="text-[color:var(--noir-text-primary)]" />
-        </div>
+          <span className="noir-sidebar-brand-hint">{label}</span>
+        </button>
       </div>
 
       <nav className="relative z-[1] flex flex-col gap-1" aria-label="Main navigation">
-        {PRIMARY_NAV.map(({ id, label, Icon }) => {
+        {primaryNav.map(({ id, label: navLabel, Icon }) => {
           const isActive =
             activeTab === id && !sidebarPlaylistActive && !(id === 'myhub' && favoritesActive);
           return (
@@ -76,7 +79,7 @@ export function AppSidebar({
               aria-current={isActive ? 'page' : undefined}
             >
               <Icon size={18} strokeWidth={isActive ? 2.1 : 1.65} className="shrink-0" />
-              <span>{label}</span>
+              <span>{navLabel}</span>
             </button>
           );
         })}
