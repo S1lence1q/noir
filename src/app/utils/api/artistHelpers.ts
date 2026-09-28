@@ -160,6 +160,9 @@ export const HAND_PICKED_ARTIST_IMAGES: Record<string, string> = {
   lamin: 'https://cdn-images.dzcdn.net/images/artist/7375da7e864a9cf0bdd6add7578df724/250x250-000000-80-0-0.jpg',
   artigeardit:
     'https://cdn-images.dzcdn.net/images/artist/54920f6d4791b6923f008effd0b3b2ef/250x250-000000-80-0-0.jpg',
+  // Deezer's artist.picture for Mille is Millé's "All Good" single — use her own lead single cover.
+  mille:
+    'https://cdn-images.dzcdn.net/images/cover/1b976d11691c5cc5a519c358ab54cf3f/1000x1000-000000-80-0-0.jpg',
 };
 
 export const getHandPickedImage = (name: string): string | null => {

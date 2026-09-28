@@ -165,8 +165,8 @@ export function getNewReleases(artist: string, days = 30): Promise<GraphRelease[
 export function getArtistImage(artist: string, deezerId?: number): Promise<string | undefined> {
   const key =
     deezerId != null && Number.isFinite(deezerId)
-      ? `artist-image:deezer:${deezerId}`
-      : `artist-image:${artistKey(artist)}`;
+      ? `artist-image-v2:deezer:${deezerId}`
+      : `artist-image-v2:${artistKey(artist)}`;
   return requestCached(key, TTL.image, () => getDeezerArtistImage(artist, deezerId), undefined);
 }
 

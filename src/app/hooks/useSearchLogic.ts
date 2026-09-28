@@ -485,8 +485,21 @@ export function useSearchLogic({
 
   const handleViewArtistProfile = async (artist: VerifiedArtist) => {
     const cleanedName = displayArtistName(artist.name);
-    // Already on this profile with songs (or mid-load) — don't wipe and restart.
+    const handPickedUrl = getHandPickedImage(cleanedName);
+    // Already on this profile — don't wipe tracks, but heal a wrong hero image.
     if (sameArtistAlreadyOpen(cleanedName) && (artistTracks.length > 0 || isLoadingArtist)) {
+      const better =
+        handPickedUrl ||
+        artistPortraitUrl(artist.thumbnail) ||
+        '';
+      if (better && better !== selectedArtist?.thumbnail) {
+        setSelectedArtist((prev) => (prev ? { ...prev, thumbnail: better } : prev));
+        try {
+          localStorage.setItem(`elva_artist_img_${cleanedName.toLowerCase()}`, better);
+        } catch {
+          /* optional */
+        }
+      }
       return;
     }
 
@@ -496,7 +509,6 @@ export function useSearchLogic({
       name: cleanedName,
       isTopic: artist.isTopic || /\btopic\b/i.test(artist.name),
     };
-    const handPickedUrl = getHandPickedImage(cleanedName);
 
     // Shell opens immediately — warm discography from cache by name so revisit isn't empty skeletons.
     const warm = peekCachedDiscographyEntry(cleanedName, {

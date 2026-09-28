@@ -1,5 +1,6 @@
 import type { GraphArtist, GraphRelease, GraphTrack } from './index';
 import { cleanName, normalizeName } from './normalize';
+import { deezerCdnHash } from '../../utils/artwork';
 
 const loggedFailures = new Set<string>();
 
@@ -89,9 +90,37 @@ async function findArtist(artist: string, deezerId?: number): Promise<DeezerArti
   };
 }
 
+/**
+ * Deezer often reuses a single's cover as picture_* (e.g. Millé "All Good" on Danish Mille).
+ * If the "artist" photo hash matches a top-track album cover, prefer another popular cover.
+ */
+async function resolvePortraitAgainstTopTracks(artist: DeezerArtist): Promise<string | undefined> {
+  const portrait = artist.picture_xl || artist.picture_big || artist.picture_medium;
+  const portraitHash = deezerCdnHash(portrait);
+  const response = await deezerGet<{ data?: DeezerTrack[] }>(
+    `/artist/${artist.id}/top?limit=12`
+  );
+  const tops = response?.data ?? [];
+  const covers = tops
+    .map((track) => track.album?.cover_xl || track.album?.cover_big)
+    .filter((url): url is string => !!url);
+  const coverHashes = new Set(
+    covers.map((url) => deezerCdnHash(url)).filter((hash): hash is string => !!hash)
+  );
+
+  if (portrait && portraitHash && coverHashes.has(portraitHash)) {
+    for (const cover of covers) {
+      const hash = deezerCdnHash(cover);
+      if (hash && hash !== portraitHash) return cover;
+    }
+  }
+  return portrait || covers[0];
+}
+
 export async function getDeezerArtistPortraitById(deezerId: number): Promise<string | undefined> {
   const artist = await deezerGet<DeezerArtist>(`/artist/${deezerId}`);
-  return artist?.picture_xl || artist?.picture_big || artist?.picture_medium;
+  if (!artist?.name && !artist?.picture_xl && !artist?.picture_big) return undefined;
+  return resolvePortraitAgainstTopTracks({ ...artist, id: deezerId });
 }
 
 function mapTrack(track: DeezerTrack, fallbackArtist: string): GraphTrack | null {
@@ -198,7 +227,8 @@ export async function getDeezerArtistImage(artist: string, deezerId?: number): P
     if (byId) return byId;
   }
   const match = await findArtist(artist, deezerId);
-  return match?.picture_xl || match?.picture_big || match?.picture_medium;
+  if (!match) return undefined;
+  return resolvePortraitAgainstTopTracks(match);
 }
 
 /** Album cover for a track — Last.fm tag charts rarely ship real artwork. */

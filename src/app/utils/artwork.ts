@@ -5,14 +5,18 @@ export function hasRealArtwork(url?: string | null): boolean {
   return true;
 }
 
-/** Album / video thumbs must never become the artist hero (common for short names like "Mille"). */
+/** YouTube thumbs are never artist portraits (Discover/NP often pass track art). */
 export function isLikelyAlbumOrTrackArtwork(url?: string | null): boolean {
   if (!url?.trim()) return false;
   const u = url.toLowerCase();
-  if (u.includes('ytimg.com') || u.includes('youtube.com/vi/')) return true;
-  if (u.includes('dzcdn.net/images/cover/')) return true;
-  if (u.includes('/images/artist/')) return false;
-  return false;
+  return u.includes('ytimg.com') || u.includes('youtube.com/vi/');
+}
+
+/** Hash inside Deezer CDN paths: /images/artist|cover/{hash}/… */
+export function deezerCdnHash(url?: string | null): string | null {
+  if (!url) return null;
+  const match = url.match(/\/images\/(?:artist|cover)\/([a-f0-9]{16,})\//i);
+  return match?.[1]?.toLowerCase() ?? null;
 }
 
 export function artistPortraitUrl(url?: string | null): string | undefined {
