@@ -62,6 +62,11 @@ export function usePlaybackCore({
   const queueLengthRef = useRef(queue.length);
   const endWatchTimerRef = useRef<number | null>(null);
   const endWatchTokenRef = useRef(0);
+  const advanceInFlightRef = useRef(false);
+  const lastAdvanceFromKeyRef = useRef<string | null>(null);
+  const activeQueueIndexRef = useRef(0);
+  const queueRef = useRef(queue);
+  const songDataRef = useRef(songData);
   const currentTimeRef = useRef(currentTime);
   const durationRef = useRef(duration);
   const volumeRef = useRef(volume);
@@ -92,7 +97,16 @@ export function usePlaybackCore({
 
   useEffect(() => {
     queueLengthRef.current = queue.length;
-  }, [queue.length]);
+    queueRef.current = queue;
+  }, [queue]);
+
+  useEffect(() => {
+    songDataRef.current = songData;
+    const key = getPlaybackSongKey(songData);
+    if (!key) return;
+    const idx = queueRef.current.findIndex((item) => getPlaybackSongKey(item) === key);
+    if (idx >= 0) activeQueueIndexRef.current = idx;
+  }, [songData]);
 
   const clearEndWatch = useCallback(() => {
     if (endWatchTimerRef.current != null) {
@@ -103,75 +117,50 @@ export function usePlaybackCore({
   }, []);
 
   /**
-   * Background tabs throttle the 250ms progress loop and defer YT ENDED until focus returns.
-   * A one-shot timeout for the remaining runtime still fires, so the queue can advance while
-   * the user is in Cursor / another app.
+   * Background tabs freeze JS (Arc) — timers + YT ENDED then flush together on focus and
+   * double-advance (skip). Also never re-read a frozen YT clock to decide whether to advance.
    */
-  const scheduleEndWatch = useCallback(
-    (current: number, dur: number) => {
-      if (endWatchTimerRef.current != null) {
-        window.clearTimeout(endWatchTimerRef.current);
-        endWatchTimerRef.current = null;
+  const scheduleEndWatch = useCallback((current: number, dur: number) => {
+    if (endWatchTimerRef.current != null) {
+      window.clearTimeout(endWatchTimerRef.current);
+      endWatchTimerRef.current = null;
+    }
+
+    if (!isPlayingRef.current || isCrossfadingRef.current || advanceInFlightRef.current) return;
+    if (!(dur > 0) || !Number.isFinite(dur) || !Number.isFinite(current)) return;
+
+    const saved = localStorage.getItem('elva_crossfade_duration');
+    const crossfadeWindow = saved !== null ? parseFloat(saved) : 3.0;
+    const canCrossfade = crossfadeWindow > 0 && queueLengthRef.current >= 2;
+    const lead = canCrossfade ? crossfadeWindow : 0.25;
+    const remainingSec = Math.max(0.05, dur - lead - current);
+    const token = ++endWatchTokenRef.current;
+
+    endWatchTimerRef.current = window.setTimeout(() => {
+      if (token !== endWatchTokenRef.current) return;
+      if (!isPlayingRef.current || isCrossfadingRef.current || advanceInFlightRef.current) return;
+
+      // Force the end window — do not trust getCurrentTime() after a frozen background tab.
+      if (canCrossfade) {
+        void checkCrossfadeRef.current(dur - lead + 0.05, dur);
+      } else {
+        void handleNextSongRef.current();
       }
+    }, Math.ceil(remainingSec * 1000));
+  }, []);
 
-      if (!isPlayingRef.current || isCrossfadingRef.current) return;
-      if (!(dur > 0) || !Number.isFinite(dur) || !Number.isFinite(current)) return;
-
-      const saved = localStorage.getItem('elva_crossfade_duration');
-      const crossfadeWindow = saved !== null ? parseFloat(saved) : 3.0;
-      const canCrossfade = crossfadeWindow > 0 && queueLengthRef.current >= 2;
-      const lead = canCrossfade ? crossfadeWindow : 0.2;
-      const remainingSec = dur - lead - current;
-      if (remainingSec < 0.05) {
-        // Already in the end window — fire on next macrotask
-        const token = ++endWatchTokenRef.current;
-        endWatchTimerRef.current = window.setTimeout(() => {
-          if (token !== endWatchTokenRef.current) return;
-          if (!isPlayingRef.current || isCrossfadingRef.current) return;
-          if (canCrossfade) {
-            void checkCrossfadeRef.current(current, dur);
-          } else {
-            void handleNextSongRef.current();
-          }
-        }, 0);
-        return;
-      }
-
-      const token = ++endWatchTokenRef.current;
-      endWatchTimerRef.current = window.setTimeout(() => {
-        if (token !== endWatchTokenRef.current) return;
-        if (!isPlayingRef.current || isCrossfadingRef.current) return;
-
-        // Re-read media clock if the tab is still alive; fall back to schedule math.
-        let now = current + remainingSec + lead;
-        let durationNow = dur;
-        const engine = activeEngineRef.current;
-        const activeYT = engine === 'A' ? ytPlayerRefA.current : ytPlayerRefB.current;
-        const activeAudio = engine === 'A' ? audioRefA.current : audioRefB.current;
-        const activeIsYT = engine === 'A' ? isYouTubeRefA.current : isYouTubeRefB.current;
-        try {
-          if (activeIsYT && activeYT?.getCurrentTime) {
-            now = activeYT.getCurrentTime();
-            durationNow = activeYT.getDuration() || dur;
-          } else if (activeAudio && Number.isFinite(activeAudio.currentTime)) {
-            now = activeAudio.currentTime;
-            durationNow = activeAudio.duration || dur;
-          }
-        } catch {
-          /* use scheduled values */
-        }
-
-        const stillCanCrossfade =
-          (saved !== null ? parseFloat(saved) : 3.0) > 0 && queueLengthRef.current >= 2;
-        if (stillCanCrossfade) {
-          void checkCrossfadeRef.current(now, durationNow);
-        } else {
-          void handleNextSongRef.current();
-        }
-      }, Math.ceil(remainingSec * 1000));
-    },
-    []
-  );
+  /** Returns false if another advance already claimed this song. */
+  const claimAdvanceFrom = useCallback((fromKey: string | null) => {
+    if (advanceInFlightRef.current) return false;
+    if (fromKey && lastAdvanceFromKeyRef.current === fromKey) return false;
+    advanceInFlightRef.current = true;
+    if (fromKey) lastAdvanceFromKeyRef.current = fromKey;
+    clearEndWatch();
+    window.setTimeout(() => {
+      advanceInFlightRef.current = false;
+    }, 2000);
+    return true;
+  }, [clearEndWatch]);
 
   // 3. Dual Volume Faders
   const { 
@@ -534,36 +523,44 @@ export function usePlaybackCore({
   }, [initAnalyzer, fadeVolumeA, fadeVolumeB, faderRefA, faderRefB, getOrInitYTPlayer, startYouTubePlayback]);
 
   const handleNextSong = useCallback(async () => {
+    const activeKey = getPlaybackSongKey(songDataRef.current);
+    if (!claimAdvanceFrom(activeKey)) return;
+
     // Abort crossfade since user takes manual skip control
-    clearEndWatch();
     abortActiveCrossfade();
 
     const activeFadeVolume = activeEngineRef.current === 'A' ? fadeVolumeA : fadeVolumeB;
+    const q = queueRef.current;
 
-    if (queue.length === 0) {
+    if (q.length === 0) {
       toast.info('Queue is empty', {
         description: 'Add more songs to keep the music playing!',
       });
       return;
     }
 
-    if (isPlaying) {
+    if (isPlayingRef.current) {
       void activeFadeVolume(0, 400);
     }
-    
-    const activeKey = getPlaybackSongKey(songData);
-    const currentIndex = activeKey
-      ? queue.findIndex((item) => getPlaybackSongKey(item) === activeKey)
+
+    let currentIndex = activeKey
+      ? q.findIndex((item) => getPlaybackSongKey(item) === activeKey)
       : -1;
-    const nextIndex = currentIndex === -1 || currentIndex >= queue.length - 1 ? 0 : currentIndex + 1;
-    const nextSong = queue[nextIndex];
+    // Key mismatch used to wrap to 0 and feel like a random jump — prefer last known index.
+    if (currentIndex < 0) {
+      currentIndex = Math.min(activeQueueIndexRef.current, q.length - 1);
+    }
+    const nextIndex = currentIndex >= q.length - 1 ? 0 : currentIndex + 1;
+    const nextSong = q[nextIndex];
     if (nextSong && onSelectFromQueue) {
+      activeQueueIndexRef.current = nextIndex;
       onSelectFromQueue(nextSong.id);
     }
-  }, [isPlaying, queue, songData, fadeVolumeA, fadeVolumeB, setPlaying, onSelectFromQueue, stopAllPlayback, abortActiveCrossfade, clearEndWatch]);
+  }, [fadeVolumeA, fadeVolumeB, onSelectFromQueue, abortActiveCrossfade, claimAdvanceFrom]);
 
   const handlePreviousSong = useCallback(async () => {
     abortActiveCrossfade();
+    clearEndWatch();
 
     const activeYT = activeEngineRef.current === 'A' ? ytPlayerRefA.current : ytPlayerRefB.current;
     const activeAudio = activeEngineRef.current === 'A' ? audioRefA.current : audioRefB.current;
@@ -577,11 +574,13 @@ export function usePlaybackCore({
       } else if (activeAudio) {
         activeAudio.currentTime = 0;
       }
+      scheduleEndWatch(0, durationRef.current);
       return;
     }
 
+    const q = queueRef.current;
     // 2. Otherwise, if there are no songs in the queue, also restart it from 0:00
-    if (queue.length === 0) {
+    if (q.length === 0) {
       setCurrentTime(0);
       if (activeIsYT && activeYT?.seekTo) {
         try { activeYT.seekTo(0, true); } catch {}
@@ -592,21 +591,26 @@ export function usePlaybackCore({
     }
 
     const activeFadeVolume = activeEngineRef.current === 'A' ? fadeVolumeA : fadeVolumeB;
-    if (isPlaying) {
+    if (isPlayingRef.current) {
       void activeFadeVolume(0, 400);
     }
-    
-    const activeKey = getPlaybackSongKey(songData);
-    const currentIndex = activeKey
-      ? queue.findIndex((item) => getPlaybackSongKey(item) === activeKey)
-      : -1;
 
-    const prevIndex = currentIndex <= 0 ? queue.length - 1 : currentIndex - 1;
-    const prevSong = queue[prevIndex];
+    const activeKey = getPlaybackSongKey(songDataRef.current);
+    let currentIndex = activeKey
+      ? q.findIndex((item) => getPlaybackSongKey(item) === activeKey)
+      : -1;
+    if (currentIndex < 0) {
+      currentIndex = Math.min(activeQueueIndexRef.current, q.length - 1);
+    }
+
+    const prevIndex = currentIndex <= 0 ? q.length - 1 : currentIndex - 1;
+    const prevSong = q[prevIndex];
     if (prevSong && onSelectFromQueue) {
+      lastAdvanceFromKeyRef.current = null;
+      activeQueueIndexRef.current = prevIndex;
       onSelectFromQueue(prevSong.id);
     }
-  }, [isPlaying, queue, songData, fadeVolumeA, fadeVolumeB, onSelectFromQueue, abortActiveCrossfade]);
+  }, [fadeVolumeA, fadeVolumeB, onSelectFromQueue, abortActiveCrossfade, clearEndWatch, scheduleEndWatch]);
 
   useEffect(() => {
     handleNextSongRef.current = handleNextSong;
@@ -771,7 +775,9 @@ export function usePlaybackCore({
 
   // 6. Natural Song End Crossfading Check
   const checkCrossfade = useCallback(async (current: number, dur: number) => {
-    if (isCrossfadingRef.current || dur <= 0 || queue.length < 2) return;
+    if (isCrossfadingRef.current || advanceInFlightRef.current || dur <= 0 || queueRef.current.length < 2) {
+      return;
+    }
 
     const saved = localStorage.getItem('elva_crossfade_duration');
     const crossfadeWindow = saved !== null ? parseFloat(saved) : 3.0;
@@ -780,19 +786,29 @@ export function usePlaybackCore({
 
     if (current < dur - crossfadeWindow) return;
 
-    const activeKey = getPlaybackSongKey(songData);
-    const currentIndex = activeKey
-      ? queue.findIndex((item) => getPlaybackSongKey(item) === activeKey)
-      : -1;
-    const nextIndex = currentIndex === -1 || currentIndex >= queue.length - 1 ? 0 : currentIndex + 1;
-    const nextSong = queue[nextIndex];
+    const q = queueRef.current;
+    const activeSong = songDataRef.current;
+    const activeKey = getPlaybackSongKey(activeSong);
+    if (!claimAdvanceFrom(activeKey)) return;
 
-    if (!nextSong) return;
+    let currentIndex = activeKey
+      ? q.findIndex((item) => getPlaybackSongKey(item) === activeKey)
+      : -1;
+    if (currentIndex < 0) {
+      currentIndex = Math.min(activeQueueIndexRef.current, q.length - 1);
+    }
+    const nextIndex = currentIndex >= q.length - 1 ? 0 : currentIndex + 1;
+    const nextSong = q[nextIndex];
+
+    if (!nextSong) {
+      advanceInFlightRef.current = false;
+      return;
+    }
 
     const resolvedSong: PlaybackSongData = {
       title: nextSong.title || 'Unknown Title',
       artist: nextSong.artist || 'Unknown Artist',
-      artworkUrl: nextSong.thumbnail || songData.artworkUrl,
+      artworkUrl: nextSong.thumbnail || activeSong.artworkUrl,
       videoId: nextSong.videoId,
       audioUrl:
         nextSong.audioUrl ||
@@ -800,9 +816,13 @@ export function usePlaybackCore({
     };
 
     const nextSongKey = getPlaybackSongKey(resolvedSong);
-    if (!nextSongKey || (activeKey && nextSongKey === activeKey)) return;
+    if (!nextSongKey || (activeKey && nextSongKey === activeKey)) {
+      advanceInFlightRef.current = false;
+      return;
+    }
 
     isCrossfadingRef.current = true;
+    activeQueueIndexRef.current = nextIndex;
     setCurrentTime(0);
     setDuration(0);
 
@@ -860,8 +880,6 @@ export function usePlaybackCore({
         }
       }
 
-
-
       // Wait until the next engine starts making sound/playing before blending
       await playPromise;
 
@@ -894,14 +912,14 @@ export function usePlaybackCore({
       console.error('Crossfade failed:', err);
     } finally {
       isCrossfadingRef.current = false;
+      advanceInFlightRef.current = false;
     }
   }, [
-    queue,
-    songData,
     loadSongIntoEngine,
     onSelectFromQueue,
     fadeVolumeA,
     fadeVolumeB,
+    claimAdvanceFrom,
   ]);
 
   useEffect(() => {
@@ -1003,6 +1021,10 @@ export function usePlaybackCore({
       isTransitioningRef.current = true;
       
       const proceedManualLoad = async () => {
+        // User-initiated load (not a queue advance) — allow future advances from this song.
+        if (!advanceInFlightRef.current) {
+          lastAdvanceFromKeyRef.current = null;
+        }
         // Reset playhead timeline and duration instantly
         setCurrentTime(0);
         setDuration(0);
@@ -1118,11 +1140,6 @@ export function usePlaybackCore({
           setDuration(dur);
         }
         void checkCrossfade(current, dur);
-        // Keep a wall-clock end watch fresh; critical when the tab later goes hidden
-        // and this interval is throttled away.
-        if (dur > 0 && !isCrossfadingRef.current) {
-          scheduleEndWatch(current, dur);
-        }
       }, 250);
     } else {
       clearEndWatch();
@@ -1138,11 +1155,10 @@ export function usePlaybackCore({
         progressTimerRef.current = null;
       }
     };
-  }, [isPlaying, checkCrossfade, scheduleEndWatch, clearEndWatch]);
+  }, [isPlaying, checkCrossfade, clearEndWatch]);
 
-  // After sleep / tab blur: AudioContext stays suspended (silent MediaElementSource).
-  // Keep this gentle — YT/HTML APIs often lie after sleep (false ENDED / dead iframe).
-  // Auto-skip or force playVideo() here caused long stalls and empty NP bar flashes.
+  // Arm a wall-clock advance when the tab hides (Arc freezes intervals). On show, collapse
+  // deferred ENDED + timer flush into a single claimAdvanceFrom.
   useEffect(() => {
     const YT_ENDED = 0;
     const YT_PAUSED = 2;
@@ -1187,11 +1203,17 @@ export function usePlaybackCore({
     const wakePlayback = async () => {
       if (document.visibilityState !== 'visible') return;
 
+      // Drop any timers that Arc deferred during freeze so they can't double-fire with ENDED.
+      clearEndWatch();
       await resumeGlobalAudioContext();
       if (!isPlayingRef.current) return;
 
       const clock = readClock();
-      if (clock.ended && !isCrossfadingRef.current) {
+      const nearEnd =
+        clock.ended ||
+        (clock.dur > 0 && clock.current >= clock.dur - 0.5);
+
+      if (nearEnd && !isCrossfadingRef.current) {
         void handleNextSongRef.current();
         return;
       }
@@ -1240,18 +1262,17 @@ export function usePlaybackCore({
 
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') {
-        // Arm a wall-clock advance before Chrome throttles the progress interval.
         if (!isPlayingRef.current || isCrossfadingRef.current) return;
-        const clock = readClock();
-        if (clock.dur > 0) {
-          scheduleEndWatch(clock.current, clock.dur);
-        }
+        // Prefer last known UI clock — YT getCurrentTime is often frozen/wrong while hiding.
+        const current = currentTimeRef.current;
+        const dur = durationRef.current;
+        if (dur > 0) scheduleEndWatch(current, dur);
         return;
       }
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         void wakePlayback();
-      }, 120);
+      }, 80);
     };
 
     document.addEventListener('visibilitychange', onVisibility);
@@ -1259,7 +1280,7 @@ export function usePlaybackCore({
       document.removeEventListener('visibilitychange', onVisibility);
       if (debounceTimer) clearTimeout(debounceTimer);
     };
-  }, [fadeVolumeA, fadeVolumeB, faderRefA, faderRefB, scheduleEndWatch]);
+  }, [fadeVolumeA, fadeVolumeB, faderRefA, faderRefB, scheduleEndWatch, clearEndWatch]);
 
   // Native ended via refs (React onEnded can see a stale activeEngine after long background).
   useEffect(() => {
