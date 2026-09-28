@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import plateWave from '../../../../assets/noir/brand-plate-wave.jpeg';
+import sprayAsterisk from '../../../../assets/noir/brand-spray-asterisk.png';
 import halftoneCloud from '../../../../assets/noir/empty-halftone-cloud.jpeg';
-import { NoirMark } from './NoirMark';
 
 export const SIDEBAR_BRAND_VARIANTS = [
   'plate',
@@ -17,7 +17,7 @@ export const SIDEBAR_BRAND_LABELS: Record<SidebarBrandVariant, string> = {
   plate: 'Current plate wave',
   grain: '1 · Grain / dither wave',
   chiaroscuro: '2 · Light through smoke',
-  asterisk: '3 · Spray asterisk',
+  asterisk: '3 · Spray asterisk (pin)',
   halftone: '4 · Halftone cloud',
 };
 
@@ -159,9 +159,12 @@ export function NoirSidebarBrandGraphic({ variant }: NoirSidebarBrandProps) {
 
   if (variant === 'asterisk') {
     return (
-      <span className="noir-brand-asterisk" aria-hidden>
-        <NoirMark size={148} variant="spray" color="rgba(249,249,249,0.55)" />
-      </span>
+      <img
+        src={sprayAsterisk}
+        alt=""
+        aria-hidden
+        className="noir-brand-asterisk-img"
+      />
     );
   }
 

@@ -768,6 +768,21 @@
   transform: rotate(-8deg);
 }
 
+.noir-brand-asterisk-img {
+  pointer-events: none;
+  position: absolute;
+  top: -18px;
+  right: -48px;
+  z-index: 0;
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  opacity: 0.42;
+  transform: rotate(-12deg);
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 55% 45%, #000 30%, transparent 78%);
+  mask-image: radial-gradient(ellipse 70% 70% at 55% 45%, #000 30%, transparent 78%);
+}
+
 .noir-sidebar-brand-cycle {
   position: relative;
   z-index: 1;
