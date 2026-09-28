@@ -29,23 +29,15 @@ type NoirSearchPaletteProps = {
 };
 
 function artistFromQuery(query: string, results: SearchResult[]): VerifiedArtist | null {
-  if (!shouldShowArtistCard(query)) return null;
+  if (!shouldShowArtistCard(query) || results.length === 0) return null;
   const candidate = getArtistName(query, results);
-  if (candidate) {
-    const handPicked = getHandPickedImage(candidate.name);
-    return {
-      name: candidate.name,
-      thumbnail: handPicked || candidate.thumbnail,
-      channelId: candidate.channelId,
-      isTopic: candidate.isTopic,
-    };
-  }
-  const name = query.trim();
-  if (name.length < 2) return null;
-  const handPicked = getHandPickedImage(name);
+  if (!candidate) return null;
+  const handPicked = getHandPickedImage(candidate.name);
   return {
-    name,
-    thumbnail: handPicked || results[0]?.thumbnail || '',
+    name: candidate.name,
+    thumbnail: handPicked || candidate.thumbnail,
+    channelId: candidate.channelId,
+    isTopic: candidate.isTopic,
   };
 }
 
@@ -149,6 +141,8 @@ export function NoirSearchPalette({
       setIsSearching(false);
       return;
     }
+    // Mark searching immediately so we don't flash empty / fake artist during debounce.
+    setIsSearching(true);
     debounceRef.current = setTimeout(() => {
       void runSearch(val);
     }, 320);
