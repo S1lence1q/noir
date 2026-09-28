@@ -1,7 +1,5 @@
 import { SearchResult } from '../types';
-import { robustFetch } from './apiUtils';
 
-const APPLE_CHART_BASE = 'https://rss.marketingtools.apple.com';
 const CHART_CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
 
 export const STOREFRONT_COUNTRIES = [
@@ -31,9 +29,12 @@ function chartPath(storefront: ChartStorefront) {
 function resolveChartUrl(storefront: ChartStorefront): string {
   const path = chartPath(storefront);
   if (import.meta.env.DEV) {
+    // Vite proxy — Apple RSS has no browser CORS.
     return `/api-apple${path}`;
   }
-  return `${APPLE_CHART_BASE}${path}`;
+  // Production (GitHub Pages): same-origin snapshot from `npm run build` prefetch.
+  const base = import.meta.env.BASE_URL || './';
+  return `${base}charts/${storefront}.json`;
 }
 
 function getCacheKey(storefront: string): string {
@@ -98,9 +99,9 @@ function mapAppleFeedToTracks(data: unknown, idPrefix: string): SearchResult[] {
 
 /**
  * Loads Apple Music most-played chart.
- * Dev: Vite proxy. Production: direct Apple URL via CORS-safe fetch.
+ * Dev: Vite proxy to Apple. Production: static `public/charts/{store}.json` baked at build
+ * (Apple RSS blocks browser CORS on GitHub Pages).
  * Caches successful responses in localStorage; may return stale cache offline.
- * Network is hard-capped so cold start never waits minutes on a hung proxy.
  */
 export async function fetchAppleMusicChart(
   storefront: ChartStorefront,
@@ -123,9 +124,7 @@ export async function fetchAppleMusicChart(
     const controller = new AbortController();
     const timer = window.setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const response = import.meta.env.DEV
-        ? await fetch(url, { signal: controller.signal })
-        : await robustFetch(url, controller.signal, false);
+      const response = await fetch(url, { signal: controller.signal });
 
       if (!response.ok) {
         throw new Error(`Chart feed HTTP ${response.status}`);

@@ -7,7 +7,8 @@
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
-    "build": "vite build",
+    "prefetch:charts": "node scripts/prefetch-charts.mjs",
+    "build": "npm run prefetch:charts && vite build",
     "dev": "vite",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "npm run build && electron-builder"
