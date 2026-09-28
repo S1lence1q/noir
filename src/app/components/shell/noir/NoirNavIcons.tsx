@@ -1,5 +1,4 @@
 import { useState, type ReactElement, type SVGProps } from 'react';
-import { NoirMark } from './NoirMark';
 
 type NavIconProps = SVGProps<SVGSVGElement> & {
   size?: number;
@@ -87,10 +86,17 @@ function HomePortal(props: NavIconProps) {
   );
 }
 
-/** Discover — same mark as the NOIR wordmark. */
+/** Discover — 4-point spark; equal weight, no hairline diagonals or center blob. */
 function DiscoverBurst(props: NavIconProps) {
-  const size = typeof props.size === 'number' ? props.size : 18;
-  return <NoirMark size={size} className={props.className} />;
+  return (
+    <svg {...baseProps(props)}>
+      <path
+        d="M12 3.4l1.55 7.05L20.6 12l-7.05 1.55L12 20.6l-1.55-7.05L3.4 12l7.05-1.55Z"
+        fill="currentColor"
+        stroke="none"
+      />
+    </svg>
+  );
 }
 
 /** Library — vertical album spines */
