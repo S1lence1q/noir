@@ -892,49 +892,34 @@ export default function App() {
       return;
     }
 
-    setLoadingSongId(result.id);
-    setAppState('processing');
+    // First song: start playback immediately — never gate the player mount on artwork/color fetch
+    // (that delay spent the user-gesture window and left YT autoplay stuck at 0:00).
+    setSongData({
+      id: result.id,
+      title: result.title,
+      artist: displayArtistName(result.artist),
+      artworkUrl: finalArtwork,
+      audioUrl: isLocal ? (result.audioUrl || '') : `https://www.youtube.com/watch?v=${finalVideoId}`,
+      videoId: finalVideoId,
+      channelId: result.channelId,
+    });
+    setAppState('landing');
+    setLoadingSongId(null);
 
-    const startTime = Date.now();
-    const minDisplayTime = neededResolve || needsAudioSwap || hadCachedVideoId ? 0 : 500;
     const fallbacks = getDynamicFallbackColors(result.title, result.artist);
+    setSongColors(fallbacks);
 
     const img = new Image();
     img.crossOrigin = 'anonymous';
     if (finalArtwork && (finalArtwork.includes('ytimg.com') || finalArtwork.includes('youtube.com') || finalArtwork.startsWith('http'))) {
       img.src = `https://images.weserv.nl/?url=${encodeURIComponent(finalArtwork)}`;
-    } else {
+    } else if (finalArtwork) {
       img.src = finalArtwork;
     }
-
-    const proceedToReady = () => {
+    img.onload = () => {
       if (latestSelectedSongIdRef.current !== latestId) return;
-      const extracted = img.complete && img.naturalWidth > 0
-        ? extractColorsFromImage(img, result.title, result.artist)
-        : fallbacks;
-      setSongColors(extracted);
-
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, minDisplayTime - elapsedTime);
-
-      setTimeout(() => {
-        if (latestSelectedSongIdRef.current !== latestId) return;
-        setSongData({
-          id: result.id,
-          title: result.title,
-          artist: displayArtistName(result.artist),
-          artworkUrl: finalArtwork,
-          audioUrl: isLocal ? (result.audioUrl || '') : `https://www.youtube.com/watch?v=${finalVideoId}`,
-          videoId: finalVideoId,
-          channelId: result.channelId
-        });
-        setAppState('landing');
-        setLoadingSongId(null);
-      }, remainingTime);
+      setSongColors(extractColorsFromImage(img, result.title, result.artist));
     };
-
-    img.onload = proceedToReady;
-    img.onerror = proceedToReady;
   };
 
   const playLocalFile = async (file: File) => {

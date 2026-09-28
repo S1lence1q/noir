@@ -199,61 +199,65 @@ export function usePlaybackCore({
     }
   }, [setPlaying, fadeVolumeA, fadeVolumeB, faderRefA, faderRefB]);
 
-  // Safe and robust get-or-initialize YouTube Player
+  const ytInitPromiseRefA = useRef<Promise<any> | null>(null);
+  const ytInitPromiseRefB = useRef<Promise<any> | null>(null);
+
+  // Safe and robust get-or-initialize YouTube Player (single-flight per engine)
   const getOrInitYTPlayer = useCallback((engineId: 'A' | 'B'): Promise<any> => {
-    return new Promise((resolve) => {
-      const isEngineA = engineId === 'A';
-      const playerRef = isEngineA ? ytPlayerRefA : ytPlayerRefB;
-      const containerId = isEngineA ? 'yt-player-container-A' : 'yt-player-container-B';
-      const isYouTubeRef = isEngineA ? isYouTubeRefA : isYouTubeRefB;
+    const isEngineA = engineId === 'A';
+    const playerRef = isEngineA ? ytPlayerRefA : ytPlayerRefB;
+    const initPromiseRef = isEngineA ? ytInitPromiseRefA : ytInitPromiseRefB;
+    const containerId = isEngineA ? 'yt-player-container-A' : 'yt-player-container-B';
+    const isYouTubeRef = isEngineA ? isYouTubeRefA : isYouTubeRefB;
 
-      // Check if player exists and its iframe is still alive in the DOM
-      if (
-        playerRef.current &&
-        typeof playerRef.current.loadVideoById === 'function' &&
-        playerRef.current.getIframe() &&
-        document.body.contains(playerRef.current.getIframe())
-      ) {
-        resolve(playerRef.current);
-        return;
-      }
+    const isLivePlayer = (player: any) =>
+      !!player &&
+      typeof player.loadVideoById === 'function' &&
+      typeof player.getIframe === 'function' &&
+      !!player.getIframe() &&
+      document.body.contains(player.getIframe());
 
-      // If the player exists but is stale (e.g. its iframe was removed/re-rendered by React), destroy it
-      if (playerRef.current) {
+    if (isLivePlayer(playerRef.current)) {
+      return Promise.resolve(playerRef.current);
+    }
+
+    // Concurrent first-play + warm-up must share one constructor — destroying mid-init
+    // left the first song stuck at 0:00 until a second click rebuilt the player.
+    if (initPromiseRef.current) {
+      return initPromiseRef.current;
+    }
+
+    initPromiseRef.current = new Promise((resolve) => {
+      if (playerRef.current && !isLivePlayer(playerRef.current)) {
         try {
           if (typeof playerRef.current.destroy === 'function') {
             playerRef.current.destroy();
           }
         } catch (err) {
-          console.warn("Failed to destroy stale YouTube player:", err);
+          console.warn('Failed to destroy stale YouTube player:', err);
         }
         playerRef.current = null;
       }
 
       let attempts = 0;
       const checkAndInit = () => {
-        // Double check in case it initialized in a concurrent call
-        if (
-          playerRef.current &&
-          typeof playerRef.current.loadVideoById === 'function' &&
-          playerRef.current.getIframe() &&
-          document.body.contains(playerRef.current.getIframe())
-        ) {
+        if (isLivePlayer(playerRef.current)) {
           resolve(playerRef.current);
           return;
         }
 
         const container = document.getElementById(containerId);
         if (!container) {
+          initPromiseRef.current = null;
           resolve(null);
           return;
         }
 
-        // Wait until window.YT and window.YT.Player are fully loaded
         if (!window.YT || typeof window.YT.Player !== 'function') {
           attempts++;
-          if (attempts > 100) { // 10 seconds timeout
-            console.warn("YouTube API failed to load in 10 seconds");
+          if (attempts > 100) {
+            console.warn('YouTube API failed to load in 10 seconds');
+            initPromiseRef.current = null;
             resolve(null);
             return;
           }
@@ -261,32 +265,83 @@ export function usePlaybackCore({
           return;
         }
 
+        // Another caller may have started constructing while we waited for YT.
+        if (playerRef.current && !isLivePlayer(playerRef.current)) {
+          setTimeout(checkAndInit, 50);
+          return;
+        }
+
         try {
           playerRef.current = new window.YT.Player(containerId, {
             height: '0',
             width: '0',
-            playerVars: { autoplay: 0, controls: 0, disablekb: 1 },
+            playerVars: { autoplay: 0, controls: 0, disablekb: 1, playsinline: 1 },
             events: {
               onReady: (e: any) => {
+                playerRef.current = e.target;
                 if (activeEngineRef.current === engineId && isYouTubeRef.current) {
-                  setDuration(e.target.getDuration());
+                  try {
+                    const dur = e.target.getDuration();
+                    if (dur > 0) setDuration(dur);
+                  } catch {}
                 }
                 resolve(e.target);
               },
               onStateChange: (e: any) => {
                 handleYTStateChange(engineId, e);
-              }
-            }
+              },
+              onError: () => {
+                // Allow a later call to rebuild after a hard failure
+                initPromiseRef.current = null;
+              },
+            },
           });
         } catch (err) {
-          console.warn("Failed to construct YouTube player instance:", err);
+          console.warn('Failed to construct YouTube player instance:', err);
+          initPromiseRef.current = null;
           resolve(null);
         }
       };
 
       checkAndInit();
     });
+
+    return initPromiseRef.current;
   }, [handleYTStateChange]);
+
+  const startYouTubePlayback = useCallback(
+    (ytPlayer: any, videoId: string, fadeVolumeFn: (t: number, d: number) => Promise<void>) => {
+      if (!ytPlayer || !videoId) return;
+      try {
+        // Muted start satisfies autoplay after async resolve (click gesture already spent).
+        if (typeof ytPlayer.mute === 'function') ytPlayer.mute();
+        ytPlayer.setVolume?.(0);
+        ytPlayer.loadVideoById(videoId);
+        ytPlayer.playVideo?.();
+      } catch (err) {
+        console.warn('YouTube load/play failed:', err);
+        return;
+      }
+
+      void fadeVolumeFn(1, 800);
+
+      // If autoplay was ignored, retry once shortly after cue.
+      window.setTimeout(() => {
+        try {
+          const state = typeof ytPlayer.getPlayerState === 'function' ? ytPlayer.getPlayerState() : null;
+          const playing = state === 1 || state === window.YT?.PlayerState?.PLAYING;
+          const buffering = state === 3 || state === window.YT?.PlayerState?.BUFFERING;
+          if (playing || buffering) return;
+          if (typeof ytPlayer.mute === 'function') ytPlayer.mute();
+          ytPlayer.playVideo?.();
+          void fadeVolumeFn(1, 600);
+        } catch {
+          /* ignore */
+        }
+      }, 700);
+    },
+    []
+  );
 
   const loadSongIntoEngine = useCallback(async (engineId: 'A' | 'B', song: PlaybackSongData, playImmediately: boolean) => {
     const isYT = !!song.videoId;
@@ -308,27 +363,24 @@ export function usePlaybackCore({
         } catch {}
       }
       
-      // On-demand YouTube instantiation guaranteed
       const ytPlayer = await getOrInitYTPlayer(engineId);
       
       if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
         fader.current = 0;
-        try { ytPlayer.setVolume(0); } catch {}
-        
         if (playImmediately) {
-          try {
-            ytPlayer.loadVideoById(song.videoId);
-            ytPlayer.playVideo();
-            void fadeVolumeFn(1, 800);
-          } catch {}
+          startYouTubePlayback(ytPlayer, song.videoId!, fadeVolumeFn);
+          isTransitioningRef.current = false;
         } else {
           try {
+            if (typeof ytPlayer.mute === 'function') ytPlayer.mute();
+            ytPlayer.setVolume?.(0);
             ytPlayer.loadVideoById(song.videoId);
-            ytPlayer.setVolume(0);
-            ytPlayer.playVideo();
+            ytPlayer.playVideo?.();
             isTransitioningRef.current = false;
           } catch {}
         }
+      } else {
+        isTransitioningRef.current = false;
       }
     } else if (song.audioUrl) {
       // Pause YouTube players only if they have already been initialized
@@ -377,7 +429,7 @@ export function usePlaybackCore({
         }
       }
     }
-  }, [initAnalyzer, fadeVolumeA, fadeVolumeB, faderRefA, faderRefB, getOrInitYTPlayer]);
+  }, [initAnalyzer, fadeVolumeA, fadeVolumeB, faderRefA, faderRefB, getOrInitYTPlayer, startYouTubePlayback]);
 
   const handleNextSong = useCallback(async () => {
     // Abort crossfade since user takes manual skip control
@@ -480,6 +532,7 @@ export function usePlaybackCore({
         if (activeIsYT && activeYT?.playVideo) {
           activeFader.current = 0;
           try {
+            activeYT.mute?.();
             activeYT.setVolume(0);
             activeYT.playVideo();
           } catch {}

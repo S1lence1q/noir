@@ -48,7 +48,13 @@ export function useFadeVolume({
         const activeVol = Math.round(volumeRef.current * faderRef.current);
         if (isYouTubeRef.current && ytPlayerRef.current && ytPlayerRef.current.setVolume) {
           try {
-            ytPlayerRef.current.setVolume(activeVol);
+            if (activeVol <= 0) {
+              ytPlayerRef.current.mute?.();
+              ytPlayerRef.current.setVolume(0);
+            } else {
+              ytPlayerRef.current.unMute?.();
+              ytPlayerRef.current.setVolume(activeVol);
+            }
           } catch (e) {}
         } else if (audioRef.current) {
           audioRef.current.volume = activeVol / 100;
