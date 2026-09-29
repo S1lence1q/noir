@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowLeft, ListMusic, Play, Plus, Shuffle, AudioLines, Settings } from 'lucide-react';
+import { ArrowLeft, ListMusic, Play, Plus, Shuffle, AudioLines, Settings, History } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { NoirSongRow } from './NoirSongRow';
@@ -9,6 +9,7 @@ import { NoirDitherCover } from './NoirDitherCover';
 import { NoirFavoritesCover } from './NoirFavoritesCover';
 import { NoirUserPlaylistPage } from './NoirUserPlaylistPage';
 import { NoirStatsView } from './NoirStatsView';
+import { NoirHistoryView } from './NoirHistoryView';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import {
@@ -18,7 +19,7 @@ import {
 } from '../../../utils/favoriteUtils';
 import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
 
-type LibrarySection = 'favorites' | 'playlists' | 'stats';
+type LibrarySection = 'favorites' | 'playlists' | 'history' | 'stats';
 
 export type LibraryFocus = {
   section: LibrarySection;
@@ -46,6 +47,7 @@ export type NoirLibraryViewProps = {
  */
 const SECTIONS: { id: LibrarySection; label: string; icon: typeof ListMusic }[] = [
   { id: 'playlists', label: 'Playlists', icon: ListMusic },
+  { id: 'history', label: strings.library.history, icon: History },
   { id: 'stats', label: strings.stats.tab, icon: AudioLines },
 ];
 
@@ -311,6 +313,26 @@ export function NoirLibraryView({
                 onBack={backToRoot}
                 onAddToQueue={onAddToQueue}
                 onPlayPlaylist={onPlayPlaylist}
+                onPlayNext={onPlayNext}
+                onToggleFavorite={onToggleFavorite}
+              />
+            </motion.div>
+          )}
+
+          {section === 'history' && (
+            <motion.div
+              key="history"
+              className="noir-settle-group"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0 } }}
+              transition={withReducedMotion(MOTION.panel)}
+            >
+              <NoirHistoryView
+                favorites={favorites}
+                recentTracks={recentTracks}
+                onPlayPlaylist={onPlayPlaylist}
+                onAddToQueue={onAddToQueue}
                 onPlayNext={onPlayNext}
                 onToggleFavorite={onToggleFavorite}
               />

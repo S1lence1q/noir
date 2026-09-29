@@ -114,7 +114,7 @@ Principle: motion explains cause → effect (where did it go, what changed). One
 
 ### Later
 - [ ] T22 quiet tooltips (good delegation candidate once search bar lands).
-- [ ] History in Library (D5).
+- [x] History in Library (D5): Library › History, every listen ≥ 20 s newest first, grouped Today / Yesterday / weekday / date, play count per day; rows play from that day onward; consecutive repeats collapse; seed listens excluded; "Show earlier" pages by 120. Not yet eyeballed with the pane visible after the collapse change.
 - [ ] Global motion pass on `motionPresets.ts` (enter/exit/stagger consistency).
 
 ---
