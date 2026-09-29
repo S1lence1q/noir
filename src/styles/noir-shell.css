@@ -4502,3 +4502,66 @@ button.noir-now-playing-source:hover {
     height: auto;
   }
 }
+
+/* Touch: no hover to reveal row actions — the "More" menu is always there, the rest lives in it.
+   Phone: the actions column hugs its content so titles get the width. */
+@media (hover: none) {
+  .noir-track-actions > * {
+    opacity: 1;
+  }
+  .noir-track-actions button[aria-label='Add to queue'],
+  .noir-track-actions > :not(.noir-track-action--pinned) > button[aria-label^='Add to favorites'],
+  .noir-track-actions > :not(.noir-track-action--pinned) > button[aria-label^='Remove from favorites'] {
+    display: none;
+  }
+}
+@media (max-width: 639px) {
+  .noir-song-grid,
+  .noir-song-grid.noir-track-row--with-duration {
+    grid-template-columns: 24px 48px minmax(0, 1fr) auto;
+    column-gap: 12px;
+  }
+  .noir-song-grid.noir-track-row--unranked,
+  .noir-song-grid.noir-track-row--unranked.noir-track-row--with-duration,
+  .noir-song-grid.noir-track-row--unranked.noir-track-row--with-added {
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+  }
+  .noir-song-grid .noir-song-duration {
+    display: none;
+  }
+}
+
+/* Artist hero on a phone: the portrait stands on top, the name sits in the colour field below —
+   never text across a face. */
+@media (max-width: 639px) {
+  .noir-artist-hero {
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+  }
+  .noir-artist-hero-portrait {
+    position: relative;
+    inset: auto;
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    opacity: 1;
+  }
+  .noir-artist-hero-portrait > * {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .noir-artist-hero-portrait img {
+    object-fit: cover;
+  }
+  .noir-artist-hero-portrait .noir-dither-cover,
+  .noir-artist-hero-portrait > * {
+    mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+  }
+  .noir-artist-hero-text {
+    max-width: none;
+    margin-top: -28px;
+    padding: 0 20px 22px;
+  }
+}

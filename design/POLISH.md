@@ -104,6 +104,8 @@ Principle: motion explains cause → effect (where did it go, what changed). One
 - [x] 🔴 Phone bar: mini-bar (cover, title, play, next, thin progress). With Now Playing open it becomes the transport again (prev, times, lyrics, queue; volume stays hidden).
 - [x] 🔴 Stacked Now Playing (≤ 960): queue spilled 60 px under the bar. Stage now takes what the queue leaves; cover steps down with the queue open; lyrics fill the remaining height with cover + title side by side.
 
+- [x] 🟡 Phone artist hero: portrait on top fading into the colour field, name below it (was text across the face).
+- [x] 🟡 Song rows on touch/phone: hover-only actions reserved ≥ 96 px, so titles truncated at ~8 chars. Touch shows the always-visible More menu only; phone grid hugs it; duration hidden.
 ### Later
 - [ ] T22 quiet tooltips (good delegation candidate once search bar lands).
 - [ ] History in Library (D5).
