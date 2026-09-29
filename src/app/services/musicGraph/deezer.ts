@@ -308,7 +308,7 @@ export async function getDeezerArtistAlbums(
       cover_medium?: string;
       genre_id?: number;
     }>;
-  }>(`/artist/${match.id}/albums?limit=${Math.min(100, Math.max(1, limit))}`);
+  }>(`/artist/${match.id}/albums?limit=100`);
 
   return (response?.data ?? [])
     .filter((a): a is typeof a & { id: number; title: string } => !!a.id && !!a.title)
@@ -322,7 +322,13 @@ export async function getDeezerArtistAlbums(
       image: a.cover_xl || a.cover_big || a.cover_medium,
       genreId: a.genre_id,
       genre: a.genre_id ? DEEZER_GENRE_NAMES[a.genre_id] : undefined,
-    }));
+    }))
+    .sort((a, b) => {
+      const dateA = a.releaseDate || a.year || '';
+      const dateB = b.releaseDate || b.year || '';
+      return dateB.localeCompare(dateA);
+    })
+    .slice(0, Math.max(1, limit));
 }
 
 export async function getDeezerAlbumTracks(albumId: number): Promise<GraphTrack[]> {

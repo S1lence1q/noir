@@ -108,7 +108,15 @@ export function NoirArtistView({
   const unique = useMemo(() => dedupeTracks(tracks, artist.name), [tracks, artist.name]);
   const visible = showAll ? unique : unique.slice(0, POPULAR_COUNT);
 
-  const latestRelease = albums[0] ?? null;
+  const latestRelease = useMemo(() => {
+    if (albums.length === 0) return null;
+    const sorted = [...albums].sort((a, b) => {
+      const dateA = a.releaseDate || a.year || '';
+      const dateB = b.releaseDate || b.year || '';
+      return dateB.localeCompare(dateA);
+    });
+    return sorted[0] ?? null;
+  }, [albums]);
 
   const hasAlbums = useMemo(
     () => albums.some((a) => a.recordType === 'album' || a.recordType === 'compile'),

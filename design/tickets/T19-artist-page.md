@@ -23,10 +23,12 @@ The artist page feels like a curated profile rather than a flat file list. Adds 
 ### 2. 2-column Layout: Latest Release & Popular Tracks
 - On desktop (`lg:grid-cols-[280px_1fr]`), renders a featured **Latest Release** spotlight card side by side with the **Popular** top 5 tracks.
 - On mobile/tablet, Popular tracks appear first for instant 1-tap playback, with Latest Release positioned below.
-- Latest release card highlights album/single cover with dither fallback, badge (`Latest single` / `Latest album` / `Latest release`), title, year, and a hover play button overlay.
+- Strictly evaluates the true latest release chronologically by `releaseDate` across all formats (singles, EPs, and albums), avoiding cases where an older album was shown over newer singles.
+- Latest release card highlights album/single cover with dither fallback, badge (`Latest single` / `Latest album` / `Latest EP` / `Latest release`), title, year, and a hover play button overlay.
 
 ### 3. Discography with Filter Tabs
 - Fetches artist albums, EPs, and singles via `getArtistAlbums(artist.name, artist.deezerId)`.
+- All releases are sorted strictly chronologically (`releaseDate` descending), so "All" shows the newest releases first across all types.
 - Features filter chips (`All` · `Albums` · `Singles & EPs`), shown when the artist has both albums and singles.
 - Rendered in a dedicated horizontal shelf (`NoirHomeShelf`).
 - Hover play button plays the album immediately (`onPlayAlbum`), clicking opens the album as a playlist overlay (`onSelectAlbum`).

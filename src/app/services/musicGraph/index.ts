@@ -249,10 +249,10 @@ export function getAlbumTracks(albumId: number): Promise<GraphTrack[]> {
 export function getArtistAlbums(
   artist: string,
   deezerId?: number,
-  limit = 25
+  limit = 50
 ): Promise<GraphAlbum[]> {
   const idPart = deezerId ? `:id:${deezerId}` : '';
-  const key = `artist-albums:${artistKey(artist)}${idPart}:${limit}`;
+  const key = `artist-albums-v3:${artistKey(artist)}${idPart}:${limit}`;
   return requestCached(
     key,
     TTL.releases,
