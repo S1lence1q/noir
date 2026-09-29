@@ -165,10 +165,13 @@ export function NoirNowPlayingView({
   const currentIndex = currentKey
     ? queue.findIndex((item) => getPlaybackSongKey(item) === currentKey)
     : -1;
-  const upNext =
+  // Queue actions (select, remove, reorder) are by id, so a song queued twice shows once.
+  const seenIds = new Set<string>();
+  const upNext = (
     currentIndex >= 0
       ? queue.slice(currentIndex + 1)
-      : queue.filter((item) => getPlaybackSongKey(item) !== currentKey);
+      : queue.filter((item) => getPlaybackSongKey(item) !== currentKey)
+  ).filter((item) => !seenIds.has(item.id) && !!seenIds.add(item.id));
   const [order, setOrder] = useState(() => upNext.map((track) => track.id));
   const orderRef = useRef(order);
   orderRef.current = order;
@@ -305,18 +308,22 @@ export function NoirNowPlayingView({
           <div className="noir-now-playing-identity">
             <motion.div
               layoutId={reduced ? undefined : 'np-cover'}
+              // Measure only when the slot can move. Otherwise every playback tick re-measures mid-flight
+              // and restarts the shared crossfade from transparent (the dip was playing-only).
+              layoutDependency={`${showLyrics}|${sidePanelOpen}`}
               className="noir-now-playing-art-slot"
               style={{ borderRadius: 18, boxShadow: '0 28px 80px rgba(0,0,0,0.55)' }}
               // Closing: this copy flies into the bar under the crossfade's exit opacity. When the flight
               // ends the projection lets go, and if the unmount lands a frame later the element shows its
               // own opacity at full size over the page underneath. Its own opacity is 0 while exiting.
+              // Reopened mid-close (presence flips back): snap to 1, the flight does the visual work.
               animate={{ opacity: isPresent ? 1 : 0 }}
               transition={{
                 type: 'spring',
                 stiffness: 320,
                 damping: 34,
                 mass: 0.85,
-                opacity: { duration: reduced ? 0.1 : 0.3, ease: 'easeOut' },
+                opacity: isPresent ? { duration: 0 } : { duration: reduced ? 0.1 : 0.3, ease: 'easeOut' },
               }}
             >
               <AnimatePresence mode="sync" initial={false} custom={deckDir}>

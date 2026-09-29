@@ -308,6 +308,8 @@ export function CompactPlayerBar({
           >
             <motion.span
               layoutId={reduced ? undefined : 'np-cover'}
+              // Mount / presence only — playback ticks must not restart the flight (see NP cover).
+              layoutDependency={0}
               className="noir-compact-art-wrap"
               style={{ borderRadius: 6 }}
               transition={{ type: 'spring', stiffness: 320, damping: 34, mass: 0.85 }}

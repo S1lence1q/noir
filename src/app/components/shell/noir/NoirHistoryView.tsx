@@ -105,6 +105,14 @@ export function NoirHistoryView({
     return out;
   }, [events, limit, known]);
 
+  // The day as a queue, each song once (a day can hold the same song twice; the queue can't).
+  const playFromDay = (tracks: SearchResult[], index: number) => {
+    const seen = new Set<string>();
+    const queue = tracks.filter((track) => !seen.has(track.id) && !!seen.add(track.id));
+    const start = queue.findIndex((track) => track.id === tracks[index].id);
+    onPlayPlaylist(queue, strings.library.historyStation, Math.max(0, start));
+  };
+
   if (events === null) {
     return (
       <div className="flex flex-col gap-3 pt-1" aria-hidden>
@@ -147,7 +155,7 @@ export function NoirHistoryView({
                 key={day.keys[i]}
                 track={track}
                 isFavorite={isTrackFavorite(favorites, track)}
-                onPlay={() => onPlayPlaylist(day.tracks, strings.library.historyStation, i)}
+                onPlay={() => playFromDay(day.tracks, i)}
                 onAddToQueue={onAddToQueue}
                 onPlayNext={onPlayNext}
                 onToggleFavorite={onToggleFavorite}
