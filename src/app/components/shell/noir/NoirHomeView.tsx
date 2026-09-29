@@ -25,7 +25,7 @@ import { isTasteEmpty } from '../../../services/listening/seedTaste';
 import { getArtistImage } from '../../../services/musicGraph';
 import { DailyMix, loadDailyMixes } from '../../../services/mixes/dailyMixes';
 import { worldForCollection } from '../../../utils/ditherCover';
-import { NoirHeroWave, type HeroVariant, type HeroWaveSong } from './NoirHeroWave';
+import { NoirHomeHero, heroField, heroInk, heroWorld, type HomeHeroVariant } from './NoirHomeHero';
 import { prefetchArtistProfile } from '../../../utils/artistDiscographyLoader';
 
 type SearchPanelPhase = 'idle' | 'loading' | 'results' | 'no-results';
@@ -93,56 +93,23 @@ export function NoirHomeView({
   const [needsColdStart, setNeedsColdStart] = useState<boolean | null>(null);
   /** From real plays — not “artists you opened once”. */
   const [playedArtists, setPlayedArtists] = useState<VerifiedArtist[]>([]);
-  // Recent songs for the plate wave, oldest first (newest nearest), weighted by plays this month.
-  // Refreshes when a song changes, so the song you just played joins the wave.
-  const [waveSongs, setWaveSongs] = useState<HeroWaveSong[]>([]);
-  // Hero candidates while we choose (A/B/C switch on the card); remembered per browser.
-  const [heroVariant, setHeroVariant] = useState<HeroVariant>(() => {
+  // Hero candidates while we choose (1/2/3 switch on the card); remembered per browser.
+  const [heroVariant, setHeroVariant] = useState<HomeHeroVariant>(() => {
     try {
-      const saved = localStorage.getItem('noir_hero_variant');
-      return saved === 'b' || saved === 'c' ? saved : 'a';
+      const saved = localStorage.getItem('noir_home_hero');
+      return saved === '2' || saved === '3' ? saved : '1';
     } catch {
-      return 'a';
+      return '1';
     }
   });
-  const chooseHero = (v: HeroVariant) => {
+  const chooseHero = (v: HomeHeroVariant) => {
     setHeroVariant(v);
     try {
-      localStorage.setItem('noir_hero_variant', v);
+      localStorage.setItem('noir_home_hero', v);
     } catch {
       /* private mode */
     }
   };
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      const events = await getListeningEvents().catch(() => []);
-      if (cancelled) return;
-      const since = Date.now() - 30 * 86_400_000;
-      const plays = new Map<string, number>();
-      const keyOf = (title: string, artist: string) => `${artist}::${title}`.toLocaleLowerCase();
-      for (const e of events) {
-        if (e.source === 'seed' || e.startedAt < since || e.outcome === 'skipped') continue;
-        plays.set(keyOf(e.title, e.artist), (plays.get(keyOf(e.title, e.artist)) ?? 0) + 1);
-      }
-      const seen = new Set<string>();
-      const recent = recentlyPlayed.filter((t) => {
-        const k = keyOf(t.title, t.artist);
-        if (seen.has(k)) return false;
-        seen.add(k);
-        return true;
-      });
-      setWaveSongs(
-        recent
-          .slice(0, 12)
-          .reverse()
-          .map((track) => ({ track, weight: plays.get(keyOf(track.title, track.artist)) ?? 1 }))
-      );
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [activeSongKey, recentlyPlayed]);
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -327,19 +294,17 @@ export function NoirHomeView({
               The field follows the time of day. Copy sits on the flat left, never on the form. */}
           <motion.section
             className="noir-home-day"
+            style={{
+              background: heroField(heroWorld(featuredTrack)),
+              color: heroInk(heroWorld(featuredTrack)),
+            }}
             initial={reduced ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.42, ease: EASE_PREMIUM }}
           >
-            <NoirHeroWave
-              songs={waveSongs}
-              playing={isPlaying}
-              variant={heroVariant}
-              onPlay={playFromHome}
-              className="noir-home-day-canvas"
-            />
+            <NoirHomeHero track={featuredTrack} playing={isFeaturedPlaying} variant={heroVariant} size={248} />
             <div className="noir-hero-switch" role="radiogroup" aria-label="Hero style (temporary)">
-              {(['a', 'b', 'c'] as const).map((v) => (
+              {(['1', '2', '3'] as const).map((v) => (
                 <button
                   key={v}
                   type="button"
@@ -347,11 +312,10 @@ export function NoirHomeView({
                   aria-checked={heroVariant === v}
                   onClick={() => chooseHero(v)}
                 >
-                  {v.toUpperCase()}
+                  {v}
                 </button>
               ))}
             </div>
-
             <div className="noir-home-day-copy">
               <h1 className="noir-home-greeting-title">{greeting}</h1>
               <div className="noir-home-day-now">
