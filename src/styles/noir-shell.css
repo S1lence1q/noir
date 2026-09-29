@@ -817,40 +817,55 @@
 }
 
 .noir-cold-start {
-  max-width: min(100%, 720px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--noir-radius-xl);
-  background:
-    radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.045), transparent 42%),
-    rgba(255, 255, 255, 0.018);
-  padding: 28px;
+  /* First run owns the page: no card, the grid gets the full content width. */
+  position: relative;
+  padding-top: 8px;
 }
 
 .noir-cold-start-title {
   margin: 0;
-  max-width: 22ch;
-  font-size: clamp(1.65rem, 3.5vw, 2.35rem);
+  max-width: 18ch;
+  font-size: clamp(2rem, 4.4vw, 3.1rem);
   font-weight: 600;
-  letter-spacing: -0.035em;
-  line-height: 1.05;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+  text-wrap: balance;
   color: var(--noir-text-primary);
 }
 
 .noir-cold-start-body {
-  margin: 12px 0 0;
-  max-width: 42ch;
-  font-size: 14px;
+  margin: 14px 0 0;
+  max-width: 48ch;
+  font-size: 15px;
   line-height: 1.5;
   color: var(--noir-text-secondary);
+}
+
+.noir-cold-start-browse {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--noir-text-primary);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.25);
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: text-decoration-color 0.15s ease;
+}
+
+.noir-cold-start-browse:hover {
+  text-decoration-color: rgba(255, 255, 255, 0.7);
 }
 
 .noir-cold-start-search {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 22px;
-  padding: 0 12px;
-  height: 44px;
+  max-width: 440px;
+  margin-top: 28px;
+  padding: 0 14px;
+  height: 46px;
   border-radius: var(--noir-radius-md);
   background: rgba(255, 255, 255, 0.06);
   transition: background-color 0.15s ease;
@@ -882,44 +897,45 @@
   color: var(--noir-text-tertiary);
 }
 
-.noir-cold-start-toolbar {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 22px;
-}
-
 .noir-cold-start-label {
-  margin: 0;
+  margin: 32px 0 0;
   font: var(--noir-type-label);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--noir-text-tertiary);
 }
 
-.noir-cold-start-progress {
-  margin: 0;
-  font-size: 13px;
-  color: var(--noir-text-secondary);
-}
-
 .noir-cold-start-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
-  gap: 14px 10px;
-  margin-top: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 22px 12px;
+  margin-top: 16px;
 }
 
+/* Exact shape of an artist: round portrait + one name line. */
 .noir-cold-start-skel {
-  width: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 4px;
+}
+
+.noir-cold-start-skel-art {
+  width: 112px;
   height: 112px;
-  border-radius: var(--noir-radius-md);
-  justify-self: center;
+  border-radius: 999px;
+}
+
+.noir-cold-start-skel-name {
+  width: 64px;
+  height: 12px;
+  border-radius: 4px;
 }
 
 .noir-cold-start-empty {
   margin: 16px 0 0;
+  min-height: 20px;
   font-size: 14px;
   color: var(--noir-text-secondary);
 }
@@ -928,7 +944,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   padding: 4px;
   border: none;
   background: transparent;
@@ -945,34 +961,51 @@
 .noir-cold-start-artist-art {
   position: relative;
   display: block;
-  width: 88px;
-  height: 88px;
+  width: 112px;
+  height: 112px;
+  border-radius: 999px;
+  transition: filter 0.2s ease;
+}
+
+.noir-cold-start-artist:not(:disabled):hover .noir-cold-start-artist-art {
+  filter: brightness(1.08);
 }
 
 .noir-cold-start-check {
   position: absolute;
-  right: 2px;
-  bottom: 2px;
+  right: 4px;
+  bottom: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   border-radius: 999px;
   background: var(--noir-accent);
   color: #0b0b0b;
-  box-shadow: 0 0 0 2px #000;
+  box-shadow: 0 0 0 3px #000;
 }
 
-.noir-cold-start-artist[data-selected='true'] .noir-cold-start-artist-art {
-  outline: 2px solid rgba(255, 255, 255, 0.55);
-  outline-offset: 2px;
+.noir-cold-start-artist-art::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
   border-radius: 999px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
+  opacity: 0;
+  transform: scale(0.96);
+  transition: opacity 0.2s ease, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.noir-cold-start-artist[data-selected='true'] .noir-cold-start-artist-art::after {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .noir-cold-start-artist-name {
-  max-width: 96px;
-  font-size: 12px;
+  max-width: 120px;
+  font-size: 13px;
   font-weight: 500;
   line-height: 1.25;
   text-align: center;
@@ -982,18 +1015,76 @@
   white-space: nowrap;
 }
 
-.noir-cold-start-error {
-  margin: 14px 0 0;
-  font-size: 13px;
-  color: #f07178;
+.noir-cold-start-more {
+  display: flex;
+  margin: 28px auto 0;
 }
 
-.noir-cold-start-actions {
+/* Floating action bar: who you picked, and go. Sticks to the bottom of the scroll area. */
+.noir-cold-start-bar {
+  position: sticky;
+  bottom: 20px;
+  z-index: 5;
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 36px auto 0;
+  padding: 8px 8px 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(12, 12, 12, 0.82);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+}
+
+.noir-cold-start-bar .noir-button-primary {
+  height: 38px;
+  padding: 0 18px;
+}
+
+.noir-cold-start-bar-picks {
+  display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 22px;
+  min-width: 0;
+}
+
+.noir-cold-start-avatars {
+  display: flex;
+  align-items: center;
+}
+
+.noir-cold-start-avatar {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: 0 0 0 2px rgb(12, 12, 12);
+}
+
+.noir-cold-start-avatar + .noir-cold-start-avatar {
+  margin-left: -8px;
+}
+
+.noir-cold-start-count {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--noir-text-secondary);
+}
+
+.noir-cold-start-bar[data-ready='true'] .noir-cold-start-count {
+  color: var(--noir-text-primary);
+}
+
+.noir-cold-start-error {
+  margin: 0;
+  font-size: 13px;
+  color: #f07178;
 }
 
 .noir-search-palette-root {

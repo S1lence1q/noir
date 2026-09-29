@@ -7,7 +7,7 @@ Severity: 🔴 broken · 🟡 feels off · ⚪ finish. Check a box only when the
 ## Next up (handoff, 2026-09-29)
 1. ~~Phase E #5 — page/tab change motion~~ done (`noir-settle-group`).
 2. ~~Phase E #6–7 — shelves + search palette~~ done.
-3. Phase D — cold start (pick 1+, no dead wait, play immediately).
+3. ~~Phase D — cold start~~ done.
 4. Leftovers: Now Playing composition when lyrics + rail are closed; track-switch main-thread stall; identity bug (bands collapsing into solo artist); atmosphere setting (glow/grain).
 Motion vocabulary lives in `utils/motionPresets.ts` (`MOTION.tap/panel/scene/settle`) and `utils/actionMotion.ts` (fly-to-queue, favorite burst).
 
@@ -81,10 +81,10 @@ Phase A notes: Library root is now the collection grid (Favorites card first); F
 - [ ] 🟡 Identity: "Kim Larsen & Kjukken" opens as "Kim Larsen" (canonical name collapses a band into the solo artist).
 
 ### Phase D — Cold start
-- [ ] 🟡 Pick 1+ (no max, no forced 3). Button reads "Start with N".
-- [ ] 🟡 No dead wait: on start, play radio from the picks immediately and land on Home; mixes fill in with skeletons.
-- [x] Real portraits (D1) — note: loading skeletons are square while portraits are round.
-- [ ] 🟡 More artists (search + load more), stronger layout.
+- [x] 🟡 Pick 1+ (cap 12 only as a guard). Floating bar: picked avatars + "Start with N"; always reachable. Search picks stay in the grid once the search clears.
+- [x] 🟡 No dead wait: Home in ~30 ms (phase-1 seed is local only; top-track enrichment runs in the background, in parallel). A "Your picks" station (`buildPicksStation`: picks' top tracks round-robin, then related radio) is playing ~1.5 s after the click.
+- [x] Real portraits (D1): Deezer portraits via `getArtistImage` (2.5 s timeout → chart cover). Skeletons are the exact shape (round + name line).
+- [x] 🟡 More artists: home country + US + GB charts alternated (~30), "Show more". Layout: no card, owns the page, 112 px portraits, selection ring + springy check.
 
 ### Phase E — Motion pass
 Principle: motion explains cause → effect (where did it go, what changed). One expressive beat per action, everything around it quiet (MOTION.panel/settle). Creation gets the "new playlist" spring; ambient things never loop for attention.

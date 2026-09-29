@@ -8,7 +8,8 @@ import { refreshTasteProfileCache, topArtists } from './tasteProfile';
 import { getArtistTopTracks } from '../musicGraph';
 import { normalizeName } from '../musicGraph/normalize';
 
-export const COLD_START_PICK_COUNT = 3;
+/** Pick at least one; more is fine. The cap only guards against someone selecting the whole grid. */
+export const COLD_START_MAX_ARTISTS = 12;
 const TRACKS_PER_ARTIST = 5;
 
 export type ColdStartArtist = {
@@ -56,60 +57,91 @@ export function artistsFromSearch(results: SearchResult[], limit = 8): ColdStart
   return artists;
 }
 
-/**
- * Write synthetic completed listens for each picked artist so mixes + Discover
- * personal shelves have taste to work with. Home stays empty until this runs.
- */
-export async function seedTasteFromArtists(artistNames: string[]): Promise<void> {
-  const unique = [
+function uniqueArtists(artistNames: string[]): string[] {
+  return [
     ...new Map(
       artistNames
         .map((name) => name.trim())
         .filter(Boolean)
         .map((name) => [normalizeName(name) || name.toLowerCase(), name] as const)
     ).values(),
-  ].slice(0, COLD_START_PICK_COUNT);
+  ].slice(0, COLD_START_MAX_ARTISTS);
+}
 
+function eventId(now: number, offset: number) {
+  return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `seed_${now}_${offset}_${Math.random().toString(36).slice(2)}`;
+}
+
+/**
+ * Cold start, phase 1 — local only, no network: one synthetic listen per picked artist, so Home
+ * can leave the picker at once and mixes have a taste to build from.
+ */
+export async function seedTasteFromArtists(artistNames: string[]): Promise<void> {
+  const unique = uniqueArtists(artistNames);
   if (unique.length === 0) return;
+  const now = Date.now();
+  await Promise.all(
+    unique.map((artist, i) => {
+      const artistKey = normalizeName(artist) || artist.toLowerCase();
+      return addListeningEvent({
+        id: eventId(now, i),
+        songKey: `seed:${artistKey}:_`,
+        title: artist,
+        artist,
+        startedAt: now - i * 90_000,
+        listenedMs: 180_000,
+        durationMs: 210_000,
+        outcome: 'completed',
+        source: 'seed',
+        sourceId: `seed:${artistKey}`,
+      });
+    })
+  );
+  refreshTasteProfileCache();
+}
 
+/**
+ * Cold start, phase 2 — runs in the background after Home is showing: each artist's top tracks
+ * as synthetic listens (fetched in parallel), so Your sound and later mixes have real titles.
+ */
+export async function enrichSeedTaste(artistNames: string[]): Promise<void> {
+  const unique = uniqueArtists(artistNames);
+  if (unique.length === 0) return;
   const dayMs = 24 * 60 * 60 * 1000;
   const now = Date.now();
-  let offset = 0;
-
-  for (const artist of unique) {
-    const tops = await getArtistTopTracks(artist, TRACKS_PER_ARTIST);
-    const tracks =
-      tops.length > 0
-        ? tops
-        : [{ title: `${artist} — seed`, artist, image: undefined as string | undefined }];
-
+  const tops = await Promise.all(
+    unique.map((artist) => getArtistTopTracks(artist, TRACKS_PER_ARTIST).catch(() => []))
+  );
+  let offset = 1;
+  const writes: Promise<unknown>[] = [];
+  tops.forEach((tracks, i) => {
+    const artist = unique[i];
     for (const track of tracks) {
       const title = track.title?.trim() || artist;
       const trackArtist = track.artist?.trim() || artist;
       const artistKey = normalizeName(trackArtist) || trackArtist.toLowerCase();
       const titleKey = normalizeName(title) || title.toLowerCase();
       const durationMs = Math.round((track.durationSec ?? 210) * 1000);
-      const listenedMs = Math.round(durationMs * 0.85);
-
-      await addListeningEvent({
-        id:
-          typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-            ? crypto.randomUUID()
-            : `seed_${now}_${offset}_${Math.random().toString(36).slice(2)}`,
-        songKey: `seed:${artistKey}:${titleKey}`,
-        title,
-        artist: trackArtist,
-        artistMbid: track.artistMbid,
-        startedAt: now - offset * dayMs - offset * 90_000,
-        listenedMs,
-        durationMs,
-        outcome: 'completed',
-        source: 'seed',
-        sourceId: `seed:${artistKey}`,
-      });
+      writes.push(
+        addListeningEvent({
+          id: eventId(now, offset),
+          songKey: `seed:${artistKey}:${titleKey}`,
+          title,
+          artist: trackArtist,
+          artistMbid: track.artistMbid,
+          startedAt: now - offset * dayMs - offset * 90_000,
+          listenedMs: Math.round(durationMs * 0.85),
+          durationMs,
+          outcome: 'completed',
+          source: 'seed',
+          sourceId: `seed:${artistKey}`,
+        })
+      );
       offset += 1;
     }
-  }
-
+  });
+  await Promise.all(writes);
   refreshTasteProfileCache();
 }

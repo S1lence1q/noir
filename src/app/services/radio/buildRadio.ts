@@ -1,6 +1,6 @@
 import type { SearchResult } from '../../types';
 import { getListeningEvents } from '../listening/eventsStore';
-import { getArtistRadio, getSimilarTracks, type GraphTrack } from '../musicGraph';
+import { getArtistRadio, getArtistTopTracks, getSimilarTracks, type GraphTrack } from '../musicGraph';
 import { normalizeName } from '../musicGraph/normalize';
 import { graphTrackToSearchResult } from '../discover/discoverFeed';
 
@@ -131,4 +131,37 @@ export async function buildAutoplayTracks(
 
 export function radioStationLabel(artist: string) {
   return `Radio · ${artist}`;
+}
+
+/**
+ * Cold start: a station from the artists someone just picked. Their own top tracks come first,
+ * round-robin (so the first song is familiar), then related radio. No playback lookups here —
+ * tracks resolve when they play, so this returns as soon as the graph answers.
+ */
+export async function buildPicksStation(artists: string[], limit = DEFAULT_LIMIT): Promise<SearchResult[]> {
+  const names = artists.map((name) => name.trim()).filter(Boolean);
+  if (names.length === 0) return [];
+  const perArtist = Math.max(2, Math.ceil(12 / names.length));
+  const [tops, radios] = await Promise.all([
+    Promise.all(names.map((name) => getArtistTopTracks(name, perArtist).catch(() => [] as GraphTrack[]))),
+    Promise.all(names.slice(0, 3).map((name) => getArtistRadio(name).catch(() => [] as GraphTrack[]))),
+  ]);
+
+  const seen = new Set<string>();
+  const take = (track: GraphTrack | undefined, into: GraphTrack[]) => {
+    if (!track?.title || !track.artist) return;
+    const key = trackKey(track.title, track.artist);
+    if (seen.has(key)) return;
+    seen.add(key);
+    into.push(track);
+  };
+
+  const head: GraphTrack[] = [];
+  for (let i = 0; i < perArtist; i++) for (const list of tops) take(list[i], head);
+  const tail: GraphTrack[] = [];
+  for (const track of shuffle(radios.flat())) take(track, tail);
+
+  return [...head, ...interleaveByArtist(tail, 2)]
+    .slice(0, limit)
+    .map((track) => graphTrackToSearchResult(track, 'picks'));
 }

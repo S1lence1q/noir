@@ -56,6 +56,7 @@ import { NoirSongMenuHost } from './components/SongRowOptions';
 import { setAutoplayAlways, useQueueEndPrompt } from './hooks/useQueueEndPrompt';
 import {
   buildAutoplayTracks,
+  buildPicksStation,
   buildRadioTracks,
   radioStationLabel,
 } from './services/radio/buildRadio';
@@ -1377,6 +1378,32 @@ export default function App() {
       openLibraryPlaylist(playlist.id);
     }
   };
+
+  // Cold start: play a station from the picked artists right away (Home fills in behind it).
+  const playColdStartPicks = async (artists: string[]) => {
+    noirToast({ text: strings.radio.starting });
+    try {
+      const station = await buildPicksStation(artists);
+      if (station.length === 0) {
+        noirToast({ text: strings.radio.empty });
+        return;
+      }
+      await handlePlayPlaylist(station, strings.home.coldStartStation);
+    } catch (error) {
+      console.warn('[cold-start] station failed', error);
+      noirToast({ text: strings.radio.failed });
+    }
+  };
+  const playColdStartPicksRef = useRef(playColdStartPicks);
+  playColdStartPicksRef.current = playColdStartPicks;
+  useEffect(() => {
+    const onPlayPicks = (e: Event) => {
+      const artists = (e as CustomEvent<{ artists?: string[] }>).detail?.artists ?? [];
+      if (artists.length > 0) void playColdStartPicksRef.current(artists);
+    };
+    window.addEventListener('noir-cold-start-play', onPlayPicks);
+    return () => window.removeEventListener('noir-cold-start-play', onPlayPicks);
+  }, []);
 
   // Home shelves open Library destinations without prop-drilling through LandingPage.
   useEffect(() => {
