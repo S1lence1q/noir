@@ -176,8 +176,8 @@ export function NoirArtistView({
             {isLoading && unique.length === 0
               ? strings.artist.loading
               : artist.listeners
-                ? strings.artist.metaWithListeners(artist.listeners, unique.length)
-                : strings.artist.songCount(unique.length)}
+                ? strings.artist.listenersCount(artist.listeners)
+                : null}
           </p>
           {artist.tags && artist.tags.length > 0 && (
             <div className="mt-2.5 flex flex-wrap gap-1.5 opacity-90">
