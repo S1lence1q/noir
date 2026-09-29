@@ -312,7 +312,17 @@ export function NoirNowPlayingView({
               layoutId={reduced ? undefined : 'np-cover'}
               className="noir-now-playing-art-slot"
               style={{ borderRadius: 18, boxShadow: '0 28px 80px rgba(0,0,0,0.55)' }}
-              transition={{ type: 'spring', stiffness: 320, damping: 34, mass: 0.85 }}
+              // Closing: this copy flies into the bar under the crossfade's exit opacity. When the flight
+              // ends the projection lets go, and if the unmount lands a frame later the element shows its
+              // own opacity at full size over the page underneath. Its own opacity is 0 while exiting.
+              animate={{ opacity: isPresent ? 1 : 0 }}
+              transition={{
+                type: 'spring',
+                stiffness: 320,
+                damping: 34,
+                mass: 0.85,
+                opacity: { duration: reduced ? 0.1 : 0.3, ease: 'easeOut' },
+              }}
             >
               <AnimatePresence mode="sync" initial={false} custom={deckDir}>
                 {hasRealArtwork(song.artworkUrl) ? (
