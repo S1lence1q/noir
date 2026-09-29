@@ -30,6 +30,8 @@ type AppShellProps = {
   queueCount?: number;
   favoritesCount?: number;
   favoritesActive?: boolean;
+  /** An artist/mix page covers the tab: the tab reads as the quiet parent, not active. */
+  detailOverlayOpen?: boolean;
   selectedPlaylistId?: string | null;
   isFavorite?: boolean;
   onOpenFavorites?: () => void;
@@ -59,6 +61,7 @@ export function AppShell({
   queueCount = 0,
   favoritesCount,
   favoritesActive = false,
+  detailOverlayOpen = false,
   selectedPlaylistId = null,
   isFavorite = false,
   onOpenFavorites,
@@ -78,6 +81,7 @@ export function AppShell({
         onTabChange={onTabChange}
         favoritesCount={favoritesCount}
         favoritesActive={favoritesActive}
+        detailOverlayOpen={detailOverlayOpen}
         selectedPlaylistId={selectedPlaylistId}
         onOpenFavorites={onOpenFavorites}
         onOpenPlaylist={onOpenPlaylist}

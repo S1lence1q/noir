@@ -75,6 +75,8 @@ Phase A notes: Library root is now the collection grid (Favorites card first); F
 
 - [x] 🔴 Profile loaded twice when hopping artists: gate was keyed on name+deezerId, and the id arrives later. Now keyed on name, refined refetch keeps the page, reveal is latched. Verified: 5 hops → exactly one skeleton each.
 - [x] 🔴 Artist opened from the bar landed *under* an open mix. Detail overlays now stack by recency; closing the top one reveals the one beneath.
+- [x] 🔴 Sidebar claimed Home while an artist was open, and clicking the current tab did nothing (overlay stayed). Tab / Favorites / playlist clicks now always close detail overlays; under an overlay the tab shows the D4 parent state.
+- [x] 🔴 Artist → another tab flashed the old page (e.g. Favorites) while the overlay faded. A tab change made under an overlay drops the old page instantly; the overlay steps back onto the new one.
 - [ ] 🟡 Identity: "Kim Larsen & Kjukken" opens as "Kim Larsen" (canonical name collapses a band into the solo artist).
 
 ### Phase D — Cold start

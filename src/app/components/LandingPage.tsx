@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { VerifiedArtist, SearchResult } from '../types';
 import { Playlist } from './PlaylistDetailsView';
@@ -20,6 +20,11 @@ import { NoirSettingsView } from './shell/noir/NoirSettingsView';
 import { strings } from '../constants/strings';
 import { getAlbumTracks } from '../services/musicGraph';
 import { graphTrackToSearchResult } from '../services/discover/discoverFeed';
+
+/** Tab page exit: 120 ms, or instant when an overlay covered the old page (custom = true). */
+const TAB_PAGE_VARIANTS = {
+  exit: (dropOldPage: boolean) => ({ opacity: 0, transition: { duration: dropOldPage ? 0 : 0.12 } }),
+};
 
 interface LandingPageProps {
   isIntroActive: boolean;
@@ -295,6 +300,18 @@ export function LandingPage({
   const isScrollMode = navMode === 'scroll';
   const contentPadding = shellMode ? 'pt-8 pb-6' : 'pt-16 pb-24';
   const hasDetailOverlay = selectedArtist !== null || selectedPlaylist !== null;
+  // A tab change made while an overlay covers the page (e.g. Home from an open artist) drops the
+  // old page at once, so the overlay steps back onto the new page instead of flashing the old one.
+  // Latched per tab change; checks the previous render too, since the overlay may be cleared in the
+  // same update as the tab (it is still on screen, exiting).
+  const prevTabRef = useRef(activeTab);
+  const prevOverlayRef = useRef(hasDetailOverlay);
+  const dropOldPageRef = useRef(false);
+  if (prevTabRef.current !== activeTab) {
+    dropOldPageRef.current = hasDetailOverlay || prevOverlayRef.current;
+    prevTabRef.current = activeTab;
+  }
+  prevOverlayRef.current = hasDetailOverlay;
   const [topOverlay, setTopOverlay] = useState<'artist' | 'playlist'>('playlist');
   const artistOverlayKey = selectedArtist?.name ?? null;
   useEffect(() => {
@@ -394,13 +411,14 @@ export function LandingPage({
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           style={{ pointerEvents: hasDetailOverlay ? 'none' : 'auto' }}
         >
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" custom={dropOldPageRef.current}>
             {activeTab === 'search' && (
               <motion.div
                 key="noir-home"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                variants={TAB_PAGE_VARIANTS}
+                exit="exit"
                 transition={{ duration: 0.2 }}
                 className="h-full"
               >
@@ -438,7 +456,8 @@ export function LandingPage({
                 key="noir-discover"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                variants={TAB_PAGE_VARIANTS}
+                exit="exit"
                 transition={{ duration: 0.2 }}
                 className="h-full"
               >
@@ -462,7 +481,8 @@ export function LandingPage({
                 key="noir-library"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                variants={TAB_PAGE_VARIANTS}
+                exit="exit"
                 transition={{ duration: 0.2 }}
                 className="h-full"
               >
@@ -488,7 +508,8 @@ export function LandingPage({
                 key="noir-settings"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                variants={TAB_PAGE_VARIANTS}
+                exit="exit"
                 transition={{ duration: 0.2 }}
                 className="h-full"
               >

@@ -23,6 +23,7 @@ type AppSidebarProps = {
   onTabChange: (tab: AppTab) => void;
   favoritesCount?: number;
   favoritesActive?: boolean;
+  detailOverlayOpen?: boolean;
   selectedPlaylistId?: string | null;
   onOpenFavorites?: () => void;
   onOpenPlaylist?: (playlistId: string) => void;
@@ -34,6 +35,7 @@ export function AppSidebar({
   onTabChange,
   favoritesCount = 0,
   favoritesActive = false,
+  detailOverlayOpen = false,
   selectedPlaylistId = null,
   onOpenFavorites,
   onOpenPlaylist,
@@ -82,8 +84,10 @@ export function AppSidebar({
         </button>
         {primaryNav.map(({ id, label: navLabel, Icon }) => {
           const inTab = activeTab === id;
-          // Inside a Library sub-page opened from Quick access / Playlists: Library reads as the parent.
-          const isParent = inTab && id === 'myhub' && (sidebarPlaylistActive || favoritesActive);
+          // Inside a Library sub-page opened from Quick access / Playlists, or under an open
+          // artist/mix page: the tab reads as the parent, not as where you are.
+          const isParent =
+            inTab && (detailOverlayOpen || (id === 'myhub' && (sidebarPlaylistActive || favoritesActive)));
           const isActive = inTab && !isParent && !sidebarPlaylistActive;
           return (
             <button

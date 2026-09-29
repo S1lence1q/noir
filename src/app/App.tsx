@@ -1310,7 +1310,15 @@ export default function App() {
     return () => window.removeEventListener('elva-reset-tour', handleResetTour);
   }, []);
 
+  /** Sidebar navigation always lands on the page, never stays under an open artist/mix. */
+  const closeDetailOverlays = () => {
+    searchLogic.setSelectedArtist(null);
+    searchLogic.setArtistCandidates?.(null);
+    setSelectedPlaylist(null);
+  };
+
   const openLibraryFavorites = () => {
+    closeDetailOverlays();
     setLibraryFocus((prev) => ({
       section: 'favorites',
       playlistId: null,
@@ -1326,6 +1334,7 @@ export default function App() {
   }, []);
 
   const openLibraryPlaylist = (playlistId: string) => {
+    closeDetailOverlays();
     setLibraryFocus((prev) => ({
       section: 'playlists',
       playlistId,
@@ -1736,6 +1745,7 @@ export default function App() {
       <AppShell
             activeTab={activeTab}
             onTabChange={(tab) => {
+              closeDetailOverlays();
               // Library in the sidebar always lands on the Library root, never a dead click.
               if (tab === 'myhub') {
                 setLibraryFocus((prev) => ({ section: 'playlists', playlistId: null, requestId: prev.requestId + 1 }));
@@ -1775,12 +1785,15 @@ export default function App() {
               return Math.max(0, queue.length - idx - 1);
             })()}
             favoritesCount={favorites.length}
+            detailOverlayOpen={!!selectedArtist || !!selectedPlaylist}
             favoritesActive={
+              !selectedArtist &&
+              !selectedPlaylist &&
               activeTab === 'myhub' &&
               libraryFocus.section === 'favorites' &&
               !libraryOpenPlaylistId
             }
-            selectedPlaylistId={libraryOpenPlaylistId}
+            selectedPlaylistId={selectedArtist || selectedPlaylist ? null : libraryOpenPlaylistId}
             onOpenFavorites={openLibraryFavorites}
             onOpenPlaylist={openLibraryPlaylist}
             onDropSongToPlaylist={handleDropSongToPlaylist}
