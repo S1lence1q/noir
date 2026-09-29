@@ -40,7 +40,7 @@ npm run preview  # test the production build locally
 * **Visual Atmosphere & Dither Art:** Expressive dithered covers and deterministic color worlds generated dynamically from album art and sound identity (`NoirDitherCover`).
 * **Shared-Element Now Playing:** Seamless cover flight transitions between the compact playback bar and the fullscreen canvas, featuring synchronized lyrics (`L`), queue rail toggle, and Soft Shuffle.
 * **Curated Home & Taste Profile:** Personal Daily Mixes, "Jump back in", listening history insights ("Your sound"), and cold-start taste onboarding.
-* **Editorial Artist Profiles:** Scandinavian editorial layouts featuring chronological latest release spotlight cards, format-filtered discographies (Albums, Singles & EPs), "Fans also like" shelves, and authentic biographies sourced from Last.fm and Wikipedia.
+* **Curated Artist Profiles:** Clean, stable profiles featuring chronological latest release spotlight cards, format-filtered discographies (Albums, Singles & EPs), "Fans also like" shelves, and authentic biographies sourced from Last.fm and Wikipedia.
 * **Intelligent Music Graph:** Hybrid metadata engine combining Deezer and Last.fm for similar artists, radio generation, genres, and discographies.
 * **Smooth Crossfading & Audio Core:** Constant-power ($\sin/\cos$) crossfades between tracks to eliminate clicks, pops, and abrupt cuts.
 * **Global Search & Shortcuts:** Fast ⌘K command palette, quick artist navigation, and full keyboard control (⌘N for playlist creation, Space for play/pause).
@@ -84,7 +84,7 @@ Found a bug or have an idea? Feel free to [open an issue](https://github.com/S1l
 
 ## About
 
-Built with care, precision, and an obsession with editorial typography and tactile interaction.
+Built with care, precision, and an obsession with tactile interaction and visual stability.
 
 Works on my machine 👍
 
