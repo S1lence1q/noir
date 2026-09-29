@@ -4,6 +4,13 @@
 Single source of truth for "not done yet". Tickets are for features; this is for finish.
 Severity: 🔴 broken · 🟡 feels off · ⚪ finish. Check a box only when the surface meets the Definition of Done.
 
+## Next up (handoff, 2026-09-29)
+1. Phase E #5 — page/tab change motion (content settles in, sections staggered). Pairs with the new `NoirDetailOverlay` motion.
+2. Phase E #6–7 — shelves stagger on first view; search palette open/results.
+3. Phase D — cold start (pick 1+, no dead wait, play immediately).
+4. Leftovers: Now Playing composition when lyrics + rail are closed; track-switch main-thread stall; identity bug (bands collapsing into solo artist); palette drops first keystrokes; atmosphere setting (glow/grain).
+Motion vocabulary lives in `utils/motionPresets.ts` (`MOTION.tap/panel/scene/settle`) and `utils/actionMotion.ts` (fly-to-queue, favorite burst).
+
 ## Definition of Done (per surface)
 All 6 states · nothing jumps · enter **and** exit motion · reduced motion · keyboard · copy in `strings.ts` · works at phone width · no fallback flash.
 
