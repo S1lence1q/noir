@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { ChevronRight, Heart, Loader2, Plus, X } from 'lucide-react';
@@ -11,7 +11,7 @@ import {
   shouldShowArtistCard,
 } from '../../../utils/apiUtils';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
-import { EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
+import { EASE_OUT_SMOOTH, EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
 import { noirToast } from './NoirToast';
 import { NoirMark } from './NoirMark';
@@ -98,12 +98,14 @@ export function NoirSearchPalette({
   const artistThumb = artistCard?.thumbnail || '';
   const artistInitial = (artistCard?.name.trim().charAt(0) || '·').toUpperCase();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
     setQuery('');
     setResults([]);
     setIsSearching(false);
     setFocusedIndex(0);
+    // Focus in the same commit that mounts the input, so keys typed right after ⌘K land in it.
+    inputRef.current?.focus();
     const t = window.setTimeout(() => inputRef.current?.focus(), 30);
     return () => window.clearTimeout(t);
   }, [open]);
@@ -205,10 +207,14 @@ export function NoirSearchPalette({
             aria-modal="true"
             aria-label="Search"
             className="noir-search-palette"
-            initial={reduced ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
+            initial={reduced ? { opacity: 0 } : { opacity: 0, y: 6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduced ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.98 }}
-            transition={{ duration: reduced ? 0.12 : 0.22, ease: EASE_PREMIUM }}
+            exit={
+              reduced
+                ? { opacity: 0 }
+                : { opacity: 0, scale: 0.985, transition: { duration: 0.14, ease: EASE_OUT_SMOOTH } }
+            }
+            transition={{ duration: reduced ? 0.12 : 0.24, ease: EASE_PREMIUM }}
           >
             <div className="noir-search-palette-input-row">
               {isSearching ? (
@@ -295,7 +301,7 @@ export function NoirSearchPalette({
                   <button
                     type="button"
                     data-active={focusedIndex === 0 ? 'true' : 'false'}
-                    className="noir-search-palette-row noir-search-palette-row--artist"
+                    className="noir-search-palette-row noir-search-palette-row--artist noir-settle"
                     onMouseEnter={() => setFocusedIndex(0)}
                     onClick={() => openArtist(artistCard)}
                   >
@@ -327,7 +333,8 @@ export function NoirSearchPalette({
                 <p className="noir-search-palette-label">Songs</p>
               )}
 
-              <div className="flex flex-col gap-0.5">
+              {/* Rows that arrive with a new result set stagger in; rows that stay put don't move. */}
+              <div className="noir-stagger-rows flex flex-col gap-0.5">
                 {trackRows.map((track, i) => {
                   const rowIndex = i + trackOffset;
                   const active = rowIndex === focusedIndex;

@@ -6,7 +6,7 @@ Severity: 🔴 broken · 🟡 feels off · ⚪ finish. Check a box only when the
 
 ## Next up (handoff, 2026-09-29)
 1. ~~Phase E #5 — page/tab change motion~~ done (`noir-settle-group`).
-2. Phase E #6–7 — shelves stagger on first view; search palette open/results.
+2. ~~Phase E #6–7 — shelves + search palette~~ done.
 3. Phase D — cold start (pick 1+, no dead wait, play immediately).
 4. Leftovers: Now Playing composition when lyrics + rail are closed; track-switch main-thread stall; identity bug (bands collapsing into solo artist); palette drops first keystrokes; atmosphere setting (glow/grain).
 Motion vocabulary lives in `utils/motionPresets.ts` (`MOTION.tap/panel/scene/settle`) and `utils/actionMotion.ts` (fly-to-queue, favorite burst).
@@ -52,7 +52,7 @@ NOIR is single-user and local-first; a "profile" has no audience. Add **History*
 - [x] 🟡 Apply D1 across covers/portraits currently dithered.
 
 Phase A notes: Library root is now the collection grid (Favorites card first); Favorites and playlists are sub-pages with a back link. Real artwork goes through `NoirArtwork` (skeleton → decode → one fade; dither mark only as fallback). Dither kept for playlists, mixes, tags, Replay.
-- [ ] 🟡 Search palette drops the first keystrokes typed right after ⌘K / `/` (input not focused yet). Buffer or focus synchronously.
+- [x] 🟡 Search palette dropped the first keystrokes after ⌘K / `/`. Input now focused in a layout effect (same commit as mount).
 - [x] ⚪ Collection cards (discography, Library grid): no hover box; artwork dims, play appears.
 
 ### Phase B — Now Playing
@@ -93,8 +93,8 @@ Principle: motion explains cause → effect (where did it go, what changed). One
 - [x] Lyrics breathing dots hold mid-breath while paused (`animation-play-state`).
 - [ ] 🟡 Perf: a track switch blocks the main thread ~200–500 ms, so the deck starts late. Profile the stream switch in usePlaybackCore.
 - [x] Tab/page change: content settles in (fade + 8 px rise, sections staggered 40 ms). CSS primitive `noir-settle-group` (direct children stagger, capped at 240 ms) / `noir-settle` in `noir-shell.css`, `backwards` fill so motion/react transforms aren't held. On Home idle, Discover, Library (+ Favorites / playlist grid), Settings, scaffold header. Old page exits in 120 ms.
-- [ ] Shelves: items stagger in the first time they scroll into view.
-- [ ] Search palette: opens with a settle (scale .98 → 1), results stagger.
+- [x] Shelves: items stagger in the first time they scroll into view (`NoirHomeShelf` `data-reveal`: on screen at mount → rides the page settle; below the fold → held, then 35 ms stagger on first intersect).
+- [x] Search palette: opens with a settle (scale .98 → 1, 6 px), exits in 140 ms; a new result set staggers in 20 ms apart (`noir-stagger-rows`), rows that persist don't move.
 
 ### Later
 - [ ] T22 quiet tooltips (good delegation candidate once search bar lands).
