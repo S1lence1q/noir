@@ -5,10 +5,10 @@ import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
 import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { NoirDitherCover } from './NoirDitherCover';
-import { NoirMonogramCover } from './NoirMonogramCover';
+import { NoirMixCover } from './NoirMixCover';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirHomeShelf } from './NoirHomeShelf';
-import { worldForCollection, worldForTag } from '../../../utils/ditherCover';
+import { worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
 import { getListeningEvents } from '../../../services/listening/eventsStore';
@@ -419,8 +419,8 @@ export function NoirDiscoverView({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.42, ease: EASE_PREMIUM }}
             >
-              {/* The genre is a name, not a picture: its monogram. The songs are listed beside it. */}
-              <NoirMonogramCover name={leadTag.title} world={worldForTag(leadTag.title)} size={200} />
+              {/* The genre's own symbol; its songs are listed beside it. */}
+              <NoirMixCover tag={leadTag.title} size={200} />
               <span className="min-w-0 pt-1">
                 <span className="noir-song-title block truncate text-[16px]">{leadTag.title}</span>
                 <span className="noir-song-meta mt-1 block truncate">{strings.playlist.songCount(leadTag.tracks.length)}</span>

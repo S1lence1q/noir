@@ -37,7 +37,7 @@ export function worldForCollection(id: string): ColorWorld {
 export function worldForTag(tag: string): ColorWorld {
   const t = tag.toLowerCase();
   if (/hip-?hop|rap|trap|drill|grime/.test(t)) return 'ember';
-  if (/chill|lo-?fi|ambient|electronic|techno|house|edm/.test(t)) return 'cobalt';
+  if (/chill|lo[\s-]?fi|ambient|electronic|techno|house|edm/.test(t)) return 'cobalt';
   if (/indie|folk|acoustic|rock|alternative|singer/.test(t)) return 'moss';
   if (/pop|dance|disco|r&b|rnb|soul/.test(t)) return 'rose';
   if (/metal|dark|industrial|punk|goth/.test(t)) return 'ink';

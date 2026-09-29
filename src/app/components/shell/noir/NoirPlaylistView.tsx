@@ -5,7 +5,7 @@ import { NoirRankedSongRow } from './NoirRankedSongRow';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { NoirDitherCover } from './NoirDitherCover';
-import { NoirMonogramCover } from './NoirMonogramCover';
+import { NoirMixCover } from './NoirMixCover';
 import { strings } from '../../../constants/strings';
 
 export type NoirPlaylistViewProps = {
@@ -41,7 +41,7 @@ export function NoirPlaylistView({
     <div className="flex w-full flex-col gap-10">
       <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:items-end sm:text-left">
         {playlist.id.startsWith('mix:') ? (
-          <NoirMonogramCover name={playlist.name} world={world} size={160} madeForYou />
+          <NoirMixCover tag={playlist.name} size={160} />
         ) : (
           <NoirDitherCover source={cover} world={world} seed={playlist.id} size={160} />
         )}

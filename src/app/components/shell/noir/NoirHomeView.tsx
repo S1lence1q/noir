@@ -12,7 +12,7 @@ import { NoirSongRow } from './NoirSongRow';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import { NoirDitherCover } from './NoirDitherCover';
-import { NoirMonogramCover } from './NoirMonogramCover';
+import { NoirMixCover, NoirMixCoverGallery } from './NoirMixCover';
 import { NoirPlaylistCover } from './NoirPlaylistCover';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirPlayPauseIcon } from './NoirPlayPauseIcon';
@@ -271,6 +271,13 @@ export function NoirHomeView({
         )}
       </div>
 
+      {/* Dev check of every mix symbol: open Home with ?covers */}
+      {typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('covers') && (
+        <div className="noir-content pt-4">
+          <NoirMixCoverGallery />
+        </div>
+      )}
+
       {panelPhase === 'idle' && featuredTrack ? (
         <div className="noir-content shrink-0 pt-4">
           {/* Your day: the line grows from midnight to now and swells in the hours you listened.
@@ -481,7 +488,7 @@ export function NoirHomeView({
                         transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.08 + i * 0.04 }}
                       >
                         <span className="relative block">
-                          <NoirMonogramCover name={mix.name} world={mix.world} size={188} madeForYou />
+                          <NoirMixCover tag={mix.tag} size={188} />
                           {onPlayPlaylist && (
                             <motion.button
                               type="button"

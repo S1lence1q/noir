@@ -3324,11 +3324,11 @@ button.noir-now-playing-source:hover {
 }
 
 /* No hover box: the artwork answers (dims a touch, play appears), like Latest release. */
-.noir-collection-card :is(.noir-artwork, .noir-dither-cover, .noir-favorites-cover) {
+.noir-collection-card :is(.noir-artwork, .noir-dither-cover, .noir-favorites-cover, .noir-mix-cover) {
   transition: filter 0.2s ease;
 }
 
-.noir-collection-card:hover :is(.noir-artwork, .noir-dither-cover, .noir-favorites-cover) {
+.noir-collection-card:hover :is(.noir-artwork, .noir-dither-cover, .noir-favorites-cover, .noir-mix-cover) {
   filter: brightness(0.82);
 }
 
@@ -3360,7 +3360,8 @@ button.noir-now-playing-source:hover {
 
 /* Fine halftone grain so the flat field matches the dither covers next to it. */
 .noir-favorites-cover::after,
-.noir-identity-cover::after {
+.noir-identity-cover::after,
+.noir-mix-cover::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -4998,35 +4999,31 @@ button.noir-now-playing-source:hover {
   .noir-playlist-cover img { animation: none; }
 }
 
-/* Monogram covers (mixes, genres): flat field, the poured letter, film grain. */
-.noir-monogram-cover {
+/* Mix / genre covers: one spray symbol on a flat field (NoirMixCover). */
+.noir-mix-cover {
   position: relative;
-  display: block;
-  flex-shrink: 0;
-  overflow: hidden;
-  isolation: isolate;
-}
-
-.noir-monogram-cover img {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.noir-monogram-cover::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.18;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-.noir-monogram-cover-badge {
-  position: absolute;
-  right: 8%;
-  bottom: 8%;
-  z-index: 1;
   display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.noir-mix-cover svg {
+  position: relative;
+  z-index: 0;
+  display: block;
+}
+
+.noir-mix-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.noir-mix-gallery figcaption {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--noir-text-secondary);
 }
