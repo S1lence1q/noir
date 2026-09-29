@@ -4,6 +4,7 @@ import type { SearchResult } from '../../../types';
 import { hashString, type ColorWorld } from '../../../utils/ditherCover';
 import { HEAT_RAMPS, renderHeatFigure } from '../../../utils/heatFigure';
 import { NoirMark } from './NoirMark';
+import { PARTNER_INK, initialOf, renderMonogram } from '../../../utils/monogram';
 
 /**
  * Home hero graphic: ONE simple object on a flat field (the lesson from the playlist creature
@@ -32,76 +33,11 @@ export function heroWorld(track: SearchResult): ColorWorld {
 }
 
 /** The object's colour: a partner from the palette, so the banner is two colours, one shape. */
-export const heroMark: Record<ColorWorld, string> = {
-  cobalt: '#E07A9A',
-  ember: '#0B0B0B',
-  moss: '#EDE8DE',
-  rose: '#1F3FBF',
-  bone: '#E85002',
-  ink: '#EDE8DE',
-};
+export const heroMark = PARTNER_INK;
 
 /** The field colour matches the creature's own ramp, so the image sits seamlessly on the card. */
 export const heroField = (world: ColorWorld) => HEAT_RAMPS[world][0][1];
 export const heroInk = (world: ColorWorld) => (world === 'cobalt' || world === 'moss' || world === 'ink' ? '#F2EEE6' : '#0B0B0B');
-
-const monogramCache = new Map<string, string>();
-
-/** The initial in a heavy weight, fattened, blurred and re-thresholded: edges pour like liquid. */
-function renderMonogram(letter: string, ink: string, px: number): string {
-  const key = `${letter}|${ink}|${px}`;
-  const cached = monogramCache.get(key);
-  if (cached) return cached;
-  const shape = document.createElement('canvas');
-  shape.width = shape.height = px;
-  const sx = shape.getContext('2d')!;
-  sx.fillStyle = '#000';
-  sx.fillRect(0, 0, px, px);
-  sx.filter = `blur(${px * 0.028}px)`;
-  sx.fillStyle = '#fff';
-  sx.strokeStyle = '#fff';
-  sx.lineJoin = 'round';
-  sx.lineWidth = px * 0.05;
-  sx.font = `800 ${px * 0.72}px Outfit, sans-serif`;
-  sx.textAlign = 'center';
-  sx.textBaseline = 'alphabetic';
-  const m = sx.measureText(letter);
-  const glyphH = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
-  const baseline = px / 2 + glyphH / 2 - m.actualBoundingBoxDescent;
-  const cx = px * 0.46;
-  sx.fillText(letter, cx, baseline);
-  sx.strokeText(letter, cx, baseline);
-  // The loose drop, bottom right of the letter.
-  sx.beginPath();
-  sx.arc(cx + m.actualBoundingBoxRight + px * 0.075, baseline - px * 0.07, px * 0.055, 0, Math.PI * 2);
-  sx.fill();
-
-  const data = sx.getImageData(0, 0, px, px);
-  const out = document.createElement('canvas');
-  out.width = out.height = px;
-  const ctx = out.getContext('2d')!;
-  const img = ctx.createImageData(px, px);
-  const n = parseInt(ink.slice(1), 16);
-  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-  for (let i = 0; i < data.data.length; i += 4) {
-    const v = data.data[i] / 255;
-    // Tight threshold on the blur = rounded, poured edges; a little noise keeps it printed.
-    const a = Math.min(1, Math.max(0, (v - 0.46) / 0.06)) * (0.94 + Math.random() * 0.06);
-    img.data[i] = r;
-    img.data[i + 1] = g;
-    img.data[i + 2] = b;
-    img.data[i + 3] = a * 255;
-  }
-  ctx.putImageData(img, 0, 0);
-  const url = out.toDataURL('image/png');
-  monogramCache.set(key, url);
-  return url;
-}
-
-function initialOf(artist: string) {
-  const letter = artist.trim().replace(/^the\s+/i, '').charAt(0).toUpperCase();
-  return /[A-ZÆØÅÄÖÜ0-9]/.test(letter) ? letter : 'N';
-}
 
 export function NoirHomeHero({
   track,

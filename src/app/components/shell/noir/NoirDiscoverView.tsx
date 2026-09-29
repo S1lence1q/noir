@@ -5,9 +5,10 @@ import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
 import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { NoirDitherCover } from './NoirDitherCover';
+import { NoirMonogramCover } from './NoirMonogramCover';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirHomeShelf } from './NoirHomeShelf';
-import { worldForCollection } from '../../../utils/ditherCover';
+import { worldForCollection, worldForTag } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
 import { getListeningEvents } from '../../../services/listening/eventsStore';
@@ -418,29 +419,25 @@ export function NoirDiscoverView({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.42, ease: EASE_PREMIUM }}
             >
-              <NoirDitherCover
-                source={leadTag.tracks[0]?.thumbnail}
-                world={worldForCollection(leadTag.id)}
-                seed={leadTag.id}
-                size={200}
-              />
+              {/* The genre is a name, not a picture: its monogram. The songs are listed beside it. */}
+              <NoirMonogramCover name={leadTag.title} world={worldForTag(leadTag.title)} size={200} />
               <span className="min-w-0 pt-1">
-                <span className="noir-song-title block truncate text-[16px]">{leadTag.tracks[0]?.title}</span>
-                <span className="noir-song-meta mt-1 block truncate">{leadTag.tracks[0]?.artist}</span>
+                <span className="noir-song-title block truncate text-[16px]">{leadTag.title}</span>
+                <span className="noir-song-meta mt-1 block truncate">{strings.playlist.songCount(leadTag.tracks.length)}</span>
               </span>
             </motion.button>
             <div className="noir-discover-world-stack">
-              {leadTag.tracks.slice(1, 5).map((track, i) => (
+              {leadTag.tracks.slice(0, 4).map((track, i) => (
                 <motion.button
                   key={track.id}
                   type="button"
                   className="noir-discover-world-row group elva-focus-ring"
-                  onClick={() => onPlayPlaylist(leadTag.tracks, leadTag.title, i + 1)}
+                  onClick={() => onPlayPlaylist(leadTag.tracks, leadTag.title, i)}
                   initial={reduced ? false : { opacity: 0, x: 8 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.32, ease: EASE_PREMIUM, delay: 0.08 + i * 0.04 }}
                 >
-                  <span className="noir-discover-world-rank">{i + 2}</span>
+                  <span className="noir-discover-world-rank">{i + 1}</span>
                   {track.thumbnail ? (
                     <img src={track.thumbnail} alt="" className="noir-discover-world-thumb" />
                   ) : (

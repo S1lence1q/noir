@@ -12,6 +12,7 @@ import { NoirSongRow } from './NoirSongRow';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import { NoirDitherCover } from './NoirDitherCover';
+import { NoirMonogramCover } from './NoirMonogramCover';
 import { NoirPlaylistCover } from './NoirPlaylistCover';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirPlayPauseIcon } from './NoirPlayPauseIcon';
@@ -480,13 +481,7 @@ export function NoirHomeView({
                         transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.08 + i * 0.04 }}
                       >
                         <span className="relative block">
-                          <NoirDitherCover
-                            source={mix.coverImage}
-                            world={mix.world}
-                            seed={mix.id}
-                            size={188}
-                            madeForYou
-                          />
+                          <NoirMonogramCover name={mix.name} world={mix.world} size={188} madeForYou />
                           {onPlayPlaylist && (
                             <motion.button
                               type="button"

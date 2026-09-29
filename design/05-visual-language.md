@@ -25,6 +25,7 @@ Everything graphic is made of grain: ordered dither, halftone, spray, film noise
 | **Cinematic** | Existing plate wave photo | Sidebar brand only. |
 | **Heat** | A blurred shape mapped through a heat ramp (cream rim → peach → lavender core) on a cobalt grain field (ref: blurred figures on blue) | Data drawn as a form: Your sound › your week |
 | **Heat figure** | A small blurred creature (body + limbs) through the collection's world ramp, grain on top | User playlist covers: seeded by playlist id, one limb per ~3 songs (empty = egg), so it grows as you fill it |
+| **Monogram** | A name's initial, poured (fattened + blurred + thresholded) with one loose drop, in the field's partner colour | Mixes and genres — things that are a name, not a picture. Replaces the dither of a random track there |
 | **Halftone bloom** | Dot grid whose dot size follows a shape + low-frequency swirl, stipple at the fade (ref: `abstract cloud like form`) | Data as texture: Your sound › listening clock |
 
 Heat and halftone bloom are *generated from your data* (`NoirHeatWeek`, `NoirHalftoneClock`, shared helpers in `utils/grainRender.ts`). Same data → same image (seeded). Heat is glow **with** grain, so it stays inside rule 3.
