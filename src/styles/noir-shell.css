@@ -4565,3 +4565,17 @@ button.noir-now-playing-source:hover {
     padding: 0 20px 22px;
   }
 }
+
+/* Phone settings: a row with a slider stacks (label over a full-width slider) instead of
+   squeezing the slider to nothing beside the label. */
+@media (max-width: 639px) {
+  .noir-settings-row:has(.noir-settings-slider-wrap) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .noir-settings-row:has(.noir-settings-slider-wrap) .noir-settings-row-control,
+  .noir-settings-row:has(.noir-settings-slider-wrap) .noir-settings-slider-wrap {
+    width: 100%;
+  }
+}
