@@ -19,7 +19,7 @@ export function NoirPageScaffold({
   return (
     <div className="flex h-full min-h-0 flex-col">
       {title ? (
-        <header className={`shrink-0 ${titleSize === 'compact' ? 'pb-2 pt-5' : 'pb-4 pt-6'}`}>
+        <header className={`noir-settle shrink-0 ${titleSize === 'compact' ? 'pb-2 pt-5' : 'pb-4 pt-6'}`}>
           <div className="noir-content flex items-end justify-between gap-6">
             <div>
               <h1 className={`noir-page-title ${titleSize === 'compact' ? 'text-[24px]' : ''}`}>{title}</h1>

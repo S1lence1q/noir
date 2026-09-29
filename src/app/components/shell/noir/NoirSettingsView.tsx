@@ -205,7 +205,7 @@ export function NoirSettingsView() {
   };
 
   return (
-    <div className="noir-settings noir-content--settings pb-10">
+    <div className="noir-settle-group noir-settings noir-content--settings pb-10">
       <SettingsCard title="Playback" icon={Volume2}>
         <SettingsRow label="Volume">
           <div className="noir-settings-slider-wrap">

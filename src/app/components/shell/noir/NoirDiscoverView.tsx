@@ -233,7 +233,7 @@ export function NoirDiscoverView({
   const [leadTag, ...restTags] = tagShelves;
 
   return (
-    <div className="flex flex-col pb-6">
+    <div className="noir-settle-group flex flex-col pb-6">
       {coldStart && (
         <p className="mb-8 max-w-lg px-1 text-[14px] text-[color:var(--noir-text-secondary)]">
           {strings.discover.emptyTasteDesc}

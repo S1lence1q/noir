@@ -400,8 +400,8 @@ export function LandingPage({
                 key="noir-home"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.18 }}
+                exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                transition={{ duration: 0.2 }}
                 className="h-full"
               >
                 <NoirHomeView
@@ -438,8 +438,8 @@ export function LandingPage({
                 key="noir-discover"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.18 }}
+                exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                transition={{ duration: 0.2 }}
                 className="h-full"
               >
                 <NoirPageScaffold title="Discover" titleSize="compact">
@@ -462,8 +462,8 @@ export function LandingPage({
                 key="noir-library"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.18 }}
+                exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                transition={{ duration: 0.2 }}
                 className="h-full"
               >
                 <NoirPageScaffold>
@@ -488,8 +488,8 @@ export function LandingPage({
                 key="noir-settings"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.18 }}
+                exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                transition={{ duration: 0.2 }}
                 className="h-full"
               >
                 <NoirPageScaffold title="Settings">

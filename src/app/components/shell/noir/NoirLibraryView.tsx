@@ -100,7 +100,7 @@ export function NoirLibraryView({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="noir-settle-group flex h-full min-h-0 flex-col">
       {showHeader && (
         <header className="pb-5">
           <h1 className="noir-page-title">Library</h1>
@@ -135,6 +135,7 @@ export function NoirLibraryView({
           {section === 'favorites' && (
             <motion.div
               key="favorites"
+              className="noir-settle-group"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, transition: { duration: 0 } }}
@@ -226,6 +227,7 @@ export function NoirLibraryView({
           {section === 'playlists' && !selectedPlaylist && (
             <motion.div
               key="playlists-grid"
+              className="noir-settle-group"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, transition: { duration: 0 } }}

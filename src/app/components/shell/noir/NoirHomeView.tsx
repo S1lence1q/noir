@@ -353,7 +353,7 @@ export function NoirHomeView({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="noir-content relative py-6"
+              className="noir-settle-group noir-content relative py-6"
             >
               {!featuredTrack && needsColdStart === true && (
                 <NoirColdStart onSeeded={handleColdStartSeeded} onBrowseDiscover={onOpenDiscover} />
