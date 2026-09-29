@@ -8,7 +8,7 @@ Severity: 🔴 broken · 🟡 feels off · ⚪ finish. Check a box only when the
 1. ~~Phase E #5 — page/tab change motion~~ done (`noir-settle-group`).
 2. ~~Phase E #6–7 — shelves + search palette~~ done.
 3. Phase D — cold start (pick 1+, no dead wait, play immediately).
-4. Leftovers: Now Playing composition when lyrics + rail are closed; track-switch main-thread stall; identity bug (bands collapsing into solo artist); palette drops first keystrokes; atmosphere setting (glow/grain).
+4. Leftovers: Now Playing composition when lyrics + rail are closed; track-switch main-thread stall; identity bug (bands collapsing into solo artist); atmosphere setting (glow/grain).
 Motion vocabulary lives in `utils/motionPresets.ts` (`MOTION.tap/panel/scene/settle`) and `utils/actionMotion.ts` (fly-to-queue, favorite burst).
 
 ## Definition of Done (per surface)
