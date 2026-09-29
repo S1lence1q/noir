@@ -30,6 +30,7 @@ interface KeyboardShortcutsParams {
   onOpenSearchPalette?: () => void;
   onNewPlaylist?: () => void;
   onToggleLyrics?: () => void;
+  onToggleQueue?: () => void;
 }
 
 export function useKeyboardShortcuts({
@@ -61,6 +62,7 @@ export function useKeyboardShortcuts({
   onOpenSearchPalette,
   onNewPlaylist,
   onToggleLyrics,
+  onToggleQueue,
 }: KeyboardShortcutsParams) {
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -207,6 +209,38 @@ export function useKeyboardShortcuts({
       } else if (e.code === 'Space' && hasActiveSong) {
         e.preventDefault();
         window.dispatchEvent(new Event('elva-toggle-play'));
+      } else if (
+        hasActiveSong &&
+        (e.key === 'ArrowLeft' || e.key === 'ArrowRight') &&
+        !e.altKey &&
+        !e.shiftKey &&
+        target.getAttribute('role') !== 'slider'
+      ) {
+        // ⌘/Ctrl + ←/→ changes track; plain ←/→ seeks 5 s.
+        e.preventDefault();
+        const forward = e.key === 'ArrowRight';
+        if (e.metaKey || e.ctrlKey) {
+          window.dispatchEvent(new Event(forward ? 'elva-play-next' : 'elva-play-prev'));
+        } else {
+          window.dispatchEvent(new CustomEvent('elva-seek-by', { detail: { delta: forward ? 5 : -5 } }));
+        }
+      } else if (
+        hasActiveSong &&
+        (e.key === 'ArrowUp' || e.key === 'ArrowDown') &&
+        (e.metaKey || e.ctrlKey) &&
+        target.getAttribute('role') !== 'slider'
+      ) {
+        // Plain ↑/↓ stay page scrolling; with ⌘/Ctrl they set volume.
+        e.preventDefault();
+        window.dispatchEvent(
+          new CustomEvent('elva-volume-by', { detail: { delta: e.key === 'ArrowUp' ? 5 : -5 } })
+        );
+      } else if ((e.key === 'm' || e.key === 'M') && !e.metaKey && !e.ctrlKey && !e.altKey && hasActiveSong) {
+        e.preventDefault();
+        window.dispatchEvent(new Event('elva-toggle-mute'));
+      } else if ((e.key === 'q' || e.key === 'Q') && !e.metaKey && !e.ctrlKey && !e.altKey && hasActiveSong) {
+        e.preventDefault();
+        onToggleQueue?.();
       } else if (e.key === ',' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setActiveTab(activeTab === 'settings' ? 'search' : 'settings');
@@ -250,5 +284,6 @@ export function useKeyboardShortcuts({
     onOpenSearchPalette,
     onNewPlaylist,
     onToggleLyrics,
+    onToggleQueue,
   ]);
 }

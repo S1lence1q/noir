@@ -63,12 +63,14 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
             {/* Grid of keys */}
             <div className="space-y-4 text-xs">
               {[
-                { keys: ['Space'], desc: 'Play / Pause music' },
-                { keys: ['↑', '↓'], desc: 'Adjust volume' },
-                { keys: ['M'], desc: 'Mute / Unmute audio' },
-                { keys: ['←', '→'], desc: 'Seek 5s backward / forward' },
-                { keys: ['L'], desc: 'Toggle lyrics beside cover' },
-                { keys: ['Q'], desc: 'Toggle active queue drawer' },
+                { keys: ['Space'], desc: 'Play / Pause' },
+                { keys: ['←', '→'], desc: 'Seek 5 s back / forward' },
+                { keys: [isMac ? '⌘' : 'Ctrl', '←', '→'], desc: 'Previous / next song' },
+                { keys: [isMac ? '⌘' : 'Ctrl', '↑', '↓'], desc: 'Volume' },
+                { keys: ['M'], desc: 'Mute / unmute' },
+                { keys: ['L'], desc: 'Lyrics' },
+                { keys: ['Q'], desc: 'Next up' },
+                { keys: [isMac ? '⌘' : 'Ctrl', 'K'], desc: 'Search' },
                 { keys: [isMac ? '⌘' : 'Ctrl', 'N'], desc: 'Create a new playlist' },
                 { keys: [isMac ? '⌘' : 'Ctrl', ','], desc: 'Open settings menu' },
                 { keys: ['?'], desc: 'Toggle keyboard shortcut map' },

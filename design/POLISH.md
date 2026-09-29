@@ -107,6 +107,10 @@ Principle: motion explains cause → effect (where did it go, what changed). One
 - [x] 🟡 Phone artist hero: portrait on top fading into the colour field, name below it (was text across the face).
 - [x] 🟡 Song rows on touch/phone: hover-only actions reserved ≥ 96 px, so titles truncated at ~8 chars. Touch shows the always-visible More menu only; phone grid hugs it; duration hidden.
 - [x] ⚪ Phone Settings: slider rows collapsed the slider to 0 px beside the label; they now stack (label over a full-width slider).
+### Phase G — Platform (broad pass)
+- [x] 🔴 Shortcut map promised ↑↓ volume, M mute, ←→ seek, Q queue — none were wired. Now: ←/→ seek 5 s, ⌘/Ctrl ←/→ prev/next, ⌘/Ctrl ↑/↓ volume (plain ↑/↓ keep scrolling), M mute, Q Next up, L lyrics; map rewritten to match. Relative `elva-seek-by` / `elva-volume-by` / `elva-toggle-mute` events in the core.
+- [x] 🟡 Tab title shows the playing song ("Title · Artist", NOIR when paused); lock screen / OS media UI gets position (`setPositionState`).
+
 ### Later
 - [ ] T22 quiet tooltips (good delegation candidate once search bar lands).
 - [ ] History in Library (D5).

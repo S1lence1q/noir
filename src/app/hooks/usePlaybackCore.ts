@@ -1333,6 +1333,29 @@ export function usePlaybackCore({
       }
     };
 
+    // Relative controls for keyboard shortcuts (the core owns time and volume).
+    const handleSeekByEvent = (e: Event) => {
+      const delta = (e as CustomEvent<{ delta?: number }>).detail?.delta;
+      if (typeof delta !== 'number' || durationRef.current <= 0) return;
+      seekToAbsoluteTime(Math.max(0, Math.min(durationRef.current - 0.5, currentTimeRef.current + delta)));
+    };
+    const handleVolumeByEvent = (e: Event) => {
+      const delta = (e as CustomEvent<{ delta?: number }>).detail?.delta;
+      if (typeof delta !== 'number') return;
+      handleVolumeChange(Math.max(0, Math.min(100, volumeRef.current + delta)));
+    };
+    const handleToggleMuteEvent = () => {
+      if (volumeRef.current > 0) {
+        handleVolumeChange(0);
+      } else {
+        const saved = parseInt(localStorage.getItem('elva_player_premute_volume') || '70', 10);
+        handleVolumeChange(Number.isFinite(saved) && saved > 0 ? saved : 70);
+      }
+    };
+
+    window.addEventListener('elva-seek-by', handleSeekByEvent);
+    window.addEventListener('elva-volume-by', handleVolumeByEvent);
+    window.addEventListener('elva-toggle-mute', handleToggleMuteEvent);
     window.addEventListener('elva-toggle-play', handleTogglePlayEvent);
     window.addEventListener('elva-play-next', handleNextSongEvent);
     window.addEventListener('elva-play-prev', handlePrevSongEvent);
@@ -1340,6 +1363,9 @@ export function usePlaybackCore({
     window.addEventListener('elva-set-volume', handleSetVolumeEvent);
 
     return () => {
+      window.removeEventListener('elva-seek-by', handleSeekByEvent);
+      window.removeEventListener('elva-volume-by', handleVolumeByEvent);
+      window.removeEventListener('elva-toggle-mute', handleToggleMuteEvent);
       window.removeEventListener('elva-toggle-play', handleTogglePlayEvent);
       window.removeEventListener('elva-play-next', handleNextSongEvent);
       window.removeEventListener('elva-play-prev', handlePrevSongEvent);

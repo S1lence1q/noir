@@ -1290,6 +1290,7 @@ export default function App() {
     onOpenSearchPalette: () => setSearchPaletteOpen(true),
     onNewPlaylist: handleNewPlaylist,
     onToggleLyrics: toggleLyrics,
+    onToggleQueue: toggleQueueRail,
   });
 
   useEffect(() => {
@@ -1397,6 +1398,21 @@ export default function App() {
       openLibraryPlaylist(playlist.id);
     }
   };
+
+  // The browser tab and OS media surfaces know what's playing.
+  useEffect(() => {
+    document.title = songData && isMiniPlaying ? `${songData.title} · ${songData.artist}` : 'NOIR';
+  }, [songData?.title, songData?.artist, isMiniPlaying]);
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !navigator.mediaSession.setPositionState) return;
+    const { duration, currentTime } = shellPlayback;
+    if (!songData || !(duration > 0) || currentTime > duration) return;
+    try {
+      navigator.mediaSession.setPositionState({ duration, position: Math.max(0, currentTime), playbackRate: 1 });
+    } catch {
+      /* some browsers reject during track switches */
+    }
+  }, [songData, shellPlayback.duration, Math.floor(shellPlayback.currentTime)]);
 
   // Cold start: play a station from the picked artists right away (Home fills in behind it).
   const playColdStartPicks = async (artists: string[]) => {
