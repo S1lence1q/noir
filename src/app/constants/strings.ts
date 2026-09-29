@@ -322,6 +322,7 @@ export const strings = {
     topTracks: 'Top tracks',
     listeningClock: 'Listening clock',
     peakHour: (hour: string) => `Most plays around ${hour}`,
+    peakShare: (n: number, total: number) => `${n} of ${total} plays in the last 30 days started then.`,
     plays: (n: number) => (n === 1 ? '1 play' : `${n} plays`),
     noRankings: 'Not enough listens yet.',
     emptyTitle: 'Your sound is empty',

@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import atmosphereCool from '../../../../assets/noir/atmosphere-cool.png';
-import atmosphereWarm from '../../../../assets/noir/atmosphere-warm.jpeg';
 import { strings } from '../../../constants/strings';
 import type { SearchResult } from '../../../types';
 import { getListeningEvents, type ListeningEvent } from '../../../services/listening/eventsStore';
@@ -27,6 +25,8 @@ import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirIdentityCover } from './NoirIdentityCover';
 import { NoirGraphicAccent } from './NoirGraphicAccent';
+import { NoirHeatWeek, heatWeekNodeX } from './NoirHeatWeek';
+import { NoirHalftoneClock } from './NoirHalftoneClock';
 import { NoirReplayStory } from './NoirReplayStory';
 
 export type NoirStatsViewProps = {
@@ -56,21 +56,27 @@ function localTrackThumb(track: TasteTrack, pool: SearchResult[]) {
   )?.thumbnail;
 }
 
-function HourStrip({ hours, peakHour }: { hours: number[]; peakHour: number }) {
-  const max = Math.max(1, ...hours);
-  return (
-    <div className="noir-stats-hour-strip" aria-hidden>
-      {hours.map((count, hour) => (
-        <span
-          key={hour}
-          className={`noir-stats-hour-dot${hour === peakHour && count > 0 ? ' is-peak' : ''}`}
-          style={{ opacity: count === 0 ? 0.2 : 0.35 + (count / max) * 0.65 }}
-          data-tip={`${formatHourLabel(hour)} · ${count}`}
-        />
-      ))}
-    </div>
-  );
+/** Minutes listened on each of the last seven days, oldest first (today last). */
+function lastSevenDays(events: ReadonlyArray<ListeningEvent>) {
+  const today = new Date();
+  const dayStart = (offset: number) =>
+    new Date(today.getFullYear(), today.getMonth(), today.getDate() - offset).getTime();
+  return Array.from({ length: 7 }, (_, i) => {
+    const offset = 6 - i;
+    const from = dayStart(offset);
+    const to = dayStart(offset - 1);
+    const ms = events.reduce(
+      (sum, e) => (e.source !== 'seed' && e.startedAt >= from && e.startedAt < to ? sum + e.listenedMs : sum),
+      0
+    );
+    return {
+      minutes: ms / 60_000,
+      label: new Date(from).toLocaleDateString('en-US', { weekday: 'short' }),
+    };
+  });
 }
+
+const CLOCK_MARKS = [0, 6, 12, 18];
 
 export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsViewProps) {
   const [events, setEvents] = useState<ListeningEvent[] | null>(null);
@@ -104,7 +110,8 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
     const clock = buildListeningClock(events, 30);
     const streak = streakDays(events);
     const replay = buildMonthlyReplayCards(events);
-    return { weekMs, monthMs, artists, tracks, clock, streak, replay };
+    const week = lastSevenDays(events);
+    return { weekMs, monthMs, artists, tracks, clock, streak, replay, week };
   }, [events]);
 
   useEffect(() => {
@@ -192,46 +199,37 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
   return (
     <>
       <div className="noir-stats">
-        {/* Outside motion opacity — screen blend needs the real black canvas */}
-        <div className="noir-stats-stage" aria-hidden>
-          <img
-            className="noir-stats-atmosphere noir-stats-atmosphere--cool"
-            src={atmosphereCool}
-            alt=""
-            draggable={false}
-          />
-          <img
-            className="noir-stats-atmosphere noir-stats-atmosphere--warm"
-            src={atmosphereWarm}
-            alt=""
-            draggable={false}
-          />
-        </div>
-
         <motion.div
           className="noir-stats-body"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={withReducedMotion(MOTION.panel)}
         >
-        <section className="noir-stats-hero-band">
-          <div className="noir-stats-hero-band-copy">
+        <section className="noir-stats-hero">
+          <NoirHeatWeek
+            values={summary.week.map((day) => day.minutes)}
+            seed="your-week"
+            className="noir-stats-hero-canvas"
+          />
+          <div className="noir-stats-hero-copy">
             <p className="noir-stats-eyebrow">{strings.stats.thisWeek}</p>
             <p className="noir-stats-hero-value">{formatListened(summary.weekMs)}</p>
             <p className="noir-stats-hero-sub">
               {strings.stats.thisMonth}: {formatListened(summary.monthMs)}
               {summary.streak > 0 ? ` · ${strings.stats.streak(summary.streak)}` : ''}
             </p>
-            {topArtist && (
-              <p className="noir-stats-hero-top">
-                {strings.stats.yourNumberOne}: {topArtist.artist}
-              </p>
-            )}
           </div>
-          <div className="noir-stats-hero-band-art">
-            {/* Fixed Your sound identity — not the #1 artist face again */}
-            <NoirIdentityCover world="ember" size={200} radius={0} />
-          </div>
+          <ol className="noir-stats-hero-days" aria-hidden>
+            {summary.week.map((day, i) => (
+              <li
+                key={i}
+                style={{ left: `${heatWeekNodeX(i, summary.week.length) * 100}%` }}
+                data-today={i === summary.week.length - 1 || undefined}
+              >
+                {day.label}
+              </li>
+            ))}
+          </ol>
         </section>
 
         {summary.replay && (
@@ -330,24 +328,35 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
           )}
         </section>
 
-        <section className="noir-stats-block noir-stats-block--clock">
-          <div className="noir-stats-clock-card">
-            <NoirIdentityCover
-              world="cobalt"
-              size={280}
-              radius={0}
-              className="noir-stats-clock-art"
+        <section className="noir-stats-clock">
+          <div className="noir-stats-clock-dial">
+            <NoirHalftoneClock
+              hours={summary.clock.hours}
+              peakHour={summary.clock.peakHour}
+              seed="listening-clock"
+              className="noir-stats-clock-canvas"
             />
-            <div className="noir-stats-clock-meta">
-              <p className="noir-stats-eyebrow">{strings.stats.listeningClock}</p>
-              <p className="noir-stats-clock-peak-lg">
-                {summary.clock.peakCount > 0
-                  ? strings.stats.peakHour(formatHourLabel(summary.clock.peakHour))
-                  : strings.stats.noRankings}
+            {CLOCK_MARKS.map((hour) => (
+              <span key={hour} className="noir-stats-clock-mark" data-hour={hour}>
+                {formatHourLabel(hour)}
+              </span>
+            ))}
+          </div>
+          <div className="noir-stats-clock-meta">
+            <p className="noir-stats-eyebrow">{strings.stats.listeningClock}</p>
+            <p className="noir-stats-clock-peak-lg">
+              {summary.clock.peakCount > 0
+                ? strings.stats.peakHour(formatHourLabel(summary.clock.peakHour))
+                : strings.stats.noRankings}
+            </p>
+            {summary.clock.peakCount > 0 && (
+              <p className="noir-stats-clock-sub">
+                {strings.stats.peakShare(
+                  summary.clock.peakCount,
+                  summary.clock.hours.reduce((a, b) => a + b, 0)
+                )}
               </p>
-              {topArtist && <p className="noir-stats-clock-artist">{topArtist.artist}</p>}
-              <HourStrip hours={summary.clock.hours} peakHour={summary.clock.peakHour} />
-            </div>
+            )}
           </div>
         </section>
         </motion.div>

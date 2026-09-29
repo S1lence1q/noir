@@ -23,6 +23,10 @@ Everything graphic is made of grain: ordered dither, halftone, spray, film noise
 | **Spray** | Solid form with dissolving, sprayed edges (`Pin fra Pins by you`, `Shape Pin`) | Asterisk mark (large) |
 | **Grain field** | Flat color field with visible noise | Background of dither covers only |
 | **Cinematic** | Existing plate wave photo | Sidebar brand only. Nowhere else. |
+| **Heat** | A blurred shape mapped through a heat ramp (cream rim → peach → lavender core) on a cobalt grain field (ref: blurred figures on blue) | Data drawn as a form: Your sound › your week |
+| **Halftone bloom** | Dot grid whose dot size follows a shape + low-frequency swirl, stipple at the fade (ref: `abstract cloud like form`) | Data as texture: Your sound › listening clock |
+
+Heat and halftone bloom are *generated from your data* (`NoirHeatWeek`, `NoirHalftoneClock`, shared helpers in `utils/grainRender.ts`). Same data → same image (seeded). Heat is glow **with** grain, so it stays inside rule 3.
 
 ### Dither covers (the core of the system)
 
