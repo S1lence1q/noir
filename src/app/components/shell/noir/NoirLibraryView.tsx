@@ -5,12 +5,11 @@ import { SearchResult } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { NoirSongRow } from './NoirSongRow';
 import { NoirGraphicAccent } from './NoirGraphicAccent';
-import { NoirDitherCover } from './NoirDitherCover';
+import { NoirPlaylistCover } from './NoirPlaylistCover';
 import { NoirFavoritesCover } from './NoirFavoritesCover';
 import { NoirUserPlaylistPage } from './NoirUserPlaylistPage';
 import { NoirStatsView } from './NoirStatsView';
 import { NoirHistoryView } from './NoirHistoryView';
-import { worldForCollection } from '../../../utils/ditherCover';
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import {
   formatFavoritedAt,
@@ -280,10 +279,9 @@ export function NoirLibraryView({
                     onClick={() => openPlaylist(playlist.id)}
                     className="noir-collection-card elva-focus-ring"
                   >
-                    <NoirDitherCover
-                      source={playlist.tracks[0]?.thumbnail}
-                      world={worldForCollection(playlist.id)}
-                      seed={playlist.id}
+                    <NoirPlaylistCover
+                      playlistId={playlist.id}
+                      trackCount={playlist.tracks.length}
                       size={168}
                       className="!h-auto !w-full aspect-square"
                     />

@@ -4,7 +4,6 @@ import { ArrowLeft, Check, MoreHorizontal, Pencil, Play, Plus, Search, Shuffle, 
 import { SearchResult } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
-import { worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion, withReducedMotion } from '../../../utils/motionPresets';
 import { executeSearchAPI } from '../../../utils/api/pipedSearch';
 import { ELVA_STORAGE_KEYS, readJsonStorage } from '../../../utils/elvaStorage';
@@ -18,7 +17,7 @@ import {
   renamePlaylist,
   reorderPlaylist,
 } from '../../../utils/playlistStore';
-import { NoirDitherCover } from './NoirDitherCover';
+import { NoirPlaylistCover } from './NoirPlaylistCover';
 import { NoirSongRow } from './NoirSongRow';
 import { noirToast } from './NoirToast';
 
@@ -176,12 +175,7 @@ export function NoirUserPlaylistPage({
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
             transition={{ type: 'spring', stiffness: 260, damping: 22, mass: 0.9 }}
           >
-            <NoirDitherCover
-              source={orderedTracks[0]?.thumbnail}
-              world={worldForCollection(playlist.id)}
-              seed={playlist.id}
-              size={200}
-            />
+            <NoirPlaylistCover playlistId={playlist.id} trackCount={orderedTracks.length} size={200} />
           </motion.div>
           <div className="min-w-0 flex-1 pb-1">
             <motion.p className="noir-label" {...enter(0.08)}>

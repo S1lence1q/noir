@@ -45,3 +45,25 @@ export function smoothstep(e0: number, e1: number, x: number) {
   const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
   return t * t * (3 - 2 * t);
 }
+
+/**
+ * Heat pipeline: a blurred white-on-black shape (red channel = heat) → ramp colour, with noise
+ * on the heat (dissolving edges) and on the colour (field grain). Writes into `out`.
+ */
+export function applyHeat(
+  shape: Uint8ClampedArray,
+  out: Uint8ClampedArray,
+  ramp: Uint8ClampedArray,
+  rand: () => number,
+  grain = 22
+) {
+  for (let i = 0; i < shape.length; i += 4) {
+    const heat = shape[i] / 255 + (rand() - 0.5) * 0.09;
+    const k = Math.max(0, Math.min(255, Math.round(heat * 255))) * 3;
+    const g = (rand() - 0.5) * grain;
+    out[i] = ramp[k] + g;
+    out[i + 1] = ramp[k + 1] + g;
+    out[i + 2] = ramp[k + 2] + g;
+    out[i + 3] = 255;
+  }
+}

@@ -4774,3 +4774,30 @@ button.noir-now-playing-source:hover {
 .overflow-y-auto:not(.overflow-x-auto) {
   overflow-x: hidden;
 }
+
+/* User playlist covers: generated heat creatures (utils/heatFigure). */
+.noir-playlist-cover {
+  display: block;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.noir-playlist-cover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.noir-playlist-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: noir-playlist-grow 0.45s var(--noir-ease-out, ease-out) both;
+}
+
+@keyframes noir-playlist-grow {
+  from { opacity: 0; transform: scale(1.03); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noir-playlist-cover img { animation: none; }
+}

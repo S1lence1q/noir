@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { buildRamp, seededRandom } from '../../../utils/grainRender';
+import { applyHeat, buildRamp, seededRandom } from '../../../utils/grainRender';
 
 /**
  * "Your week" as one heat form: a line through the last seven days that swells where you
@@ -97,20 +97,9 @@ function render(canvas: HTMLCanvasElement, values: number[], seed: string) {
     sx.fill();
   }
 
-  // 2. Heat ramp + grain. Noise on the heat value dissolves the edges; noise on the colour is the field grain.
-  const src = sx.getImageData(0, 0, w, h).data;
+  // 2. Heat ramp + grain.
   const out = ctx.createImageData(w, h);
-  const px = out.data;
-  const rand = seededRandom(seed);
-  for (let i = 0; i < src.length; i += 4) {
-    const heat = src[i] / 255 + (rand() - 0.5) * 0.09;
-    const k = Math.max(0, Math.min(255, Math.round(heat * 255))) * 3;
-    const grain = (rand() - 0.5) * 22;
-    px[i] = RAMP[k] + grain;
-    px[i + 1] = RAMP[k + 1] + grain;
-    px[i + 2] = RAMP[k + 2] + grain;
-    px[i + 3] = 255;
-  }
+  applyHeat(sx.getImageData(0, 0, w, h).data, out.data, RAMP, seededRandom(seed));
   ctx.putImageData(out, 0, 0);
   return true;
 }

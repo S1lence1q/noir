@@ -12,6 +12,7 @@ import { NoirSongRow } from './NoirSongRow';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import { NoirDitherCover } from './NoirDitherCover';
+import { NoirPlaylistCover } from './NoirPlaylistCover';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirPlayPauseIcon } from './NoirPlayPauseIcon';
 import { NoirFavoritesCover } from './NoirFavoritesCover';
@@ -542,10 +543,9 @@ export function NoirHomeView({
                         }
                         className="noir-collection-card noir-home-shelf-card elva-focus-ring"
                       >
-                        <NoirDitherCover
-                          source={playlist.tracks[0]?.thumbnail}
-                          world={worldForCollection(playlist.id)}
-                          seed={playlist.id}
+                        <NoirPlaylistCover
+                          playlistId={playlist.id}
+                          trackCount={playlist.tracks.length}
                           size={168}
                         />
                         <span className="min-w-0">

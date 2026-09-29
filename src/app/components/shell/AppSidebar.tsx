@@ -6,10 +6,9 @@ import { MOTION, withReducedMotion } from '../../utils/motionPresets';
 import { AppTab } from './types';
 import { NoirMark } from './noir/NoirMark';
 import { useNavIconSet } from './noir/NoirNavIcons';
-import { NoirDitherCover } from './noir/NoirDitherCover';
+import { NoirPlaylistCover } from './noir/NoirPlaylistCover';
 import { NoirFavoritesCover } from './noir/NoirFavoritesCover';
 import { NoirSearchGlyph, SEARCH_KBD_HINT } from './noir/NoirSearchGlyph';
-import { worldForCollection } from '../../utils/ditherCover';
 import {
   createPlaylist,
   decodePlaylistTrack,
@@ -192,10 +191,9 @@ export function AppSidebar({
                       transition={{ type: 'spring', stiffness: 420, damping: 18, delay: 0.08 }}
                       className="flex"
                     >
-                      <NoirDitherCover
-                        source={playlist.tracks[0]?.thumbnail}
-                        world={worldForCollection(playlist.id)}
-                        seed={playlist.id}
+                      <NoirPlaylistCover
+                        playlistId={playlist.id}
+                        trackCount={playlist.tracks.length}
                         size={22}
                         radius={5}
                       />
