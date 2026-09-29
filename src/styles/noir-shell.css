@@ -1181,78 +1181,6 @@
   color: #fff;
 }
 
-.noir-search-hint {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 32px;
-  padding: 0 8px;
-  border-radius: var(--noir-radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.025);
-  color: var(--noir-text-tertiary);
-  font-size: 12px;
-  font-weight: 500;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-
-.noir-search-hint:hover {
-  border-color: rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--noir-text-secondary);
-}
-
-.noir-search-trigger {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: min(360px, 100%);
-  height: 40px;
-  padding: 0 8px 0 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--noir-text-tertiary);
-  text-align: left;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-
-.noir-search-trigger:hover {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.07);
-  color: var(--noir-text-secondary);
-}
-
-.noir-search-trigger:active {
-  background: rgba(255, 255, 255, 0.09);
-}
-
-.noir-search-trigger-label {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.noir-search-trigger-kbd {
-  flex-shrink: 0;
-  padding: 3px 7px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--noir-text-tertiary);
-}
-
-@media (max-width: 640px) {
-  .noir-search-trigger-kbd { display: none; }
-}
-
 .noir-nav-item {
   border-radius: var(--noir-radius-md);
   transition: background-color 0.15s ease, color 0.15s ease;
@@ -1274,6 +1202,22 @@
 
 .noir-nav-item[data-active='parent']:hover {
   background: rgba(255, 255, 255, 0.04);
+}
+
+.noir-nav-kbd {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--noir-text-tertiary);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+/* The hint is quiet: visible on hover/focus, so the nav reads as a list, not a toolbar. */
+.noir-nav-search:hover .noir-nav-kbd,
+.noir-nav-search:focus-visible .noir-nav-kbd {
+  opacity: 1;
 }
 
 .noir-nav-item[data-active='false']:hover {

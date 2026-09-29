@@ -40,7 +40,7 @@ NOIR is single-user and local-first; a "profile" has no audience. Add **History*
 ### Phase A — quick wins
 - [x] 🟡 "Playing from Popular" shown twice (under Next up and under artist in the canvas). Keep it in the queue header only.
 - [x] 🔴 Sidebar Library is a dead click while on Favorites (D4).
-- [x] 🟡 Top search bar: too small, weak icon, ⌘K undiscoverable. Wider field (~360px), custom 1.5px stroke icon, placeholder "Search songs and artists", `⌘K` hint kept, `/` also opens the palette. Tooltip comes with T22.
+- [x] 🟡 Search is hard to find / looked like Elva. Now the first sidebar nav item (own glyph, ⌘K hint on hover), opens the palette from any page. The floating Home pill is gone.
 - [x] 🟡 Artist "Latest release" card: opaque grey box (breaks white-alpha rule), orange label (accent without context), dithered cover (D1), doesn't align with Popular. Redo: no box, real cover, height aligned to the Popular list, quiet label.
 - [x] 🟡 Apply D1 across covers/portraits currently dithered.
 
@@ -50,7 +50,7 @@ Phase A notes: Library root is now the collection grid (Favorites card first); F
 
 ### Phase B — Now Playing
 - [ ] 🔴 Lyrics ↔ queue flow (D2).
-- [ ] 🔴 Cover flight occasionally lands in the wrong place when closing the canvas. Repro needed (note: page, scroll, whether compact bar was mid-animation).
+- [ ] 🔴 (parked — ~1/100, no repro) Cover flight occasionally lands in the wrong place when closing the canvas. Repro needed (note: page, scroll, whether compact bar was mid-animation).
 - [ ] 🟡 Lyrics finish: line transitions, active-line emphasis, scroll follow, no-lyrics / loading states.
 - [ ] 🟡 Toast primitive: stacking, exit motion, action/undo timing.
 - [ ] 🟡 "Queue ends soon" / "Keep playing" moment built on the new toast.

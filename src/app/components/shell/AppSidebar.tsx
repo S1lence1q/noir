@@ -8,6 +8,7 @@ import { NoirMark } from './noir/NoirMark';
 import { useNavIconSet } from './noir/NoirNavIcons';
 import { NoirDitherCover } from './noir/NoirDitherCover';
 import { NoirFavoritesCover } from './noir/NoirFavoritesCover';
+import { NoirSearchGlyph, SEARCH_KBD_HINT } from './noir/NoirSearchGlyph';
 import { worldForCollection } from '../../utils/ditherCover';
 import {
   createPlaylist,
@@ -66,6 +67,19 @@ export function AppSidebar({
       </div>
 
       <nav className="relative z-[1] flex flex-col gap-1" aria-label="Main navigation">
+        {/* Search is an action, not a place: opens the palette from anywhere. */}
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new Event('elva-open-search-palette'))}
+          data-active="false"
+          className="noir-nav-item noir-nav-search flex h-11 items-center gap-3 px-3 text-left text-[15px] font-medium elva-focus-ring"
+        >
+          <NoirSearchGlyph size={18} />
+          <span className="flex-1">{strings.search.navLabel}</span>
+          <kbd className="noir-nav-kbd" aria-hidden>
+            {SEARCH_KBD_HINT}
+          </kbd>
+        </button>
         {primaryNav.map(({ id, label: navLabel, Icon }) => {
           const inTab = activeTab === id;
           // Inside a Library sub-page opened from Quick access / Playlists: Library reads as the parent.

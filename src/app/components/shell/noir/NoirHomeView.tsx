@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Compass, Pause, Play, Plus, Search } from 'lucide-react';
-import { NoirSearchTrigger } from './NoirSearchTrigger';
 import { SearchResult, VerifiedArtist } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { shouldShowArtistCard } from '../../../utils/apiUtils';
@@ -256,8 +255,7 @@ export function NoirHomeView({
 
   return (
     <div className="relative h-full min-h-0 overflow-y-auto scrollbar-none">
-      <div className="flex shrink-0 items-center justify-between gap-3 px-5 pb-3 pt-5">
-        <NoirSearchTrigger onOpen={openSearchPalette} />
+      <div className="flex h-[60px] shrink-0 items-end justify-end gap-3 px-5">
         {inSearchMode && (
           <button
             type="button"
