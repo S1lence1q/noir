@@ -352,6 +352,12 @@ export default function App() {
   const colorTransitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [loadingSongId, setLoadingSongId] = useState<string | null>(null);
+  /** A tapped song whose stream is still resolving: the bar shows it at once (loading) instead of
+   *  holding the previous song until the network answers. */
+  const [pendingSong, setPendingSong] = useState<SearchResult | null>(null);
+  useEffect(() => {
+    setPendingSong(null);
+  }, [songData?.id]);
 
   const resolvedVideoIdsRef = useRef(resolvedVideoIds);
   const queueRef = useRef(queue);
@@ -726,7 +732,20 @@ export default function App() {
     setQueue([track]);
   };
 
+  /** Tapping a song shows it in the bar at once (loading) while its stream is found; whatever
+   *  path the selection takes, the pending state is cleared when it settles. */
   const handleSelectSong = async (result: SearchResult, isCrossfade?: boolean) => {
+    const isLocal = !!(result.audioUrl?.startsWith('blob:') || result.id?.startsWith('local_'));
+    const showPending = !isCrossfade && !!songData && !isLocal && result.id !== songData.id;
+    if (showPending) setPendingSong(result);
+    try {
+      await selectSong(result, isCrossfade);
+    } finally {
+      if (showPending) setPendingSong((current) => (current?.id === result.id ? null : current));
+    }
+  };
+
+  const selectSong = async (result: SearchResult, isCrossfade?: boolean) => {
     const startingAppState = appState;
     const hadActiveSong = !!songData;
     latestSelectedSongIdRef.current = result.id;
@@ -1781,18 +1800,29 @@ export default function App() {
             }}
             hasActiveSong={!!songData}
             song={
-              songData
+              pendingSong
                 ? {
-                    title: songData.title,
-                    artist: songData.artist,
-                    artworkUrl: songData.artworkUrl,
+                    title: pendingSong.title,
+                    artist: displayArtistName(pendingSong.artist),
+                    artworkUrl: hasRealArtwork(pendingSong.thumbnail) ? pendingSong.thumbnail : '',
                   }
-                : undefined
+                : songData
+                  ? {
+                      title: songData.title,
+                      artist: songData.artist,
+                      artworkUrl: songData.artworkUrl,
+                    }
+                  : undefined
             }
-            playback={{
-              ...shellPlayback,
-              isPlaying: isMiniPlaying,
-            }}
+            songPending={!!pendingSong}
+            playback={
+              pendingSong
+                ? { currentTime: 0, duration: 0, isPlaying: true }
+                : {
+                    ...shellPlayback,
+                    isPlaying: isMiniPlaying,
+                  }
+            }
             nowPlayingOpen={nowPlayingOpen}
             onExpandPlayer={() => {
               if (!songData) return;

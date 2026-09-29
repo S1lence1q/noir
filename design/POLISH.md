@@ -8,7 +8,7 @@ Severity: 🔴 broken · 🟡 feels off · ⚪ finish. Check a box only when the
 1. ~~Phase E #5 — page/tab change motion~~ done (`noir-settle-group`).
 2. ~~Phase E #6–7 — shelves + search palette~~ done.
 3. ~~Phase D — cold start~~ done.
-4. Leftovers: Now Playing composition when lyrics + rail are closed; track-switch main-thread stall; identity bug (bands collapsing into solo artist); atmosphere setting (glow/grain).
+4. Leftovers: Now Playing composition when lyrics + rail are closed; identity bug (bands collapsing into solo artist); atmosphere setting (glow/grain).
 Motion vocabulary lives in `utils/motionPresets.ts` (`MOTION.tap/panel/scene/settle`) and `utils/actionMotion.ts` (fly-to-queue, favorite burst).
 
 ## Definition of Done (per surface)
@@ -94,7 +94,7 @@ Principle: motion explains cause → effect (where did it go, what changed). One
 - [x] Track change in Now Playing: deck slide by queue direction (next → from right, prev → from left).
 - [x] Detail overlay close: steps back (fade + scale .99, 200 ms) instead of dropping away like a sheet.
 - [x] Lyrics breathing dots hold mid-breath while paused (`animation-play-state`).
-- [ ] 🟡 Perf: a track switch blocks the main thread ~200–500 ms, so the deck starts late. Profile the stream switch in usePlaybackCore.
+- [x] 🟡 "Track switch stall": not the main thread (LoAF: no frame > 50 ms on next / new track, NP + lyrics open). The new title waited behind `AnimatePresence mode="wait"` (old title's 280 ms exit first) in the bar, NP and Home hero; the bar also re-animated when the artwork URL changed. Now `popLayout` (new title in ~20 ms, fully in ~100 ms; old steps out on top in 140 ms), bar keyed on title+artist. Plus: a tapped song whose stream is still resolving shows in the bar at once (`pendingSong`, quiet sweep on the track).
 - [x] Tab/page change: content settles in (fade + 8 px rise, sections staggered 40 ms). CSS primitive `noir-settle-group` (direct children stagger, capped at 240 ms) / `noir-settle` in `noir-shell.css`, `backwards` fill so motion/react transforms aren't held. On Home idle, Discover, Library (+ Favorites / playlist grid), Settings, scaffold header. Old page exits in 120 ms.
 - [x] Shelves: items stagger in the first time they scroll into view (`NoirHomeShelf` `data-reveal`: on screen at mount → rides the page settle; below the fold → held, then 35 ms stagger on first intersect).
 - [x] Search palette: opens with a settle (scale .98 → 1, 6 px), exits in 140 ms; a new result set staggers in 20 ms apart (`noir-stagger-rows`), rows that persist don't move.

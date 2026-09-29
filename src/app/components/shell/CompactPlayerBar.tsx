@@ -29,6 +29,8 @@ type SongPreview = {
 type CompactPlayerBarProps = {
   song: SongPreview;
   playback: ShellPlaybackState;
+  /** Stream still resolving: times rest at 0:00 and the track shows a quiet sweep. */
+  pending?: boolean;
   expanded?: boolean;
   /** True when the Now Playing up-next rail is visible. */
   queueRailOpen?: boolean;
@@ -70,6 +72,7 @@ function volumeFromClientX(el: HTMLElement, clientX: number) {
 export function CompactPlayerBar({
   song,
   playback,
+  pending = false,
   expanded = false,
   queueRailOpen = false,
   queueCount = 0,
@@ -85,6 +88,7 @@ export function CompactPlayerBar({
 }: CompactPlayerBarProps) {
   const reduced = prefersReducedMotion();
   const songKey = `${song.title}::${song.artist}::${song.artworkUrl}`;
+  const titleKey = `${song.title}::${song.artist}`;
   // Previous-render value of `expanded`: the title only animates in when coming back from Now Playing.
   const wasExpandedRef = useRef(expanded);
   const returningFromExpanded = wasExpandedRef.current && !expanded;
@@ -261,6 +265,7 @@ export function CompactPlayerBar({
     <motion.footer
       ref={footerRef}
       className="noir-compact shrink-0"
+      data-pending={pending ? 'true' : undefined}
       initial={reduced ? { opacity: 0 } : { opacity: 0, y: 72 }}
       animate={{ opacity: 1, y: 0 }}
       exit={reduced ? { opacity: 0 } : { opacity: 0, y: 56 }}
@@ -339,18 +344,24 @@ export function CompactPlayerBar({
               <span className="noir-compact-art-hint" aria-hidden />
             </motion.span>
             <motion.span
-              className="noir-compact-meta"
+              className="noir-compact-meta relative"
               initial={returningFromExpanded ? (reduced ? { opacity: 0 } : { opacity: 0, x: -6 }) : false}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.26, ease: EASE_PREMIUM, delay: reduced ? 0 : 0.22 }}
             >
-              <AnimatePresence mode="wait" initial={false}>
+              {/* The new title arrives at once; the old one steps out on top of it (popLayout),
+                  never holding the new song back. Keyed on the song, not its artwork. */}
+              <AnimatePresence mode="popLayout" initial={false}>
                 <motion.span
-                  key={songKey}
+                  key={titleKey}
                   className="block min-w-0"
                   initial={reduced ? { opacity: 0 } : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={reduced ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                  exit={
+                    reduced
+                      ? { opacity: 0, transition: { duration: 0.1 } }
+                      : { opacity: 0, y: -6, transition: { duration: 0.14, ease: EASE_PREMIUM } }
+                  }
                   transition={{ duration: reduced ? 0.12 : 0.28, ease: EASE_PREMIUM }}
                 >
                   <span className="noir-compact-title">{song.title}</span>

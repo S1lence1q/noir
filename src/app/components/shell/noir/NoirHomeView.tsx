@@ -288,18 +288,24 @@ export function NoirHomeView({
                 <p className="noir-label mt-6">
                   {isFeaturedPlaying ? strings.home.nowPlaying : strings.home.continue}
                 </p>
-                <AnimatePresence mode="wait" initial={false}>
+                <div className="relative">
+                <AnimatePresence mode="popLayout" initial={false}>
                   <motion.div
                     key={featuredTrack.id || featuredTrack.title}
                     initial={reduced ? { opacity: 0 } : { opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={reduced ? { opacity: 0 } : { opacity: 0, y: -4 }}
+                    exit={
+                      reduced
+                        ? { opacity: 0, transition: { duration: 0.1 } }
+                        : { opacity: 0, y: -4, transition: { duration: 0.14, ease: EASE_PREMIUM } }
+                    }
                     transition={{ duration: 0.26, ease: EASE_PREMIUM }}
                   >
                     <p className="noir-home-continue-title">{featuredTrack.title}</p>
                     <p className="noir-home-continue-artist">{featuredTrack.artist}</p>
                   </motion.div>
                 </AnimatePresence>
+                </div>
                 <motion.button
                   type="button"
                   onClick={() => playFromHome(featuredTrack)}

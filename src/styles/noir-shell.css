@@ -4277,3 +4277,35 @@ button.noir-now-playing-source:hover {
   .noir-home-shelf[data-reveal] > *,
   .noir-stagger-rows > * { animation: none; visibility: visible; }
 }
+
+/* Bar while a tapped song's stream resolves: the new song shows at once, the track sweeps quietly. */
+.noir-compact[data-pending='true'] .noir-compact-seek-fill,
+.noir-compact[data-pending='true'] .noir-compact-seek-thumb {
+  opacity: 0;
+}
+.noir-compact[data-pending='true'] .noir-compact-seek-track {
+  position: relative;
+  overflow: hidden;
+}
+.noir-compact[data-pending='true'] .noir-compact-seek-track::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 30%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  animation: noir-compact-pending 1.1s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+.noir-compact[data-pending='true'] .noir-compact-time {
+  color: var(--noir-text-tertiary);
+}
+@keyframes noir-compact-pending {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(340%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .noir-compact[data-pending='true'] .noir-compact-seek-track::after {
+    animation: none;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.18);
+  }
+}

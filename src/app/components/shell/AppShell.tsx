@@ -24,6 +24,8 @@ type AppShellProps = {
   onToggleLyrics?: () => void;
   showCompactPlayer: boolean;
   nowPlayingOpen?: boolean;
+  /** The bar's song is still resolving its stream (shown at once, loading). */
+  songPending?: boolean;
   /** Up-next rail visible inside Now Playing (drives queue button pressed state). */
   queueRailOpen?: boolean;
   nowPlaying?: ReactNode;
@@ -56,6 +58,7 @@ export function AppShell({
   onToggleLyrics,
   showCompactPlayer,
   nowPlayingOpen = false,
+  songPending = false,
   queueRailOpen = false,
   nowPlaying,
   queueCount = 0,
@@ -127,6 +130,7 @@ export function AppShell({
               song={song}
               playback={playback}
               expanded={nowPlayingOpen}
+              pending={songPending}
               queueRailOpen={queueRailOpen}
               queueCount={queueCount}
               isFavorite={isFavorite}
