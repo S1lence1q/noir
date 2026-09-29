@@ -1872,6 +1872,7 @@ export default function App() {
           >
             <ErrorBoundary>
               <LandingPage
+              nowPlayingOpen={nowPlayingOpen}
               isIntroActive={isIntroActive}
               scrollProgress={scrollProgress}
               scrollContainerRef={scrollContainerRef}

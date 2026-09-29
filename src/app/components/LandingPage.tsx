@@ -35,6 +35,8 @@ interface LandingPageProps {
   setSelectedArtist: React.Dispatch<React.SetStateAction<VerifiedArtist | null>>;
   selectedPlaylist: Playlist | null;
   setSelectedPlaylist: React.Dispatch<React.SetStateAction<Playlist | null>>;
+  /** Now Playing covers the page: a tab change made from it drops the old page (see dropOldPageRef). */
+  nowPlayingOpen?: boolean;
   libraryFocus?: {
     section: 'favorites' | 'playlists';
     playlistId: string | null;
@@ -120,6 +122,7 @@ export function LandingPage({
   setSelectedArtist,
   selectedPlaylist,
   setSelectedPlaylist,
+  nowPlayingOpen = false,
   libraryFocus,
   onLibraryPlaylistOpenChange,
   onLibrarySectionChange,
@@ -300,18 +303,19 @@ export function LandingPage({
   const isScrollMode = navMode === 'scroll';
   const contentPadding = shellMode ? 'pt-8 pb-6' : 'pt-16 pb-24';
   const hasDetailOverlay = selectedArtist !== null || selectedPlaylist !== null;
-  // A tab change made while an overlay covers the page (e.g. Home from an open artist) drops the
-  // old page at once, so the overlay steps back onto the new page instead of flashing the old one.
-  // Latched per tab change; checks the previous render too, since the overlay may be cleared in the
-  // same update as the tab (it is still on screen, exiting).
+  // A tab change made while something covers the page (an artist/mix overlay, or Now Playing)
+  // drops the old page at once, so the cover steps back onto the new page instead of flashing the
+  // old one. Latched per tab change; checks the previous render too, since the cover is usually
+  // cleared in the same update as the tab (it is still on screen, exiting).
+  const pageCovered = hasDetailOverlay || nowPlayingOpen;
   const prevTabRef = useRef(activeTab);
-  const prevOverlayRef = useRef(hasDetailOverlay);
+  const prevCoveredRef = useRef(pageCovered);
   const dropOldPageRef = useRef(false);
   if (prevTabRef.current !== activeTab) {
-    dropOldPageRef.current = hasDetailOverlay || prevOverlayRef.current;
+    dropOldPageRef.current = pageCovered || prevCoveredRef.current;
     prevTabRef.current = activeTab;
   }
-  prevOverlayRef.current = hasDetailOverlay;
+  prevCoveredRef.current = pageCovered;
   const [topOverlay, setTopOverlay] = useState<'artist' | 'playlist'>('playlist');
   const artistOverlayKey = selectedArtist?.name ?? null;
   useEffect(() => {
