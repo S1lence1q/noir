@@ -1457,14 +1457,20 @@
 }
 
 .noir-now-playing-identity {
+  --np-identity-w: min(100%, 56vh, 480px);
   display: flex;
-  width: min(100%, 48vh, 400px);
+  width: var(--np-identity-w);
   min-width: 0;
   flex-direction: column;
   justify-content: flex-start;
   gap: 20px;
   flex-shrink: 0;
-  transition: width 0.62s cubic-bezier(0.16, 1, 0.3, 1);
+  /* No lyrics: the song is the whole stage — centred in whatever width is left beside the rail.
+     A margin (not a re-anchor) so it glides as the rail opens/closes and never hops. */
+  margin-left: max(0px, calc((100% - var(--np-identity-w)) / 2));
+  transition:
+    width 0.62s cubic-bezier(0.16, 1, 0.3, 1),
+    margin-left 0.62s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* D2 lyrics mode: the cover steps back into a compact column, lyrics take the stage. */
@@ -1477,7 +1483,8 @@
 }
 
 .noir-now-playing-stage-row.has-lyrics .noir-now-playing-identity {
-  width: min(100%, 34vh, 280px);
+  --np-identity-w: min(100%, 34vh, 280px);
+  margin-left: 0;
 }
 
 .noir-now-playing-stage-row.has-lyrics .noir-now-playing-title {
@@ -1840,7 +1847,8 @@ button.noir-now-playing-source:hover {
   }
 
   .noir-now-playing-identity {
-    width: min(100%, 52vh, 440px);
+    --np-identity-w: min(100%, 52vh, 440px);
+    margin-left: 0;
   }
 
   .noir-now-playing-stage-lyrics {

@@ -8,7 +8,7 @@ Severity: 🔴 broken · 🟡 feels off · ⚪ finish. Check a box only when the
 1. ~~Phase E #5 — page/tab change motion~~ done (`noir-settle-group`).
 2. ~~Phase E #6–7 — shelves + search palette~~ done.
 3. ~~Phase D — cold start~~ done.
-4. Leftovers: Now Playing composition when lyrics + rail are closed; identity bug (bands collapsing into solo artist); atmosphere setting (glow/grain).
+4. Leftovers: identity bug (bands collapsing into solo artist); atmosphere setting (glow/grain).
 Motion vocabulary lives in `utils/motionPresets.ts` (`MOTION.tap/panel/scene/settle`) and `utils/actionMotion.ts` (fly-to-queue, favorite burst).
 
 ## Definition of Done (per surface)
@@ -57,7 +57,7 @@ Phase A notes: Library root is now the collection grid (Favorites card first); F
 
 ### Phase B — Now Playing
 - [x] 🔴 Lyrics ↔ queue flow (D2). Lyrics + Next up are two toggles side by side in the bar (quote / list icons, shared on-state). Rail animates width (spring), cover shrinks via CSS width transition, exclusive only below 1200px.
-- [ ] 🟡 Canvas with lyrics and rail both closed: cover hugs the left, right 2/3 empty. Recompose (centre the identity or scale the cover up).
+- [x] 🟡 Canvas without lyrics: the identity is centred in the stage (beside the rail when it's open) and a size up (56vh / 480 px). Centring is an animated margin, not a re-anchor, so rail/lyrics toggles glide (measured: monotonic, ≤ 16 px/frame).
 - [ ] ⚪ Atmosphere: keep both. Glow default, grain via `?atmosphere=grain`. Later: expose as a Settings choice (Settings pass).
 - [x] 🔴 Lyrics started mid-song then jumped back on a new track (stale currentTime from the previous song). Index now waits until playback is near 0 (2 s grace for mid-song restore).
 - [x] 🔴 Some songs out of sync: lrclib's first hit is often another version (e.g. 303 s vs the playing 262 s). Now picks the version closest in length (±5 s); none close → plain text instead of wrong timing.
