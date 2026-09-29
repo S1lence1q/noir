@@ -66,10 +66,23 @@ export const strings = {
     shuffle: 'Shuffle',
     startRadio: 'Start radio',
     popular: 'Popular',
+    discography: 'Discography',
+    album: 'Album',
+    single: 'Single',
+    ep: 'EP',
+    playAlbum: 'Play release',
     fansAlsoLike: 'Fans also like',
     showAll: (n: number) => `Show all ${n}`,
     showLess: 'Show less',
     empty: 'No songs found for this artist yet.',
+    listenersCount: (n: number) => {
+      const formatted = n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M` : n >= 10_000 ? `${Math.round(n / 1_000)}k` : n.toLocaleString('en-US');
+      return `${formatted} listeners`;
+    },
+    metaWithListeners: (listeners: number, songs: number) => {
+      const formatted = listeners >= 1_000_000 ? `${(listeners / 1_000_000).toFixed(1).replace(/\.0$/, '')}M` : listeners >= 10_000 ? `${Math.round(listeners / 1_000)}k` : listeners.toLocaleString('en-US');
+      return `${formatted} listeners · ${songs === 1 ? '1 song' : `${songs} songs`}`;
+    },
     whichArtist: 'Which artist?',
     whichArtistHint: 'A few artists share this name — pick the right one.',
     openProfile: 'Artist',

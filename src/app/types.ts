@@ -26,6 +26,7 @@ export interface VerifiedArtist {
   country?: string;
   tags?: string[];
   isTopic?: boolean;
+  listeners?: number;
 }
 export interface LyricLine {
   time: number;

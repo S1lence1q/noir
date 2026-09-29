@@ -17,6 +17,8 @@ import { NoirLibraryView } from './shell/noir/NoirLibraryView';
 import { NoirPageScaffold } from './shell/noir/NoirPageScaffold';
 import { NoirSettingsView } from './shell/noir/NoirSettingsView';
 import { strings } from '../constants/strings';
+import { getAlbumTracks } from '../services/musicGraph';
+import { graphTrackToSearchResult } from '../services/discover/discoverFeed';
 
 interface LandingPageProps {
   isIntroActive: boolean;
@@ -326,6 +328,25 @@ export function LandingPage({
                 candidates={artistCandidates}
                 onPickCandidate={handlePickArtistCandidate}
                 onSelectArtist={handleViewArtistProfile}
+                onPlayAlbum={async (album) => {
+                  const tracks = await getAlbumTracks(album.id);
+                  const searchResults = tracks.map((t) => graphTrackToSearchResult(t, `album:${album.id}`));
+                  if (searchResults.length > 0) {
+                    handlePlayPlaylist(searchResults, album.title);
+                  }
+                }}
+                onSelectAlbum={async (album) => {
+                  const tracks = await getAlbumTracks(album.id);
+                  const searchResults = tracks.map((t) => graphTrackToSearchResult(t, `album:${album.id}`));
+                  setSelectedPlaylist({
+                    id: `album:${album.id}`,
+                    name: album.title,
+                    description: `${album.artist}${album.year ? ` · ${album.year}` : ''}`,
+                    tracks: searchResults,
+                    thumbnail: album.image || '',
+                    accent: 'ember',
+                  });
+                }}
               />
             </NoirDetailOverlay>
           )}

@@ -1,12 +1,14 @@
 import { getGraphCache, setGraphCache } from './cache';
 import {
   getDeezerAlbumTracks,
+  getDeezerArtistAlbums,
   getDeezerArtistImage,
   getDeezerArtistRadio,
   getDeezerArtistTopTracks,
   getDeezerNewReleases,
   getDeezerRelatedArtists,
   getDeezerTrackImage,
+  type GraphAlbum,
 } from './deezer';
 import {
   getLastFmArtistInfo,
@@ -45,6 +47,8 @@ export type GraphRelease = {
   image?: string;
   deezerId?: number;
 };
+
+export type { GraphAlbum };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const TTL = {
@@ -214,6 +218,21 @@ export function getTagTopTracks(tag: string, limit = 20): Promise<GraphTrack[]> 
 
 export function getAlbumTracks(albumId: number): Promise<GraphTrack[]> {
   return requestCached(`album-tracks:${albumId}`, TTL.releases, () => getDeezerAlbumTracks(albumId), []);
+}
+
+export function getArtistAlbums(
+  artist: string,
+  deezerId?: number,
+  limit = 25
+): Promise<GraphAlbum[]> {
+  const idPart = deezerId ? `:id:${deezerId}` : '';
+  const key = `artist-albums:${artistKey(artist)}${idPart}:${limit}`;
+  return requestCached(
+    key,
+    TTL.releases,
+    () => getDeezerArtistAlbums(artist, deezerId, limit),
+    []
+  );
 }
 
 declare global {

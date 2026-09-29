@@ -9,8 +9,12 @@ import { NoirHomeShelf } from './NoirHomeShelf';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { COLOR_WORLDS, worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
-import { strings } from '../../../constants/strings';
-import { getSimilarArtists, type GraphArtist } from '../../../services/musicGraph';
+import {
+  getArtistAlbums,
+  getSimilarArtists,
+  type GraphAlbum,
+  type GraphArtist,
+} from '../../../services/musicGraph';
 import { prefetchArtistProfile } from '../../../utils/artistDiscographyLoader';
 import type { ArtistIdentity } from '../../../services/artistIdentity';
 
@@ -30,6 +34,8 @@ export type NoirArtistViewProps = {
   candidates?: ArtistIdentity[] | null;
   onPickCandidate?: (candidate: ArtistIdentity) => void;
   onSelectArtist?: (artist: VerifiedArtist) => void;
+  onPlayAlbum?: (album: GraphAlbum) => void;
+  onSelectAlbum?: (album: GraphAlbum) => void;
 };
 
 const POPULAR_COUNT = 5;
@@ -71,11 +77,14 @@ export function NoirArtistView({
   candidates = null,
   onPickCandidate,
   onSelectArtist,
+  onPlayAlbum,
+  onSelectAlbum,
 }: NoirArtistViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const reduced = prefersReducedMotion();
   const [showAll, setShowAll] = useState(false);
   const [similarArtists, setSimilarArtists] = useState<GraphArtist[]>([]);
+  const [albums, setAlbums] = useState<GraphAlbum[]>([]);
   const world = worldForCollection(`artist:${artist.name.toLowerCase()}`);
   const palette = COLOR_WORLDS[world];
   const unique = useMemo(() => dedupeTracks(tracks, artist.name), [tracks, artist.name]);
@@ -100,6 +109,16 @@ export function NoirArtistView({
       .catch(() => {
         if (!active) return;
         setSimilarArtists([]);
+      });
+
+    getArtistAlbums(artist.name, artist.deezerId)
+      .then((res) => {
+        if (!active) return;
+        setAlbums(res);
+      })
+      .catch(() => {
+        if (!active) return;
+        setAlbums([]);
       });
 
     return () => {
@@ -155,8 +174,22 @@ export function NoirArtistView({
           <p className="noir-artist-hero-meta">
             {isLoading && unique.length === 0
               ? strings.artist.loading
-              : strings.artist.songCount(unique.length)}
+              : artist.listeners
+                ? strings.artist.metaWithListeners(artist.listeners, unique.length)
+                : strings.artist.songCount(unique.length)}
           </p>
+          {artist.tags && artist.tags.length > 0 && (
+            <div className="mt-2.5 flex flex-wrap gap-1.5 opacity-90">
+              {artist.tags.slice(0, 3).map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full border border-current/15 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider opacity-85"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
           <div className="mt-6 flex items-center gap-2">
             <motion.button
               type="button"
@@ -242,6 +275,67 @@ export function NoirArtistView({
           <p className="px-1 py-8 text-[14px] text-[color:var(--noir-text-secondary)]">{strings.artist.empty}</p>
         )}
       </section>
+
+      {albums.length > 0 && (
+        <section className="mt-12">
+          <h2 className="noir-section-title mb-4 px-1">{strings.artist.discography}</h2>
+          <NoirHomeShelf>
+            {albums.map((album, i) => (
+              <motion.div
+                key={album.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => onSelectAlbum?.(album)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onSelectAlbum?.(album);
+                  }
+                }}
+                className="noir-collection-card noir-home-shelf-card group elva-focus-ring cursor-pointer"
+                initial={reduced ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: i * 0.025 }}
+              >
+                <span className="relative block">
+                  <NoirDitherCover
+                    source={album.image}
+                    world={worldForCollection(`album:${album.id}`)}
+                    seed={`album:${album.id}`}
+                    size={168}
+                  />
+                  {onPlayAlbum && (
+                    <motion.button
+                      type="button"
+                      className="noir-discover-release-play noir-play-round !h-10 !w-10 elva-focus-ring"
+                      aria-label={`${strings.artist.playAlbum}: ${album.title}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPlayAlbum(album);
+                      }}
+                      whileTap={{ scale: 0.94 }}
+                      transition={MOTION.tap}
+                    >
+                      <Play className="ml-0.5 h-4 w-4 fill-current" />
+                    </motion.button>
+                  )}
+                </span>
+                <span className="min-w-0">
+                  <span className="noir-song-title block truncate">{album.title}</span>
+                  <span className="noir-song-meta mt-0.5 block truncate">
+                    {album.year ? `${album.year} · ` : ''}
+                    {album.recordType === 'single'
+                      ? strings.artist.single
+                      : album.recordType === 'ep'
+                        ? strings.artist.ep
+                        : strings.artist.album}
+                  </span>
+                </span>
+              </motion.div>
+            ))}
+          </NoirHomeShelf>
+        </section>
+      )}
 
       {similarArtists.length >= 3 && (
         <section className="mt-12">

@@ -17,6 +17,7 @@ import {
   mergeArtistTrackLists,
   prefetchArtistProfile,
 } from '../utils/artistDiscographyLoader';
+import { setDiscographyCache } from '../utils/discographyCache';
 import {
   resolveArtistIdentity,
   identityToVerifiedArtist,
@@ -408,34 +409,87 @@ export function useSearchLogic({
           }),
         ]);
         if (generation !== profileGenRef.current) return;
-        setArtistTracks((prev) => mergeArtistTrackLists(prev, [...popular, ...discog]));
+        const merged = mergeArtistTrackLists(cached.tracks, [...popular, ...discog]);
+        setArtistTracks(merged);
+        setDiscographyCache(
+          cacheKey,
+          merged,
+          identity.channelId || '',
+          identity.channelType || 'provided',
+          displayArtist.name
+        );
         return;
       }
 
-      // Cold: fetch Popular + discography together, then paint once (skeletons until then).
-      const [popular, discog] = await Promise.all([
-        popularPromise,
-        loadArtistDiscographyWithCache(displayArtist.name, {
+      // Cold: fetch Popular first and paint immediately (~200ms)!
+      const popular = await popularPromise;
+      if (generation === profileGenRef.current && popular.length > 0) {
+        setArtistTracks(popular);
+        setIsLoadingArtist(false);
+        setDiscographyCache(
+          cacheKey,
+          popular,
+          identity.channelId || '',
+          identity.channelType || 'provided',
+          displayArtist.name
+        );
+      }
+
+      // Background / non-blocking: fetch full Piped discography and merge
+      void loadArtistDiscographyWithCache(displayArtist.name, {
+        limit: 40,
+        channelId: identity.channelId || displayArtist.channelId,
+        channelType: identity.channelType,
+        identity,
+        skipFetchIfFresh: false,
+      })
+        .then((discog) => {
+          if (generation !== profileGenRef.current) return;
+          if (discog.length > 0) {
+            const merged = mergeArtistTrackLists(
+              popular.length > 0 ? popular : discog,
+              discog.length > 0 ? discog : popular
+            );
+            if (merged.length > 0) {
+              setArtistTracks(merged);
+              setDiscographyCache(
+                cacheKey,
+                merged,
+                identity.channelId || '',
+                identity.channelType || 'provided',
+                displayArtist.name
+              );
+            }
+          }
+        })
+        .catch((err) => {
+          console.warn('Background discography fetch failed:', err);
+        });
+
+      if (popular.length === 0) {
+        // Only if popular was completely empty, wait for discog before resolving
+        const discog = await loadArtistDiscographyWithCache(displayArtist.name, {
           limit: 40,
           channelId: identity.channelId || displayArtist.channelId,
           channelType: identity.channelType,
           identity,
           skipFetchIfFresh: false,
-        }),
-      ]);
-      if (generation !== profileGenRef.current) return;
-
-      const merged = mergeArtistTrackLists(
-        popular.length > 0 ? popular : discog,
-        discog.length > 0 ? discog : popular
-      );
-
-      if (merged.length > 0) {
-        setArtistTracks(merged);
-      } else {
-        toast.error('No releases found', {
-          description: `Could not load tracks for ${displayArtist.name}. Try searching for a specific song.`,
         });
+        if (generation !== profileGenRef.current) return;
+        if (discog.length > 0) {
+          setArtistTracks(discog);
+          setDiscographyCache(
+            cacheKey,
+            discog,
+            identity.channelId || '',
+            identity.channelType || 'provided',
+            displayArtist.name
+          );
+        } else {
+          toast.error('No releases found', {
+            description: `Could not load tracks for ${displayArtist.name}. Try searching for a specific song.`,
+          });
+        }
       }
     } catch (error) {
       console.error('Failed to load artist profile:', error);
@@ -555,6 +609,7 @@ export function useSearchLogic({
         isTopic: artistClean.isTopic,
         mbid: artistClean.mbid,
         deezerId: artistClean.deezerId,
+        skipChannelResolve: true,
       });
 
       if (generation !== profileGenRef.current) return;

@@ -257,6 +257,48 @@ export async function getDeezerNewReleases(artist: string, days: number): Promis
     }));
 }
 
+export type GraphAlbum = {
+  id: number;
+  title: string;
+  artist: string;
+  recordType: 'album' | 'single' | 'ep' | 'compile';
+  releaseDate?: string;
+  year?: string;
+  image?: string;
+};
+
+export async function getDeezerArtistAlbums(
+  artist: string,
+  deezerId?: number,
+  limit = 25
+): Promise<GraphAlbum[]> {
+  const match = await findArtist(artist, deezerId);
+  if (!match) return [];
+  const response = await deezerGet<{
+    data?: Array<{
+      id: number;
+      title?: string;
+      release_date?: string;
+      record_type?: string;
+      cover_xl?: string;
+      cover_big?: string;
+      cover_medium?: string;
+    }>;
+  }>(`/artist/${match.id}/albums?limit=${Math.min(100, Math.max(1, limit))}`);
+
+  return (response?.data ?? [])
+    .filter((a): a is typeof a & { id: number; title: string } => !!a.id && !!a.title)
+    .map((a) => ({
+      id: a.id,
+      title: a.title,
+      artist: match.name || cleanName(artist),
+      recordType: (a.record_type as any) || 'album',
+      releaseDate: a.release_date,
+      year: a.release_date ? a.release_date.slice(0, 4) : undefined,
+      image: a.cover_xl || a.cover_big || a.cover_medium,
+    }));
+}
+
 export async function getDeezerAlbumTracks(albumId: number): Promise<GraphTrack[]> {
   const album = await deezerGet<{
     title?: string;

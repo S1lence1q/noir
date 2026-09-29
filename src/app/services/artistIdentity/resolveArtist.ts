@@ -182,6 +182,8 @@ export async function resolveArtistIdentity(input: ResolveArtistInput): Promise<
     image = seedThumb;
   }
 
+  const listeners = exactDeezer?.fans ?? topDeezer?.fans ?? lastFmInfo?.listeners;
+
   const identity: ArtistIdentity = {
     canonicalName: lastFmInfo?.name || exactDeezer?.name || name,
     mbid: input.mbid || lastFmInfo?.mbid,
@@ -190,6 +192,7 @@ export async function resolveArtistIdentity(input: ResolveArtistInput): Promise<
     channelType:
       channel?.type || (input.channelId ? (isTopicChannel ? 'topic' : 'provided') : undefined),
     image,
+    listeners,
     confidence,
   };
 
@@ -218,6 +221,7 @@ export function identityToVerifiedArtist(
     disambiguation: identity.disambiguation,
     country: identity.country,
     tags: identity.tags,
+    listeners: identity.listeners,
     isTopic: identity.channelType === 'topic',
   };
 }

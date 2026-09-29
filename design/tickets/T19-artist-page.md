@@ -20,30 +20,47 @@ The artist page feels like a curated profile rather than a flat file list. Adds 
   - Hover/focus triggers `prefetchArtistProfile(sim.name)`.
   - Clicking invokes `onSelectArtist(artist)`.
 
-### 2. Artist-to-artist navigation
-- `LandingPage.tsx` wires `onSelectArtist={handleViewArtistProfile}` into `NoirArtistView`.
-- Switching artists resets list expansion (`showAll`) and seamlessly loads the next profile.
+### 2. Discography (Releases: Albums & Singles)
+- Fetches artist albums, EPs, and singles via `getArtistAlbums(artist.name, artist.deezerId)`.
+- Rendered in a dedicated horizontal shelf between Popular and Fans also like.
+- Cards show dithered or real album artwork (`NoirDitherCover`), album title, release year, and record type (Album / Single / EP).
+- Hover play button plays the album immediately (`onPlayAlbum`), clicking opens the album as a playlist overlay (`onSelectAlbum`).
 
-### 3. Strings & Tokens
-- Heading copy: `strings.artist.fansAlsoLike` in `src/app/constants/strings.ts`.
+### 3. Hero metadata: Listeners count & Genre tags
+- Displays formatted monthly listeners / fans count in the hero subheader (e.g. `24.5k listeners · 18 songs`).
+- Displays up to 3 discrete genre tags in subtle rounded chips matching the hero color world.
+
+### 4. Instant load speed (<300 ms cold, 0 ms warm)
+- `resolveArtistIdentity` uses `skipChannelResolve: true` on profile open to eliminate the 2.8s channel timeout.
+- `loadProfileForIdentity` paints `popular` tracks immediately in ~200ms and writes to cache immediately.
+- Background Piped discography fetching is non-blocking and merges into the list without shifting rows.
+
+### 5. Strings & Tokens
+- Copy in `strings.ts` (`fansAlsoLike`, `discography`, `album`, `single`, `ep`, `playAlbum`, `listenersCount`, `metaWithListeners`).
 - Uses `--noir-*` typography and color tokens; no arbitrary styles.
 
 ## Files
 - `design/tickets/T19-artist-page.md` — this ticket
 - `design/tickets/README.md` — register ticket status
-- `src/app/constants/strings.ts` — add `fansAlsoLike` string
-- `src/app/services/musicGraph/index.ts` — pass `deezerId` to `getSimilarArtists`
-- `src/app/services/musicGraph/deezer.ts` — support `deezerId` in `getDeezerRelatedArtists`
-- `src/app/components/shell/noir/NoirArtistView.tsx` — similar artists state, shelf rendering, `onSelectArtist`
-- `src/app/components/LandingPage.tsx` — pass `onSelectArtist` to `NoirArtistView`
+- `src/app/constants/strings.ts` — add artist strings
+- `src/app/services/musicGraph/index.ts` — export `GraphAlbum`, `getArtistAlbums`, update `getSimilarArtists`
+- `src/app/services/musicGraph/deezer.ts` — add `getDeezerArtistAlbums`, update `getDeezerRelatedArtists`
+- `src/app/services/artistIdentity/types.ts` & `resolveArtist.ts` — support `listeners`
+- `src/app/types.ts` — add `listeners` to `VerifiedArtist`
+- `src/app/hooks/useSearchLogic.ts` — instant popular paint, immediate cache, non-blocking discography
+- `src/app/components/shell/noir/NoirArtistView.tsx` — hero listeners/tags, Discography shelf, Fans also like shelf
+- `src/app/components/LandingPage.tsx` — wire `onSelectArtist`, `onPlayAlbum`, `onSelectAlbum`
 
 ## Acceptance
 - [x] Artist page loads "Fans also like" shelf with similar artists when available (>= 3).
+- [x] Discography (Albums & Singles) shelf rendered with real/dither artwork, year, and type.
+- [x] Playing or clicking an album plays the tracklist or opens the collection overlay.
+- [x] Hero displays listeners count and genre tags when available.
+- [x] Profile paints in <300ms on cold load (popular-first) and 0ms on revisit.
 - [x] Card uses real photo or circular dither avatar fallback.
 - [x] Hover/focus pre-fetches the candidate artist's profile.
 - [x] Clicking a similar artist navigates directly to their profile overlay.
-- [x] Switching artists resets `showAll` state.
-- [x] If < 3 similar artists exist, the shelf cleanly hides itself without blank gaps.
+- [x] Switching artists resets `showAll` state and scrolls to top.
 - [x] All copy in `strings.ts`.
 - [x] `npm run build` succeeds without errors.
 

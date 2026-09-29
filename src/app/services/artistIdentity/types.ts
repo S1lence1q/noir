@@ -10,6 +10,7 @@ export type ArtistIdentity = {
   disambiguation?: string;
   country?: string;
   tags?: string[];
+  listeners?: number;
   confidence: ArtistConfidence;
   /** Present when confidence is low — user should pick one. */
   candidates?: ArtistIdentity[];
