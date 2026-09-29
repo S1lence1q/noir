@@ -110,11 +110,20 @@ function artistKey(artist: string) {
   return normalizeName(artist) || artist.trim().toLowerCase();
 }
 
-export function getSimilarArtists(artist: string, limit = 12): Promise<GraphArtist[]> {
-  const key = `similar-artists:${artistKey(artist)}:${limit}`;
+export function getSimilarArtists(
+  artist: string,
+  limit = 12,
+  deezerId?: number
+): Promise<GraphArtist[]> {
+  const idPart = deezerId ? `:id:${deezerId}` : '';
+  const key = `similar-artists:${artistKey(artist)}${idPart}:${limit}`;
   return requestCached(key, TTL.similar, async () => {
-    const result = await getLastFmSimilarArtists(artist, limit);
-    return result.length > 0 ? result : getDeezerRelatedArtists(artist, limit);
+    const deezerRelated = await getDeezerRelatedArtists(artist, limit, deezerId);
+    if (deezerRelated.length >= 3) {
+      return deezerRelated;
+    }
+    const lastFmResult = await getLastFmSimilarArtists(artist, limit);
+    return lastFmResult.length > 0 ? lastFmResult : deezerRelated;
   }, []);
 }
 

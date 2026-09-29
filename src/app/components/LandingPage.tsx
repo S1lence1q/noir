@@ -325,6 +325,7 @@ export function LandingPage({
                 onStartRadio={handleStartRadio}
                 candidates={artistCandidates}
                 onPickCandidate={handlePickArtistCandidate}
+                onSelectArtist={handleViewArtistProfile}
               />
             </NoirDetailOverlay>
           )}

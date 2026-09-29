@@ -1,14 +1,17 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Play, Radio, Shuffle } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
 import { NoirRankedSongRow } from './NoirRankedSongRow';
 import { NoirDitherCover } from './NoirDitherCover';
 import { NoirArtistDisambiguation } from './NoirArtistDisambiguation';
+import { NoirHomeShelf } from './NoirHomeShelf';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { COLOR_WORLDS, worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
+import { getSimilarArtists, type GraphArtist } from '../../../services/musicGraph';
+import { prefetchArtistProfile } from '../../../utils/artistDiscographyLoader';
 import type { ArtistIdentity } from '../../../services/artistIdentity';
 
 export type NoirArtistViewProps = {
@@ -26,6 +29,7 @@ export type NoirArtistViewProps = {
   /** When set, show pick-one UI instead of Popular. */
   candidates?: ArtistIdentity[] | null;
   onPickCandidate?: (candidate: ArtistIdentity) => void;
+  onSelectArtist?: (artist: VerifiedArtist) => void;
 };
 
 const POPULAR_COUNT = 5;
@@ -66,13 +70,42 @@ export function NoirArtistView({
   onStartRadio,
   candidates = null,
   onPickCandidate,
+  onSelectArtist,
 }: NoirArtistViewProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const reduced = prefersReducedMotion();
   const [showAll, setShowAll] = useState(false);
+  const [similarArtists, setSimilarArtists] = useState<GraphArtist[]>([]);
   const world = worldForCollection(`artist:${artist.name.toLowerCase()}`);
   const palette = COLOR_WORLDS[world];
   const unique = useMemo(() => dedupeTracks(tracks, artist.name), [tracks, artist.name]);
   const visible = showAll ? unique : unique.slice(0, POPULAR_COUNT);
+
+  useEffect(() => {
+    setShowAll(false);
+    const scroller = containerRef.current?.closest('.overflow-y-auto');
+    if (scroller) {
+      scroller.scrollTop = 0;
+    }
+    let active = true;
+    getSimilarArtists(artist.name, 10, artist.deezerId)
+      .then((results) => {
+        if (!active) return;
+        const normalizedArtistName = artist.name.trim().toLowerCase();
+        const filtered = results.filter(
+          (r) => r.name.trim().toLowerCase() !== normalizedArtistName
+        );
+        setSimilarArtists(filtered);
+      })
+      .catch(() => {
+        if (!active) return;
+        setSimilarArtists([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [artist.name, artist.deezerId]);
 
   const shuffleAll = () => {
     if (unique.length === 0 || !onPlayFromIndex) return;
@@ -93,7 +126,7 @@ export function NoirArtistView({
   }
 
   return (
-    <div className="flex w-full flex-col pb-6">
+    <div ref={containerRef} className="flex w-full flex-col pb-6">
       <motion.section
         className="noir-artist-hero"
         style={{ background: palette.field, color: palette.mark }}
@@ -209,6 +242,61 @@ export function NoirArtistView({
           <p className="px-1 py-8 text-[14px] text-[color:var(--noir-text-secondary)]">{strings.artist.empty}</p>
         )}
       </section>
+
+      {similarArtists.length >= 3 && (
+        <section className="mt-12">
+          <h2 className="noir-section-title mb-4 px-1">{strings.artist.fansAlsoLike}</h2>
+          <NoirHomeShelf>
+            {similarArtists.map((sim) => {
+              const simWorld = worldForCollection(`artist:${sim.name.toLowerCase()}`);
+              return (
+                <button
+                  key={sim.name}
+                  type="button"
+                  onClick={() =>
+                    onSelectArtist?.({
+                      name: sim.name,
+                      thumbnail: sim.image,
+                    })
+                  }
+                  onMouseEnter={() =>
+                    void prefetchArtistProfile({
+                      name: sim.name,
+                    })
+                  }
+                  onFocus={() =>
+                    void prefetchArtistProfile({
+                      name: sim.name,
+                    })
+                  }
+                  className="noir-home-artist group elva-focus-ring"
+                >
+                  <span className="noir-home-artist-art">
+                    {sim.image ? (
+                      <img
+                        src={sim.image}
+                        alt=""
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <NoirDitherCover
+                        world={simWorld}
+                        seed={`artist:${sim.name}`}
+                        size={108}
+                        radius={999}
+                      />
+                    )}
+                  </span>
+                  <span className="noir-song-title mt-3 block truncate text-center">
+                    {sim.name}
+                  </span>
+                </button>
+              );
+            })}
+          </NoirHomeShelf>
+        </section>
+      )}
     </div>
   );
 }

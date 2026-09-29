@@ -204,8 +204,12 @@ export async function getDeezerArtistTopTracks(
     .slice(0, limit);
 }
 
-export async function getDeezerRelatedArtists(artist: string, limit: number): Promise<GraphArtist[]> {
-  const match = await findArtist(artist);
+export async function getDeezerRelatedArtists(
+  artist: string,
+  limit: number,
+  deezerId?: number
+): Promise<GraphArtist[]> {
+  const match = await findArtist(artist, deezerId);
   if (!match) return [];
   const response = await deezerGet<{ data?: DeezerArtist[] }>(`/artist/${match.id}/related`);
   return (response?.data ?? [])

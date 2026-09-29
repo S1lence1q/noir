@@ -66,6 +66,7 @@ export const strings = {
     shuffle: 'Shuffle',
     startRadio: 'Start radio',
     popular: 'Popular',
+    fansAlsoLike: 'Fans also like',
     showAll: (n: number) => `Show all ${n}`,
     showLess: 'Show less',
     empty: 'No songs found for this artist yet.',
