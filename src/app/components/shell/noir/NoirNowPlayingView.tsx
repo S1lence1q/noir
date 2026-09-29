@@ -75,6 +75,22 @@ function uniqueByKey(tracks: SearchResult[]): SearchResult[] {
   });
 }
 
+const QUEUE_RAIL_WIDTH = 360;
+/** One spring for rail + cover resize so the stage moves as one object. */
+const railSpring = { type: 'spring' as const, stiffness: 260, damping: 34, mass: 0.9 };
+
+function useStackedLayout() {
+  const query = '(max-width: 960px)';
+  const [stacked, setStacked] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
+  useEffect(() => {
+    const mql = window.matchMedia(query);
+    const onChange = () => setStacked(mql.matches);
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+  return stacked;
+}
+
 export function NoirNowPlayingView({
   song,
   queue,
@@ -104,6 +120,7 @@ export function NoirNowPlayingView({
   sidePanelOpen = true,
 }: NoirNowPlayingViewProps) {
   const reduced = prefersReducedMotion();
+  const stacked = useStackedLayout();
   /** While cover flies home, keep layoutId mounted but fade everything else so title/queue don't ghost. */
   const isPresent = useIsPresent();
   const chromeFade = {
@@ -346,18 +363,6 @@ export function NoirNowPlayingView({
                       )}
                     </div>
                   )}
-                  {onShowLyrics && lyrics.length > 0 && (
-                    <div className="noir-now-playing-meta">
-                      <button
-                        type="button"
-                        className="noir-now-playing-lyrics-link elva-focus-ring rounded-sm"
-                        onClick={() => onShowLyrics(!showLyrics)}
-                        aria-pressed={showLyrics}
-                      >
-                        {showLyrics ? strings.lyrics.hide : strings.lyrics.show}
-                      </button>
-                    </div>
-                  )}
                 </motion.div>
               </AnimatePresence>
             </motion.div>
@@ -401,15 +406,23 @@ export function NoirNowPlayingView({
             key="np-side"
             className="noir-now-playing-queue"
             aria-label={strings.nextUp.title}
-            initial={reduced ? { opacity: 0 } : { opacity: 0, x: 16 }}
+            /* Side-by-side: the rail opens in width so the stage reflows with it instead of snapping. */
+            initial={reduced || stacked ? { opacity: 0 } : { opacity: 0, width: 0 }}
             animate={
               isPresent
-                ? { opacity: 1, x: 0 }
-                : { opacity: 0, x: 0, transition: chromeFade.transition }
+                ? reduced || stacked
+                  ? { opacity: 1 }
+                  : { opacity: 1, width: QUEUE_RAIL_WIDTH }
+                : { opacity: 0, transition: chromeFade.transition }
             }
-            exit={reduced ? { opacity: 0 } : { opacity: 0, x: 12 }}
-            transition={{ duration: reduced ? 0.15 : 0.32, ease: sheetEase, delay: reduced ? 0 : 0.06 }}
+            exit={
+              reduced || stacked
+                ? { opacity: 0 }
+                : { opacity: 0, width: 0, transition: { ...railSpring, opacity: { duration: 0.16 } } }
+            }
+            transition={reduced ? { duration: 0.15 } : { ...railSpring, opacity: { duration: 0.24, delay: 0.08 } }}
           >
+            <div className="noir-now-playing-queue-inner">
             <div className="noir-now-playing-side-header">
               <div className="noir-now-playing-side-header-text min-w-0">
                 <p className="text-[14px] font-medium text-[color:var(--noir-text-primary)]">
@@ -571,6 +584,7 @@ export function NoirNowPlayingView({
                 </AnimatePresence>
               </Reorder.Group>
             )}
+            </div>
           </motion.aside>
         )}
       </AnimatePresence>

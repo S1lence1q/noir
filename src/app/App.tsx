@@ -95,6 +95,9 @@ async function hydrateLocalTracks(list: SearchResult[]) {
   return hydrated.filter((item): item is SearchResult => item !== null);
 }
 
+/** Below this width, cover + lyrics + Next up don't fit side by side. */
+const NP_DUAL_MIN_WIDTH = 1200;
+
 export default function App() {
   const [appState, setAppState] = useState<AppState>('landing');
   // Settings is now a tab in the shell, not a modal
@@ -311,19 +314,34 @@ export default function App() {
     } catch {}
   }, [sidePanelOpen]);
 
-  // Lyrics need horizontal room — tuck the Next up rail while they're open.
-  useEffect(() => {
-    if (showLyrics) setSidePanelOpen(false);
-  }, [showLyrics]);
+  /**
+   * D2: lyrics (stage mode) and Next up (side rail) are independent.
+   * Only when the window can't hold cover + lyrics + rail do they become exclusive.
+   */
+  const canHoldLyricsAndQueue = () => typeof window === 'undefined' || window.innerWidth >= NP_DUAL_MIN_WIDTH;
 
   const toggleQueueRail = () => {
     if (!songData) return;
     if (!nowPlayingOpen) {
       setSidePanelOpen(true);
+      if (!canHoldLyricsAndQueue()) setShowLyrics(false);
       setNowPlayingOpen(true);
       return;
     }
-    setSidePanelOpen((open) => !open);
+    const next = !sidePanelOpen;
+    if (next && !canHoldLyricsAndQueue()) setShowLyrics(false);
+    setSidePanelOpen(next);
+  };
+
+  const toggleLyrics = () => {
+    if (!songData) return;
+    const next = !showLyrics;
+    if (next && lyrics.length === 0) return;
+    if (next) {
+      if (!canHoldLyricsAndQueue()) setSidePanelOpen(false);
+      setNowPlayingOpen(true);
+    }
+    setShowLyrics(next);
   };
 
   const backToHomeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -1248,15 +1266,7 @@ export default function App() {
     setSelectedPlaylist,
     onOpenSearchPalette: () => setSearchPaletteOpen(true),
     onNewPlaylist: handleNewPlaylist,
-    onToggleLyrics: () => {
-      if (!songData) return;
-      setShowLyrics((prev) => {
-        if (!prev && lyrics.length === 0) return prev;
-        const next = !prev;
-        if (next) setNowPlayingOpen(true);
-        return next;
-      });
-    },
+    onToggleLyrics: toggleLyrics,
   });
 
   useEffect(() => {
@@ -1747,6 +1757,9 @@ export default function App() {
               setNowPlayingOpen((open) => !open);
             }}
             onToggleQueue={toggleQueueRail}
+            lyricsOpen={nowPlayingOpen && showLyrics}
+            lyricsAvailable={lyrics.length > 0}
+            onToggleLyrics={toggleLyrics}
             showCompactPlayer
             queueRailOpen={sidePanelOpen}
             queueCount={(() => {

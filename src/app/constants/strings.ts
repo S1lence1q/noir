@@ -179,6 +179,7 @@ export const strings = {
     emptyHint: 'Enjoy the music instead.',
     show: 'Show lyrics',
     hide: 'Hide lyrics',
+    unavailable: 'No lyrics for this song',
   },
   error: {
     brand: 'NOIR',

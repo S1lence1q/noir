@@ -49,9 +49,11 @@ Phase A notes: Library root is now the collection grid (Favorites card first); F
 - [ ] ⚪ Discography cards get a grey hover box — match the new Latest release hover (cover dims, play appears).
 
 ### Phase B — Now Playing
-- [ ] 🔴 Lyrics ↔ queue flow (D2).
+- [x] 🔴 Lyrics ↔ queue flow (D2). Lyrics + Next up are two toggles side by side in the bar (quote / list icons, shared on-state). Rail animates width (spring), cover shrinks via CSS width transition, exclusive only below 1200px.
+- [ ] 🟡 Canvas with lyrics and rail both closed: cover hugs the left, right 2/3 empty. Recompose (centre the identity or scale the cover up).
+- [ ] 🟡 Atmosphere is a blurred image + radial colour gradients = the "smooth glow" the rules forbid. Replace with a grain/dither field from the cover's world (D1: atmosphere around, never on).
 - [ ] 🔴 (parked — ~1/100, no repro) Cover flight occasionally lands in the wrong place when closing the canvas. Repro needed (note: page, scroll, whether compact bar was mid-animation).
-- [ ] 🟡 Lyrics finish: line transitions, active-line emphasis, scroll follow, no-lyrics / loading states.
+- [ ] 🟡 Lyrics finish: ~~constant weight (no rewrap), column-local scroll, active held at 38%~~ done. Left: instrumental gaps (empty lines), loading skeleton, past vs future contrast.
 - [ ] 🟡 Toast primitive: stacking, exit motion, action/undo timing.
 - [ ] 🟡 "Queue ends soon" / "Keep playing" moment built on the new toast.
 

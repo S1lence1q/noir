@@ -297,18 +297,24 @@
   transition: color 0.15s ease, background-color 0.15s ease;
 }
 
-.noir-compact-queue--active {
+.noir-compact-queue:hover:not(:disabled) {
   color: var(--noir-text-primary);
   background: rgba(255, 255, 255, 0.06);
+}
+
+/* On-state for the Lyrics / Next up toggles: lit, never dead to the cursor. */
+.noir-compact-queue--on {
+  color: var(--noir-text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.noir-compact-queue--on:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.noir-compact-queue:disabled {
+  opacity: 0.32;
   cursor: default;
-}
-
-.noir-compact-queue:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.noir-compact-queue--active:hover {
-  background: rgba(255, 255, 255, 0.06);
 }
 
 .noir-compact-queue-count {
@@ -1356,6 +1362,32 @@
   justify-content: flex-start;
   gap: 20px;
   flex-shrink: 0;
+  transition: width 0.62s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* D2 lyrics mode: the cover steps back into a compact column, lyrics take the stage. */
+.noir-now-playing-stage-row {
+  transition: gap 0.62s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.noir-now-playing-stage-row.has-lyrics {
+  align-items: center;
+  gap: 56px;
+}
+
+.noir-now-playing-stage-row.has-lyrics .noir-now-playing-identity {
+  width: min(100%, 34vh, 280px);
+}
+
+.noir-now-playing-stage-row.has-lyrics .noir-now-playing-title {
+  font-size: 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noir-now-playing-identity,
+  .noir-now-playing-stage-row {
+    transition: none;
+  }
 }
 
 .noir-now-playing-stage-lyrics {
@@ -1365,14 +1397,10 @@
   flex: 1;
   flex-direction: column;
   min-width: 0;
-  max-width: min(560px, 100%);
-  height: min(48vh, 400px);
-  margin-top: -14px;
+  max-width: min(620px, 100%);
+  height: min(74vh, 680px);
   margin-left: 0;
   overflow: hidden;
-  /* Match cover height so the duo reads as one object */
-  align-self: stretch;
-  min-height: min(48vh, 400px);
 }
 
 .noir-now-playing-stage-lyrics-inner {
@@ -1480,12 +1508,21 @@ button.noir-now-playing-source:hover {
   position: relative;
   z-index: 1;
   display: flex;
-  flex-direction: column;
-  width: min(40%, 360px);
   flex-shrink: 0;
   min-height: 0;
   overflow: hidden;
   border-left: 1px solid var(--noir-rule-faint);
+}
+
+/* Fixed-width content: the rail animates its width, the list inside never reflows mid-slide. */
+.noir-now-playing-queue-inner {
+  display: flex;
+  flex-direction: column;
+  width: 360px;
+  min-width: 360px;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
   padding: 28px 16px 32px;
 }
 
@@ -1513,8 +1550,8 @@ button.noir-now-playing-source:hover {
   text-overflow: ellipsis;
 }
 
-.noir-now-playing-queue > .noir-now-playing-queue-empty,
-.noir-now-playing-queue > ul {
+.noir-now-playing-queue-inner > .noir-now-playing-queue-empty,
+.noir-now-playing-queue-inner > ul {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -1534,10 +1571,11 @@ button.noir-now-playing-source:hover {
   border-radius: var(--noir-radius-sm);
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.48);
-  font-size: 19px;
-  font-weight: 500;
-  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.4);
+  /* Same weight for every line: the active line must never rewrap and shove the list. */
+  font-size: clamp(19px, 2.1vw, 26px);
+  font-weight: 650;
+  line-height: 1.3;
   letter-spacing: -0.028em;
   cursor: pointer;
   white-space: normal;
@@ -1551,7 +1589,7 @@ button.noir-now-playing-source:hover {
 }
 
 .noir-lyrics-line.is-past {
-  color: rgba(255, 255, 255, 0.34);
+  color: rgba(255, 255, 255, 0.26);
 }
 
 .noir-lyrics-line:hover {
@@ -1560,8 +1598,7 @@ button.noir-now-playing-source:hover {
 
 .noir-lyrics-line.is-active {
   color: var(--noir-text-primary);
-  font-weight: 650;
-  transform: scale(1.12);
+  transform: scale(1.06);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1571,7 +1608,6 @@ button.noir-now-playing-source:hover {
 
   .noir-lyrics-line.is-active {
     transform: none;
-    font-size: 21px;
   }
 }
 
@@ -1603,6 +1639,16 @@ button.noir-now-playing-source:hover {
     border-left: none;
     border-top: 1px solid var(--noir-rule-faint);
     background: rgba(0, 0, 0, 0.35);
+  }
+
+  .noir-now-playing-queue-inner {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .noir-now-playing-stage-row.has-lyrics {
+    align-items: stretch;
+    gap: 16px;
   }
 
   .noir-now-playing-stage {

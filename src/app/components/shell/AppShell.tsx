@@ -19,6 +19,9 @@ type AppShellProps = {
   playback: ShellPlaybackState;
   onExpandPlayer: () => void;
   onToggleQueue?: () => void;
+  lyricsOpen?: boolean;
+  lyricsAvailable?: boolean;
+  onToggleLyrics?: () => void;
   showCompactPlayer: boolean;
   nowPlayingOpen?: boolean;
   /** Up-next rail visible inside Now Playing (drives queue button pressed state). */
@@ -46,6 +49,9 @@ export function AppShell({
   playback,
   onExpandPlayer,
   onToggleQueue,
+  lyricsOpen = false,
+  lyricsAvailable = false,
+  onToggleLyrics,
   showCompactPlayer,
   nowPlayingOpen = false,
   queueRailOpen = false,
@@ -122,6 +128,9 @@ export function AppShell({
               isFavorite={isFavorite}
               onExpand={onExpandPlayer}
               onToggleQueue={onToggleQueue}
+              lyricsOpen={lyricsOpen}
+              lyricsAvailable={lyricsAvailable}
+              onToggleLyrics={onToggleLyrics}
               onToggleFavorite={onToggleFavorite}
               onStartRadio={onStartRadio}
               onOpenArtist={onOpenArtist}

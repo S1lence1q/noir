@@ -25,6 +25,7 @@ export function NoirLyricsColumn({
 }: NoirLyricsColumnProps) {
   const reduced = prefersReducedMotion();
   const activeRef = useRef<HTMLButtonElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const initialScrollRef = useRef(true);
 
   useEffect(() => {
@@ -32,17 +33,19 @@ export function NoirLyricsColumn({
   }, [lyrics]);
 
   useEffect(() => {
-    if (!isSynced || currentIndex < 0 || !activeRef.current) return;
-    activeRef.current.scrollIntoView({
-      behavior: reduced || initialScrollRef.current ? 'auto' : 'smooth',
-      block: 'center',
-    });
+    const container = scrollRef.current;
+    const line = activeRef.current;
+    if (!isSynced || currentIndex < 0 || !container || !line) return;
+    // Scroll only this column (scrollIntoView also nudges every scrolling ancestor) and
+    // hold the active line a little above centre, where the eye already is.
+    const top = line.offsetTop - container.clientHeight * 0.38 + line.offsetHeight / 2;
+    container.scrollTo({ top: Math.max(0, top), behavior: reduced || initialScrollRef.current ? 'auto' : 'smooth' });
     initialScrollRef.current = false;
   }, [currentIndex, isSynced, reduced]);
 
   return (
     <div className="noir-lyrics flex h-full min-h-0 flex-col">
-      <div className="noir-lyrics-scroll min-h-0 flex-1 overflow-y-auto px-2 pb-8">
+      <div ref={scrollRef} className="noir-lyrics-scroll relative min-h-0 flex-1 overflow-y-auto scrollbar-none px-2 pb-8">
         {isLoading ? (
           <p className="px-1 pt-6 text-[14px] text-[color:var(--noir-text-tertiary)]">
             {strings.lyrics.loading}
@@ -57,7 +60,7 @@ export function NoirLyricsColumn({
             </p>
           </div>
         ) : isSynced ? (
-          <div className="flex flex-col gap-0 pt-2">
+          <div className="flex flex-col gap-0 pt-[min(24vh,220px)]">
             {lyrics.map((line, idx) => {
               const active = idx === currentIndex;
               const past = currentIndex >= 0 && idx < currentIndex;
@@ -73,7 +76,7 @@ export function NoirLyricsColumn({
                 </button>
               );
             })}
-            <div className="h-[42%] shrink-0" aria-hidden />
+            <div className="h-[min(40vh,360px)] shrink-0" aria-hidden />
           </div>
         ) : (
           <div className="flex flex-col gap-1 pt-1">

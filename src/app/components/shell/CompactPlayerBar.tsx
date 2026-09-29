@@ -4,6 +4,7 @@ import {
   ChevronDown,
   Heart,
   ListMusic,
+  Quote,
   Pause,
   Play,
   Radio,
@@ -37,6 +38,9 @@ type CompactPlayerBarProps = {
   onExpand: () => void;
   /** Toggle up-next rail (opens NP if needed). */
   onToggleQueue?: () => void;
+  lyricsOpen?: boolean;
+  lyricsAvailable?: boolean;
+  onToggleLyrics?: () => void;
   onToggleFavorite?: () => void;
   onStartRadio?: () => void;
   onOpenArtist?: () => void;
@@ -73,6 +77,9 @@ export function CompactPlayerBar({
   isFavorite = false,
   onExpand,
   onToggleQueue,
+  lyricsOpen = false,
+  lyricsAvailable = false,
+  onToggleLyrics,
   onToggleFavorite,
   onStartRadio,
   onOpenArtist,
@@ -449,10 +456,24 @@ export function CompactPlayerBar({
       </div>
 
       <div className="noir-compact-right">
+        {/* Always rendered (disabled without lyrics) so the bar never shifts between songs. */}
+        <button
+          type="button"
+          onClick={() => onToggleLyrics?.()}
+          disabled={!lyricsAvailable && !lyricsOpen}
+          className={`noir-compact-queue${lyricsOpen ? ' noir-compact-queue--on' : ''}`}
+          aria-pressed={lyricsOpen}
+          aria-label={lyricsOpen ? strings.lyrics.hide : strings.lyrics.show}
+          title={
+            lyricsOpen ? strings.lyrics.hide : lyricsAvailable ? strings.lyrics.show : strings.lyrics.unavailable
+          }
+        >
+          <Quote className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+        </button>
         <button
           type="button"
           onClick={() => onToggleQueue?.()}
-          className={`noir-compact-queue${expanded && queueRailOpen ? ' noir-compact-queue--active' : ''}`}
+          className={`noir-compact-queue${expanded && queueRailOpen ? ' noir-compact-queue--on' : ''}`}
           aria-pressed={expanded && queueRailOpen}
           aria-label={
             expanded && queueRailOpen
@@ -606,3 +627,4 @@ export function CompactPlayerBar({
     </motion.footer>
   );
 }
+
