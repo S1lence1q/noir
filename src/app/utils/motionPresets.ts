@@ -19,14 +19,24 @@ export const EASE_OUT_SMOOTH: Transition['ease'] = [0.25, 0.1, 0.25, 1];
 export const DURATION_FAST = 0.22;
 export const DURATION_PANEL = 0.28;
 
-/** NOIR motion tokens (design/08-craft.md §4). New code uses only these. */
+/**
+ * NOIR motion tokens (design/08-craft.md §4). New code uses only these.
+ *
+ * Vocabulary (2026-09-29 pass):
+ * - Enter: `panel` (UI chrome), `scene` (layout moves), `settle` (objects that arrive and rest).
+ * - Exit: `exit` — quicker than the enter, eases out, never a drop/slide-away. Things step back.
+ * - Pages / sections: CSS `noir-settle-group` (8 px rise, 40 ms stagger, `noir-shell.css`).
+ * - Text swaps (titles): `AnimatePresence mode="popLayout"` — the new one arrives at once.
+ * - One expressive beat per action (creation spring, favorite burst, fly-to-queue); ambient never loops.
+ */
 export const MOTION = {
   tap: { duration: 0.12, ease: EASE_OUT_SMOOTH },
+  exit: { duration: 0.14, ease: EASE_OUT_SMOOTH },
   panel: { duration: 0.28, ease: EASE_PREMIUM },
   scene: { duration: 0.45, ease: EASE_PREMIUM },
   /** Physical objects that arrive and rest: side rail, toast, sheets. Slight weight, no bounce. */
   settle: { type: 'spring', stiffness: 260, damping: 34, mass: 0.9 },
-} satisfies Record<'tap' | 'panel' | 'scene' | 'settle', Transition>;
+} satisfies Record<'tap' | 'exit' | 'panel' | 'scene' | 'settle', Transition>;
 
 export const panelEnter = {
   initial: { opacity: 0 },

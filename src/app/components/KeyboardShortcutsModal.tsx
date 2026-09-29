@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import type { AccentColor } from './themeUtils';
-import { EASE_OUT_SMOOTH, EASE_PREMIUM, prefersReducedMotion } from '../utils/motionPresets';
+import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../utils/motionPresets';
 
 interface KeyboardShortcutsModalProps {
   isOpen: boolean;
@@ -56,7 +56,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ 
           key="shortcut-map"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.14 } }}
+          exit={{ opacity: 0, transition: MOTION.exit }}
           transition={{ duration: reduced ? 0.12 : 0.18 }}
           className="noir-shortcuts-root"
           onClick={onClose}
@@ -71,7 +71,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ 
             exit={
               reduced
                 ? { opacity: 0 }
-                : { opacity: 0, scale: 0.985, transition: { duration: 0.14, ease: EASE_OUT_SMOOTH } }
+                : { opacity: 0, scale: 0.985, transition: MOTION.exit }
             }
             transition={{ duration: reduced ? 0.12 : 0.24, ease: EASE_PREMIUM }}
             onClick={(e) => e.stopPropagation()}

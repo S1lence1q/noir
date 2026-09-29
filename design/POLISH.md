@@ -115,7 +115,7 @@ Principle: motion explains cause → effect (where did it go, what changed). One
 ### Later
 - [x] T22 quiet tooltips: one `NoirTooltipHost` (portal, 400 ms hover / instant keyboard focus, never touch, 40 ch). Every shell `title=` (34) moved to `data-tip` — no more native grey bubbles. Search ★ + File carry the ticket copy (`strings.tips`, no Apple Music mention). Sidebar rail items tip to the right only while labels are hidden (`data-tip-rail`).
 - [x] History in Library (D5): Library › History, every listen ≥ 20 s newest first, grouped Today / Yesterday / weekday / date, play count per day; rows play from that day onward; consecutive repeats collapse; seed listens excluded; "Show earlier" pages by 120. Verified: 22 rows, no consecutive repeats, a row plays with the rest of the day queued.
-- [ ] Global motion pass on `motionPresets.ts` (enter/exit/stagger consistency).
+- [x] Motion pass: audited shell durations/springs. Outliers (creation spring, volume charge, home object, artist hero entrance) are deliberate expressive beats — kept. Exits unified on a new `MOTION.exit` token (140 ms ease-out, step back); the vocabulary (enter / exit / page settle / popLayout text swaps / one expressive beat) is documented at the top of `MOTION`.
 
 ---
 

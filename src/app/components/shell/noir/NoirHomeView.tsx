@@ -297,7 +297,7 @@ export function NoirHomeView({
                     exit={
                       reduced
                         ? { opacity: 0, transition: { duration: 0.1 } }
-                        : { opacity: 0, y: -4, transition: { duration: 0.14, ease: EASE_PREMIUM } }
+                        : { opacity: 0, y: -4, transition: MOTION.exit }
                     }
                     transition={{ duration: 0.26, ease: EASE_PREMIUM }}
                   >

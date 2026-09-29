@@ -13,7 +13,7 @@ import {
   VolumeX,
 } from 'lucide-react';
 import { ShellPlaybackState } from './types';
-import { EASE_PREMIUM, prefersReducedMotion } from '../../utils/motionPresets';
+import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../utils/motionPresets';
 import { strings } from '../../constants/strings';
 import { hasRealArtwork } from '../../utils/artwork';
 import { worldForCollection } from '../../utils/ditherCover';
@@ -361,7 +361,7 @@ export function CompactPlayerBar({
                   exit={
                     reduced
                       ? { opacity: 0, transition: { duration: 0.1 } }
-                      : { opacity: 0, y: -6, transition: { duration: 0.14, ease: EASE_PREMIUM } }
+                      : { opacity: 0, y: -6, transition: MOTION.exit }
                   }
                   transition={{ duration: reduced ? 0.12 : 0.28, ease: EASE_PREMIUM }}
                 >

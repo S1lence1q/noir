@@ -11,7 +11,7 @@ import {
   shouldShowArtistCard,
 } from '../../../utils/apiUtils';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
-import { EASE_OUT_SMOOTH, EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
+import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
 import { noirToast } from './NoirToast';
 import { NoirMark } from './NoirMark';
@@ -212,7 +212,7 @@ export function NoirSearchPalette({
             exit={
               reduced
                 ? { opacity: 0 }
-                : { opacity: 0, scale: 0.985, transition: { duration: 0.14, ease: EASE_OUT_SMOOTH } }
+                : { opacity: 0, scale: 0.985, transition: MOTION.exit }
             }
             transition={{ duration: reduced ? 0.12 : 0.24, ease: EASE_PREMIUM }}
           >

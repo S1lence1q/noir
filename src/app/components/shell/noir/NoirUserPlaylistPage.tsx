@@ -583,7 +583,7 @@ function PlaylistAddPanel({
               key={showingSearch ? `search:${query.trim()}` : source}
               initial={reduced ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={reduced ? undefined : { opacity: 0, y: -6, transition: { duration: 0.14 } }}
+              exit={reduced ? undefined : { opacity: 0, y: -6, transition: MOTION.exit }}
               transition={withReducedMotion({ duration: 0.28, ease: EASE_PREMIUM })}
             >
               {showingSearch && loading && results.length === 0 && (
