@@ -122,6 +122,7 @@ export const strings = {
     openProfileNamed: (name: string) => `Open ${name}`,
   },
   home: {
+    now: 'Now',
     continue: 'Continue',
     nowPlaying: 'Now playing',
     jumpBackIn: 'Jump back in',

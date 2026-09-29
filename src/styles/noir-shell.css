@@ -2506,6 +2506,125 @@ button.noir-now-playing-source:hover {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
 }
 
+/* Your day: time-of-day field, today's heat line on the right, copy on the flat left. */
+.noir-home-day {
+  position: relative;
+  min-height: 280px;
+  margin-bottom: 8px;
+  border-radius: 28px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.noir-home-day-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.7s var(--noir-ease-out, ease-out);
+}
+
+.noir-home-day-canvas[data-ready] {
+  opacity: 1;
+}
+
+.noir-home-day-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 28px;
+  min-height: inherit;
+  max-width: 46%;
+  padding: 30px 32px 28px;
+}
+
+.noir-home-day .noir-home-greeting-title,
+.noir-home-day .noir-home-continue-title {
+  color: inherit;
+}
+
+.noir-home-day .noir-home-continue-artist {
+  color: inherit;
+  opacity: 0.68;
+}
+
+.noir-home-day-now {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.noir-home-day-art {
+  flex-shrink: 0;
+  border-radius: var(--noir-radius-sm);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  transition: transform 0.3s var(--noir-ease-out, ease-out);
+}
+
+.noir-home-day-art:hover {
+  transform: scale(1.04);
+}
+
+.noir-home-day-label {
+  font: var(--noir-type-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.noir-home-day .noir-home-continue-title {
+  margin-top: 4px;
+  font-size: 18px;
+}
+
+.noir-home-day-now .noir-play-round {
+  flex-shrink: 0;
+}
+
+.noir-home-day[data-light] .noir-play-round {
+  background: #0b0b0b;
+  color: #f2eee6;
+}
+
+.noir-home-day-marks {
+  position: absolute;
+  z-index: 1;
+  inset: auto 0 18px 0;
+  height: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.noir-home-day-marks li {
+  position: absolute;
+  transform: translateX(-50%);
+  font: var(--noir-type-label);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  opacity: 0.5;
+}
+
+.noir-home-day-marks li[data-now] {
+  opacity: 0.9;
+}
+
+@media (max-width: 760px) {
+  .noir-home-day {
+    min-height: 340px;
+  }
+
+  .noir-home-day-copy {
+    max-width: none;
+    justify-content: flex-start;
+    padding: 22px;
+  }
+}
+
 .noir-home-tiles {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import type { ColorWorld } from '../../../utils/ditherCover';
 import { applyHeat, buildRamp, seededRandom } from '../../../utils/grainRender';
+import { HEAT_RAMPS } from '../../../utils/heatFigure';
 
 /**
  * "Your week" as one heat form: a line through the last seven days that swells where you
@@ -15,16 +17,15 @@ export const HEAT_WEEK_X1 = 0.92;
 export const heatWeekNodeX = (i: number, n: number) =>
   HEAT_WEEK_X0 + ((HEAT_WEEK_X1 - HEAT_WEEK_X0) * i) / Math.max(1, n - 1);
 
-const RAMP = buildRamp([
-  [0, HEAT_FIELD],
-  [0.07, '#2C58E0'],
-  [0.2, '#8FA5EE'],
-  [0.31, '#F6E8D6'],
-  [0.45, '#F4AE96'],
-  [0.64, '#DB8DA8'],
-  [0.84, '#A087D8'],
-  [1, '#8C90E8'],
-]);
+const ramps = new Map<ColorWorld, Uint8ClampedArray>();
+function rampFor(world: ColorWorld) {
+  let lut = ramps.get(world);
+  if (!lut) {
+    lut = buildRamp(HEAT_RAMPS[world]);
+    ramps.set(world, lut);
+  }
+  return lut;
+}
 
 type Pt = { x: number; y: number };
 
@@ -49,7 +50,9 @@ function catmull(points: Pt[], steps = 14): Pt[] {
   return out;
 }
 
-function render(canvas: HTMLCanvasElement, values: number[], seed: string, span: [number, number]) {
+type RenderOptions = { seed: string; span: [number, number]; world: ColorWorld; tail: 'exit' | 'end' };
+
+function render(canvas: HTMLCanvasElement, values: number[], { seed, span, world, tail }: RenderOptions) {
   const cssW = canvas.clientWidth;
   const cssH = canvas.clientHeight;
   if (!cssW || !cssH) return false;
@@ -89,7 +92,8 @@ function render(canvas: HTMLCanvasElement, values: number[], seed: string, span:
   const path = catmull([
     { x: w * (span[0] - 0.07), y: h * 0.72 },
     ...nodes,
-    { x: w * 1.08, y: h * (0.5 - 0.1 * (norm[norm.length - 1] ?? 0)) },
+    // 'exit': the line runs on off the edge (a week that continues). 'end': it stops at now.
+    ...(tail === 'exit' ? [{ x: w * 1.08, y: h * (0.5 - 0.1 * (norm[norm.length - 1] ?? 0)) }] : []),
   ]);
   sx.lineWidth = h * 0.07;
   sx.beginPath();
@@ -103,7 +107,7 @@ function render(canvas: HTMLCanvasElement, values: number[], seed: string, span:
 
   // 2. Heat ramp + grain.
   const out = ctx.createImageData(w, h);
-  applyHeat(sx.getImageData(0, 0, w, h).data, out.data, RAMP, seededRandom(seed));
+  applyHeat(sx.getImageData(0, 0, w, h).data, out.data, rampFor(world), seededRandom(seed));
   ctx.putImageData(out, 0, 0);
   return true;
 }
@@ -113,12 +117,16 @@ export function NoirHeatWeek({
   seed,
   className,
   span = [HEAT_WEEK_X0, HEAT_WEEK_X1],
+  world = 'cobalt',
+  tail = 'exit',
 }: {
   values: number[];
   seed: string;
   className?: string;
   /** Where the first and last day sit, as fractions of the width. */
   span?: [number, number];
+  world?: ColorWorld;
+  tail?: 'exit' | 'end';
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = useState(false);
@@ -132,7 +140,7 @@ export function NoirHeatWeek({
     const draw = () => {
       if (canvas.clientWidth === lastW) return;
       lastW = canvas.clientWidth;
-      if (render(canvas, values, seed, span)) setReady(true);
+      if (render(canvas, values, { seed, span, world, tail })) setReady(true);
     };
     draw();
     const observer = new ResizeObserver(() => {
@@ -145,7 +153,7 @@ export function NoirHeatWeek({
       observer.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, seed]);
+  }, [key, seed, world, tail, span[0], span[1]]);
 
   return <canvas ref={ref} className={className} data-ready={ready || undefined} aria-hidden />;
 }

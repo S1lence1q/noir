@@ -24,10 +24,24 @@ import { topArtists } from '../../../services/listening/tasteProfile';
 import { isTasteEmpty } from '../../../services/listening/seedTaste';
 import { getArtistImage } from '../../../services/musicGraph';
 import { DailyMix, loadDailyMixes } from '../../../services/mixes/dailyMixes';
-import { worldForCollection } from '../../../utils/ditherCover';
+import { worldForCollection, type ColorWorld } from '../../../utils/ditherCover';
+import { formatHourLabel } from '../../../services/listening/statsSummary';
+import { NoirHeatWeek } from './NoirHeatWeek';
 import { prefetchArtistProfile } from '../../../utils/artistDiscographyLoader';
 
 type SearchPanelPhase = 'idle' | 'loading' | 'results' | 'no-results';
+
+/** Where 24 hours ago and now sit on the day card (fractions of its width). */
+const DAY_X0 = 0.55;
+const DAY_X1 = 0.95;
+
+/** The day card's world follows the clock, like the greeting does. */
+function dayThemeFor(hour: number): { world: ColorWorld; field: string; ink: string; light: boolean } {
+  if (hour < 5) return { world: 'ink', field: '#141414', ink: '#F2EEE6', light: false };
+  if (hour < 12) return { world: 'bone', field: '#EDE8DE', ink: '#0B0B0B', light: true };
+  if (hour < 18) return { world: 'ember', field: '#E85002', ink: '#0B0B0B', light: true };
+  return { world: 'cobalt', field: '#2350DC', ink: '#F2EEE6', light: false };
+}
 
 export type NoirHomeViewProps = {
   searchQuery: string;
@@ -92,6 +106,39 @@ export function NoirHomeView({
   const [needsColdStart, setNeedsColdStart] = useState<boolean | null>(null);
   /** From real plays — not “artists you opened once”. */
   const [playedArtists, setPlayedArtists] = useState<VerifiedArtist[]>([]);
+  // The last 24 hours, one slot per clock hour, oldest first, now last. Refreshes when a song
+  // changes (the last listen is logged) and every few minutes, so the line grows while you listen.
+  const [dayHours, setDayHours] = useState<{ minutes: number[]; firstHour: number; key: string }>(() => {
+    const now = new Date();
+    return { minutes: Array.from({ length: 24 }, () => 0), firstHour: (now.getHours() + 1) % 24, key: '' };
+  });
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const events = await getListeningEvents().catch(() => []);
+      if (cancelled) return;
+      const now = new Date();
+      const thisHour = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours()).getTime();
+      const from = thisHour - 23 * 3_600_000;
+      const minutes = Array.from({ length: 24 }, () => 0);
+      for (const e of events) {
+        if (e.source === 'seed' || e.startedAt < from) continue;
+        const slot = Math.min(23, Math.floor((e.startedAt - from) / 3_600_000));
+        minutes[slot] += e.listenedMs / 60_000;
+      }
+      setDayHours({ minutes, firstHour: new Date(from).getHours(), key: String(thisHour) });
+    };
+    void load();
+    const timer = window.setInterval(load, 3 * 60_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [activeSongKey]);
+  // `?dayHour=9` previews another time of day's field (dev check); otherwise the clock decides.
+  const previewHour = Number(new URLSearchParams(window.location.search).get('dayHour'));
+  const dayTheme = dayThemeFor(Number.isFinite(previewHour) && previewHour > 0 ? previewHour : new Date().getHours());
+
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 5) return strings.greeting.lateNight;
@@ -271,84 +318,98 @@ export function NoirHomeView({
 
       {panelPhase === 'idle' && featuredTrack ? (
         <div className="noir-content shrink-0 pt-4">
-          <div className="noir-home-greeting">
-            <div className="min-w-0 flex-1">
-              <motion.h1
-                className="noir-home-greeting-title"
-                initial={reduced ? false : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.42, ease: EASE_PREMIUM }}
-              >
-                {greeting}
-              </motion.h1>
-              <motion.div
-                initial={reduced ? false : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.42, ease: EASE_PREMIUM, delay: 0.06 }}
-              >
-                <p className="noir-label mt-6">
-                  {isFeaturedPlaying ? strings.home.nowPlaying : strings.home.continue}
-                </p>
-                <div className="relative">
-                <AnimatePresence mode="popLayout" initial={false}>
-                  <motion.div
-                    key={featuredTrack.id || featuredTrack.title}
-                    initial={reduced ? { opacity: 0 } : { opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={
-                      reduced
-                        ? { opacity: 0, transition: { duration: 0.1 } }
-                        : { opacity: 0, y: -4, transition: MOTION.exit }
-                    }
-                    transition={{ duration: 0.26, ease: EASE_PREMIUM }}
-                  >
-                    <p className="noir-home-continue-title">{featuredTrack.title}</p>
-                    <p className="noir-home-continue-artist">{featuredTrack.artist}</p>
-                  </motion.div>
-                </AnimatePresence>
+          {/* Your day: the line grows from midnight to now and swells in the hours you listened.
+              The field follows the time of day. Copy sits on the flat left, never on the form. */}
+          <motion.section
+            className="noir-home-day"
+            data-light={dayTheme.light || undefined}
+            style={{ background: dayTheme.field, color: dayTheme.ink }}
+            initial={reduced ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.42, ease: EASE_PREMIUM }}
+          >
+            <NoirHeatWeek
+              values={dayHours.minutes}
+              seed={`day-${dayHours.key}`}
+              world={dayTheme.world}
+              span={[DAY_X0, DAY_X1]}
+              tail="end"
+              className="noir-home-day-canvas"
+            />
+            <ol className="noir-home-day-marks" aria-hidden>
+              {dayHours.minutes.map((_, slot) => {
+                const hour = (dayHours.firstHour + slot) % 24;
+                if (slot === 23) return <li key="now" data-now style={{ left: `${DAY_X1 * 100}%` }}>{strings.home.now}</li>;
+                if (hour % 6 !== 0 || slot > 21) return null;
+                return (
+                  <li key={slot} style={{ left: `${(DAY_X0 + ((DAY_X1 - DAY_X0) * slot) / 23) * 100}%` }}>
+                    {formatHourLabel(hour)}
+                  </li>
+                );
+              })}
+            </ol>
+
+            <div className="noir-home-day-copy">
+              <h1 className="noir-home-greeting-title">{greeting}</h1>
+              <div className="noir-home-day-now">
+                <button
+                  type="button"
+                  onClick={() => playFromHome(featuredTrack)}
+                  className="noir-home-day-art elva-focus-ring"
+                  aria-label={`${strings.home.continue}: ${featuredTrack.title}`}
+                >
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.span
+                      key={featuredTrack.id || featuredTrack.thumbnail}
+                      className="block"
+                      initial={{ opacity: 0, scale: 0.96 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 1.02 }}
+                      transition={{ duration: 0.36, ease: EASE_PREMIUM }}
+                    >
+                      <NoirArtwork
+                        source={featuredTrack.thumbnail}
+                        world={worldForCollection(featuredTrack.artist || featuredTrack.id)}
+                        seed={`home:${featuredTrack.id}`}
+                        size={64}
+                      />
+                    </motion.span>
+                  </AnimatePresence>
+                </button>
+                <div className="relative min-w-0 flex-1">
+                  <p className="noir-home-day-label">
+                    {isFeaturedPlaying ? strings.home.nowPlaying : strings.home.continue}
+                  </p>
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.div
+                      key={featuredTrack.id || featuredTrack.title}
+                      initial={reduced ? { opacity: 0 } : { opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={
+                        reduced
+                          ? { opacity: 0, transition: { duration: 0.1 } }
+                          : { opacity: 0, y: -4, transition: MOTION.exit }
+                      }
+                      transition={{ duration: 0.26, ease: EASE_PREMIUM }}
+                    >
+                      <p className="noir-home-continue-title">{featuredTrack.title}</p>
+                      <p className="noir-home-continue-artist">{featuredTrack.artist}</p>
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
                 <motion.button
                   type="button"
                   onClick={() => playFromHome(featuredTrack)}
-                  className="noir-play-round mt-5 elva-focus-ring"
+                  className="noir-play-round elva-focus-ring"
                   aria-label={isFeaturedPlaying ? 'Pause' : 'Play'}
                   whileTap={{ scale: 0.94 }}
                   transition={MOTION.tap}
                 >
                   <NoirPlayPauseIcon playing={isFeaturedPlaying} size={22} />
                 </motion.button>
-              </motion.div>
+              </div>
             </div>
-
-            <motion.button
-              type="button"
-              onClick={() => playFromHome(featuredTrack)}
-              className="noir-home-object group elva-focus-ring"
-              aria-label={`${strings.home.continue}: ${featuredTrack.title}`}
-              initial={reduced ? false : { opacity: 0, scale: 0.94, rotate: 2 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 220, damping: 24, delay: 0.08 }}
-              whileHover={reduced ? undefined : { rotate: -1.5, scale: 1.02 }}
-            >
-              <AnimatePresence mode="popLayout" initial={false}>
-                <motion.span
-                  key={featuredTrack.id || featuredTrack.thumbnail}
-                  className="block"
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.02 }}
-                  transition={{ duration: 0.36, ease: EASE_PREMIUM }}
-                >
-                  <NoirArtwork
-                    source={featuredTrack.thumbnail}
-                    world={worldForCollection(featuredTrack.artist || featuredTrack.id)}
-                    seed={`home:${featuredTrack.id}`}
-                    size={220}
-                  />
-                </motion.span>
-              </AnimatePresence>
-            </motion.button>
-          </div>
+          </motion.section>
         </div>
       ) : null}
 
