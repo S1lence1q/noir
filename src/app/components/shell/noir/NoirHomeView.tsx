@@ -25,7 +25,7 @@ import { isTasteEmpty } from '../../../services/listening/seedTaste';
 import { getArtistImage } from '../../../services/musicGraph';
 import { DailyMix, loadDailyMixes } from '../../../services/mixes/dailyMixes';
 import { worldForCollection } from '../../../utils/ditherCover';
-import { NoirPlateWave, type PlateWaveSong } from './NoirPlateWave';
+import { NoirHeroWave, type HeroVariant, type HeroWaveSong } from './NoirHeroWave';
 import { prefetchArtistProfile } from '../../../utils/artistDiscographyLoader';
 
 type SearchPanelPhase = 'idle' | 'loading' | 'results' | 'no-results';
@@ -95,7 +95,24 @@ export function NoirHomeView({
   const [playedArtists, setPlayedArtists] = useState<VerifiedArtist[]>([]);
   // Recent songs for the plate wave, oldest first (newest nearest), weighted by plays this month.
   // Refreshes when a song changes, so the song you just played joins the wave.
-  const [waveSongs, setWaveSongs] = useState<PlateWaveSong[]>([]);
+  const [waveSongs, setWaveSongs] = useState<HeroWaveSong[]>([]);
+  // Hero candidates while we choose (A/B/C switch on the card); remembered per browser.
+  const [heroVariant, setHeroVariant] = useState<HeroVariant>(() => {
+    try {
+      const saved = localStorage.getItem('noir_hero_variant');
+      return saved === 'b' || saved === 'c' ? saved : 'a';
+    } catch {
+      return 'a';
+    }
+  });
+  const chooseHero = (v: HeroVariant) => {
+    setHeroVariant(v);
+    try {
+      localStorage.setItem('noir_hero_variant', v);
+    } catch {
+      /* private mode */
+    }
+  };
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -314,12 +331,26 @@ export function NoirHomeView({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.42, ease: EASE_PREMIUM }}
           >
-            <NoirPlateWave
+            <NoirHeroWave
               songs={waveSongs}
               playing={isPlaying}
+              variant={heroVariant}
               onPlay={playFromHome}
               className="noir-home-day-canvas"
             />
+            <div className="noir-hero-switch" role="radiogroup" aria-label="Hero style (temporary)">
+              {(['a', 'b', 'c'] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  role="radio"
+                  aria-checked={heroVariant === v}
+                  onClick={() => chooseHero(v)}
+                >
+                  {v.toUpperCase()}
+                </button>
+              ))}
+            </div>
 
             <div className="noir-home-day-copy">
               <h1 className="noir-home-greeting-title">{greeting}</h1>
