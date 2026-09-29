@@ -22,9 +22,10 @@ Everything graphic is made of grain: ordered dither, halftone, spray, film noise
 | **Dither** | 1-bit ordered dither / halftone of a real image (`Statue Dithering`, `Cloud`) | Mix covers, chart covers, playlist covers, artist hero, stats cards |
 | **Spray** | Solid form with dissolving, sprayed edges (`Pin fra Pins by you`, `Shape Pin`) | Asterisk mark (large) |
 | **Grain field** | Flat color field with visible noise | Background of dither covers only |
-| **Cinematic** | Existing plate wave photo | Sidebar brand only. Nowhere else. |
+| **Cinematic** | Existing plate wave photo | Sidebar brand only. (Home recreates the plate wave from your music instead of the photo.) |
 | **Heat** | A blurred shape mapped through a heat ramp (cream rim → peach → lavender core) on a cobalt grain field (ref: blurred figures on blue) | Data drawn as a form: Your sound › your week |
 | **Heat figure** | A small blurred creature (body + limbs) through the collection's world ramp, grain on top | User playlist covers: seeded by playlist id, one limb per ~3 songs (empty = egg), so it grows as you fill it |
+| **Plate wave** | A ribbon of thin lit plates on warm black, each run coloured from a cover (ref: `src/Plate Wave Recreation Image`) | Home hero: your recent songs, plates shared by plays, newest nearest; drifts while playing, hover names a song, click plays it |
 | **Halftone bloom** | Dot grid whose dot size follows a shape + low-frequency swirl, stipple at the fade (ref: `abstract cloud like form`) | Data as texture: Your sound › listening clock |
 
 Heat and halftone bloom are *generated from your data* (`NoirHeatWeek`, `NoirHalftoneClock`, shared helpers in `utils/grainRender.ts`). Same data → same image (seeded). Heat is glow **with** grain, so it stays inside rule 3.

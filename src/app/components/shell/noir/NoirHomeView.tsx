@@ -24,24 +24,11 @@ import { topArtists } from '../../../services/listening/tasteProfile';
 import { isTasteEmpty } from '../../../services/listening/seedTaste';
 import { getArtistImage } from '../../../services/musicGraph';
 import { DailyMix, loadDailyMixes } from '../../../services/mixes/dailyMixes';
-import { worldForCollection, type ColorWorld } from '../../../utils/ditherCover';
-import { formatHourLabel } from '../../../services/listening/statsSummary';
-import { NoirHeatWeek } from './NoirHeatWeek';
+import { worldForCollection } from '../../../utils/ditherCover';
+import { NoirPlateWave, type PlateWaveSong } from './NoirPlateWave';
 import { prefetchArtistProfile } from '../../../utils/artistDiscographyLoader';
 
 type SearchPanelPhase = 'idle' | 'loading' | 'results' | 'no-results';
-
-/** Where 24 hours ago and now sit on the day card (fractions of its width). */
-const DAY_X0 = 0.55;
-const DAY_X1 = 0.95;
-
-/** The day card's world follows the clock, like the greeting does. */
-function dayThemeFor(hour: number): { world: ColorWorld; field: string; ink: string; light: boolean } {
-  if (hour < 5) return { world: 'ink', field: '#141414', ink: '#F2EEE6', light: false };
-  if (hour < 12) return { world: 'bone', field: '#EDE8DE', ink: '#0B0B0B', light: true };
-  if (hour < 18) return { world: 'ember', field: '#E85002', ink: '#0B0B0B', light: true };
-  return { world: 'cobalt', field: '#2350DC', ink: '#F2EEE6', light: false };
-}
 
 export type NoirHomeViewProps = {
   searchQuery: string;
@@ -106,38 +93,39 @@ export function NoirHomeView({
   const [needsColdStart, setNeedsColdStart] = useState<boolean | null>(null);
   /** From real plays — not “artists you opened once”. */
   const [playedArtists, setPlayedArtists] = useState<VerifiedArtist[]>([]);
-  // The last 24 hours, one slot per clock hour, oldest first, now last. Refreshes when a song
-  // changes (the last listen is logged) and every few minutes, so the line grows while you listen.
-  const [dayHours, setDayHours] = useState<{ minutes: number[]; firstHour: number; key: string }>(() => {
-    const now = new Date();
-    return { minutes: Array.from({ length: 24 }, () => 0), firstHour: (now.getHours() + 1) % 24, key: '' };
-  });
+  // Recent songs for the plate wave, oldest first (newest nearest), weighted by plays this month.
+  // Refreshes when a song changes, so the song you just played joins the wave.
+  const [waveSongs, setWaveSongs] = useState<PlateWaveSong[]>([]);
   useEffect(() => {
     let cancelled = false;
-    const load = async () => {
+    void (async () => {
       const events = await getListeningEvents().catch(() => []);
       if (cancelled) return;
-      const now = new Date();
-      const thisHour = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours()).getTime();
-      const from = thisHour - 23 * 3_600_000;
-      const minutes = Array.from({ length: 24 }, () => 0);
+      const since = Date.now() - 30 * 86_400_000;
+      const plays = new Map<string, number>();
+      const keyOf = (title: string, artist: string) => `${artist}::${title}`.toLocaleLowerCase();
       for (const e of events) {
-        if (e.source === 'seed' || e.startedAt < from) continue;
-        const slot = Math.min(23, Math.floor((e.startedAt - from) / 3_600_000));
-        minutes[slot] += e.listenedMs / 60_000;
+        if (e.source === 'seed' || e.startedAt < since || e.outcome === 'skipped') continue;
+        plays.set(keyOf(e.title, e.artist), (plays.get(keyOf(e.title, e.artist)) ?? 0) + 1);
       }
-      setDayHours({ minutes, firstHour: new Date(from).getHours(), key: String(thisHour) });
-    };
-    void load();
-    const timer = window.setInterval(load, 3 * 60_000);
+      const seen = new Set<string>();
+      const recent = recentlyPlayed.filter((t) => {
+        const k = keyOf(t.title, t.artist);
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+      setWaveSongs(
+        recent
+          .slice(0, 12)
+          .reverse()
+          .map((track) => ({ track, weight: plays.get(keyOf(track.title, track.artist)) ?? 1 }))
+      );
+    })();
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
     };
-  }, [activeSongKey]);
-  // `?dayHour=9` previews another time of day's field (dev check); otherwise the clock decides.
-  const previewHour = Number(new URLSearchParams(window.location.search).get('dayHour'));
-  const dayTheme = dayThemeFor(Number.isFinite(previewHour) && previewHour > 0 ? previewHour : new Date().getHours());
+  }, [activeSongKey, recentlyPlayed]);
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -322,32 +310,16 @@ export function NoirHomeView({
               The field follows the time of day. Copy sits on the flat left, never on the form. */}
           <motion.section
             className="noir-home-day"
-            data-light={dayTheme.light || undefined}
-            style={{ background: dayTheme.field, color: dayTheme.ink }}
             initial={reduced ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.42, ease: EASE_PREMIUM }}
           >
-            <NoirHeatWeek
-              values={dayHours.minutes}
-              seed={`day-${dayHours.key}`}
-              world={dayTheme.world}
-              span={[DAY_X0, DAY_X1]}
-              tail="end"
+            <NoirPlateWave
+              songs={waveSongs}
+              playing={isPlaying}
+              onPlay={playFromHome}
               className="noir-home-day-canvas"
             />
-            <ol className="noir-home-day-marks" aria-hidden>
-              {dayHours.minutes.map((_, slot) => {
-                const hour = (dayHours.firstHour + slot) % 24;
-                if (slot === 23) return <li key="now" data-now style={{ left: `${DAY_X1 * 100}%` }}>{strings.home.now}</li>;
-                if (hour % 6 !== 0 || slot > 21) return null;
-                return (
-                  <li key={slot} style={{ left: `${(DAY_X0 + ((DAY_X1 - DAY_X0) * slot) / 23) * 100}%` }}>
-                    {formatHourLabel(hour)}
-                  </li>
-                );
-              })}
-            </ol>
 
             <div className="noir-home-day-copy">
               <h1 className="noir-home-greeting-title">{greeting}</h1>
