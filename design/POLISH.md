@@ -8,7 +8,7 @@ Severity: 🔴 broken · 🟡 feels off · ⚪ finish. Check a box only when the
 1. ~~Phase E #5 — page/tab change motion~~ done (`noir-settle-group`).
 2. ~~Phase E #6–7 — shelves + search palette~~ done.
 3. ~~Phase D — cold start~~ done.
-4. Leftovers: identity bug (bands collapsing into solo artist); atmosphere setting (glow/grain).
+4. Leftovers: atmosphere setting (glow/grain).
 Motion vocabulary lives in `utils/motionPresets.ts` (`MOTION.tap/panel/scene/settle`) and `utils/actionMotion.ts` (fly-to-queue, favorite burst).
 
 ## Definition of Done (per surface)
@@ -78,7 +78,7 @@ Phase A notes: Library root is now the collection grid (Favorites card first); F
 - [x] 🔴 Sidebar claimed Home while an artist was open, and clicking the current tab did nothing (overlay stayed). Tab / Favorites / playlist clicks now always close detail overlays; under an overlay the tab shows the D4 parent state.
 - [x] 🔴 Artist → another tab flashed the old page (e.g. Favorites) while the overlay faded. A tab change made under an overlay drops the old page instantly; the overlay steps back onto the new one.
 - [x] 🔴 Same flash from Now Playing (NP → Library showed Home for a beat). The drop-old-page latch now covers Now Playing too.
-- [ ] 🟡 Identity: "Kim Larsen & Kjukken" opens as "Kim Larsen" (canonical name collapses a band into the solo artist).
+- [x] 🟡 Identity: "Kim Larsen & Kjukken" opened as "Kim Larsen". `getPrimaryArtist` no longer splits one act: "& The …", ", The …", "& Sons/Band/…" rules plus a short curated list (Simon & Garfunkel, Earth, Wind & Fire, Nik & Jay, …). Collabs still split ("Taylor Swift & Ed Sheeran" → Taylor Swift). Verified: the profile opens as the band, band portrait, band tracks. Known limit: two-name duos not on the list ("Andy & Lucas") still split.
 
 ### Phase D — Cold start
 - [x] 🟡 Pick 1+ (cap 12 only as a guard). Floating bar: picked avatars + "Start with N"; always reachable. Search picks stay in the grid once the search clears.
