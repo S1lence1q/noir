@@ -63,6 +63,18 @@ function dedupeTracks(tracks: SearchResult[], artist: string) {
   return out;
 }
 
+function formatCountry(country?: string): string | null {
+  if (!country) return null;
+  if (country.length === 2) {
+    try {
+      return new Intl.DisplayNames(['en'], { type: 'region' }).of(country.toUpperCase()) ?? country;
+    } catch {
+      return country;
+    }
+  }
+  return country;
+}
+
 export function NoirArtistView({
   artist,
   tracks,
@@ -86,13 +98,45 @@ export function NoirArtistView({
   const [showAll, setShowAll] = useState(false);
   const [similarArtists, setSimilarArtists] = useState<GraphArtist[]>([]);
   const [albums, setAlbums] = useState<GraphAlbum[]>([]);
+  const [discogFilter, setDiscogFilter] = useState<'all' | 'albums' | 'singles'>('all');
   const world = worldForCollection(`artist:${artist.name.toLowerCase()}`);
   const palette = COLOR_WORLDS[world];
   const unique = useMemo(() => dedupeTracks(tracks, artist.name), [tracks, artist.name]);
   const visible = showAll ? unique : unique.slice(0, POPULAR_COUNT);
 
+  const latestRelease = albums[0] ?? null;
+
+  const hasAlbums = useMemo(
+    () => albums.some((a) => a.recordType === 'album' || a.recordType === 'compile'),
+    [albums]
+  );
+  const hasSingles = useMemo(
+    () => albums.some((a) => a.recordType === 'single' || a.recordType === 'ep'),
+    [albums]
+  );
+  const showFilterTabs = hasAlbums && hasSingles;
+
+  const filteredAlbums = useMemo(() => {
+    if (!showFilterTabs || discogFilter === 'all') return albums;
+    if (discogFilter === 'albums') {
+      return albums.filter((a) => a.recordType === 'album' || a.recordType === 'compile');
+    }
+    return albums.filter((a) => a.recordType === 'single' || a.recordType === 'ep');
+  }, [albums, discogFilter, showFilterTabs]);
+
+  const latestBadgeLabel = latestRelease
+    ? latestRelease.recordType === 'single'
+      ? strings.artist.latestSingle
+      : latestRelease.recordType === 'ep'
+        ? strings.artist.latestEp
+        : latestRelease.recordType === 'album'
+          ? strings.artist.latestAlbum
+          : strings.artist.latestRelease
+    : null;
+
   useEffect(() => {
     setShowAll(false);
+    setDiscogFilter('all');
     const scroller = containerRef.current?.closest('.overflow-y-auto');
     if (scroller) {
       scroller.scrollTop = 0;
@@ -233,55 +277,152 @@ export function NoirArtistView({
         </div>
       </motion.section>
 
-      <section className="mt-10">
-        <h2 className="noir-section-title mb-4 px-1">{strings.artist.popular}</h2>
-        {unique.length > 0 ? (
-          <>
-            <div className="flex flex-col gap-0.5">
-              <AnimatePresence initial={false}>
-                {visible.map(({ track, index }, i) => (
-                  <motion.div
-                    key={track.id}
-                    initial={{ opacity: 0, y: -6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.28, ease: EASE_PREMIUM, delay: i >= POPULAR_COUNT ? (i - POPULAR_COUNT) * 0.025 : 0 }}
+      <div className={`mt-10 grid gap-8 ${latestRelease ? 'lg:grid-cols-[280px_1fr]' : 'grid-cols-1'}`}>
+        {latestRelease && (
+          <section className="order-2 lg:order-1 flex flex-col">
+            <h2 className="noir-section-title mb-4 px-1">{strings.artist.latestRelease}</h2>
+            <motion.div
+              role="button"
+              tabIndex={0}
+              onClick={() => onSelectAlbum?.(latestRelease)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectAlbum?.(latestRelease);
+                }
+              }}
+              className="noir-artist-latest-card group elva-focus-ring cursor-pointer"
+              initial={reduced ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.36, ease: EASE_PREMIUM }}
+            >
+              <div className="noir-artist-latest-cover">
+                <NoirDitherCover
+                  source={latestRelease.image}
+                  world={worldForCollection(`album:${latestRelease.id}`)}
+                  seed={`album:${latestRelease.id}`}
+                  size={280}
+                />
+                {onPlayAlbum && (
+                  <motion.button
+                    type="button"
+                    className="noir-discover-release-play noir-play-round !h-11 !w-11 elva-focus-ring"
+                    aria-label={`${strings.artist.playAlbum}: ${latestRelease.title}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPlayAlbum(latestRelease);
+                    }}
+                    whileTap={{ scale: 0.94 }}
+                    transition={MOTION.tap}
                   >
-                    <NoirRankedSongRow
-                      rank={i + 1}
-                      track={track}
-                      isFavorite={isTrackFavorite(favorites, track)}
-                      onPlay={() => (onPlayFromIndex ? onPlayFromIndex(index) : onSelectSong(track))}
-                      onAddToQueue={onAddToQueue}
-                      onPlayNext={onPlayNext}
-                      onToggleFavorite={onToggleFavorite}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-            {unique.length > POPULAR_COUNT && (
-              <button type="button" onClick={() => setShowAll((v) => !v)} className="noir-link mt-3 px-3 elva-focus-ring">
-                {showAll ? strings.artist.showLess : strings.artist.showAll(unique.length)}
-              </button>
-            )}
-          </>
-        ) : isLoading ? (
-          <div className="flex flex-col gap-1">
-            {Array.from({ length: POPULAR_COUNT }).map((_, i) => (
-              <div key={i} className="noir-skeleton h-[72px] rounded-[var(--noir-radius-md)]" />
-            ))}
-          </div>
-        ) : (
-          <p className="px-1 py-8 text-[14px] text-[color:var(--noir-text-secondary)]">{strings.artist.empty}</p>
+                    <Play className="ml-0.5 h-4 w-4 fill-current" />
+                  </motion.button>
+                )}
+              </div>
+              <div className="mt-4 flex flex-col min-w-0">
+                <span className="noir-artist-latest-badge mb-1">{latestBadgeLabel}</span>
+                <span className="noir-song-title text-[15px] font-semibold block truncate">
+                  {latestRelease.title}
+                </span>
+                <span className="noir-song-meta mt-1 block truncate">
+                  {latestRelease.year ? `${latestRelease.year} · ` : ''}
+                  {latestRelease.recordType === 'single'
+                    ? strings.artist.single
+                    : latestRelease.recordType === 'ep'
+                      ? strings.artist.ep
+                      : strings.artist.album}
+                </span>
+              </div>
+            </motion.div>
+          </section>
         )}
-      </section>
+
+        <section className={`min-w-0 flex flex-col ${latestRelease ? 'order-1 lg:order-2' : ''}`}>
+          <h2 className="noir-section-title mb-4 px-1">{strings.artist.popular}</h2>
+          {unique.length > 0 ? (
+            <>
+              <div className="flex flex-col gap-0.5">
+                <AnimatePresence initial={false}>
+                  {visible.map(({ track, index }, i) => (
+                    <motion.div
+                      key={track.id}
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.28, ease: EASE_PREMIUM, delay: i >= POPULAR_COUNT ? (i - POPULAR_COUNT) * 0.025 : 0 }}
+                    >
+                      <NoirRankedSongRow
+                        rank={i + 1}
+                        track={track}
+                        isFavorite={isTrackFavorite(favorites, track)}
+                        onPlay={() => (onPlayFromIndex ? onPlayFromIndex(index) : onSelectSong(track))}
+                        onAddToQueue={onAddToQueue}
+                        onPlayNext={onPlayNext}
+                        onToggleFavorite={onToggleFavorite}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+              {unique.length > POPULAR_COUNT && (
+                <button type="button" onClick={() => setShowAll((v) => !v)} className="noir-link mt-3 px-3 elva-focus-ring">
+                  {showAll ? strings.artist.showLess : strings.artist.showAll(unique.length)}
+                </button>
+              )}
+            </>
+          ) : isLoading ? (
+            <div className="flex flex-col gap-1">
+              {Array.from({ length: POPULAR_COUNT }).map((_, i) => (
+                <div key={i} className="noir-skeleton h-[72px] rounded-[var(--noir-radius-md)]" />
+              ))}
+            </div>
+          ) : (
+            <p className="px-1 py-8 text-[14px] text-[color:var(--noir-text-secondary)]">{strings.artist.empty}</p>
+          )}
+        </section>
+      </div>
 
       {albums.length > 0 && (
         <section className="mt-12">
-          <h2 className="noir-section-title mb-4 px-1">{strings.artist.discography}</h2>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 px-1">
+            <h2 className="noir-section-title">{strings.artist.discography}</h2>
+            {showFilterTabs && (
+              <div className="flex items-center gap-1.5" role="tablist" aria-label={strings.artist.discography}>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={discogFilter === 'all'}
+                  onClick={() => setDiscogFilter('all')}
+                  data-active={discogFilter === 'all'}
+                  className="noir-filter-chip elva-focus-ring cursor-pointer"
+                >
+                  {strings.artist.filterAll}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={discogFilter === 'albums'}
+                  onClick={() => setDiscogFilter('albums')}
+                  data-active={discogFilter === 'albums'}
+                  className="noir-filter-chip elva-focus-ring cursor-pointer"
+                >
+                  {strings.artist.filterAlbums}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={discogFilter === 'singles'}
+                  onClick={() => setDiscogFilter('singles')}
+                  data-active={discogFilter === 'singles'}
+                  className="noir-filter-chip elva-focus-ring cursor-pointer"
+                >
+                  {strings.artist.filterSingles}
+                </button>
+              </div>
+            )}
+          </div>
           <NoirHomeShelf>
-            {albums.map((album, i) => (
+            {filteredAlbums.map((album, i) => (
               <motion.div
                 key={album.id}
                 role="button"
@@ -392,6 +533,52 @@ export function NoirArtistView({
           </NoirHomeShelf>
         </section>
       )}
+
+      <section className="mt-12">
+        <h2 className="noir-section-title mb-4 px-1">{strings.artist.aboutArtist(artist.name)}</h2>
+        <div className="noir-artist-about-card">
+          <div className="noir-artist-about-bg" aria-hidden="true">
+            <NoirDitherCover
+              source={artist.thumbnail || undefined}
+              world={world}
+              seed={`artist-about:${artist.name}`}
+              size={440}
+              radius={0}
+            />
+          </div>
+          <div className="noir-artist-about-content">
+            {artist.listeners ? (
+              <div className="mb-3">
+                <span className="text-[28px] font-bold tracking-tight text-white block">
+                  {strings.artist.listenersCount(artist.listeners)}
+                </span>
+                <span className="text-[12px] uppercase font-semibold tracking-wider text-[color:var(--noir-text-tertiary)]">
+                  {strings.artist.monthlyListeners}
+                </span>
+              </div>
+            ) : null}
+
+            {(artist.disambiguation || artist.country) && (
+              <p className="text-[14px] text-[color:var(--noir-text-secondary)] mb-3">
+                {[artist.disambiguation, formatCountry(artist.country)].filter(Boolean).join(' · ')}
+              </p>
+            )}
+
+            {artist.tags && artist.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {artist.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full bg-white/[0.06] border border-white/[0.08] px-3 py-1 text-[12px] font-medium text-[color:var(--noir-text-secondary)]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
