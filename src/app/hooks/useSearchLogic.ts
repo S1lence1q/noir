@@ -111,6 +111,15 @@ const SHORTCUT_ARTISTS: VerifiedArtist[] = [
     country: 'DK',
     tags: ['Hip-Hop', 'Rap', 'DK'],
   },
+  {
+    name: 'Smøgmænd',
+    thumbnail:
+      'https://cdn-images.dzcdn.net/images/artist/d5e5fbbae194b09072c5af815be50547/500x500-000000-80-0-0.jpg',
+    disambiguation: 'Danish Hip-Hop Duo • DK',
+    country: 'DK',
+    tags: ['Hip-Hop', 'Rap', 'DK'],
+    deezerId: 70261752,
+  },
 ];
 
 interface SearchLogicOptions {

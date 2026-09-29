@@ -33,11 +33,11 @@ The artist page feels like a curated profile rather than a flat file list. Adds 
 
 ### 4. About [Artist] Card
 - Rich card at the bottom of the artist profile with dithered portrait backdrop masked with a soft radial fade.
-- Highlights formatted monthly listeners (`910 listeners`), disambiguation, formatted country of origin (e.g. `Denmark`), and full genre tags.
+- Highlights artist name, disambiguation, formatted country of origin (e.g. `Denmark`), and full genre tags (Apple Music style, avoiding inaccurate third-party follower counts).
 
-### 5. Hero metadata: Listeners count & Genre tags
-- Displays formatted monthly listeners in the hero subheader (e.g. `910 listeners`).
-- Displays up to 3 discrete genre tags in subtle rounded chips matching the hero color world.
+### 5. Hero metadata: Origin, Disambiguation & Genre tags
+- Follows Apple Music / Tidal approach: avoids platform-skewed listener counters.
+- Displays origin / disambiguation (e.g. `Danish Rapper · Denmark`) when available, plus up to 3 discrete genre tags in subtle rounded chips matching the hero color world.
 
 ### 6. Instant load speed (<300 ms cold, 0 ms warm)
 - `resolveArtistIdentity` uses `skipChannelResolve: true` on profile open to eliminate the 2.8s channel timeout.
@@ -45,7 +45,7 @@ The artist page feels like a curated profile rather than a flat file list. Adds 
 - Background Piped discography fetching is non-blocking and merges into the list without shifting rows.
 
 ### 7. Strings & Tokens
-- Copy in `strings.ts` (`latestRelease`, `latestSingle`, `latestAlbum`, `latestEp`, `filterAll`, `filterAlbums`, `filterSingles`, `about`, `aboutArtist`, `monthlyListeners`, `fansAlsoLike`, `discography`, `album`, `single`, `ep`, `playAlbum`, `listenersCount`).
+- Copy in `strings.ts` (`latestRelease`, `latestSingle`, `latestAlbum`, `latestEp`, `filterAll`, `filterAlbums`, `filterSingles`, `about`, `aboutArtist`, `fansAlsoLike`, `discography`, `album`, `single`, `ep`, `playAlbum`).
 - Uses `--noir-*` typography and color tokens; no arbitrary styles.
 
 ## Files
@@ -55,19 +55,19 @@ The artist page feels like a curated profile rather than a flat file list. Adds 
 - `src/styles/noir-shell.css` — latest release card, filter chips, about card
 - `src/app/services/musicGraph/index.ts` — export `GraphAlbum`, `getArtistAlbums`, update `getSimilarArtists`
 - `src/app/services/musicGraph/deezer.ts` — add `getDeezerArtistAlbums`, update `getDeezerRelatedArtists`
-- `src/app/services/artistIdentity/types.ts` & `resolveArtist.ts` — support `listeners`
-- `src/app/types.ts` — add `listeners` to `VerifiedArtist`
-- `src/app/hooks/useSearchLogic.ts` — instant popular paint, immediate cache, non-blocking discography
+- `src/app/services/artistIdentity/types.ts` & `resolveArtist.ts` — forward `disambiguation`, `country`, `tags`
+- `src/app/types.ts` — verified artist definition
+- `src/app/hooks/useSearchLogic.ts` — instant popular paint, immediate cache, non-blocking discography, shortcut artists
 - `src/app/components/shell/noir/NoirArtistView.tsx` — 2-column layout, discography filter, Fans also like, About card
 - `src/app/components/LandingPage.tsx` — wire `onSelectArtist`, `onPlayAlbum`, `onSelectAlbum`
 
 ## Acceptance
 - [x] Artist page loads 2-column layout with Latest Release spotlight card and Popular tracks side by side on desktop.
 - [x] Discography has filter tabs (`All`, `Albums`, `Singles & EPs`) when multiple release formats exist.
-- [x] About [Artist] section renders with dithered portrait backdrop, monthly listeners count, country origin, and genre tags.
+- [x] About [Artist] section renders with dithered portrait backdrop, artist name, country origin, and genre tags.
 - [x] Artist page loads "Fans also like" shelf with similar artists when available (>= 3).
 - [x] Playing or clicking an album plays the tracklist or opens the collection overlay.
-- [x] Hero displays listeners count and genre tags when available without redundant song count.
+- [x] Hero displays origin and genre tags cleanly without misleading listener counts.
 - [x] Profile paints in <300ms on cold load (popular-first) and 0ms on revisit.
 - [x] Switching artists resets `showAll` and filter state, and scrolls to top.
 - [x] All copy in `strings.ts`.

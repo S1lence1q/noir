@@ -216,13 +216,13 @@ export function NoirArtistView({
         <div className="noir-artist-hero-text">
           <p className="noir-artist-hero-label">{strings.artist.label}</p>
           <h1 className="noir-artist-hero-name">{artist.name}</h1>
-          <p className="noir-artist-hero-meta">
-            {isLoading && unique.length === 0
-              ? strings.artist.loading
-              : artist.listeners
-                ? strings.artist.listenersCount(artist.listeners)
-                : null}
-          </p>
+          {((isLoading && unique.length === 0) || artist.disambiguation || artist.country) && (
+            <p className="noir-artist-hero-meta">
+              {isLoading && unique.length === 0
+                ? strings.artist.loading
+                : [artist.disambiguation, formatCountry(artist.country)].filter(Boolean).join(' · ')}
+            </p>
+          )}
           {artist.tags && artist.tags.length > 0 && (
             <div className="mt-2.5 flex flex-wrap gap-1.5 opacity-90">
               {artist.tags.slice(0, 3).map((tag) => (
@@ -547,19 +547,12 @@ export function NoirArtistView({
             />
           </div>
           <div className="noir-artist-about-content">
-            {artist.listeners ? (
-              <div className="mb-3">
-                <span className="text-[28px] font-bold tracking-tight text-white block">
-                  {strings.artist.listenersCount(artist.listeners)}
-                </span>
-                <span className="text-[12px] uppercase font-semibold tracking-wider text-[color:var(--noir-text-tertiary)]">
-                  {strings.artist.monthlyListeners}
-                </span>
-              </div>
-            ) : null}
+            <p className="text-[26px] font-bold tracking-tight text-white mb-2">
+              {artist.name}
+            </p>
 
             {(artist.disambiguation || artist.country) && (
-              <p className="text-[14px] text-[color:var(--noir-text-secondary)] mb-3">
+              <p className="text-[14px] text-[color:var(--noir-text-secondary)] mb-4">
                 {[artist.disambiguation, formatCountry(artist.country)].filter(Boolean).join(' · ')}
               </p>
             )}
