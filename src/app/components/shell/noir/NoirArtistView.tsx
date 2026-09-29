@@ -12,7 +12,9 @@ import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motio
 import { strings } from '../../../constants/strings';
 import {
   getArtistAlbums,
+  getArtistBio,
   getSimilarArtists,
+  type ArtistBio,
   type GraphAlbum,
   type GraphArtist,
 } from '../../../services/musicGraph';
@@ -99,6 +101,8 @@ export function NoirArtistView({
   const [similarArtists, setSimilarArtists] = useState<GraphArtist[]>([]);
   const [albums, setAlbums] = useState<GraphAlbum[]>([]);
   const [discogFilter, setDiscogFilter] = useState<'all' | 'albums' | 'singles'>('all');
+  const [artistBio, setArtistBio] = useState<ArtistBio | null>(null);
+  const [bioExpanded, setBioExpanded] = useState(false);
   const world = worldForCollection(`artist:${artist.name.toLowerCase()}`);
   const palette = COLOR_WORLDS[world];
   const unique = useMemo(() => dedupeTracks(tracks, artist.name), [tracks, artist.name]);
@@ -176,6 +180,18 @@ export function NoirArtistView({
       .catch(() => {
         if (!active) return;
         setAlbums([]);
+      });
+
+    setArtistBio(null);
+    setBioExpanded(false);
+    getArtistBio(artist.name)
+      .then((bio) => {
+        if (!active) return;
+        setArtistBio(bio ?? null);
+      })
+      .catch(() => {
+        if (!active) return;
+        setArtistBio(null);
       });
 
     return () => {
@@ -533,6 +549,66 @@ export function NoirArtistView({
               );
             })}
           </NoirHomeShelf>
+        </section>
+      )}
+
+      {artistBio && (
+        <section className="mt-12">
+          <h2 className="noir-section-title mb-4 px-1">{strings.artist.aboutArtist(artist.name)}</h2>
+          <div className="noir-artist-about-card">
+            <div className="noir-artist-about-bg" aria-hidden="true">
+              <NoirDitherCover
+                source={artist.thumbnail || undefined}
+                world={world}
+                seed={`artist-about:${artist.name}`}
+                size={440}
+                radius={0}
+              />
+            </div>
+            <div className="noir-artist-about-content">
+              <p className="text-[26px] font-bold tracking-tight text-white mb-1">
+                {artist.name}
+              </p>
+
+              {(artist.country || albums.length > 0) && (
+                <p className="text-[13px] font-medium text-[color:var(--noir-text-secondary)] mb-4">
+                  {[
+                    formatCountry(artist.country),
+                    strings.artist.discographySummary(
+                      albums.filter((a) => a.recordType === 'album' || a.recordType === 'compile').length,
+                      albums.filter((a) => a.recordType === 'single' || a.recordType === 'ep').length
+                    ),
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </p>
+              )}
+
+              <div className="text-[14px] leading-relaxed text-white/80 max-w-2xl">
+                <p className="whitespace-pre-line">
+                  {bioExpanded || artistBio.text.length <= 280
+                    ? artistBio.text
+                    : `${artistBio.text.slice(0, 270).trim()}…`}
+                </p>
+                {artistBio.text.length > 280 && (
+                  <button
+                    type="button"
+                    onClick={() => setBioExpanded((prev) => !prev)}
+                    className="mt-3 text-[13px] font-semibold text-white hover:text-white/80 transition-colors focus-visible:outline-none"
+                  >
+                    {bioExpanded ? strings.artist.readLess : strings.artist.readMore}
+                  </button>
+                )}
+              </div>
+
+              <p className="text-[11px] text-white/30 mt-5">
+                {strings.artist.sourcePrefix}{' '}
+                {artistBio.source === 'lastfm'
+                  ? strings.artist.sourceLastFm
+                  : strings.artist.sourceWikipedia}
+              </p>
+            </div>
+          </div>
         </section>
       )}
     </div>

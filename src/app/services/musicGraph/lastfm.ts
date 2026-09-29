@@ -208,6 +208,31 @@ export async function getLastFmArtistInfo(
   };
 }
 
+export async function getLastFmArtistBio(artist: string): Promise<string | undefined> {
+  type Response = {
+    artist?: {
+      name?: string;
+      bio?: {
+        summary?: string;
+        content?: string;
+      };
+    };
+  };
+  const response = await requestLastFm<Response>('artist.getInfo', {
+    artist: cleanName(artist),
+  });
+  const rawBio = response?.artist?.bio?.content || response?.artist?.bio?.summary;
+  if (!rawBio) return undefined;
+
+  const cleaned = rawBio
+    .replace(/<[^>]+>/g, '')
+    .replace(/User-contributed text is available under the Creative Commons.*?$/is, '')
+    .replace(/Read more on Last\.fm.*?$/is, '')
+    .trim();
+
+  return cleaned.length >= 40 ? cleaned : undefined;
+}
+
 export async function getLastFmTrackImage(title: string, artist: string): Promise<string | undefined> {
   type Response = {
     track?: {

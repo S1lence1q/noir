@@ -11,6 +11,7 @@ import {
   type GraphAlbum,
 } from './deezer';
 import {
+  getLastFmArtistBio,
   getLastFmArtistInfo,
   getLastFmArtistTags,
   getLastFmArtistTopTracks,
@@ -19,6 +20,7 @@ import {
   getLastFmTagTopTracks,
   getLastFmTrackImage,
 } from './lastfm';
+import { getWikipediaArtistSummary } from './wikipedia';
 import { normalizeName } from './normalize';
 
 export type GraphArtist = {
@@ -49,6 +51,11 @@ export type GraphRelease = {
 };
 
 export type { GraphAlbum };
+
+export type ArtistBio = {
+  text: string;
+  source: 'lastfm' | 'wikipedia';
+};
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const TTL = {
@@ -163,6 +170,25 @@ export function getArtistInfo(
   return requestCached(`artist-info:${artistKey(artist)}`, TTL.info, () => getLastFmArtistInfo(artist), undefined);
 }
 
+export function getArtistBio(artist: string): Promise<ArtistBio | undefined> {
+  return requestCached(
+    `artist-bio-v1:${artistKey(artist)}`,
+    TTL.info,
+    async () => {
+      const lastFmBio = await getLastFmArtistBio(artist);
+      if (lastFmBio) {
+        return { text: lastFmBio, source: 'lastfm' };
+      }
+      const wikiBio = await getWikipediaArtistSummary(artist);
+      if (wikiBio) {
+        return { text: wikiBio, source: 'wikipedia' };
+      }
+      return undefined;
+    },
+    undefined
+  );
+}
+
 export function getArtistRadio(artist: string): Promise<GraphTrack[]> {
   return requestCached(`artist-radio:${artistKey(artist)}`, TTL.similar, () => getDeezerArtistRadio(artist), []);
 }
@@ -243,6 +269,7 @@ declare global {
       getArtistTags: typeof getArtistTags;
       getArtistTopTracks: typeof getArtistTopTracks;
       getArtistInfo: typeof getArtistInfo;
+      getArtistBio: typeof getArtistBio;
       getArtistRadio: typeof getArtistRadio;
       getNewReleases: typeof getNewReleases;
       getArtistImage: typeof getArtistImage;
@@ -260,6 +287,7 @@ if (typeof window !== 'undefined' && import.meta.env.DEV) {
     getArtistTags,
     getArtistTopTracks,
     getArtistInfo,
+    getArtistBio,
     getArtistRadio,
     getNewReleases,
     getArtistImage,

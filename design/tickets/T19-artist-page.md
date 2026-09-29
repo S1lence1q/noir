@@ -31,9 +31,14 @@ The artist page feels like a curated profile rather than a flat file list. Adds 
 - Rendered in a dedicated horizontal shelf (`NoirHomeShelf`).
 - Hover play button plays the album immediately (`onPlayAlbum`), clicking opens the album as a playlist overlay (`onSelectAlbum`).
 
-### 4. Clean Editorial Profile Termination
-- Following clean Scandinavian / Apple Music aesthetic, the artist profile cleanly terminates after the "Fans also like" shelf.
-- Redundant "About" cards and generic pill badges are avoided to prevent visual clutter and AI-slop appearance.
+### 4. About [Artist] Editorial Card (Apple Music style)
+- Renders at the bottom of the artist profile below "Fans also like".
+- Sourced from Last.fm and Wikipedia summary (`getArtistBio`), providing real biographical context (e.g. KESI, Smøgmænd, Artigeardit, Frank Ocean, Daft Punk).
+- Features clean, readable typography (`text-[14px] leading-relaxed text-white/80`) with expandable "Read more" / "Read less" toggle for long text.
+- Includes concrete metadata: country of origin and calculated discography summary (e.g. `Denmark · 2 albums · 8 singles & EPs`).
+- Displays quiet source attribution (`Source: Last.fm` / `Source: Wikipedia`).
+- Strictly conditional: if no verified bio exists for an artist, the section remains hidden, preventing empty dummy cards.
+- Pure editorial typography: ZERO pill badges or artificial tags.
 
 ### 5. Hero metadata: Clean Minimalist Banner (Apple Music / Tidal style)
 - Displays artist label, name, and non-redundant metadata: genre (from Deezer) and formatted country of origin (e.g. `Hip-Hop · Denmark` or `Denmark`).
@@ -46,26 +51,29 @@ The artist page feels like a curated profile rather than a flat file list. Adds 
 - Background Piped discography fetching is non-blocking and merges into the list without shifting rows.
 
 ### 7. Strings & Tokens
-- Copy in `strings.ts` (`latestRelease`, `latestSingle`, `latestAlbum`, `latestEp`, `filterAll`, `filterAlbums`, `filterSingles`, `fansAlsoLike`, `discography`, `album`, `single`, `ep`, `playAlbum`).
+- Copy in `strings.ts` (`latestRelease`, `latestSingle`, `latestAlbum`, `latestEp`, `filterAll`, `filterAlbums`, `filterSingles`, `aboutArtist`, `readMore`, `readLess`, `sourcePrefix`, `sourceLastFm`, `sourceWikipedia`, `discographySummary`, `fansAlsoLike`, `discography`, `album`, `single`, `ep`, `playAlbum`).
 - Uses `--noir-*` typography and color tokens; no arbitrary styles.
 
 ## Files
 - `design/tickets/T19-artist-page.md` — this ticket
 - `design/tickets/README.md` — register ticket status
 - `src/app/constants/strings.ts` — add artist strings
-- `src/styles/noir-shell.css` — latest release card, filter chips
-- `src/app/services/musicGraph/index.ts` — export `GraphAlbum`, `getArtistAlbums`, update `getSimilarArtists`
+- `src/styles/noir-shell.css` — latest release card, filter chips, about card
+- `src/app/services/musicGraph/index.ts` — export `GraphAlbum`, `getArtistAlbums`, `getArtistBio`, update `getSimilarArtists`
+- `src/app/services/musicGraph/lastfm.ts` — add `getLastFmArtistBio`
+- `src/app/services/musicGraph/wikipedia.ts` — add `getWikipediaArtistSummary`
 - `src/app/services/musicGraph/deezer.ts` — add `getDeezerArtistAlbums`, update `getDeezerRelatedArtists`
 - `src/app/services/artistIdentity/types.ts` & `resolveArtist.ts` — forward `country`, `tags`
 - `src/app/types.ts` — verified artist definition
 - `src/app/hooks/useSearchLogic.ts` — instant popular paint, immediate cache, non-blocking discography, shortcut artists
-- `src/app/components/shell/noir/NoirArtistView.tsx` — 2-column layout, discography filter, Fans also like, clean hero banner
+- `src/app/components/shell/noir/NoirArtistView.tsx` — 2-column layout, discography filter, Fans also like, About card, clean hero banner
 - `src/app/components/LandingPage.tsx` — wire `onSelectArtist`, `onPlayAlbum`, `onSelectAlbum`
 
 ## Acceptance
 - [x] Artist page loads 2-column layout with Latest Release spotlight card and Popular tracks side by side on desktop.
 - [x] Discography has filter tabs (`All`, `Albums`, `Singles & EPs`) when multiple release formats exist.
-- [x] Page cleanly terminates after "Fans also like" without redundant about cards or generic pill badges.
+- [x] About [Artist] section renders editorial biography from Last.fm / Wikipedia with expandable Read More toggle, origin & discography statistics.
+- [x] About [Artist] section automatically hides when no biographical info is available.
 - [x] Artist page loads "Fans also like" shelf with similar artists when available (>= 3).
 - [x] Playing or clicking an album plays the tracklist or opens the collection overlay.
 - [x] Hero displays a clean, minimalist header (Artist, Name, non-redundant Origin/Genre, Play/Shuffle) without tag pill clutter or tautologies.

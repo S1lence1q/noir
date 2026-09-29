@@ -2554,6 +2554,48 @@ button.noir-now-playing-source:hover {
   border-color: rgba(255, 255, 255, 0.08);
 }
 
+.noir-artist-about-card {
+  position: relative;
+  min-height: 220px;
+  overflow: hidden;
+  border-radius: var(--noir-radius-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  .noir-artist-about-card {
+    padding: 20px;
+  }
+}
+
+.noir-artist-about-bg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(440px, 50%);
+  opacity: 0.22;
+  mask-image: radial-gradient(circle at 75% 50%, #000 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at 75% 50%, #000 20%, transparent 80%);
+  pointer-events: none;
+}
+
+.noir-artist-about-bg .noir-dither-cover {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.noir-artist-about-content {
+  position: relative;
+  z-index: 2;
+  max-width: 680px;
+}
+
 /* Discover */
 .noir-discover-spotlight {
   display: grid;
