@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ATMOSPHERE_EVENT, readAtmosphereMode, type AtmosphereMode } from '../../../utils/atmosphere';
 import { AnimatePresence, motion, Reorder, useIsPresent } from 'motion/react';
 import { Compass, Heart, Plus, Radio, Shuffle, X } from 'lucide-react';
 import { SearchResult } from '../../../types';
@@ -84,20 +85,6 @@ const deckVariants = {
   exit: (dir: 1 | -1) => ({ opacity: 0, x: `${dir * -30}%`, scale: 0.92, rotate: dir * -2 }),
 };
 
-type AtmosphereMode = 'glow' | 'grain';
-const ATMOSPHERE_KEY = 'noir_atmosphere';
-
-/** A/B switch for the canvas background: `?atmosphere=grain` / `?atmosphere=glow` (remembered). Glow is default. */
-function readAtmosphereMode(): AtmosphereMode {
-  try {
-    const param = new URLSearchParams(window.location.search).get('atmosphere');
-    if (param === 'grain' || param === 'glow') localStorage.setItem(ATMOSPHERE_KEY, param);
-    return localStorage.getItem(ATMOSPHERE_KEY) === 'grain' ? 'grain' : 'glow';
-  } catch {
-    return 'glow';
-  }
-}
-
 function useGrainField(source: string | undefined, enabled: boolean) {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
@@ -158,7 +145,15 @@ export function NoirNowPlayingView({
 }: NoirNowPlayingViewProps) {
   const reduced = prefersReducedMotion();
   const stacked = useStackedLayout();
-  const [atmosphere] = useState(readAtmosphereMode);
+  const [atmosphere, setAtmosphere] = useState(readAtmosphereMode);
+  useEffect(() => {
+    const onChange = (e: Event) => {
+      const mode = (e as CustomEvent<{ mode?: AtmosphereMode }>).detail?.mode;
+      if (mode) setAtmosphere(mode);
+    };
+    window.addEventListener(ATMOSPHERE_EVENT, onChange);
+    return () => window.removeEventListener(ATMOSPHERE_EVENT, onChange);
+  }, []);
   const grainUrl = useGrainField(hasRealArtwork(song.artworkUrl) ? song.artworkUrl : undefined, atmosphere === 'grain');
   /** While cover flies home, keep layoutId mounted but fade everything else so title/queue don't ghost. */
   const isPresent = useIsPresent();

@@ -1,14 +1,6 @@
 import { useMemo, useState } from 'react';
-import {
-  ChevronRight,
-  Globe,
-  Info,
-  Keyboard,
-  Volume1,
-  Volume2,
-  VolumeX,
-  Waves,
-} from 'lucide-react';
+import { ChevronRight, Globe, Info, Keyboard, Volume1, Volume2, VolumeX, Waves, Palette } from 'lucide-react';
+import { readAtmosphereMode, setAtmosphereMode, type AtmosphereMode } from '../../../utils/atmosphere';
 import * as Slider from '@radix-ui/react-slider';
 import { STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { showMiniHUD } from '../../../utils/hudUtils';
@@ -138,6 +130,7 @@ export function NoirSettingsView() {
     () => localStorage.getItem('elva_profile_country') || 'dk'
   );
   const [autoplay, setAutoplay] = useState<AutoplayPreference>(() => readAutoplayPreference());
+  const [atmosphere, setAtmosphere] = useState<AtmosphereMode>(readAtmosphereMode);
 
   const gapless = crossfade === 0;
 
@@ -289,6 +282,29 @@ export function NoirSettingsView() {
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--noir-text-tertiary)]">
               ▾
             </span>
+          </div>
+        </SettingsRow>
+      </SettingsCard>
+
+      <SettingsCard title="Appearance" icon={Palette}>
+        <SettingsRow label="Now Playing background" description="From the cover: a soft glow, or its colours as grain">
+          <div className="noir-segmented" role="radiogroup" aria-label="Now Playing background">
+            {(['glow', 'grain'] as AtmosphereMode[]).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                role="radio"
+                aria-checked={atmosphere === mode}
+                data-active={atmosphere === mode ? 'true' : 'false'}
+                className="noir-segmented-item elva-focus-ring"
+                onClick={() => {
+                  setAtmosphere(mode);
+                  setAtmosphereMode(mode);
+                }}
+              >
+                {mode === 'glow' ? 'Glow' : 'Grain'}
+              </button>
+            ))}
           </div>
         </SettingsRow>
       </SettingsCard>

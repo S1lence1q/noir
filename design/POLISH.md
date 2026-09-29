@@ -8,7 +8,7 @@ Severity: 🔴 broken · 🟡 feels off · ⚪ finish. Check a box only when the
 1. ~~Phase E #5 — page/tab change motion~~ done (`noir-settle-group`).
 2. ~~Phase E #6–7 — shelves + search palette~~ done.
 3. ~~Phase D — cold start~~ done.
-4. Leftovers: atmosphere setting (glow/grain).
+4. Leftovers: none from the original list.
 Motion vocabulary lives in `utils/motionPresets.ts` (`MOTION.tap/panel/scene/settle`) and `utils/actionMotion.ts` (fly-to-queue, favorite burst).
 
 ## Definition of Done (per surface)
@@ -58,7 +58,7 @@ Phase A notes: Library root is now the collection grid (Favorites card first); F
 ### Phase B — Now Playing
 - [x] 🔴 Lyrics ↔ queue flow (D2). Lyrics + Next up are two toggles side by side in the bar (quote / list icons, shared on-state). Rail animates width (spring), cover shrinks via CSS width transition, exclusive only below 1200px.
 - [x] 🟡 Canvas without lyrics: the identity is centred in the stage (beside the rail when it's open) and a size up (56vh / 480 px). Centring is an animated margin, not a re-anchor, so rail/lyrics toggles glide (measured: monotonic, ≤ 16 px/frame).
-- [ ] ⚪ Atmosphere: keep both. Glow default, grain via `?atmosphere=grain`. Later: expose as a Settings choice (Settings pass).
+- [x] ⚪ Atmosphere: Settings › Appearance › Now Playing background (Glow / Grain segmented control, `utils/atmosphere.ts`). An open Now Playing switches live; `?atmosphere=` still works.
 - [x] 🔴 Lyrics started mid-song then jumped back on a new track (stale currentTime from the previous song). Index now waits until playback is near 0 (2 s grace for mid-song restore).
 - [x] 🔴 Some songs out of sync: lrclib's first hit is often another version (e.g. 303 s vs the playing 262 s). Now picks the version closest in length (±5 s); none close → plain text instead of wrong timing.
 - [x] 🔴 Cover hopped mid-animation when hiding lyrics: stage row re-anchored (center → flex-start) while lyrics were still exiting. Row now always centred; title size transitions.
@@ -114,7 +114,7 @@ Principle: motion explains cause → effect (where did it go, what changed). One
 
 ### Later
 - [ ] T22 quiet tooltips (good delegation candidate once search bar lands).
-- [x] History in Library (D5): Library › History, every listen ≥ 20 s newest first, grouped Today / Yesterday / weekday / date, play count per day; rows play from that day onward; consecutive repeats collapse; seed listens excluded; "Show earlier" pages by 120. Not yet eyeballed with the pane visible after the collapse change.
+- [x] History in Library (D5): Library › History, every listen ≥ 20 s newest first, grouped Today / Yesterday / weekday / date, play count per day; rows play from that day onward; consecutive repeats collapse; seed listens excluded; "Show earlier" pages by 120. Verified: 22 rows, no consecutive repeats, a row plays with the rest of the day queued.
 - [ ] Global motion pass on `motionPresets.ts` (enter/exit/stagger consistency).
 
 ---

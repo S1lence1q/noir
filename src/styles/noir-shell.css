@@ -4678,3 +4678,28 @@ button.noir-now-playing-source:hover {
   font-weight: 500;
   color: var(--noir-text-tertiary);
 }
+
+/* Two-way choice in Settings (e.g. Glow / Grain): one quiet track, the chosen side lifted. */
+.noir-segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.noir-segmented-item {
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--noir-text-secondary);
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+.noir-segmented-item:hover {
+  color: var(--noir-text-primary);
+}
+.noir-segmented-item[data-active='true'] {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--noir-text-primary);
+}
