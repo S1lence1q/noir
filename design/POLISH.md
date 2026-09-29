@@ -99,6 +99,11 @@ Principle: motion explains cause → effect (where did it go, what changed). One
 - [x] Shelves: items stagger in the first time they scroll into view (`NoirHomeShelf` `data-reveal`: on screen at mount → rides the page settle; below the fold → held, then 35 ms stagger on first intersect).
 - [x] Search palette: opens with a settle (scale .98 → 1, 6 px), exits in 140 ms; a new result set staggers in 20 ms apart (`noir-stagger-rows`), rows that persist don't move.
 
+### Phase F — Responsive shell (found in the broad pass, 2026-09-29)
+- [x] 🔴 Phone width was broken: fixed 248 px sidebar ate half the screen, bar controls overlapped. Now ≥ 1024 full sidebar · 640–1023 icon rail (72 px, labels hidden) · < 640 bottom tab bar (Home, Search, Discover, Library; Settings via a gear in Library).
+- [x] 🔴 Phone bar: mini-bar (cover, title, play, next, thin progress). With Now Playing open it becomes the transport again (prev, times, lyrics, queue; volume stays hidden).
+- [x] 🔴 Stacked Now Playing (≤ 960): queue spilled 60 px under the bar. Stage now takes what the queue leaves; cover steps down with the queue open; lyrics fill the remaining height with cover + title side by side.
+
 ### Later
 - [ ] T22 quiet tooltips (good delegation candidate once search bar lands).
 - [ ] History in Library (D5).

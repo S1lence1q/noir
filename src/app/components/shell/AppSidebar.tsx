@@ -53,7 +53,7 @@ export function AppSidebar({
   ];
 
   return (
-    <aside className="elva-shell-sidebar relative flex h-full w-[248px] shrink-0 flex-col overflow-hidden select-none px-3 py-5">
+    <aside className="elva-shell-sidebar noir-sidebar relative flex h-full shrink-0 flex-col overflow-hidden select-none py-5">
       <div className="noir-sidebar-brand-row">
         <button
           type="button"
@@ -62,7 +62,7 @@ export function AppSidebar({
           title={`Nav icons: ${label} — click to compare`}
           aria-label={`Nav icon set ${label}. Click to try the next set.`}
         >
-          <span className="text-[13px] font-bold tracking-[0.34em]">NOIR</span>
+          <span className="noir-sidebar-wordmark-text text-[13px] font-bold tracking-[0.34em]">NOIR</span>
           <NoirMark size={11} className="text-[color:var(--noir-text-primary)]" />
           <span className="noir-sidebar-brand-hint">{label}</span>
         </button>
@@ -77,8 +77,8 @@ export function AppSidebar({
           className="noir-nav-item noir-nav-search flex h-11 items-center gap-3 px-3 text-left text-[15px] font-medium elva-focus-ring"
         >
           <NoirSearchGlyph size={18} />
-          <span className="flex-1">{strings.search.navLabel}</span>
-          <kbd className="noir-nav-kbd" aria-hidden>
+          <span className="noir-nav-label flex-1">{strings.search.navLabel}</span>
+          <kbd className="noir-nav-kbd noir-nav-label" aria-hidden>
             {SEARCH_KBD_HINT}
           </kbd>
         </button>
@@ -97,16 +97,17 @@ export function AppSidebar({
               data-active={isActive ? 'true' : isParent ? 'parent' : 'false'}
               className="noir-nav-item flex h-11 items-center gap-3 px-3 text-left text-[15px] font-medium elva-focus-ring"
               aria-current={isActive ? 'page' : undefined}
+              aria-label={navLabel}
             >
               <Icon size={18} strokeWidth={isActive ? 2.1 : 1.65} className="shrink-0" />
-              <span>{navLabel}</span>
+              <span className="noir-nav-label">{navLabel}</span>
             </button>
           );
         })}
       </nav>
 
       <div className="relative z-[1] mt-7 flex flex-col gap-1">
-        <p className="px-3 pb-1.5 text-[12px] font-medium text-[color:var(--noir-text-tertiary)]">Quick access</p>
+        <p className="noir-sidebar-heading px-3 pb-1.5 text-[12px] font-medium text-[color:var(--noir-text-tertiary)]">Quick access</p>
         <button
           type="button"
           onClick={() => onOpenFavorites?.()}
@@ -115,16 +116,16 @@ export function AppSidebar({
           aria-current={favoritesActive ? 'page' : undefined}
         >
           <NoirFavoritesCover size={22} radius={5} />
-          <span className="flex-1">Favorites</span>
+          <span className="noir-nav-label flex-1">Favorites</span>
           {favoritesCount > 0 && (
-            <span className="text-[12px] tabular-nums text-[color:var(--noir-text-tertiary)]">{favoritesCount}</span>
+            <span className="noir-nav-label text-[12px] tabular-nums text-[color:var(--noir-text-tertiary)]">{favoritesCount}</span>
           )}
         </button>
       </div>
 
       <div className="relative z-[1] mt-6 min-h-0 flex-1 overflow-y-auto scrollbar-none">
-        <div className="flex items-center justify-between pb-1.5 pl-3 pr-1.5">
-          <p className="text-[12px] font-medium text-[color:var(--noir-text-tertiary)]">Playlists</p>
+        <div className="noir-sidebar-playlists-head flex items-center justify-between pb-1.5 pl-3 pr-1.5">
+          <p className="noir-sidebar-heading text-[12px] font-medium text-[color:var(--noir-text-tertiary)]">Playlists</p>
           <button
             type="button"
             onClick={() => onOpenPlaylist?.(createPlaylist().id)}
@@ -191,7 +192,7 @@ export function AppSidebar({
                         radius={5}
                       />
                     </motion.span>
-                    <span className="truncate">{playlist.name}</span>
+                    <span className="noir-nav-label truncate">{playlist.name}</span>
                   </button>
                 </motion.div>
               );
@@ -208,7 +209,7 @@ export function AppSidebar({
           className="noir-nav-item flex h-11 w-full items-center gap-3 px-3 text-left text-[15px] font-medium elva-focus-ring"
         >
           <Settings className="h-[18px] w-[18px] shrink-0" strokeWidth={activeTab === 'settings' ? 2.25 : 1.75} />
-          <span>Settings</span>
+          <span className="noir-nav-label">Settings</span>
         </button>
       </div>
     </aside>

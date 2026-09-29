@@ -4317,3 +4317,188 @@ button.noir-now-playing-source:hover {
     background: rgba(255, 255, 255, 0.18);
   }
 }
+
+/* ── Responsive shell ─────────────────────────────────────────────────────────
+   ≥ 1024: full sidebar. 640–1023: icon rail (labels hidden, covers stay). < 640: bottom tab bar. */
+.noir-sidebar {
+  width: 248px;
+  padding-inline: 12px;
+  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.noir-tabbar,
+.noir-phone-only {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .noir-sidebar {
+    width: 72px;
+    padding-inline: 10px;
+  }
+  .noir-sidebar .noir-nav-label,
+  .noir-sidebar .noir-sidebar-heading,
+  .noir-sidebar .noir-sidebar-wordmark-text,
+  .noir-sidebar .noir-sidebar-brand-hint {
+    display: none;
+  }
+  .noir-sidebar .noir-nav-item {
+    justify-content: center;
+    gap: 0;
+    padding-inline: 0;
+  }
+  .noir-sidebar .noir-sidebar-brand-row {
+    justify-content: center;
+  }
+  .noir-sidebar .noir-sidebar-playlists-head {
+    justify-content: center;
+    padding-inline: 0;
+  }
+}
+
+@media (max-width: 639px) {
+  .noir-sidebar {
+    display: none;
+  }
+  .noir-phone-only {
+    display: inline-flex;
+  }
+  .noir-tabbar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    flex-shrink: 0;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    background: #000;
+    border-top: 1px solid var(--noir-rule-faint);
+  }
+  .noir-tabbar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 0;
+    border-radius: var(--noir-radius-md);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--noir-text-tertiary);
+    transition: color 0.15s ease;
+  }
+  .noir-tabbar-item[data-active='true'] {
+    color: var(--noir-text-primary);
+  }
+}
+
+/* Phone mini-bar: cover, title, play, next; a thin progress line under it. Queue, lyrics and
+   volume live in Now Playing (tap the cover). */
+@media (max-width: 639px) {
+  .noir-compact {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    height: auto;
+    gap: 6px 8px;
+    padding: 8px 10px 4px;
+  }
+  .noir-compact-left {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 48px;
+  }
+  .noir-compact-left .noir-compact-ctrl,
+  .noir-compact-right,
+  .noir-compact-time {
+    display: none;
+  }
+  .noir-compact-art-wrap {
+    width: 48px;
+    height: 48px;
+  }
+  .noir-compact-center {
+    display: contents;
+  }
+  .noir-compact-transport {
+    grid-column: 2;
+    grid-row: 1;
+    gap: 2px;
+  }
+  .noir-compact-transport > .noir-compact-ctrl:first-child {
+    display: none;
+  }
+  .noir-compact-scrub {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Phone, Now Playing open: the bar is its transport — prev, times, lyrics and queue come back. */
+@media (max-width: 639px) {
+  .noir-compact[data-expanded='true'] {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .noir-compact[data-expanded='true'] .noir-compact-left {
+    min-width: 0;
+  }
+  .noir-compact[data-expanded='true'] .noir-compact-transport {
+    grid-column: 2;
+    justify-self: center;
+    gap: 8px;
+  }
+  .noir-compact[data-expanded='true'] .noir-compact-transport > .noir-compact-ctrl:first-child {
+    display: flex;
+  }
+  .noir-compact[data-expanded='true'] .noir-compact-right {
+    display: flex;
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .noir-compact[data-expanded='true'] .noir-compact-volume {
+    display: none;
+  }
+  .noir-compact[data-expanded='true'] .noir-compact-scrub {
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
+  }
+  .noir-compact[data-expanded='true'] .noir-compact-time {
+    display: block;
+  }
+}
+
+/* Stacked Now Playing (≤ 960): the stage gets what the queue leaves, never more — nothing may
+   spill under the bar. Queue open → the cover steps down; lyrics fill the remaining height. */
+@media (max-width: 960px) {
+  /* No overflow clip on the root: the cover flies in from the bar, outside it. */
+  .noir-now-playing-stage {
+    flex: 1 1 0;
+    min-height: 0;
+    justify-content: flex-start;
+  }
+  .noir-now-playing-queue {
+    flex-shrink: 0;
+  }
+  .noir-now-playing:not(.is-side-collapsed) .noir-now-playing-identity {
+    --np-identity-w: min(100%, 24vh, 220px);
+  }
+  .noir-now-playing-stage-row {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  /* Lyrics on a narrow stage: cover and title side by side, so the title keeps the full width. */
+  .noir-now-playing-stage-row.has-lyrics .noir-now-playing-identity {
+    --np-identity-w: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+  }
+  .noir-now-playing-stage-row.has-lyrics .noir-now-playing-art-slot {
+    width: 76px;
+    flex-shrink: 0;
+  }
+  .noir-now-playing-stage-row.has-lyrics .noir-now-playing-identity > :last-child {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .noir-now-playing-stage-lyrics {
+    flex: 1 1 0;
+    min-height: 120px;
+    height: auto;
+  }
+}

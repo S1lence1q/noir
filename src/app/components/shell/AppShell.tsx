@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
 import { AppSidebar } from './AppSidebar';
 import { CompactPlayerBar } from './CompactPlayerBar';
+import { NoirTabBar } from './noir/NoirTabBar';
 import { AppTab, ShellPlaybackState } from './types';
 import { EASE_PREMIUM, prefersReducedMotion } from '../../utils/motionPresets';
 import type { SearchResult } from '../../types';
@@ -145,6 +146,7 @@ export function AppShell({
             />
           ) : null}
         </AnimatePresence>
+        <NoirTabBar activeTab={activeTab} onTabChange={onTabChange} detailOverlayOpen={detailOverlayOpen} />
       </div>
     </div>
     </LayoutGroup>

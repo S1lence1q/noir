@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowLeft, ListMusic, Play, Plus, Shuffle, AudioLines } from 'lucide-react';
+import { ArrowLeft, ListMusic, Play, Plus, Shuffle, AudioLines, Settings } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { NoirSongRow } from './NoirSongRow';
@@ -102,7 +102,16 @@ export function NoirLibraryView({
   return (
     <div className="noir-settle-group flex h-full min-h-0 flex-col">
       {showHeader && (
-        <header className="pb-5">
+        <header className="relative pb-5">
+          {/* Phone: the sidebar is a tab bar without Settings, so Library carries the way there. */}
+          <button
+            type="button"
+            className="noir-phone-only noir-icon-button absolute right-0 top-0 elva-focus-ring"
+            onClick={() => window.dispatchEvent(new Event('noir-open-settings'))}
+            aria-label="Settings"
+          >
+            <Settings className="h-[18px] w-[18px]" strokeWidth={1.75} />
+          </button>
           <h1 className="noir-page-title">Library</h1>
           <p className="mt-2 text-[16px] text-[color:var(--noir-text-secondary)]">
             Favorites, playlists, and your sound

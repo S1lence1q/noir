@@ -1437,9 +1437,12 @@ export default function App() {
       setActiveTab('myhub');
     };
     window.addEventListener('noir-open-favorites', onOpenFavorites);
+    const onOpenSettings = () => setActiveTab('settings');
+    window.addEventListener('noir-open-settings', onOpenSettings);
     window.addEventListener('noir-open-playlist', onOpenPlaylist);
     return () => {
       window.removeEventListener('noir-open-favorites', onOpenFavorites);
+      window.removeEventListener('noir-open-settings', onOpenSettings);
       window.removeEventListener('noir-open-playlist', onOpenPlaylist);
     };
   }, []);

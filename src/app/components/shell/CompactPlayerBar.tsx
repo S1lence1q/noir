@@ -266,6 +266,7 @@ export function CompactPlayerBar({
       ref={footerRef}
       className="noir-compact shrink-0"
       data-pending={pending ? 'true' : undefined}
+      data-expanded={expanded ? 'true' : undefined}
       initial={reduced ? { opacity: 0 } : { opacity: 0, y: 72 }}
       animate={{ opacity: 1, y: 0 }}
       exit={reduced ? { opacity: 0 } : { opacity: 0, y: 56 }}
