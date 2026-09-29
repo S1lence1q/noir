@@ -9,6 +9,7 @@ import { NoirHomeShelf } from './NoirHomeShelf';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { COLOR_WORLDS, worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
+import { strings } from '../../../constants/strings';
 import {
   getArtistAlbums,
   getSimilarArtists,
