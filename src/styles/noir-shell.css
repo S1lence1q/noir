@@ -1316,6 +1316,16 @@
   transform: scale(1.12);
 }
 
+/* A/B atmosphere: the cover's colours as ordered-dither grain, scaled up hard. */
+.noir-now-playing-atmosphere-grain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
 .noir-now-playing-atmosphere-wash {
   position: absolute;
   inset: 0;
@@ -1347,7 +1357,8 @@
 .noir-now-playing-stage-row {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  /* Always centred: the identity must not change anchor while lyrics exit (that was the mid-animation hop). */
+  align-items: center;
   justify-content: flex-start;
   gap: 32px;
   min-width: 0;
@@ -1371,7 +1382,6 @@
 }
 
 .noir-now-playing-stage-row.has-lyrics {
-  align-items: center;
   gap: 56px;
 }
 
@@ -1385,7 +1395,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .noir-now-playing-identity,
-  .noir-now-playing-stage-row {
+  .noir-now-playing-stage-row,
+  .noir-now-playing-title {
     transition: none;
   }
 }
@@ -1470,6 +1481,7 @@
   letter-spacing: -0.03em;
   line-height: 1.15;
   color: var(--noir-text-primary);
+  transition: font-size 0.62s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .noir-now-playing-artist {
@@ -1586,6 +1598,78 @@ button.noir-now-playing-source:hover {
     color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
     transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Lines fade with distance from the active one, so the eye stays on the current line. */
+.noir-lyrics-line {
+  opacity: calc(1 - var(--d, 0) * 0.1);
+}
+
+.noir-lyrics-line.is-active {
+  opacity: 1;
+}
+
+/* Instrumental gap / intro: three dots that breathe while it's their turn. */
+.noir-lyrics-gap {
+  display: flex;
+  gap: 7px;
+  width: fit-content;
+  padding: 18px 8px 18px 4px;
+  border-radius: var(--noir-radius-sm);
+  background: transparent;
+  cursor: pointer;
+}
+
+.noir-lyrics-gap i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  transition: background-color 0.4s ease;
+}
+
+.noir-lyrics-gap.is-past i {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.noir-lyrics-gap.is-active i {
+  background: var(--noir-text-primary);
+  animation: noir-lyrics-breathe 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.noir-lyrics-gap.is-active i:nth-child(2) { animation-delay: 0.2s; }
+.noir-lyrics-gap.is-active i:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes noir-lyrics-breathe {
+  0%, 100% { transform: scale(0.8); opacity: 0.55; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+.noir-lyrics-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding-left: 2px;
+}
+
+.noir-lyrics-skeleton span {
+  display: block;
+  height: 20px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  animation: noir-lyrics-skeleton 1.4s ease-in-out infinite;
+}
+
+@keyframes noir-lyrics-skeleton {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noir-lyrics-gap.is-active i,
+  .noir-lyrics-skeleton span {
+    animation: none;
+  }
 }
 
 .noir-lyrics-line.is-past {

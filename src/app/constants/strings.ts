@@ -199,6 +199,7 @@ export const strings = {
     show: 'Show lyrics',
     hide: 'Hide lyrics',
     unavailable: 'No lyrics for this song',
+    instrumental: 'Instrumental',
   },
   error: {
     brand: 'NOIR',

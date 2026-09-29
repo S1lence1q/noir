@@ -252,3 +252,52 @@ export function renderDitherCover(source: string, world: ColorWorld, seed: strin
   inflight.set(key, job);
   return job;
 }
+
+const grainCache = new Map<string, Promise<string>>();
+
+/**
+ * Atmosphere in the cover's own colours, as grain instead of blur: the cover is reduced to a soft
+ * colour field, then its brightness is ordered-dithered (hue kept). Shown scaled up, pixelated.
+ * Returns a PNG data URL (small — `cells` px square).
+ */
+export function renderGrainField(source: string, cells = 220): Promise<string> {
+  const key = `${source}|${cells}|lum`;
+  const hit = grainCache.get(key);
+  if (hit) return hit;
+  const job = (async () => {
+    const img = await loadSourceImage(source, 200);
+    // 1. Colour field: squash to 12×12, then let bilinear scaling smear it back out.
+    const tiny = document.createElement('canvas');
+    tiny.width = tiny.height = 12;
+    const tctx = tiny.getContext('2d')!;
+    tctx.drawImage(img, 0, 0, 12, 12);
+    const field = document.createElement('canvas');
+    field.width = field.height = cells;
+    const fctx = field.getContext('2d', { willReadFrequently: true })!;
+    fctx.imageSmoothingEnabled = true;
+    fctx.imageSmoothingQuality = 'high';
+    fctx.drawImage(tiny, 0, 0, cells, cells);
+    // 2. Dither brightness only, keeping each cell's hue: lit cells carry the colour, the rest sink
+    //    toward black. Two tones per area, like the covers — no per-channel rainbow noise.
+    const data = fctx.getImageData(0, 0, cells, cells);
+    const d = data.data;
+    for (let y = 0; y < cells; y++) {
+      for (let x = 0; x < cells; x++) {
+        const t = BAYER_8[(y % 8) * 8 + (x % 8)];
+        const o = (y * cells + x) * 4;
+        const lum = (0.2126 * d[o] + 0.7152 * d[o + 1] + 0.0722 * d[o + 2]) / 255;
+        const lit = Math.min(1, lum * 1.15 + 0.12) > t;
+        const k = lit ? 1 : 0.18;
+        d[o] *= k;
+        d[o + 1] *= k;
+        d[o + 2] *= k;
+        d[o + 3] = 255;
+      }
+    }
+    fctx.putImageData(data, 0, 0);
+    return field.toDataURL('image/png');
+  })();
+  grainCache.set(key, job);
+  job.catch(() => grainCache.delete(key));
+  return job;
+}

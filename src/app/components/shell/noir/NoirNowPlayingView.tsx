@@ -11,7 +11,7 @@ import { noirToast } from './NoirToast';
 import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
 import { displayArtistName } from '../../../utils/stringUtils';
 import { hasRealArtwork } from '../../../utils/artwork';
-import { worldForCollection } from '../../../utils/ditherCover';
+import { renderGrainField, worldForCollection } from '../../../utils/ditherCover';
 import { NoirDitherCover } from './NoirDitherCover';
 import type { LyricLine } from '../../../types';
 
@@ -77,6 +77,38 @@ function uniqueByKey(tracks: SearchResult[]): SearchResult[] {
 
 const QUEUE_RAIL_WIDTH = 360;
 
+type AtmosphereMode = 'glow' | 'grain';
+const ATMOSPHERE_KEY = 'noir_atmosphere';
+
+/** A/B switch for the canvas background: `?atmosphere=grain` / `?atmosphere=glow` (remembered). Glow is default. */
+function readAtmosphereMode(): AtmosphereMode {
+  try {
+    const param = new URLSearchParams(window.location.search).get('atmosphere');
+    if (param === 'grain' || param === 'glow') localStorage.setItem(ATMOSPHERE_KEY, param);
+    return localStorage.getItem(ATMOSPHERE_KEY) === 'grain' ? 'grain' : 'glow';
+  } catch {
+    return 'glow';
+  }
+}
+
+function useGrainField(source: string | undefined, enabled: boolean) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!enabled || !source) {
+      setUrl(null);
+      return;
+    }
+    let cancelled = false;
+    renderGrainField(source)
+      .then((next) => !cancelled && setUrl(next))
+      .catch(() => !cancelled && setUrl(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [source, enabled]);
+  return url;
+}
+
 function useStackedLayout() {
   const query = '(max-width: 960px)';
   const [stacked, setStacked] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
@@ -119,6 +151,8 @@ export function NoirNowPlayingView({
 }: NoirNowPlayingViewProps) {
   const reduced = prefersReducedMotion();
   const stacked = useStackedLayout();
+  const [atmosphere] = useState(readAtmosphereMode);
+  const grainUrl = useGrainField(hasRealArtwork(song.artworkUrl) ? song.artworkUrl : undefined, atmosphere === 'grain');
   /** While cover flies home, keep layoutId mounted but fade everything else so title/queue don't ghost. */
   const isPresent = useIsPresent();
   const chromeFade = {
@@ -208,7 +242,20 @@ export function NoirNowPlayingView({
         }
       >
         <AnimatePresence mode="sync" initial={false}>
-          {hasRealArtwork(song.artworkUrl) ? (
+          {atmosphere === 'grain' ? (
+            grainUrl ? (
+              <motion.img
+                key={grainUrl}
+                src={grainUrl}
+                alt=""
+                className="noir-now-playing-atmosphere-grain"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.42 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: reduced ? 0.2 : 0.9, ease: sheetEase }}
+              />
+            ) : null
+          ) : hasRealArtwork(song.artworkUrl) ? (
             <motion.img
               key={song.artworkUrl}
               src={song.artworkUrl}
@@ -221,6 +268,7 @@ export function NoirNowPlayingView({
             />
           ) : null}
         </AnimatePresence>
+        {atmosphere === 'glow' && (
         <motion.div
           key={songKey + '-wash'}
           className="noir-now-playing-atmosphere-wash"
@@ -235,10 +283,13 @@ export function NoirNowPlayingView({
               : undefined
           }
         />
+        )}
       </motion.div>
 
       <div className="noir-now-playing-stage">
-        <div className={`noir-now-playing-stage-row${showLyrics && lyrics.length > 0 ? ' has-lyrics' : ''}`}>
+        {/* Lyrics mode follows the toggle, not the data: a song change mid-lyrics shows the
+            skeleton / empty state in place instead of collapsing and re-opening the stage. */}
+        <div className={`noir-now-playing-stage-row${showLyrics ? ' has-lyrics' : ''}`}>
           <div className="noir-now-playing-identity">
             <motion.div
               layoutId={reduced ? undefined : 'np-cover'}
@@ -367,7 +418,7 @@ export function NoirNowPlayingView({
           </div>
 
           <AnimatePresence initial={false}>
-            {showLyrics && lyrics.length > 0 && (
+            {showLyrics && (
               <motion.div
                 key="stage-lyrics"
                 className="noir-now-playing-stage-lyrics"

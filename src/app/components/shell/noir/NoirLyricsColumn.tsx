@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import type { LyricLine } from '../../../types';
 import { prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
@@ -10,6 +10,8 @@ export type NoirLyricsColumnProps = {
   currentIndex: number;
   onSeek?: (time: number) => void;
 };
+
+const SKELETON_WIDTHS = [72, 54, 81, 46, 66, 58];
 
 function seekViaShell(time: number) {
   window.dispatchEvent(new CustomEvent('elva-seek', { detail: { time } }));
@@ -24,12 +26,15 @@ export function NoirLyricsColumn({
   onSeek = seekViaShell,
 }: NoirLyricsColumnProps) {
   const reduced = prefersReducedMotion();
+  // A long intro gets the same breathing dots as a mid-song gap, so the column isn't dead before line one.
+  const hasIntro = isSynced && lyrics.length > 0 && lyrics[0].time > 4;
   const activeRef = useRef<HTMLButtonElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const initialScrollRef = useRef(true);
 
   useEffect(() => {
     initialScrollRef.current = true;
+    scrollRef.current?.scrollTo({ top: 0 });
   }, [lyrics]);
 
   useEffect(() => {
@@ -47,9 +52,12 @@ export function NoirLyricsColumn({
     <div className="noir-lyrics flex h-full min-h-0 flex-col">
       <div ref={scrollRef} className="noir-lyrics-scroll relative min-h-0 flex-1 overflow-y-auto scrollbar-none px-2 pb-8">
         {isLoading ? (
-          <p className="px-1 pt-6 text-[14px] text-[color:var(--noir-text-tertiary)]">
-            {strings.lyrics.loading}
-          </p>
+          // Exact-shape skeleton: bars on the line rhythm, so lyrics land where the bars were.
+          <div className="noir-lyrics-skeleton pt-[min(24vh,220px)]" role="status" aria-label={strings.lyrics.loading}>
+            {SKELETON_WIDTHS.map((w, i) => (
+              <span key={i} style={{ width: `${w}%`, animationDelay: `${i * 90}ms` }} />
+            ))}
+          </div>
         ) : lyrics.length === 0 ? (
           <div className="px-1 pt-6">
             <p className="text-[15px] font-medium text-[color:var(--noir-text-secondary)]">
@@ -61,18 +69,41 @@ export function NoirLyricsColumn({
           </div>
         ) : isSynced ? (
           <div className="flex flex-col gap-0 pt-[min(24vh,220px)]">
+            {hasIntro && (
+              <div className={`noir-lyrics-gap${currentIndex < 0 ? ' is-active' : ' is-past'}`} aria-hidden>
+                <i /><i /><i />
+              </div>
+            )}
             {lyrics.map((line, idx) => {
               const active = idx === currentIndex;
               const past = currentIndex >= 0 && idx < currentIndex;
+              const distance = currentIndex < 0 ? idx + 1 : Math.abs(idx - currentIndex);
+              const state = `${active ? ' is-active' : ''}${past ? ' is-past' : ''}`;
+              // Instrumental gap: breathing dots instead of an empty, invisible line.
+              if (!line.text.trim()) {
+                return (
+                  <button
+                    key={`${line.time}-${idx}`}
+                    type="button"
+                    ref={active ? activeRef : null}
+                    className={`noir-lyrics-gap elva-focus-ring${state}`}
+                    onClick={() => onSeek(line.time)}
+                    aria-label={strings.lyrics.instrumental}
+                  >
+                    <i /><i /><i />
+                  </button>
+                );
+              }
               return (
                 <button
                   key={`${line.time}-${idx}`}
                   type="button"
                   ref={active ? activeRef : null}
-                  className={`noir-lyrics-line elva-focus-ring${active ? ' is-active' : ''}${past ? ' is-past' : ''}`}
+                  className={`noir-lyrics-line elva-focus-ring${state}`}
+                  style={{ '--d': Math.min(distance, 5) } as CSSProperties}
                   onClick={() => onSeek(line.time)}
                 >
-                  {line.text || ' '}
+                  {line.text}
                 </button>
               );
             })}

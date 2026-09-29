@@ -39,7 +39,8 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number) {
       setLyrics([]);
       setCurrentLyricIndex(-1);
       setIsLyricsSynced(false);
-      setShowLyrics(false);
+      // Lyrics mode is the listener's choice and survives song changes; the column shows
+      // the skeleton / empty state while the new text loads.
 
       const custom = loadCustomLyrics(songData.videoId, songData.title, songData.artist);
       if (custom) {

@@ -51,9 +51,11 @@ Phase A notes: Library root is now the collection grid (Favorites card first); F
 ### Phase B — Now Playing
 - [x] 🔴 Lyrics ↔ queue flow (D2). Lyrics + Next up are two toggles side by side in the bar (quote / list icons, shared on-state). Rail animates width (spring), cover shrinks via CSS width transition, exclusive only below 1200px.
 - [ ] 🟡 Canvas with lyrics and rail both closed: cover hugs the left, right 2/3 empty. Recompose (centre the identity or scale the cover up).
-- [ ] 🟡 Atmosphere is a blurred image + radial colour gradients = the "smooth glow" the rules forbid. Replace with a grain/dither field from the cover's world (D1: atmosphere around, never on).
+- [ ] ⚪ Atmosphere A/B: owner likes the glow (kept as default). `?atmosphere=grain` = hue-kept ordered-dither field of the cover; `?atmosphere=glow` switches back. Owner decides.
+- [x] 🔴 Cover hopped mid-animation when hiding lyrics: stage row re-anchored (center → flex-start) while lyrics were still exiting. Row now always centred; title size transitions.
+- [x] 🔴 Lyrics mode closed itself on every song change (`useLyrics` reset `showLyrics`) and the column unmounted while loading → stage collapsed/re-opened each track. Mode now survives song changes; column stays and shows skeleton / empty state.
 - [ ] 🔴 (parked — ~1/100, no repro) Cover flight occasionally lands in the wrong place when closing the canvas. Repro needed (note: page, scroll, whether compact bar was mid-animation).
-- [ ] 🟡 Lyrics finish: ~~constant weight (no rewrap), column-local scroll, active held at 38%~~ done. Left: instrumental gaps (empty lines), loading skeleton, past vs future contrast.
+- [x] 🟡 Lyrics finish: constant weight (no rewrap), column-local scroll, active held at 38%, distance fade, breathing dots for instrumental gaps and long intros, line-rhythm loading skeleton.
 - [x] 🟡 Toast primitive: one system (sonner removed, `utils/toast.ts` facade → noirToast), description line, settle-in / step-out swap, anchored to `--noir-bar-h`.
 - [x] 🟡 "Queue ends soon": toast-family card, one row, Not now / Keep playing, hairline empties with the song. No checkbox: after Keep playing a toast offers **Always** (learned preference). Toasts step up while it shows.
 
