@@ -228,14 +228,11 @@ export function NoirArtistView({
         <div className="noir-artist-hero-text">
           <p className="noir-artist-hero-label">{strings.artist.label}</p>
           <h1 className="noir-artist-hero-name">{artist.name}</h1>
-          {((isLoading && unique.length === 0) || artist.disambiguation || artist.country || resolvedTags.length > 0) && (
+          {((isLoading && unique.length === 0) || artist.country || resolvedTags.length > 0) && (
             <p className="noir-artist-hero-meta">
               {isLoading && unique.length === 0
                 ? strings.artist.loading
-                : [
-                    artist.disambiguation || (resolvedTags.length > 0 ? resolvedTags.slice(0, 2).join(' · ') : undefined),
-                    formatCountry(artist.country),
-                  ]
+                : [resolvedTags.slice(0, 2).join(' · '), formatCountry(artist.country)]
                     .filter(Boolean)
                     .join(' · ')}
             </p>
@@ -538,45 +535,6 @@ export function NoirArtistView({
           </NoirHomeShelf>
         </section>
       )}
-
-      <section className="mt-12">
-        <h2 className="noir-section-title mb-4 px-1">{strings.artist.aboutArtist(artist.name)}</h2>
-        <div className="noir-artist-about-card">
-          <div className="noir-artist-about-bg" aria-hidden="true">
-            <NoirDitherCover
-              source={artist.thumbnail || undefined}
-              world={world}
-              seed={`artist-about:${artist.name}`}
-              size={440}
-              radius={0}
-            />
-          </div>
-          <div className="noir-artist-about-content">
-            <p className="text-[26px] font-bold tracking-tight text-white mb-2">
-              {artist.name}
-            </p>
-
-            {(artist.disambiguation || artist.country) && (
-              <p className="text-[14px] text-[color:var(--noir-text-secondary)] mb-4">
-                {[artist.disambiguation, formatCountry(artist.country)].filter(Boolean).join(' · ')}
-              </p>
-            )}
-
-            {resolvedTags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {resolvedTags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full bg-white/[0.06] border border-white/[0.08] px-3 py-1 text-[12px] font-medium text-[color:var(--noir-text-secondary)]"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

@@ -83,41 +83,31 @@ const SHORTCUT_ARTISTS: VerifiedArtist[] = [
     name: 'KESI',
     thumbnail:
       'https://cdn-images.dzcdn.net/images/artist/50656cb54b66a32d095c3e0532c9dc32/250x250-000000-80-0-0.jpg',
-    disambiguation: 'Danish Rapper • DK',
     country: 'DK',
-    tags: ['Hip-Hop', 'Rap', 'DK'],
   },
   {
     name: 'Kundo',
     thumbnail:
       'https://cdn-images.dzcdn.net/images/cover/2bbca104b7dd8d14bed865e4cebf3c79/500x500-000000-80-0-0.jpg',
-    disambiguation: 'Danish Rapper • DK',
     country: 'DK',
-    tags: ['Hip-Hop', 'Rap', 'DK'],
   },
   {
     name: 'Lamin',
     thumbnail:
       'https://cdn-images.dzcdn.net/images/artist/7375da7e864a9cf0bdd6add7578df724/250x250-000000-80-0-0.jpg',
-    disambiguation: 'Danish Rapper • DK',
     country: 'DK',
-    tags: ['Hip-Hop', 'Rap', 'DK'],
   },
   {
     name: 'Artigeardit',
     thumbnail:
       'https://cdn-images.dzcdn.net/images/artist/54920f6d4791b6923f008effd0b3b2ef/250x250-000000-80-0-0.jpg',
-    disambiguation: 'Danish Rapper • DK',
     country: 'DK',
-    tags: ['Hip-Hop', 'Rap', 'DK'],
   },
   {
     name: 'Smøgmænd',
     thumbnail:
       'https://cdn-images.dzcdn.net/images/artist/d5e5fbbae194b09072c5af815be50547/500x500-000000-80-0-0.jpg',
-    disambiguation: 'Danish Hip-Hop Duo • DK',
     country: 'DK',
-    tags: ['Hip-Hop', 'Rap', 'DK'],
     deezerId: 70261752,
   },
 ];

@@ -2510,14 +2510,9 @@ button.noir-now-playing-source:hover {
   border-radius: var(--noir-radius-md);
 }
 
-.noir-artist-latest-cover .noir-dither-cover,
-.noir-artist-about-bg .noir-dither-cover {
+.noir-artist-latest-cover .noir-dither-cover {
   width: 100% !important;
   height: 100% !important;
-}
-
-.noir-artist-about-bg .noir-dither-cover-img {
-  object-fit: cover;
 }
 
 .noir-artist-latest-card:hover .noir-discover-release-play,
@@ -2557,36 +2552,6 @@ button.noir-now-playing-source:hover {
   color: var(--noir-text-primary);
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.08);
-}
-
-.noir-artist-about-card {
-  position: relative;
-  min-height: 240px;
-  overflow: hidden;
-  border-radius: var(--noir-radius-lg);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  padding: 32px;
-  display: flex;
-  align-items: flex-end;
-}
-
-.noir-artist-about-bg {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: min(440px, 55%);
-  opacity: 0.28;
-  mask-image: radial-gradient(circle at 75% 50%, #000 20%, transparent 80%);
-  -webkit-mask-image: radial-gradient(circle at 75% 50%, #000 20%, transparent 80%);
-  pointer-events: none;
-}
-
-.noir-artist-about-content {
-  position: relative;
-  z-index: 2;
-  max-width: 480px;
 }
 
 /* Discover */
