@@ -3032,9 +3032,11 @@ button.noir-now-playing-source:hover {
 
 /* NoirToast — single feedback surface above the compact bar */
 .noir-toast-host {
+  display: grid;
+  justify-items: center;
   position: fixed;
   left: 50%;
-  bottom: calc(96px + 16px);
+  bottom: calc(var(--noir-bar-h, 0px) + 16px);
   z-index: 9999;
   transform: translateX(-50%);
   pointer-events: none;
@@ -3067,6 +3069,28 @@ button.noir-now-playing-source:hover {
   flex-shrink: 0;
 }
 
+.noir-toast-host > * {
+  /* popLayout: outgoing and incoming toasts share one spot. */
+  grid-area: 1 / 1;
+}
+
+.noir-toast-body {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 0;
+}
+
+.noir-toast-description {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--noir-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .noir-toast-text {
   min-width: 0;
   overflow: hidden;
@@ -3093,48 +3117,82 @@ button.noir-now-playing-source:hover {
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* Queue ends soon — toast-card above compact bar */
+/* Queue ends soon — toast family: one row, two verbs, a hairline that empties with the song. */
 .noir-queue-end-prompt {
   position: fixed;
-  bottom: 112px;
+  bottom: calc(var(--noir-bar-h, 0px) + 16px);
   left: 50%;
   z-index: 60;
-  width: min(420px, calc(100vw - 32px));
-  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: min(460px, calc(100vw - 32px));
+  padding: 8px 8px 8px 16px;
+  overflow: hidden;
   border-radius: var(--noir-radius-md);
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: var(--noir-black);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
 }
 
+.noir-queue-end-prompt-body {
+  min-width: 0;
+  flex: 1;
+  padding: 2px 0;
+}
+
 .noir-queue-end-prompt-title {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--noir-text-primary);
 }
 
-.noir-queue-end-prompt-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.noir-queue-end-prompt-check {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.noir-queue-end-prompt-desc {
+  overflow: hidden;
+  margin-top: 1px;
   font-size: 12px;
-  color: var(--noir-text-tertiary);
-  cursor: pointer;
+  color: var(--noir-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.noir-queue-end-prompt-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.noir-queue-end-prompt .noir-button-primary {
   flex-shrink: 0;
+}
+
+.noir-queue-end-prompt-time {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.noir-queue-end-prompt-time > span {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.5);
+  transform-origin: left center;
+  transition: transform 0.25s linear;
+}
+
+.noir-toast-action--quiet {
+  font-weight: 500;
+  color: var(--noir-text-secondary);
+}
+
+.noir-toast-action--quiet:hover {
+  color: var(--noir-text-primary);
+}
+
+/* Toasts step up while the queue-end card holds the spot above the bar. */
+.noir-toast-host {
+  transition: bottom 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-queue-end-prompt='true'] .noir-toast-host {
+  bottom: calc(var(--noir-bar-h, 0px) + 16px + 72px);
 }
 
 /* Compact bar — inline volume value */

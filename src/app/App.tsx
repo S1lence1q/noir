@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useLayoutEffect, useCallback, type Dispatch, type SetStateAction } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Toaster, toast } from 'sonner';
-import 'sonner/dist/styles.css';
+import { toast } from './utils/toast';
 
 import { MusicPlayer } from './components/MusicPlayer';
 import { OnboardingTour } from './components/OnboardingTour';
@@ -54,7 +53,7 @@ import { NoirQueueEndPrompt } from './components/shell/noir/NoirQueueEndPrompt';
 import { NoirToastHost, noirToast } from './components/shell/noir/NoirToast';
 import { NoirSearchPalette } from './components/shell/noir/NoirSearchPalette';
 import { NoirSongMenuHost } from './components/SongRowOptions';
-import { useQueueEndPrompt } from './hooks/useQueueEndPrompt';
+import { setAutoplayAlways, useQueueEndPrompt } from './hooks/useQueueEndPrompt';
 import {
   buildAutoplayTracks,
   buildRadioTracks,
@@ -2022,9 +2021,20 @@ export default function App() {
 
       <NoirQueueEndPrompt
         isVisible={queueEndPrompt.isVisible}
-        dontAskAgain={queueEndPrompt.dontAskAgain}
-        onDontAskAgainChange={queueEndPrompt.setDontAskAgain}
-        onKeep={() => queueEndPrompt.resolve('keep')}
+        secondsLeft={Math.max(0, shellPlayback.duration - shellPlayback.currentTime)}
+        onKeep={() => {
+          queueEndPrompt.resolve('keep');
+          noirToast({
+            text: strings.nextUp.keepPlayingStarted,
+            action: {
+              label: strings.nextUp.keepPlayingAlways,
+              onClick: () => {
+                setAutoplayAlways();
+                noirToast({ text: strings.nextUp.keepPlayingAlwaysOn });
+              },
+            },
+          });
+        }}
         onDismiss={() => queueEndPrompt.resolve('dismiss')}
       />
       <NoirToastHost />
@@ -2060,29 +2070,6 @@ export default function App() {
         accentColor={accentColor}
       />
 
-      <Toaster 
-        position="top-center" 
-        theme="dark" 
-        expand={true}
-        visibleToasts={3}
-        toastOptions={{
-          style: {
-            background: 'rgba(15, 15, 20, 0.85)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            color: '#ffffff',
-            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6)',
-            borderRadius: '16px',
-            padding: '12px 18px',
-          },
-          classNames: {
-            title: '!text-white !text-sm !font-semibold !font-sans',
-            description: '!text-white/70 !text-[11px] !font-light !font-sans !mt-1',
-            toast: '!flex !items-center !gap-3 !rounded-2xl !border !border-white/10 !shadow-2xl'
-          }
-        }} 
-      />
 
       {/* Premium Global Matte-Paper/Dots Texture Overlay */}
       {textureStyle === 'paper' && (

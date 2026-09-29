@@ -54,8 +54,8 @@ Phase A notes: Library root is now the collection grid (Favorites card first); F
 - [ ] 🟡 Atmosphere is a blurred image + radial colour gradients = the "smooth glow" the rules forbid. Replace with a grain/dither field from the cover's world (D1: atmosphere around, never on).
 - [ ] 🔴 (parked — ~1/100, no repro) Cover flight occasionally lands in the wrong place when closing the canvas. Repro needed (note: page, scroll, whether compact bar was mid-animation).
 - [ ] 🟡 Lyrics finish: ~~constant weight (no rewrap), column-local scroll, active held at 38%~~ done. Left: instrumental gaps (empty lines), loading skeleton, past vs future contrast.
-- [ ] 🟡 Toast primitive: stacking, exit motion, action/undo timing.
-- [ ] 🟡 "Queue ends soon" / "Keep playing" moment built on the new toast.
+- [x] 🟡 Toast primitive: one system (sonner removed, `utils/toast.ts` facade → noirToast), description line, settle-in / step-out swap, anchored to `--noir-bar-h`.
+- [x] 🟡 "Queue ends soon": toast-family card, one row, Not now / Keep playing, hairline empties with the song. No checkbox: after Keep playing a toast offers **Always** (learned preference). Toasts step up while it shows.
 
 ### Phase C — Artist profile
 - [ ] 🔴 Load choreography (D3).
@@ -72,3 +72,15 @@ Phase A notes: Library root is now the collection grid (Favorites card first); F
 - [ ] T22 quiet tooltips (good delegation candidate once search bar lands).
 - [ ] History in Library (D5).
 - [ ] Global motion pass on `motionPresets.ts` (enter/exit/stagger consistency).
+
+---
+
+## Delegation-ready (small, mechanical — fine for Gemini)
+
+### G1 — Toast copy into strings.ts
+Legacy calls still pass hardcoded English to `toast.*` (facade in `src/app/utils/toast.ts`):
+`App.tsx`, `hooks/useSearchLogic.ts`, `hooks/usePlaybackCore.ts`, `components/shell/noir/NoirSearchPalette.tsx`.
+- Move every message into `strings.ts` (new `strings.toast` group). Short, dry, no exclamation marks.
+- Replace `toast.x(...)` with `noirToast({ text, description })` in those four files.
+- Don't touch `Queue.tsx`, `queue/QueueUpNext.tsx`, `CustomLyricsModal.tsx` unless they're rendered in the NOIR shell (check first).
+- Acceptance: `grep -rn "toast\." src/app` only hits the facade; build passes.

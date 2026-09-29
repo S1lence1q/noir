@@ -9,6 +9,8 @@ export type NoirToastAction = {
 
 export type NoirToastOptions = {
   text: string;
+  /** Optional second line, quieter. */
+  description?: string;
   cover?: string;
   action?: NoirToastAction;
   /** ms. Defaults to 3000, or 5000 when there is an action. */
@@ -19,7 +21,10 @@ type ActiveToast = NoirToastOptions & { id: number };
 
 const TOAST_EVENT = 'noir-toast';
 
-/** Show a toast from anywhere. One is visible at a time; a new one replaces the old. */
+/**
+ * Show a toast from anywhere. One is visible at a time; a new one replaces the old
+ * (the old one steps out while the new one settles in — no queueing, no stacking).
+ */
 export function noirToast(options: NoirToastOptions) {
   if (typeof window === 'undefined') return;
   window.dispatchEvent(new CustomEvent<NoirToastOptions>(TOAST_EVENT, { detail: options }));
@@ -71,20 +76,23 @@ export function NoirToastHost() {
 
   return (
     <div className="noir-toast-host" aria-live="polite" role="status">
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout" initial={false}>
         {toast && (
           <motion.div
             key={toast.id}
             className={`noir-toast${toast.action ? '' : ' noir-toast--plain'}`}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={withReducedMotion(MOTION.panel)}
+            initial={{ opacity: 0, y: 14, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98, transition: withReducedMotion({ duration: 0.16, ease: 'easeIn' }) }}
+            transition={withReducedMotion({ ...MOTION.settle, opacity: { duration: 0.18 } })}
             onMouseEnter={pause}
             onMouseLeave={resume}
           >
             {toast.cover && <img src={toast.cover} alt="" className="noir-toast-cover" />}
-            <span className="noir-toast-text">{toast.text}</span>
+            <span className="noir-toast-body">
+              <span className="noir-toast-text">{toast.text}</span>
+              {toast.description && <span className="noir-toast-description">{toast.description}</span>}
+            </span>
             {toast.action && (
               <button
                 type="button"

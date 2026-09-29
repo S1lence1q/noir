@@ -34,7 +34,6 @@ export function useQueueEndPrompt({
   onKeepPlaying,
 }: UseQueueEndPromptOptions) {
   const [isVisible, setIsVisible] = useState(false);
-  const [dontAskAgain, setDontAskAgain] = useState(false);
   const promptedTrackRef = useRef<string | null>(null);
   const onKeepPlayingRef = useRef(onKeepPlaying);
   onKeepPlayingRef.current = onKeepPlaying;
@@ -68,22 +67,23 @@ export function useQueueEndPrompt({
       return;
     }
 
-    setDontAskAgain(false);
     setIsVisible(true);
   }, [canKeepPlaying, currentTime, duration, isPlaying, trackKey, upNextCount]);
 
   const resolve = (choice: 'keep' | 'dismiss') => {
-    if (dontAskAgain) {
-      localStorage.setItem(AUTOPLAY_STORAGE_KEY, choice === 'keep' ? 'on' : 'off');
-    }
     setIsVisible(false);
     if (choice === 'keep') onKeepPlayingRef.current();
   };
 
   return {
     isVisible,
-    dontAskAgain,
-    setDontAskAgain,
     resolve,
   };
+}
+
+/** Learned preference: offered after the listener chose Keep playing, instead of a checkbox up front. */
+export function setAutoplayAlways() {
+  try {
+    localStorage.setItem(AUTOPLAY_STORAGE_KEY, 'on');
+  } catch {}
 }

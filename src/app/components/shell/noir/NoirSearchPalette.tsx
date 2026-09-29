@@ -13,7 +13,7 @@ import {
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
-import { toast } from 'sonner';
+import { toast } from '../../../utils/toast';
 import { NoirMark } from './NoirMark';
 
 type NoirSearchPaletteProps = {

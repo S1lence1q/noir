@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { Music, Play, Trash2, GripVertical } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '../../utils/toast';
 import type { AccentColor } from '../themeUtils';
 import { ACCENT_THEMES } from '../themeUtils';
 import type { QueueItem, SearchResult } from './types';

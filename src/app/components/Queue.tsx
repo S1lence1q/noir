@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ArrowLeft, Loader2, Keyboard } from 'lucide-react';
 import { QueuePanelLayer } from './queue/QueuePanelLayer';
-import { toast } from 'sonner';
+import { toast } from '../utils/toast';
 import { AccentColor } from './themeUtils';
 import { ELVA_STORAGE_KEYS, readJsonStorage } from '../utils/elvaStorage';
 import type { QueueItem, Playlist, SearchResult, VerifiedArtist } from './queue/types';

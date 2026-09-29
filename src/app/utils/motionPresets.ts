@@ -7,6 +7,7 @@ export function prefersReducedMotion(): boolean {
 
 export function withReducedMotion<T extends Transition>(transition: T): T {
   if (!prefersReducedMotion()) return transition;
+  if ((transition as { type?: string }).type === 'spring') return { duration: 0, delay: 0 } as T;
   return { ...transition, duration: 0, delay: 0 };
 }
 
@@ -23,7 +24,9 @@ export const MOTION = {
   tap: { duration: 0.12, ease: EASE_OUT_SMOOTH },
   panel: { duration: 0.28, ease: EASE_PREMIUM },
   scene: { duration: 0.45, ease: EASE_PREMIUM },
-} satisfies Record<'tap' | 'panel' | 'scene', Transition>;
+  /** Physical objects that arrive and rest: side rail, toast, sheets. Slight weight, no bounce. */
+  settle: { type: 'spring', stiffness: 260, damping: 34, mass: 0.9 },
+} satisfies Record<'tap' | 'panel' | 'scene' | 'settle', Transition>;
 
 export const panelEnter = {
   initial: { opacity: 0 },

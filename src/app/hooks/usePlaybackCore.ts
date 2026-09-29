@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { toast } from 'sonner';
+import { toast } from '../utils/toast';
 import { useFadeVolume } from './useFadeVolume';
 import {
   initAudioAnalyzer,

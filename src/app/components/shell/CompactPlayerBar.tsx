@@ -242,8 +242,25 @@ export function CompactPlayerBar({
   // queueCount from shell is already "up next" (excludes the playing track)
   const upNextCount = Math.max(0, queueCount);
 
+  // Floating cards (toast, queue-end) sit just above the bar, whatever height it wraps to.
+  const footerRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const write = () => root.style.setProperty('--noir-bar-h', `${el.offsetHeight}px`);
+    write();
+    const ro = new ResizeObserver(write);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      root.style.removeProperty('--noir-bar-h');
+    };
+  }, []);
+
   return (
     <motion.footer
+      ref={footerRef}
       className="noir-compact shrink-0"
       initial={reduced ? { opacity: 0 } : { opacity: 0, y: 72 }}
       animate={{ opacity: 1, y: 0 }}

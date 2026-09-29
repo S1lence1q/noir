@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { toast } from 'sonner';
+import { toast } from '../utils/toast';
 import { SearchResult, VerifiedArtist } from '../types';
 import { displayArtistName } from '../utils/stringUtils';
 import {

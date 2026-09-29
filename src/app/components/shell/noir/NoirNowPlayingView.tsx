@@ -76,8 +76,6 @@ function uniqueByKey(tracks: SearchResult[]): SearchResult[] {
 }
 
 const QUEUE_RAIL_WIDTH = 360;
-/** One spring for rail + cover resize so the stage moves as one object. */
-const railSpring = { type: 'spring' as const, stiffness: 260, damping: 34, mass: 0.9 };
 
 function useStackedLayout() {
   const query = '(max-width: 960px)';
@@ -418,9 +416,9 @@ export function NoirNowPlayingView({
             exit={
               reduced || stacked
                 ? { opacity: 0 }
-                : { opacity: 0, width: 0, transition: { ...railSpring, opacity: { duration: 0.16 } } }
+                : { opacity: 0, width: 0, transition: { ...MOTION.settle, opacity: { duration: 0.16 } } }
             }
-            transition={reduced ? { duration: 0.15 } : { ...railSpring, opacity: { duration: 0.24, delay: 0.08 } }}
+            transition={reduced ? { duration: 0.15 } : { ...MOTION.settle, opacity: { duration: 0.24, delay: 0.08 } }}
           >
             <div className="noir-now-playing-queue-inner">
             <div className="noir-now-playing-side-header">

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Trash2, Check } from 'lucide-react';
 import { SearchResult } from '../types';
 import { AccentColor, ACCENT_THEMES } from './themeUtils';
-import { toast } from 'sonner';
+import { toast } from '../utils/toast';
 import { 
   parseLrc, 
   parsePlainLyrics, 
