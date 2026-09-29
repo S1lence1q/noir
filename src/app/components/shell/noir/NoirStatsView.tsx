@@ -24,7 +24,7 @@ import { getArtistImage, getTrackImage } from '../../../services/musicGraph';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
-import { NoirDitherCover } from './NoirDitherCover';
+import { NoirArtwork } from './NoirArtwork';
 import { NoirIdentityCover } from './NoirIdentityCover';
 import { NoirGraphicAccent } from './NoirGraphicAccent';
 import { NoirReplayStory } from './NoirReplayStory';
@@ -260,12 +260,11 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
             <div className="noir-stats-artists">
               {summary.artists[0] && (
                 <article className="noir-stats-artists-lead">
-                  <NoirDitherCover
+                  <NoirArtwork
                     source={artistImages[summary.artists[0].artist]}
                     world="bone"
                     seed={`stats-artist-lead-${summary.artists[0].artist}`}
                     size={280}
-                    madeForYou
                     className="noir-stats-artists-lead-art"
                   />
                   <div className="noir-stats-artists-lead-copy">
@@ -284,7 +283,7 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
                       <span className="noir-stats-artists-rail-n" aria-hidden>
                         {String(index + 2).padStart(2, '0')}
                       </span>
-                      <NoirDitherCover
+                      <NoirArtwork
                         source={artistImages[artist.artist]}
                         world={worldForCollection(artist.artist)}
                         seed={`stats-artist-${artist.artist}`}
@@ -312,12 +311,11 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
               {summary.tracks.map((track, index) => (
                 <li key={track.songKey} className="noir-stats-tile">
                   <span className="noir-stats-tile-art">
-                    <NoirDitherCover
+                    <NoirArtwork
                       source={trackImages[track.songKey]}
                       world={index === 0 ? 'bone' : worldForCollection(track.songKey)}
                       seed={`stats-track-${track.songKey}`}
                       size={96}
-                      madeForYou={index === 0}
                     />
                     <span className="noir-stats-tile-rank">{index + 1}</span>
                   </span>

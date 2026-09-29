@@ -4,6 +4,7 @@ import { Play, Radio, Shuffle } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
 import { NoirRankedSongRow } from './NoirRankedSongRow';
 import { NoirDitherCover } from './NoirDitherCover';
+import { NoirArtwork } from './NoirArtwork';
 import { NoirArtistDisambiguation } from './NoirArtistDisambiguation';
 import { NoirHomeShelf } from './NoirHomeShelf';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
@@ -136,15 +137,13 @@ export function NoirArtistView({
     return albums.filter((a) => a.recordType === 'single' || a.recordType === 'ep');
   }, [albums, discogFilter, showFilterTabs]);
 
-  const latestBadgeLabel = latestRelease
+  const latestTypeLabel = latestRelease
     ? latestRelease.recordType === 'single'
-      ? strings.artist.latestSingle
+      ? strings.artist.single
       : latestRelease.recordType === 'ep'
-        ? strings.artist.latestEp
-        : latestRelease.recordType === 'album'
-          ? strings.artist.latestAlbum
-          : strings.artist.latestRelease
-    : null;
+        ? strings.artist.ep
+        : strings.artist.album
+    : '';
 
   const resolvedTags = useMemo(() => {
     if (artist.tags && artist.tags.length > 0) return artist.tags;
@@ -240,7 +239,7 @@ export function NoirArtistView({
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7, ease: EASE_PREMIUM, delay: 0.1 }}
         >
-          <NoirDitherCover
+          <NoirArtwork
             source={artist.thumbnail || undefined}
             world={world}
             seed={`artist:${artist.name}`}
@@ -303,67 +302,8 @@ export function NoirArtistView({
         </div>
       </motion.section>
 
-      <div className={`mt-10 grid gap-8 ${latestRelease ? 'lg:grid-cols-[280px_1fr]' : 'grid-cols-1'}`}>
-        {latestRelease && (
-          <section className="order-2 lg:order-1 flex flex-col">
-            <h2 className="noir-section-title mb-4 px-1">{strings.artist.latestRelease}</h2>
-            <motion.div
-              role="button"
-              tabIndex={0}
-              onClick={() => onSelectAlbum?.(latestRelease)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onSelectAlbum?.(latestRelease);
-                }
-              }}
-              className="noir-artist-latest-card group elva-focus-ring cursor-pointer"
-              initial={reduced ? false : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.36, ease: EASE_PREMIUM }}
-            >
-              <div className="noir-artist-latest-cover">
-                <NoirDitherCover
-                  source={latestRelease.image}
-                  world={worldForCollection(`album:${latestRelease.id}`)}
-                  seed={`album:${latestRelease.id}`}
-                  size={280}
-                />
-                {onPlayAlbum && (
-                  <motion.button
-                    type="button"
-                    className="noir-discover-release-play noir-play-round !h-11 !w-11 elva-focus-ring"
-                    aria-label={`${strings.artist.playAlbum}: ${latestRelease.title}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onPlayAlbum(latestRelease);
-                    }}
-                    whileTap={{ scale: 0.94 }}
-                    transition={MOTION.tap}
-                  >
-                    <Play className="ml-0.5 h-4 w-4 fill-current" />
-                  </motion.button>
-                )}
-              </div>
-              <div className="mt-4 flex flex-col min-w-0">
-                <span className="noir-artist-latest-badge mb-1">{latestBadgeLabel}</span>
-                <span className="noir-song-title text-[15px] font-semibold block truncate">
-                  {latestRelease.title}
-                </span>
-                <span className="noir-song-meta mt-1 block truncate">
-                  {latestRelease.year ? `${latestRelease.year} · ` : ''}
-                  {latestRelease.recordType === 'single'
-                    ? strings.artist.single
-                    : latestRelease.recordType === 'ep'
-                      ? strings.artist.ep
-                      : strings.artist.album}
-                </span>
-              </div>
-            </motion.div>
-          </section>
-        )}
-
-        <section className={`min-w-0 flex flex-col ${latestRelease ? 'order-1 lg:order-2' : ''}`}>
+      <div className={`mt-10 grid gap-10 ${latestRelease ? 'lg:grid-cols-[minmax(0,1fr)_240px]' : 'grid-cols-1'}`}>
+        <section className="min-w-0 flex flex-col">
           <h2 className="noir-section-title mb-4 px-1">{strings.artist.popular}</h2>
           {unique.length > 0 ? (
             <>
@@ -406,6 +346,56 @@ export function NoirArtistView({
             <p className="px-1 py-8 text-[14px] text-[color:var(--noir-text-secondary)]">{strings.artist.empty}</p>
           )}
         </section>
+        {latestRelease && (
+          <section className="flex min-w-0 flex-col">
+            <h2 className="noir-section-title mb-4 px-1">{strings.artist.latestRelease}</h2>
+            <motion.div
+              role="button"
+              tabIndex={0}
+              onClick={() => onSelectAlbum?.(latestRelease)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectAlbum?.(latestRelease);
+                }
+              }}
+              className="noir-artist-latest group elva-focus-ring"
+              initial={reduced ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.36, ease: EASE_PREMIUM }}
+            >
+              <div className="noir-artist-latest-cover">
+                <NoirArtwork
+                  source={latestRelease.image}
+                  world={worldForCollection(`album:${latestRelease.id}`)}
+                  seed={`album:${latestRelease.id}`}
+                  size={240}
+                  className="!h-full !w-full"
+                />
+                {onPlayAlbum && (
+                  <motion.button
+                    type="button"
+                    className="noir-discover-release-play noir-play-round !h-11 !w-11 elva-focus-ring"
+                    aria-label={`${strings.artist.playAlbum}: ${latestRelease.title}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPlayAlbum(latestRelease);
+                    }}
+                    whileTap={{ scale: 0.94 }}
+                    transition={MOTION.tap}
+                  >
+                    <Play className="ml-0.5 h-4 w-4 fill-current" />
+                  </motion.button>
+                )}
+              </div>
+              <span className="noir-song-title mt-3 block truncate">{latestRelease.title}</span>
+              <span className="noir-song-meta mt-0.5 block truncate">
+                {latestTypeLabel}
+                {latestRelease.year ? ` · ${latestRelease.year}` : ''}
+              </span>
+            </motion.div>
+          </section>
+        )}
       </div>
 
       {albums.length > 0 && (
@@ -466,7 +456,7 @@ export function NoirArtistView({
                 transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: i * 0.025 }}
               >
                 <span className="relative block">
-                  <NoirDitherCover
+                  <NoirArtwork
                     source={album.image}
                     world={worldForCollection(`album:${album.id}`)}
                     seed={`album:${album.id}`}

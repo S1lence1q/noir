@@ -329,7 +329,8 @@ export function NoirNowPlayingView({
                       </button>
                     )}
                   </div>
-                  {queueSource && (
+                  {/* Source lives in the queue rail header when that's visible — never twice. */}
+                  {queueSource && !(sidePanelOpen && upNext.length > 0) && (
                     <div className="noir-now-playing-meta">
                       {onOpenQueueSource ? (
                         <button

@@ -67,14 +67,16 @@ export function AppSidebar({
 
       <nav className="relative z-[1] flex flex-col gap-1" aria-label="Main navigation">
         {primaryNav.map(({ id, label: navLabel, Icon }) => {
-          const isActive =
-            activeTab === id && !sidebarPlaylistActive && !(id === 'myhub' && favoritesActive);
+          const inTab = activeTab === id;
+          // Inside a Library sub-page opened from Quick access / Playlists: Library reads as the parent.
+          const isParent = inTab && id === 'myhub' && (sidebarPlaylistActive || favoritesActive);
+          const isActive = inTab && !isParent && !sidebarPlaylistActive;
           return (
             <button
               key={id}
               type="button"
               onClick={() => onTabChange(id)}
-              data-active={isActive ? 'true' : 'false'}
+              data-active={isActive ? 'true' : isParent ? 'parent' : 'false'}
               className="noir-nav-item flex h-11 items-center gap-3 px-3 text-left text-[15px] font-medium elva-focus-ring"
               aria-current={isActive ? 'page' : undefined}
             >

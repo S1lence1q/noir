@@ -35,6 +35,7 @@ interface LandingPageProps {
     requestId: number;
   };
   onLibraryPlaylistOpenChange?: (playlistId: string | null) => void;
+  onLibrarySectionChange?: (section: 'favorites' | 'playlists' | 'stats') => void;
   accentColor: AccentColor;
   theme: any;
   hasSeenTour: boolean;
@@ -115,6 +116,7 @@ export function LandingPage({
   setSelectedPlaylist,
   libraryFocus,
   onLibraryPlaylistOpenChange,
+  onLibrarySectionChange,
   accentColor,
   theme,
   hasSeenTour,
@@ -452,6 +454,7 @@ export function LandingPage({
                     recentTracks={recentlyPlayed}
                     focus={libraryFocus}
                     onPlaylistOpenChange={onLibraryPlaylistOpenChange}
+                    onSectionChange={onLibrarySectionChange}
                     onToggleFavorite={handleToggleFavorite}
                     onSelectSong={handleSelectSong}
                     onAddToQueue={handleAddToQueue}

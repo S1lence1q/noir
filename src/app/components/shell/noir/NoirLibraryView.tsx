@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Heart, ListMusic, Plus, AudioLines } from 'lucide-react';
+import { ArrowLeft, ListMusic, Play, Plus, Shuffle, AudioLines } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { NoirSongRow } from './NoirSongRow';
 import { NoirGraphicAccent } from './NoirGraphicAccent';
 import { NoirDitherCover } from './NoirDitherCover';
+import { NoirFavoritesCover } from './NoirFavoritesCover';
 import { NoirUserPlaylistPage } from './NoirUserPlaylistPage';
 import { NoirStatsView } from './NoirStatsView';
 import { worldForCollection } from '../../../utils/ditherCover';
@@ -30,6 +31,7 @@ export type NoirLibraryViewProps = {
   recentTracks?: SearchResult[];
   focus?: LibraryFocus | null;
   onPlaylistOpenChange?: (playlistId: string | null) => void;
+  onSectionChange?: (section: LibrarySection) => void;
   onToggleFavorite: (song: SearchResult) => void;
   onSelectSong: (song: SearchResult) => void;
   onAddToQueue: (song: SearchResult) => void;
@@ -37,8 +39,12 @@ export type NoirLibraryViewProps = {
   onPlayNext?: (song: SearchResult) => void;
 };
 
-const SECTIONS: { id: LibrarySection; label: string; icon: typeof Heart }[] = [
-  { id: 'favorites', label: 'Favorites', icon: Heart },
+/**
+ * Library root is the collection grid (Favorites card first, then playlists).
+ * Favorites and playlists open as sub-pages with a back link — Favorites is not a tab,
+ * so the sidebar's Library button always has somewhere to go.
+ */
+const SECTIONS: { id: LibrarySection; label: string; icon: typeof ListMusic }[] = [
   { id: 'playlists', label: 'Playlists', icon: ListMusic },
   { id: 'stats', label: strings.stats.tab, icon: AudioLines },
 ];
@@ -48,13 +54,14 @@ export function NoirLibraryView({
   recentTracks = [],
   focus = null,
   onPlaylistOpenChange,
+  onSectionChange,
   onToggleFavorite,
   onSelectSong,
   onAddToQueue,
   onPlayPlaylist,
   onPlayNext,
 }: NoirLibraryViewProps) {
-  const [section, setSection] = useState<LibrarySection>(focus?.section ?? 'favorites');
+  const [section, setSection] = useState<LibrarySection>(focus?.section ?? 'playlists');
   const [favoritesSort, setFavoritesSort] = useState<FavoritesSort>('recent');
   const playlists = usePlaylists();
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(
@@ -73,6 +80,10 @@ export function NoirLibraryView({
   }, [focus?.requestId]);
 
   useEffect(() => {
+    onSectionChange?.(section);
+  }, [section, onSectionChange]);
+
+  useEffect(() => {
     onPlaylistOpenChange?.(selectedPlaylistId);
   }, [selectedPlaylistId, onPlaylistOpenChange]);
 
@@ -81,7 +92,12 @@ export function NoirLibraryView({
   };
 
   const selectedPlaylist = playlists.find((p) => p.id === selectedPlaylistId) ?? null;
-  const showHeader = !selectedPlaylist;
+  const inSubPage = !!selectedPlaylist || section === 'favorites';
+  const showHeader = !inSubPage;
+  const backToRoot = () => {
+    setSection('playlists');
+    openPlaylist(null);
+  };
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -93,7 +109,7 @@ export function NoirLibraryView({
           </p>
         </header>
       )}
-      <div className={`flex gap-1 px-1 pb-6 ${selectedPlaylist ? 'hidden' : ''}`}>
+      <div className={`flex gap-1 px-1 pb-6 ${inSubPage ? 'hidden' : ''}`}>
         {SECTIONS.map(({ id, label, icon: Icon }) => {
           const isActive = section === id;
           return (
@@ -124,6 +140,43 @@ export function NoirLibraryView({
               exit={{ opacity: 0, transition: { duration: 0 } }}
               transition={{ duration: 0.18 }}
             >
+              <button type="button" onClick={backToRoot} className="noir-back-link elva-focus-ring">
+                <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
+                {strings.playlist.back}
+              </button>
+              <header className="mb-6 mt-5 flex items-end gap-6">
+                <NoirFavoritesCover size={200} />
+                <div className="min-w-0 flex-1 pb-1">
+                  <h1 className="noir-collection-title">{strings.home.favorites}</h1>
+                  <p className="mt-2 text-[13px] text-[color:var(--noir-text-secondary)]">
+                    {strings.playlist.songCount(favorites.length)}
+                  </p>
+                  {favorites.length > 0 && (
+                    <div className="mt-5 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onPlayPlaylist(sortedFavorites, strings.home.favorites)}
+                        className="noir-play-round elva-focus-ring"
+                        aria-label={strings.playlist.play}
+                      >
+                        <Play className="ml-0.5 h-5 w-5 fill-current" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const shuffled = [...sortedFavorites].sort(() => Math.random() - 0.5);
+                          onPlayPlaylist(shuffled, strings.home.favorites);
+                        }}
+                        className="noir-icon-button elva-focus-ring"
+                        aria-label={strings.playlist.shuffle}
+                        title={strings.playlist.shuffle}
+                      >
+                        <Shuffle className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </header>
               {favorites.length > 0 ? (
                 <div className="flex flex-col gap-0.5">
                   <div className="noir-favorites-toolbar">
@@ -158,11 +211,7 @@ export function NoirLibraryView({
                   ))}
                 </div>
               ) : (
-                <div className="relative min-h-[180px] py-16">
-                  <NoirGraphicAccent
-                    graphic="sprayAsterisk"
-                    className="noir-library-empty-spray"
-                  />
+                <div className="py-6">
                   <p className="relative text-[15px] text-[color:var(--noir-text-primary)]">
                     {strings.empty.favoritesTitle}
                   </p>
@@ -188,6 +237,19 @@ export function NoirLibraryView({
                   : strings.playlist.libraryEmptyBody}
               </p>
               <div className="noir-collection-grid">
+                <button
+                  type="button"
+                  onClick={() => setSection('favorites')}
+                  className="noir-collection-card elva-focus-ring"
+                >
+                  <NoirFavoritesCover size={168} className="!h-auto !w-full aspect-square" />
+                  <span className="min-w-0">
+                    <span className="noir-song-title block truncate">{strings.home.favorites}</span>
+                    <span className="noir-song-meta mt-0.5 block truncate">
+                      {strings.playlist.songCount(favorites.length)}
+                    </span>
+                  </span>
+                </button>
                 <button
                   type="button"
                   onClick={() => openPlaylist(createPlaylist().id)}
@@ -235,7 +297,7 @@ export function NoirLibraryView({
               <NoirUserPlaylistPage
                 playlist={selectedPlaylist}
                 favorites={favorites}
-                onBack={() => openPlaylist(null)}
+                onBack={backToRoot}
                 onAddToQueue={onAddToQueue}
                 onPlayPlaylist={onPlayPlaylist}
                 onPlayNext={onPlayNext}

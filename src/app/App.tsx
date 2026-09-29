@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useLayoutEffect, type Dispatch, type SetStateAction } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect, useCallback, type Dispatch, type SetStateAction } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Toaster, toast } from 'sonner';
 import 'sonner/dist/styles.css';
@@ -1306,6 +1306,12 @@ export default function App() {
     setActiveTab('myhub');
   };
 
+  /** Keeps the sidebar in step when Favorites is opened/left from inside Library. requestId untouched → no refocus loop. */
+  const syncLibrarySection = useCallback((section: 'favorites' | 'playlists' | 'stats') => {
+    const next = section === 'favorites' ? 'favorites' : 'playlists';
+    setLibraryFocus((prev) => (prev.section === next ? prev : { ...prev, section: next }));
+  }, []);
+
   const openLibraryPlaylist = (playlistId: string) => {
     setLibraryFocus((prev) => ({
       section: 'playlists',
@@ -1714,7 +1720,13 @@ export default function App() {
 
       <AppShell
             activeTab={activeTab}
-            onTabChange={setActiveTab}
+            onTabChange={(tab) => {
+              // Library in the sidebar always lands on the Library root, never a dead click.
+              if (tab === 'myhub') {
+                setLibraryFocus((prev) => ({ section: 'playlists', playlistId: null, requestId: prev.requestId + 1 }));
+              }
+              setActiveTab(tab);
+            }}
             hasActiveSong={!!songData}
             song={
               songData
@@ -1841,6 +1853,7 @@ export default function App() {
               setSelectedPlaylist={setSelectedPlaylist}
               libraryFocus={libraryFocus}
               onLibraryPlaylistOpenChange={setLibraryOpenPlaylistId}
+              onLibrarySectionChange={syncLibrarySection}
               accentColor={accentColor}
               theme={theme}
               hasSeenTour={hasSeenTour}

@@ -1202,15 +1202,55 @@
   color: var(--noir-text-secondary);
 }
 
-.noir-search-trigger-kbd {
-  padding: 2px 6px;
-  border-radius: 6px;
+.noir-search-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(360px, 100%);
+  height: 40px;
+  padding: 0 8px 0 14px;
+  border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
   color: var(--noir-text-tertiary);
+  text-align: left;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.noir-search-trigger:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--noir-text-secondary);
+}
+
+.noir-search-trigger:active {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.noir-search-trigger-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.noir-search-trigger-kbd {
+  flex-shrink: 0;
+  padding: 3px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--noir-text-tertiary);
+}
+
+@media (max-width: 640px) {
+  .noir-search-trigger-kbd { display: none; }
 }
 
 .noir-nav-item {
@@ -1225,6 +1265,15 @@
 
 .noir-nav-item[data-active='false'] {
   color: var(--noir-text-tertiary);
+}
+
+/* Library while a Favorites/playlist sub-page is open: you are inside it, not on it. */
+.noir-nav-item[data-active='parent'] {
+  color: var(--noir-text-primary);
+}
+
+.noir-nav-item[data-active='parent']:hover {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .noir-nav-item[data-active='false']:hover {
@@ -2486,20 +2535,14 @@ button.noir-now-playing-source:hover {
   }
 }
 
-.noir-artist-latest-card {
-  position: relative;
+.noir-artist-latest {
   display: flex;
   flex-direction: column;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: var(--noir-radius-lg);
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.noir-artist-latest-card:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
+  width: 100%;
+  max-width: 240px;
+  padding: 0 4px;
+  cursor: pointer;
+  border-radius: var(--noir-radius-md);
 }
 
 .noir-artist-latest-cover {
@@ -2510,25 +2553,33 @@ button.noir-now-playing-source:hover {
   border-radius: var(--noir-radius-md);
 }
 
+.noir-artist-latest-cover .noir-artwork,
 .noir-artist-latest-cover .noir-dither-cover {
   width: 100% !important;
   height: 100% !important;
 }
 
-.noir-artist-latest-card:hover .noir-discover-release-play,
-.noir-artist-latest-card:focus-within .noir-discover-release-play {
-  opacity: 1;
-  transform: translateY(0);
+.noir-artist-latest-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  transition: background-color 0.2s ease;
+  pointer-events: none;
 }
 
-.noir-artist-latest-badge {
-  display: inline-block;
-  font: var(--noir-type-label);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--noir-accent);
+.noir-artist-latest:hover .noir-artist-latest-cover::after {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.noir-artist-latest-cover .noir-discover-release-play {
+  z-index: 1;
+}
+
+.noir-artist-latest:hover .noir-discover-release-play,
+.noir-artist-latest:focus-within .noir-discover-release-play {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .noir-filter-chip {
@@ -2950,6 +3001,31 @@ button.noir-now-playing-source:hover {
   right: 8%;
   bottom: 8%;
   display: flex;
+}
+
+/* D1: real artwork. Skeleton tint until decoded, one fade in (D3). */
+.noir-artwork {
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.noir-artwork-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.noir-artwork-img.is-fading-in {
+  animation: noir-dither-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noir-artwork-img.is-fading-in { animation: none; }
 }
 
 @keyframes noir-dither-in {

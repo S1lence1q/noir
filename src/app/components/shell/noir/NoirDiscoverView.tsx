@@ -5,6 +5,7 @@ import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
 import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { NoirDitherCover } from './NoirDitherCover';
+import { NoirArtwork } from './NoirArtwork';
 import { NoirHomeShelf } from './NoirHomeShelf';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
@@ -256,7 +257,7 @@ export function NoirDiscoverView({
             onClick={() => onPlayPlaylist(spotlightPool, strings.discover.onTheCharts, 0)}
             aria-label={`${strings.discover.playSpotlight}: ${spotlightTrack.title}`}
           >
-            <NoirDitherCover
+            <NoirArtwork
               source={spotlightTrack.thumbnail}
               world={worldForCollection(spotlightTrack.id || 'spotlight')}
               seed={spotlightTrack.id || spotlightTrack.title}
@@ -483,7 +484,7 @@ export function NoirDiscoverView({
                 transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: i * 0.03 }}
               >
                 <span className="relative block">
-                  <NoirDitherCover
+                  <NoirArtwork
                     source={track.thumbnail}
                     world={worldForCollection(track.id)}
                     seed={track.id}
@@ -536,7 +537,7 @@ function ReleaseCard({
       transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: index * 0.03 }}
     >
       <span className="relative block">
-        <NoirDitherCover
+        <NoirArtwork
           source={release.image}
           world={worldForCollection(release.id)}
           seed={release.id}
@@ -587,7 +588,7 @@ function ArtistCard({
       transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.06 + index * 0.03 }}
     >
       <span className="noir-home-artist-art">
-        <NoirDitherCover
+        <NoirArtwork
           source={artist.image}
           world={worldForCollection(artist.id)}
           seed={artist.id}

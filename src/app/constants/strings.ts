@@ -33,6 +33,8 @@ export const strings = {
     undo: 'Undo',
   },
   search: {
+    placeholder: 'Search songs and artists',
+    open: 'Open search',
     keyboardHint: '↑↓ navigate · Enter open · Esc clear',
   },
   compact: {

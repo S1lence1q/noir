@@ -14,7 +14,7 @@ import {
   seedTasteFromArtists,
   type ColdStartArtist,
 } from '../../../services/listening/seedTaste';
-import { NoirDitherCover } from './NoirDitherCover';
+import { NoirArtwork } from './NoirArtwork';
 
 export type NoirColdStartProps = {
   onSeeded: () => void;
@@ -209,7 +209,7 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
                 whileTap={seeding || locked ? undefined : { scale: 0.96 }}
               >
                 <span className="noir-cold-start-artist-art">
-                  <NoirDitherCover
+                  <NoirArtwork
                     source={artist.image}
                     world={worldForCollection(`cold:${key}`)}
                     seed={`cold-start-${key}`}

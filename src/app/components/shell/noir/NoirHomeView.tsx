@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Compass, Pause, Play, Plus, Search } from 'lucide-react';
+import { NoirSearchTrigger } from './NoirSearchTrigger';
 import { SearchResult, VerifiedArtist } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { shouldShowArtistCard } from '../../../utils/apiUtils';
@@ -12,6 +13,7 @@ import { NoirSongRow } from './NoirSongRow';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import { NoirDitherCover } from './NoirDitherCover';
+import { NoirArtwork } from './NoirArtwork';
 import { NoirFavoritesCover } from './NoirFavoritesCover';
 import { NoirHomeShelf } from './NoirHomeShelf';
 import { NoirColdStart } from './NoirColdStart';
@@ -255,15 +257,7 @@ export function NoirHomeView({
   return (
     <div className="relative h-full min-h-0 overflow-y-auto scrollbar-none">
       <div className="flex shrink-0 items-center justify-between gap-3 px-5 pb-3 pt-5">
-        <button
-          type="button"
-          onClick={openSearchPalette}
-          className="noir-search-hint elva-focus-ring"
-        >
-          <Search className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
-          <span>Search</span>
-          <kbd className="noir-search-trigger-kbd">⌘K</kbd>
-        </button>
+        <NoirSearchTrigger onOpen={openSearchPalette} />
         {inSearchMode && (
           <button
             type="button"
@@ -343,7 +337,7 @@ export function NoirHomeView({
                   exit={{ opacity: 0, scale: 1.02 }}
                   transition={{ duration: 0.36, ease: EASE_PREMIUM }}
                 >
-                  <NoirDitherCover
+                  <NoirArtwork
                     source={featuredTrack.thumbnail}
                     world={worldForCollection(featuredTrack.artist || featuredTrack.id)}
                     seed={`home:${featuredTrack.id}`}
