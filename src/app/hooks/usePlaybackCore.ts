@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { toast } from '../utils/toast';
+import { noirToast } from '../components/shell/noir/NoirToast';
+import { strings } from '../constants/strings';
 import { useFadeVolume } from './useFadeVolume';
 import {
   initAudioAnalyzer,
@@ -533,8 +534,9 @@ export function usePlaybackCore({
     const q = queueRef.current;
 
     if (q.length === 0) {
-      toast.info('Queue is empty', {
-        description: 'Add more songs to keep the music playing!',
+      noirToast({
+        text: strings.toast.queueEmpty,
+        description: strings.toast.queueEmptyDesc,
       });
       return;
     }

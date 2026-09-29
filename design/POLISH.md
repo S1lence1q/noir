@@ -77,7 +77,7 @@ Phase A notes: Library root is now the collection grid (Favorites card first); F
 
 ## Delegation-ready (small, mechanical — fine for Gemini)
 
-### G1 — Toast copy into strings.ts
+### G1 — Toast copy into strings.ts — **DONE**
 Legacy calls still pass hardcoded English to `toast.*` (facade in `src/app/utils/toast.ts`):
 `App.tsx`, `hooks/useSearchLogic.ts`, `hooks/usePlaybackCore.ts`, `components/shell/noir/NoirSearchPalette.tsx`.
 - Move every message into `strings.ts` (new `strings.toast` group). Short, dry, no exclamation marks.

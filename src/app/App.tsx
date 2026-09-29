@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useLayoutEffect, useCallback, type Dispatch, type SetStateAction } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { toast } from './utils/toast';
 
 import { MusicPlayer } from './components/MusicPlayer';
 import { OnboardingTour } from './components/OnboardingTour';
@@ -832,8 +831,9 @@ export default function App() {
           }
           startQueuePrefetch(queueRef.current, result.id);
         } else {
-          toast.error('Could not play song', {
-            description: `No verified YouTube match for "${result.title}". Try searching the song directly.`,
+          noirToast({
+            text: strings.toast.couldNotPlay,
+            description: strings.toast.noStreamForTrack(result.title),
           });
           setLoadingSongId(null);
           setAppState('landing');
@@ -841,8 +841,9 @@ export default function App() {
         }
       } catch (e) {
         console.error('Failed to dynamically resolve YouTube video ID:', e);
-        toast.error('Playback error', {
-          description: 'Could not retrieve the audio stream for this song.',
+        noirToast({
+          text: strings.toast.playbackError,
+          description: strings.toast.streamUnavailable,
         });
         setLoadingSongId(null);
         setAppState('landing');
@@ -984,7 +985,7 @@ export default function App() {
     );
     if (exists) {
       if (!options?.silent) {
-        toast.error(strings.songMenu.alreadyInQueue, { description: result.title });
+        noirToast({ text: strings.songMenu.alreadyInQueue, description: result.title });
       }
       return;
     }
@@ -1437,7 +1438,8 @@ export default function App() {
       setTourTransitioning(false);
       localStorage.setItem('elva_tour_completed', 'true');
       setHasSeenTour(true);
-      toast.success(strings.tour.completed, {
+      noirToast({
+        text: strings.tour.completed,
         description: strings.tour.completedDesc,
       });
     }

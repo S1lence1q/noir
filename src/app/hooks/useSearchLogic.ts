@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { toast } from '../utils/toast';
+import { noirToast } from '../components/shell/noir/NoirToast';
+import { strings } from '../constants/strings';
 import { SearchResult, VerifiedArtist } from '../types';
 import { displayArtistName } from '../utils/stringUtils';
 import {
@@ -488,16 +489,18 @@ export function useSearchLogic({
             displayArtist.name
           );
         } else {
-          toast.error('No releases found', {
-            description: `Could not load tracks for ${displayArtist.name}. Try searching for a specific song.`,
+          noirToast({
+            text: strings.toast.noReleasesFound,
+            description: strings.toast.noReleasesForArtist(displayArtist.name),
           });
         }
       }
     } catch (error) {
       console.error('Failed to load artist profile:', error);
       if (generation === profileGenRef.current && !cached?.tracks.length) {
-        toast.error('Could not load artist', {
-          description: `Something went wrong while fetching releases for ${displayArtist.name}.`,
+        noirToast({
+          text: strings.toast.couldNotLoadArtist,
+          description: strings.toast.couldNotFetchArtist(displayArtist.name),
         });
         setArtistTracks([]);
       }
@@ -672,7 +675,7 @@ export function useSearchLogic({
     const nameTrimmed = displayArtistName(artistName);
     const wasTopic = /\btopic\b/i.test(artistName);
     if (!nameTrimmed || nameTrimmed === 'Unknown Artist' || nameTrimmed === 'Web Stream') {
-      toast.error('Invalid artist');
+      noirToast({ text: strings.toast.invalidArtist });
       return;
     }
 
@@ -793,8 +796,9 @@ export function useSearchLogic({
       targetSong = await resolveUrlToSearchResult(url);
     } catch (error) {
       console.error('Failed to resolve pasted URL:', error);
-      toast.error('Could not load link', {
-        description: 'Check the URL and try again.',
+      noirToast({
+        text: strings.toast.couldNotLoadLink,
+        description: strings.toast.checkUrlAndRetry,
       });
       return;
     }

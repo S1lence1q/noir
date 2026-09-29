@@ -13,7 +13,7 @@ import {
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
-import { toast } from '../../../utils/toast';
+import { noirToast } from './NoirToast';
 import { NoirMark } from './NoirMark';
 
 type NoirSearchPaletteProps = {
@@ -143,7 +143,7 @@ export function NoirSearchPalette({
       } catch {
         if (req !== requestIdRef.current) return;
         setResults([]);
-        toast.error('Could not load link');
+        noirToast({ text: strings.toast.couldNotLoadLink });
       } finally {
         if (req === requestIdRef.current) setIsSearching(false);
       }
