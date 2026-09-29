@@ -328,7 +328,7 @@ export const strings = {
     emptyTitle: 'Your sound is empty',
     emptyBody: 'Play a few songs — minutes, rankings, and Replay show up here.',
     replayEyebrow: 'NOIR Replay',
-    replayHint: 'Last month, as five Bone cards.',
+    replayHint: 'Last month in five cards.',
     openReplay: 'Open Replay',
     closeReplay: 'Close Replay',
     replayPrev: 'Back',

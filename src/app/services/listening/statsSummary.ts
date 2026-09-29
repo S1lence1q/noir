@@ -174,7 +174,7 @@ export function buildMonthlyReplayCards(
     body:
       stats.streak > 1
         ? `You showed up ${stats.streak} days in a row. See you next month.`
-        : 'Same place next month — your sound, on Bone.',
+        : 'Same place next month.',
     seed: `${seedBase}-close`,
   });
 

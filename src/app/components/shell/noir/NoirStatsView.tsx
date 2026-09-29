@@ -23,7 +23,7 @@ import { worldForCollection } from '../../../utils/ditherCover';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
 import { NoirArtwork } from './NoirArtwork';
-import { NoirIdentityCover } from './NoirIdentityCover';
+import { renderHeatFigure } from '../../../utils/heatFigure';
 import { NoirGraphicAccent } from './NoirGraphicAccent';
 import { NoirHeatWeek, heatWeekNodeX } from './NoirHeatWeek';
 import { NoirHalftoneClock } from './NoirHalftoneClock';
@@ -78,12 +78,33 @@ function lastSevenDays(events: ReadonlyArray<ListeningEvent>) {
 
 const CLOCK_MARKS = [0, 6, 12, 18];
 
+/** Minutes listened across a calendar month (0-based, like MonthStats), in ten beats, first first. */
+function monthDayMinutes(events: ReadonlyArray<ListeningEvent>, year: number, month: number) {
+  const days = new Date(year, month + 1, 0).getDate();
+  const minutes = Array.from({ length: days }, () => 0);
+  for (const e of events) {
+    if (e.source === 'seed') continue;
+    const d = new Date(e.startedAt);
+    if (d.getFullYear() === year && d.getMonth() === month) minutes[d.getDate() - 1] += e.listenedMs / 60_000;
+  }
+  // Folded into ~3-day beats: thirty beads would melt into one mass at card size.
+  const beats = 10;
+  return Array.from({ length: beats }, (_, i) =>
+    minutes.slice(Math.floor((i * days) / beats), Math.floor(((i + 1) * days) / beats)).reduce((a, b) => a + b, 0)
+  );
+}
+
 export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsViewProps) {
   const [events, setEvents] = useState<ListeningEvent[] | null>(null);
   const [artistImages, setArtistImages] = useState<Record<string, string>>({});
   const [trackImages, setTrackImages] = useState<Record<string, string>>({});
   const [replayOpen, setReplayOpen] = useState(false);
-  const [replayCards, setReplayCards] = useState<ReplayCard[] | null>(null);
+  const [replay, setReplay] = useState<{
+    cards: ReplayCard[];
+    days: number[];
+    artistImage?: string;
+    trackImage?: string;
+  } | null>(null);
 
   const pool = useMemo(() => localPool(favorites, recentTracks), [favorites, recentTracks]);
 
@@ -171,9 +192,23 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
   }, [summary, pool]);
 
   const openReplay = () => {
-    if (!summary?.replay) return;
-    setReplayCards(summary.replay.cards);
+    if (!summary?.replay || !events) return;
+    const { month, cards } = summary.replay;
+    const next = { cards, days: monthDayMinutes(events, month.year, month.month) };
+    setReplay(next);
     setReplayOpen(true);
+    // Last month's #1s, not this month's: resolve their pictures while the intro card shows.
+    void (async () => {
+      const artist = month.topArtist?.artist;
+      const track = month.topTrack;
+      const [artistImage, trackImage] = await Promise.all([
+        artist ? localArtistThumb(artist, pool) ?? getArtistImage(artist) : undefined,
+        track ? localTrackThumb(track, pool) ?? getTrackImage(track.title, track.artist) : undefined,
+      ]);
+      setReplay((current) =>
+        current?.cards === cards ? { ...current, artistImage: artistImage ?? undefined, trackImage: trackImage ?? undefined } : current
+      );
+    })();
   };
 
   if (events === null) {
@@ -198,8 +233,6 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
     );
   }
 
-  const topArtist = summary.artists[0] ?? null;
-  const heroSource = topArtist ? artistImages[topArtist.artist] : undefined;
 
   return (
     <>
@@ -239,10 +272,11 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
 
         {summary.replay && (
           <section className="noir-stats-replay-cta">
-            <NoirIdentityCover
-              world="moss"
-              size={88}
+            <img
+              src={renderHeatFigure(`replay-${summary.replay.month.label}`, summary.replay.month.playCount, 'ember', 176)}
+              alt=""
               className="noir-stats-replay-art"
+              draggable={false}
             />
             <div className="min-w-0 flex-1">
               <p className="noir-stats-eyebrow">{strings.stats.replayEyebrow}</p>
@@ -370,10 +404,13 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
       </div>
 
       <AnimatePresence>
-        {replayOpen && replayCards && (
+        {replayOpen && replay && summary?.replay && (
           <NoirReplayStory
-            cards={replayCards}
-            coverSource={heroSource}
+            cards={replay.cards}
+            month={summary.replay.month}
+            monthDays={replay.days}
+            artistImage={replay.artistImage}
+            trackImage={replay.trackImage}
             onClose={() => setReplayOpen(false)}
           />
         )}

@@ -3785,6 +3785,9 @@ button.noir-now-playing-source:hover {
 
 .noir-stats-replay-art {
   flex-shrink: 0;
+  width: 88px;
+  height: 88px;
+  border-radius: var(--noir-radius-sm);
 }
 
 .noir-stats-replay-cta .noir-stats-eyebrow {
@@ -4154,52 +4157,80 @@ button.noir-now-playing-source:hover {
 }
 
 .noir-replay-card {
+  position: relative;
   width: min(360px, 100%);
-  min-height: 440px;
-  padding: 28px 28px 32px;
+  aspect-ratio: 4 / 5; /* same shape as the saved 1080×1350 image */
   border-radius: var(--noir-radius-lg);
-  background: #ede8de;
-  color: #0b0b0b;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  transition: background-color 0.3s ease;
+}
+
+.noir-replay-wordmark {
+  position: absolute;
+  z-index: 1;
+  top: 18px;
+  right: 20px;
+  font: var(--noir-type-label);
+  letter-spacing: 0.1em;
+  opacity: 0.5;
 }
 
 .noir-replay-card-art {
   position: relative;
-  width: 220px;
-  height: 220px;
-  margin-bottom: 28px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 20px;
 }
 
-.noir-replay-card-mark {
+.noir-replay-art-fill {
   position: absolute;
-  right: 12px;
-  bottom: 12px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.noir-replay-art-clock {
+  width: 236px;
+  height: 236px;
+}
+
+.noir-replay-card-art .noir-replay-art-cover {
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.noir-replay-copy {
+  position: relative;
+  padding: 0 26px 28px;
 }
 
 .noir-replay-eyebrow {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   font: var(--noir-type-label);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(11, 11, 11, 0.45);
+  opacity: 0.6;
 }
 
 .noir-replay-headline {
   margin: 0;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 600;
   letter-spacing: -0.03em;
-  line-height: 1.15;
-  color: #0b0b0b;
+  line-height: 1.12;
 }
 
 .noir-replay-body {
-  margin: 14px 0 0;
+  margin: 10px 0 0;
   font-size: 15px;
   line-height: 1.45;
-  color: rgba(11, 11, 11, 0.62);
+  opacity: 0.72;
 }
 
 .noir-replay-actions {

@@ -49,7 +49,7 @@ function catmull(points: Pt[], steps = 14): Pt[] {
   return out;
 }
 
-function render(canvas: HTMLCanvasElement, values: number[], seed: string) {
+function render(canvas: HTMLCanvasElement, values: number[], seed: string, span: [number, number]) {
   const cssW = canvas.clientWidth;
   const cssH = canvas.clientHeight;
   if (!cssW || !cssH) return false;
@@ -76,14 +76,18 @@ function render(canvas: HTMLCanvasElement, values: number[], seed: string) {
 
   const max = Math.max(1, ...values);
   const norm = values.map((v) => Math.sqrt(Math.max(0, v) / max));
+  // A month has four times the beads of a week: shrink them so days stay days, not one mass.
+  const beadScale = Math.min(1, Math.sqrt(7 / Math.max(1, values.length)) * 1.15);
+  const spacing = (w * (span[1] - span[0])) / Math.max(1, values.length - 1);
   const nodes = norm.map((n, i) => ({
-    x: w * heatWeekNodeX(i, values.length),
+    x: w * (span[0] + ((span[1] - span[0]) * i) / Math.max(1, values.length - 1)),
     y: h * (0.6 - 0.27 * n),
     // Every day is a bead on the line; days you listened swell.
-    r: h * (n > 0 ? 0.055 + 0.125 * n : 0.032),
+    // Never wider than the gap to the next day, so each day stays its own bead.
+    r: Math.min(h * beadScale * (n > 0 ? 0.055 + 0.125 * n : 0.032), spacing * 0.42),
   }));
   const path = catmull([
-    { x: w * 0.4, y: h * 0.72 },
+    { x: w * (span[0] - 0.07), y: h * 0.72 },
     ...nodes,
     { x: w * 1.08, y: h * (0.5 - 0.1 * (norm[norm.length - 1] ?? 0)) },
   ]);
@@ -104,7 +108,18 @@ function render(canvas: HTMLCanvasElement, values: number[], seed: string) {
   return true;
 }
 
-export function NoirHeatWeek({ values, seed, className }: { values: number[]; seed: string; className?: string }) {
+export function NoirHeatWeek({
+  values,
+  seed,
+  className,
+  span = [HEAT_WEEK_X0, HEAT_WEEK_X1],
+}: {
+  values: number[];
+  seed: string;
+  className?: string;
+  /** Where the first and last day sit, as fractions of the width. */
+  span?: [number, number];
+}) {
   const ref = useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = useState(false);
   const key = values.join(',');
@@ -117,7 +132,7 @@ export function NoirHeatWeek({ values, seed, className }: { values: number[]; se
     const draw = () => {
       if (canvas.clientWidth === lastW) return;
       lastW = canvas.clientWidth;
-      if (render(canvas, values, seed)) setReady(true);
+      if (render(canvas, values, seed, span)) setReady(true);
     };
     draw();
     const observer = new ResizeObserver(() => {
