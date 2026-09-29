@@ -9,7 +9,7 @@ import { COLOR_WORLDS, hashString, worldForTag, type ColorWorld } from '../../..
  */
 
 export type MixSymbol =
-  | 'asterisk'
+  | 'you'
   | 'chain'
   | 'bolt'
   | 'cross'
@@ -26,7 +26,7 @@ export type MixSymbol =
 type Resolved = { symbol: MixSymbol; world: ColorWorld };
 
 const RULES: { test: RegExp; symbol: MixSymbol; world?: ColorWorld }[] = [
-  { test: /for you|daily|made for|discover/, symbol: 'asterisk' },
+  { test: /for you|daily|made for|discover/, symbol: 'you', world: 'bone' },
   { test: /danish|dansk|denmark|danmark/, symbol: 'cross', world: 'ember' },
   { test: /swedish|svensk|sweden/, symbol: 'cross', world: 'cobalt' },
   { test: /norwegian|norsk|norway|finnish|suomi|nordic|scandi/, symbol: 'cross', world: 'moss' },
@@ -46,7 +46,7 @@ export function resolveMixCover(tagOrName: string): Resolved {
   const tag = tagOrName.toLowerCase().replace(/\s+mix$/, '').trim();
   const rule = RULES.find((r) => r.test.test(tag));
   if (!rule) return { symbol: 'sibling', world: worldForTag(tag) };
-  return { symbol: rule.symbol, world: rule.world ?? (rule.symbol === 'asterisk' ? 'ember' : worldForTag(tag)) };
+  return { symbol: rule.symbol, world: rule.world ?? worldForTag(tag) };
 }
 
 /** Black on warm fields, bone on dark ones — never a second colour. */
@@ -81,13 +81,12 @@ function sibling(seed: string) {
 
 function shape(symbol: MixSymbol, seed: string, ink: string, id: string): ReactNode {
   switch (symbol) {
-    case 'asterisk':
+    case 'you':
+      // "You are here": a ring with you in the middle. The asterisk stays Favorites'.
       return (
         <>
-          {[-90, -17, 55, 127, 199].map((angle, i) => (
-            <rect key={angle} x={50 - 10.5} y={50 - (45 + (i % 2))} width={21} height={45 + (i % 2)} rx={6} transform={`rotate(${angle + 90} 50 50)`} />
-          ))}
-          <circle cx="50" cy="50" r="13" />
+          <circle cx="50" cy="50" r="36" fill="none" stroke={ink} strokeWidth="13" />
+          <circle cx="50" cy="50" r="12" />
         </>
       );
     case 'chain':
@@ -100,11 +99,12 @@ function shape(symbol: MixSymbol, seed: string, ink: string, id: string): ReactN
     case 'bolt':
       return <path d="M60 6 L22 56 L46 56 L36 94 L80 40 L55 40 L68 6 Z" />;
     case 'cross':
-      // The Nordic cross runs to the cover's edges, bar off-centre like the flag.
+      // The Nordic cross runs edge to edge (contained, it reads as a plus sign), but thin, so it
+      // doesn't shout louder than the other covers. Bar off-centre like the flag.
       return (
         <>
-          <rect x="-10" y="41" width="120" height="18" />
-          <rect x="30" y="-10" width="18" height="120" />
+          <rect x="-10" y="44" width="120" height="11" />
+          <rect x="31" y="-10" width="11" height="120" />
         </>
       );
     case 'moon':
@@ -205,7 +205,7 @@ export function NoirMixCover({ tag, size, radius, className = '' }: NoirMixCover
         {spray && (
           <defs>
             <filter id={filterId} x="-25%" y="-25%" width="150%" height="150%">
-              <feGaussianBlur in="SourceAlpha" stdDeviation={fullBleed ? 1.4 : 2.4} result="soft" />
+              <feGaussianBlur in="SourceAlpha" stdDeviation={fullBleed ? 1.2 : 2.4} result="soft" />
               <feTurbulence type="fractalNoise" baseFrequency="1.8" numOctaves="1" seed="7" result="noise" />
               <feComposite in="soft" in2="noise" operator="arithmetic" k2="1" k3="0.55" k4="-0.42" result="mixed" />
               <feComponentTransfer in="mixed" result="grain">
@@ -226,7 +226,7 @@ export function NoirMixCover({ tag, size, radius, className = '' }: NoirMixCover
 
 /** Dev check: every symbol on its field. `?covers` on Home. */
 export function NoirMixCoverGallery() {
-  const samples = ['For you', 'Rap', 'Rock', 'Danish', 'Swedish', 'Lo Fi', 'Dream Pop', 'Pop', 'Electronic', 'Jazz', 'Soul', 'Indie', 'Metal', 'Reggae', 'Classical'];
+  const samples = ['For You', 'Rap', 'Rock', 'Danish', 'Swedish', 'Lo Fi', 'Dream Pop', 'Pop', 'Electronic', 'Jazz', 'Soul', 'Indie', 'Metal', 'Reggae', 'Classical'];
   return (
     <div className="noir-mix-gallery">
       {samples.map((name) => (
