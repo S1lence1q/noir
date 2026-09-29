@@ -51,7 +51,9 @@ Phase A notes: Library root is now the collection grid (Favorites card first); F
 ### Phase B — Now Playing
 - [x] 🔴 Lyrics ↔ queue flow (D2). Lyrics + Next up are two toggles side by side in the bar (quote / list icons, shared on-state). Rail animates width (spring), cover shrinks via CSS width transition, exclusive only below 1200px.
 - [ ] 🟡 Canvas with lyrics and rail both closed: cover hugs the left, right 2/3 empty. Recompose (centre the identity or scale the cover up).
-- [ ] ⚪ Atmosphere A/B: owner likes the glow (kept as default). `?atmosphere=grain` = hue-kept ordered-dither field of the cover; `?atmosphere=glow` switches back. Owner decides.
+- [ ] ⚪ Atmosphere: keep both. Glow default, grain via `?atmosphere=grain`. Later: expose as a Settings choice (Settings pass).
+- [x] 🔴 Lyrics started mid-song then jumped back on a new track (stale currentTime from the previous song). Index now waits until playback is near 0 (2 s grace for mid-song restore).
+- [x] 🔴 Some songs out of sync: lrclib's first hit is often another version (e.g. 303 s vs the playing 262 s). Now picks the version closest in length (±5 s); none close → plain text instead of wrong timing.
 - [x] 🔴 Cover hopped mid-animation when hiding lyrics: stage row re-anchored (center → flex-start) while lyrics were still exiting. Row now always centred; title size transitions.
 - [x] 🔴 Lyrics mode closed itself on every song change (`useLyrics` reset `showLyrics`) and the column unmounted while loading → stage collapsed/re-opened each track. Mode now survives song changes; column stays and shows skeleton / empty state.
 - [ ] 🔴 (parked — ~1/100, no repro) Cover flight occasionally lands in the wrong place when closing the canvas. Repro needed (note: page, scroll, whether compact bar was mid-animation).

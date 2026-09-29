@@ -297,7 +297,7 @@ export default function App() {
     isLoadingLyrics,
     currentLyricIndex,
     isLyricsSynced,
-  } = useLyrics(songData ?? EMPTY_LYRICS_SONG, shellPlayback.currentTime);
+  } = useLyrics(songData ?? EMPTY_LYRICS_SONG, shellPlayback.currentTime, shellPlayback.duration);
 
   const [sidePanelOpen, setSidePanelOpen] = useState(() => {
     try {

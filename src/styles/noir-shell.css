@@ -1634,15 +1634,16 @@ button.noir-now-playing-source:hover {
 
 .noir-lyrics-gap.is-active i {
   background: var(--noir-text-primary);
-  animation: noir-lyrics-breathe 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation: noir-lyrics-breathe 2.8s cubic-bezier(0.37, 0, 0.63, 1) infinite;
 }
 
-.noir-lyrics-gap.is-active i:nth-child(2) { animation-delay: 0.2s; }
-.noir-lyrics-gap.is-active i:nth-child(3) { animation-delay: 0.4s; }
+.noir-lyrics-gap.is-active i:nth-child(2) { animation-delay: 0.35s; }
+.noir-lyrics-gap.is-active i:nth-child(3) { animation-delay: 0.7s; }
 
 @keyframes noir-lyrics-breathe {
-  0%, 100% { transform: scale(0.8); opacity: 0.55; }
-  50% { transform: scale(1.15); opacity: 1; }
+  /* A slow breath, not a loading spinner. */
+  0%, 100% { transform: scale(0.92); opacity: 0.4; }
+  50% { transform: scale(1.04); opacity: 0.9; }
 }
 
 .noir-lyrics-skeleton {
