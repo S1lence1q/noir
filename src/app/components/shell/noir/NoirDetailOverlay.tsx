@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { X } from 'lucide-react';
+import { MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 
 type NoirDetailOverlayProps = {
   children: ReactNode;
@@ -9,12 +10,20 @@ type NoirDetailOverlayProps = {
 };
 
 export function NoirDetailOverlay({ children, onClose, title }: NoirDetailOverlayProps) {
+  const reduced = prefersReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.22 }}
+      // A page laid on top: settles in from just below, and on close slides down and away
+      // so the page underneath is what you land on.
+      initial={reduced ? { opacity: 0 } : { opacity: 0, y: 28, scale: 0.985 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={
+        reduced
+          ? { opacity: 0, transition: { duration: 0.15 } }
+          : { opacity: 0, y: 36, scale: 0.985, transition: { duration: 0.26, ease: [0.4, 0, 0.9, 0.6] } }
+      }
+      transition={reduced ? { duration: 0.15 } : { ...MOTION.settle, opacity: { duration: 0.22 } }}
+      style={{ transformOrigin: '50% 0%' }}
       className="absolute inset-0 z-40 flex flex-col bg-black"
     >
       <header className="flex shrink-0 items-center justify-between gap-4 px-5 py-4">

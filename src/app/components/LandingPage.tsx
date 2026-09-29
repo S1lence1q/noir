@@ -304,155 +304,86 @@ export function LandingPage({
     if (selectedPlaylist) setTopOverlay('playlist');
   }, [selectedPlaylist?.id]);
 
+  const artistOverlay = selectedArtist && (
+
+            <NoirDetailOverlay
+              key="artist"
+              onClose={() => {
+                setSelectedArtist(null);
+                setArtistTracks([]);
+                setArtistCandidates?.(null);
+              }}
+            >
+              <NoirArtistView
+                artist={selectedArtist}
+                tracks={artistTracks}
+                isLoading={isLoadingArtist}
+                favorites={favorites}
+                onSelectSong={handleSelectSong}
+                onAddToQueue={handleAddToQueue}
+                onPlayNext={handlePlayNext}
+                onToggleFavorite={handleToggleFavorite}
+                onPlayAll={() => {
+                  if (artistTracks.length > 0) {
+                    handlePlayPlaylist(artistTracks, strings.artist.popular);
+                  }
+                }}
+                onPlayFromIndex={(index) => {
+                  if (artistTracks.length > 0) {
+                    handlePlayPlaylist(artistTracks, strings.artist.popular, index);
+                  }
+                }}
+                onStartRadio={handleStartRadio}
+                candidates={artistCandidates}
+                onPickCandidate={handlePickArtistCandidate}
+                onSelectArtist={handleViewArtistProfile}
+                onPlayAlbum={async (album) => {
+                  const tracks = await getAlbumTracks(album.id);
+                  const searchResults = tracks.map((t) => graphTrackToSearchResult(t, `album:${album.id}`));
+                  if (searchResults.length > 0) {
+                    handlePlayPlaylist(searchResults, album.title);
+                  }
+                }}
+                onSelectAlbum={async (album) => {
+                  const tracks = await getAlbumTracks(album.id);
+                  const searchResults = tracks.map((t) => graphTrackToSearchResult(t, `album:${album.id}`));
+                  setSelectedPlaylist({
+                    id: `album:${album.id}`,
+                    name: album.title,
+                    description: `${album.artist}${album.year ? ` · ${album.year}` : ''}`,
+                    tracks: searchResults,
+                    thumbnail: album.image || '',
+                    accent: 'ember',
+                  });
+                }}
+              />
+            </NoirDetailOverlay>
+  );
+  const playlistOverlay = selectedPlaylist && (
+
+            <NoirDetailOverlay key="playlist" title={selectedPlaylist.name} onClose={() => setSelectedPlaylist(null)}>
+              <NoirPlaylistView
+                playlist={selectedPlaylist}
+                favorites={favorites}
+                onSelectSong={handleSelectSong}
+                onAddToQueue={handleAddToQueue}
+                onPlayPlaylist={handlePlayPlaylist}
+                onPlayNext={handlePlayNext}
+                onToggleFavorite={handleToggleFavorite}
+              />
+            </NoirDetailOverlay>
+  );
+
   if (shellMode) {
     return (
       <div className="relative h-full w-full">
         {/* Overlays stack by recency: whatever was opened last sits on top (artist from a mix,
             album from an artist). Closing the top one reveals the one beneath. */}
+        {/* Overlays stack by recency: whatever was opened last sits on top (artist from a mix,
+            album from an artist). Closing the top one reveals the one beneath.
+            Keyed elements directly under AnimatePresence (no fragment) so each keeps its exit. */}
         <AnimatePresence>
-          {topOverlay === 'artist' ? (
-            <>
-          {selectedPlaylist && (
-            <NoirDetailOverlay key="playlist" title={selectedPlaylist.name} onClose={() => setSelectedPlaylist(null)}>
-              <NoirPlaylistView
-                playlist={selectedPlaylist}
-                favorites={favorites}
-                onSelectSong={handleSelectSong}
-                onAddToQueue={handleAddToQueue}
-                onPlayPlaylist={handlePlayPlaylist}
-                onPlayNext={handlePlayNext}
-                onToggleFavorite={handleToggleFavorite}
-              />
-            </NoirDetailOverlay>
-          )}
-          {selectedArtist && (
-            <NoirDetailOverlay
-              key="artist"
-              onClose={() => {
-                setSelectedArtist(null);
-                setArtistTracks([]);
-                setArtistCandidates?.(null);
-              }}
-            >
-              <NoirArtistView
-                artist={selectedArtist}
-                tracks={artistTracks}
-                isLoading={isLoadingArtist}
-                favorites={favorites}
-                onSelectSong={handleSelectSong}
-                onAddToQueue={handleAddToQueue}
-                onPlayNext={handlePlayNext}
-                onToggleFavorite={handleToggleFavorite}
-                onPlayAll={() => {
-                  if (artistTracks.length > 0) {
-                    handlePlayPlaylist(artistTracks, strings.artist.popular);
-                  }
-                }}
-                onPlayFromIndex={(index) => {
-                  if (artistTracks.length > 0) {
-                    handlePlayPlaylist(artistTracks, strings.artist.popular, index);
-                  }
-                }}
-                onStartRadio={handleStartRadio}
-                candidates={artistCandidates}
-                onPickCandidate={handlePickArtistCandidate}
-                onSelectArtist={handleViewArtistProfile}
-                onPlayAlbum={async (album) => {
-                  const tracks = await getAlbumTracks(album.id);
-                  const searchResults = tracks.map((t) => graphTrackToSearchResult(t, `album:${album.id}`));
-                  if (searchResults.length > 0) {
-                    handlePlayPlaylist(searchResults, album.title);
-                  }
-                }}
-                onSelectAlbum={async (album) => {
-                  const tracks = await getAlbumTracks(album.id);
-                  const searchResults = tracks.map((t) => graphTrackToSearchResult(t, `album:${album.id}`));
-                  setSelectedPlaylist({
-                    id: `album:${album.id}`,
-                    name: album.title,
-                    description: `${album.artist}${album.year ? ` · ${album.year}` : ''}`,
-                    tracks: searchResults,
-                    thumbnail: album.image || '',
-                    accent: 'ember',
-                  });
-                }}
-              />
-            </NoirDetailOverlay>
-          )}
-
-            </>
-          ) : (
-            <>
-          {selectedArtist && (
-            <NoirDetailOverlay
-              key="artist"
-              onClose={() => {
-                setSelectedArtist(null);
-                setArtistTracks([]);
-                setArtistCandidates?.(null);
-              }}
-            >
-              <NoirArtistView
-                artist={selectedArtist}
-                tracks={artistTracks}
-                isLoading={isLoadingArtist}
-                favorites={favorites}
-                onSelectSong={handleSelectSong}
-                onAddToQueue={handleAddToQueue}
-                onPlayNext={handlePlayNext}
-                onToggleFavorite={handleToggleFavorite}
-                onPlayAll={() => {
-                  if (artistTracks.length > 0) {
-                    handlePlayPlaylist(artistTracks, strings.artist.popular);
-                  }
-                }}
-                onPlayFromIndex={(index) => {
-                  if (artistTracks.length > 0) {
-                    handlePlayPlaylist(artistTracks, strings.artist.popular, index);
-                  }
-                }}
-                onStartRadio={handleStartRadio}
-                candidates={artistCandidates}
-                onPickCandidate={handlePickArtistCandidate}
-                onSelectArtist={handleViewArtistProfile}
-                onPlayAlbum={async (album) => {
-                  const tracks = await getAlbumTracks(album.id);
-                  const searchResults = tracks.map((t) => graphTrackToSearchResult(t, `album:${album.id}`));
-                  if (searchResults.length > 0) {
-                    handlePlayPlaylist(searchResults, album.title);
-                  }
-                }}
-                onSelectAlbum={async (album) => {
-                  const tracks = await getAlbumTracks(album.id);
-                  const searchResults = tracks.map((t) => graphTrackToSearchResult(t, `album:${album.id}`));
-                  setSelectedPlaylist({
-                    id: `album:${album.id}`,
-                    name: album.title,
-                    description: `${album.artist}${album.year ? ` · ${album.year}` : ''}`,
-                    tracks: searchResults,
-                    thumbnail: album.image || '',
-                    accent: 'ember',
-                  });
-                }}
-              />
-            </NoirDetailOverlay>
-          )}
-
-          {selectedPlaylist && (
-            <NoirDetailOverlay key="playlist" title={selectedPlaylist.name} onClose={() => setSelectedPlaylist(null)}>
-              <NoirPlaylistView
-                playlist={selectedPlaylist}
-                favorites={favorites}
-                onSelectSong={handleSelectSong}
-                onAddToQueue={handleAddToQueue}
-                onPlayPlaylist={handlePlayPlaylist}
-                onPlayNext={handlePlayNext}
-                onToggleFavorite={handleToggleFavorite}
-              />
-            </NoirDetailOverlay>
-          )}
-            </>
-          )}
+          {(topOverlay === 'artist' ? [playlistOverlay, artistOverlay] : [artistOverlay, playlistOverlay])}
         </AnimatePresence>
 
         <motion.div
