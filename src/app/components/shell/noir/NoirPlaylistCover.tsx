@@ -16,7 +16,11 @@ export function NoirPlaylistCover({ playlistId, trackCount, size, radius, classN
   const dpr = typeof window !== 'undefined' ? Math.min(2, window.devicePixelRatio || 1) : 1;
   const px = Math.round(Math.max(size, 22) * dpr);
   const world = worldForCollection(playlistId);
-  const url = useMemo(() => renderHeatFigure(playlistId, trackCount, world, px), [playlistId, trackCount, world, px]);
+  const compact = size < 48;
+  const url = useMemo(
+    () => renderHeatFigure(playlistId, trackCount, world, px, compact),
+    [playlistId, trackCount, world, px, compact]
+  );
 
   return (
     <span

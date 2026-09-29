@@ -33,9 +33,16 @@ export function heatFigureLimbs(trackCount: number) {
   return trackCount <= 0 ? 0 : Math.min(6, 1 + Math.floor((trackCount - 1) / 3));
 }
 
-export function renderHeatFigure(seed: string, trackCount: number, world: ColorWorld, px: number): string {
+/** `compact`: thumbnail sizes (sidebar), where the figure fills more of the frame so it reads as art, not an icon. */
+export function renderHeatFigure(
+  seed: string,
+  trackCount: number,
+  world: ColorWorld,
+  px: number,
+  compact = false
+): string {
   const limbs = heatFigureLimbs(trackCount);
-  const key = `${seed}|${limbs}|${world}|${px}`;
+  const key = `${seed}|${limbs}|${world}|${px}|${compact ? 'c' : ''}`;
   const cached = imageCache.get(key);
   if (cached) return cached;
 
@@ -46,7 +53,7 @@ export function renderHeatFigure(seed: string, trackCount: number, world: ColorW
   if (!sx) return '';
   sx.fillStyle = '#000';
   sx.fillRect(0, 0, px, px);
-  sx.filter = `blur(${Math.max(1, px * 0.045)}px)`;
+  sx.filter = `blur(${Math.max(1, px * (compact ? 0.06 : 0.045))}px)`;
   sx.fillStyle = '#fff';
   sx.strokeStyle = '#fff';
   sx.lineCap = 'round';
@@ -70,11 +77,16 @@ export function renderHeatFigure(seed: string, trackCount: number, world: ColorW
     const mx = ex / 2 + Math.cos(angle + Math.PI / 2) * length * bend * 0.35;
     const my = ey / 2 + Math.sin(angle + Math.PI / 2) * length * bend * 0.35;
     return { ex, ey, mx, my, hand };
-  }).slice(0, limbs);
+  });
+  // An empty playlist is an egg with a nub (a perfect circle reads as a button), not a limb yet.
+  const egg = plan[0];
+  const shown = limbs === 0
+    ? [{ ex: egg.ex * 0.95, ey: egg.ey * 0.95, mx: egg.ex * 0.5, my: egg.ey * 0.5, hand: false }]
+    : plan.slice(0, limbs);
 
   const reach = bodyR * bodyStretch;
   let minX = -reach, maxX = reach, minY = -reach, maxY = reach;
-  for (const limb of plan) {
+  for (const limb of shown) {
     // Curve midpoint (not the control point) plus the tip, padded by the stroke / hand.
     const qx = limb.mx / 2 + limb.ex / 4;
     const qy = limb.my / 2 + limb.ey / 4;
@@ -85,7 +97,7 @@ export function renderHeatFigure(seed: string, trackCount: number, world: ColorW
       maxY = Math.max(maxY, y + 0.06);
     }
   }
-  const fit = Math.min(1, 0.74 / Math.max(maxX - minX, maxY - minY));
+  const fit = Math.min(1.3, (compact ? 1 : 0.74) / Math.max(maxX - minX, maxY - minY));
   const scale = px * fit;
   sx.setTransform(scale, 0, 0, scale, px / 2 - ((minX + maxX) / 2) * scale, px / 2 - ((minY + maxY) / 2) * scale);
 
@@ -93,7 +105,7 @@ export function renderHeatFigure(seed: string, trackCount: number, world: ColorW
   sx.ellipse(0, 0, bodyR, bodyR * bodyStretch, bodyTilt, 0, Math.PI * 2);
   sx.fill();
   sx.lineWidth = 0.078;
-  for (const limb of plan) {
+  for (const limb of shown) {
     sx.beginPath();
     sx.moveTo(0, 0);
     sx.quadraticCurveTo(limb.mx, limb.my, limb.ex, limb.ey);
