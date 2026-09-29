@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import type { SearchResult } from '../../../types';
-import { hashString, worldForCollection, type ColorWorld } from '../../../utils/ditherCover';
+import { hashString, type ColorWorld } from '../../../utils/ditherCover';
 import { HEAT_RAMPS, renderHeatFigure } from '../../../utils/heatFigure';
 import { NoirMark } from './NoirMark';
 
@@ -15,15 +15,35 @@ import { NoirMark } from './NoirMark';
 
 export type HomeHeroVariant = '1' | '2' | '3';
 
-/** Ink would vanish on the black page; the hero uses cobalt for those artists instead. */
+const HERO_WORLDS: ColorWorld[] = ['cobalt', 'ember', 'moss', 'rose', 'bone'];
+
+/** Each song gets its own field from the full palette (per artist, most days were one colour). */
 export function heroWorld(track: SearchResult): ColorWorld {
-  const world = worldForCollection(track.artist || track.id);
-  return world === 'ink' ? 'cobalt' : world;
+  // FNV-1a + a final avalanche: similar ids (apple_dk_67…) must not cluster on one colour.
+  const key = `hero:${track.id || `${track.artist}::${track.title}`}`;
+  let h = 0x811c9dc5;
+  for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), 0x01000193);
+  h ^= h >>> 16;
+  h = Math.imul(h, 0x85ebca6b);
+  h ^= h >>> 13;
+  h = Math.imul(h, 0xc2b2ae35);
+  h ^= h >>> 16;
+  return HERO_WORLDS[(h >>> 0) % HERO_WORLDS.length];
 }
+
+/** The object's colour: a partner from the palette, so the banner is two colours, one shape. */
+export const heroMark: Record<ColorWorld, string> = {
+  cobalt: '#E07A9A',
+  ember: '#0B0B0B',
+  moss: '#EDE8DE',
+  rose: '#1F3FBF',
+  bone: '#E85002',
+  ink: '#EDE8DE',
+};
 
 /** The field colour matches the creature's own ramp, so the image sits seamlessly on the card. */
 export const heroField = (world: ColorWorld) => HEAT_RAMPS[world][0][1];
-export const heroInk = (world: ColorWorld) => (world === 'cobalt' ? '#F2EEE6' : '#0B0B0B');
+export const heroInk = (world: ColorWorld) => (world === 'cobalt' || world === 'moss' || world === 'ink' ? '#F2EEE6' : '#0B0B0B');
 
 const monogramCache = new Map<string, string>();
 
@@ -123,7 +143,7 @@ export function NoirHomeHero({
           transition={{ type: 'spring', stiffness: 220, damping: 24 }}
         >
           {variant === '2' ? (
-            <NoirMark size={Math.round(size * 0.72)} variant="spray" color={ink} />
+            <NoirMark size={Math.round(size * 0.72)} variant="spray" color={heroMark[world]} />
           ) : (
             <img src={src} alt="" draggable={false} />
           )}

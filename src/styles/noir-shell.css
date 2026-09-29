@@ -2654,30 +2654,9 @@ button.noir-now-playing-source:hover {
   }
 }
 
-/* Temporary switch for the hero candidates. */
-.noir-hero-switch {
-  position: absolute;
-  z-index: 2;
-  top: 16px;
-  right: 16px;
-  display: flex;
-  gap: 2px;
-  padding: 2px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.18);
-}
-
-.noir-hero-switch button {
-  width: 26px;
-  height: 22px;
-  border-radius: 999px;
-  font: var(--noir-type-label);
-  color: rgba(242, 238, 230, 0.55);
-}
-
-.noir-hero-switch button[aria-checked='true'] {
-  background: #f2eee6;
-  color: #0b0b0b;
+.noir-home-day[data-light] .noir-play-round {
+  background: #0b0b0b;
+  color: #f2eee6;
 }
 
 @media (max-width: 760px) {
