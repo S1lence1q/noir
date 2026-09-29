@@ -4740,3 +4740,9 @@ button.noir-now-playing-source:hover {
   translate: 0 -50%;
   transform-origin: 0 50%;
 }
+
+/* Vertical scrollers never pan sideways. overflow-y:auto computes x to auto too, so any bleed
+   (shelf edges, a long title) let the whole page be dragged left on touch. */
+.overflow-y-auto:not(.overflow-x-auto) {
+  overflow-x: hidden;
+}
