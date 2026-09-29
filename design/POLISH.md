@@ -106,14 +106,14 @@ Principle: motion explains cause → effect (where did it go, what changed). One
 
 - [x] 🟡 Phone artist hero: portrait on top fading into the colour field, name below it (was text across the face).
 - [x] 🟡 Song rows on touch/phone: hover-only actions reserved ≥ 96 px, so titles truncated at ~8 chars. Touch shows the always-visible More menu only; phone grid hugs it; duration hidden.
-- [x] ⚪ Phone Settings: slider rows collapsed the slider to 0 px beside the label; they now stack (label over a full-width slider).
+- [x] ⚪ Settings sliders collapsed to ~0 px at tablet and phone width (a % width inside a shrink-wrapped control). Real width now (260 px, shrinks); phone stacks label over slider.
 ### Phase G — Platform (broad pass)
 - [x] 🔴 Shortcut map promised ↑↓ volume, M mute, ←→ seek, Q queue — none were wired. Now: ←/→ seek 5 s, ⌘/Ctrl ←/→ prev/next, ⌘/Ctrl ↑/↓ volume (plain ↑/↓ keep scrolling), M mute, Q Next up, L lyrics; map rewritten to match. Relative `elva-seek-by` / `elva-volume-by` / `elva-toggle-mute` events in the core.
 - [x] ⚪ Shortcut map was the old Elva modal ("Elva Power-User Map", accent glows, 32 px radius). Rebuilt on the search palette's surface, grouped Playback / Now Playing / Go to.
 - [x] 🟡 Tab title shows the playing song ("Title · Artist", NOIR when paused); lock screen / OS media UI gets position (`setPositionState`).
 
 ### Later
-- [ ] T22 quiet tooltips (good delegation candidate once search bar lands).
+- [x] T22 quiet tooltips: one `NoirTooltipHost` (portal, 400 ms hover / instant keyboard focus, never touch, 40 ch). Every shell `title=` (34) moved to `data-tip` — no more native grey bubbles. Search ★ + File carry the ticket copy (`strings.tips`, no Apple Music mention). Sidebar rail items tip to the right only while labels are hidden (`data-tip-rail`).
 - [x] History in Library (D5): Library › History, every listen ≥ 20 s newest first, grouped Today / Yesterday / weekday / date, play count per day; rows play from that day onward; consecutive repeats collapse; seed listens excluded; "Show earlier" pages by 120. Verified: 22 rows, no consecutive repeats, a row plays with the rest of the day queued.
 - [ ] Global motion pass on `motionPresets.ts` (enter/exit/stagger consistency).
 

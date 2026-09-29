@@ -220,10 +220,9 @@ export function NoirSearchPalette({
               {isSearching ? (
                 <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[color:var(--noir-text-tertiary)]" />
               ) : (
-                <NoirMark
-                  size={11}
-                  className="shrink-0 text-[color:var(--noir-text-primary)]"
-                />
+                <span className="flex shrink-0" data-tip={strings.tips.search}>
+                  <NoirMark size={11} className="text-[color:var(--noir-text-primary)]" />
+                </span>
               )}
               <input
                 ref={inputRef}
@@ -260,7 +259,7 @@ export function NoirSearchPalette({
                     onClick={() => fileInputRef.current?.click()}
                     className="noir-search-palette-file elva-focus-ring"
                     aria-label="Upload audio"
-                    title="Upload audio"
+                    data-tip={strings.tips.uploadFile}
                   >
                     File
                   </button>
@@ -375,7 +374,7 @@ export function NoirSearchPalette({
                             onClick={() => onToggleFavorite(track)}
                             className="noir-search-row-action"
                             aria-label={liked ? 'Remove from favorites' : 'Add to favorites'}
-                            title={liked ? 'Remove from favorites' : 'Add to favorites'}
+                            data-tip={liked ? 'Remove from favorites' : 'Add to favorites'}
                           >
                             <Heart
                               className={`h-3.5 w-3.5 ${liked ? 'fill-current text-[color:var(--noir-accent)]' : ''}`}
@@ -388,7 +387,7 @@ export function NoirSearchPalette({
                           onClick={() => onAddToQueue(track)}
                           className="noir-search-row-action"
                           aria-label="Add to queue"
-                          title="Add to queue"
+                          data-tip="Add to queue"
                         >
                           <Plus className="h-3.5 w-3.5" strokeWidth={2} />
                         </button>
@@ -398,7 +397,7 @@ export function NoirSearchPalette({
                             onClick={() => onPlayNext(track)}
                             className="noir-search-row-action"
                             aria-label="Play next"
-                            title="Play next"
+                            data-tip="Play next"
                           >
                             <QueueNextIcon />
                           </button>

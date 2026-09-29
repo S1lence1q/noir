@@ -211,7 +211,7 @@ export function NoirUserPlaylistPage({
                     type="button"
                     onClick={() => setEditing(true)}
                     className="noir-collection-title text-left elva-focus-ring"
-                    title={strings.playlist.renameHint}
+                    data-tip={strings.playlist.renameHint}
                   >
                     {playlist.name}
                   </button>
@@ -240,7 +240,7 @@ export function NoirUserPlaylistPage({
                 onClick={() => onPlayPlaylist(shuffled(orderedTracks), playlist.name)}
                 className="noir-icon-button elva-focus-ring"
                 aria-label={strings.playlist.shuffle}
-                title={strings.playlist.shuffle}
+                data-tip={strings.playlist.shuffle}
               >
                 <Shuffle className="h-[18px] w-[18px]" strokeWidth={1.75} />
               </button>
@@ -419,7 +419,7 @@ function PlaylistTrackItem({
             onClick={onRemove}
             className="flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white"
             aria-label={strings.playlist.removeFromPlaylist}
-            title={strings.playlist.removeFromPlaylist}
+            data-tip={strings.playlist.removeFromPlaylist}
             onPointerDown={(e) => e.stopPropagation()}
           >
             <X className="h-4 w-4" strokeWidth={2} />
@@ -529,7 +529,7 @@ function PlaylistAddPanel({
             onClick={onClose}
             className="noir-icon-button !h-8 !w-8 elva-focus-ring"
             aria-label={strings.playlist.close}
-            title={strings.playlist.close}
+            data-tip={strings.playlist.close}
           >
             <X className="h-4 w-4" strokeWidth={1.75} />
           </button>
@@ -653,7 +653,7 @@ function AddRow({
         className="noir-add-icon elva-focus-ring"
         data-added={added ? 'true' : 'false'}
         aria-label={added ? strings.playlist.added : strings.playlist.add}
-        title={added ? strings.playlist.added : strings.playlist.add}
+        data-tip={added ? strings.playlist.added : strings.playlist.add}
         whileTap={added ? undefined : { scale: 0.88 }}
         transition={MOTION.tap}
       >

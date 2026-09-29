@@ -135,7 +135,7 @@ export function NoirRankedSongRow({
               onClick={() => onToggleFavorite(track)}
               className="flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white"
               aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-              title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+              data-tip={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             >
               <Heart
                 className={`h-4 w-4 ${isFavorite ? 'fill-current text-[color:var(--noir-accent)]' : ''}`}
@@ -150,7 +150,7 @@ export function NoirRankedSongRow({
             onClick={() => onAddToQueue(track)}
             className="flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white"
             aria-label="Add to queue"
-            title="Add to queue"
+            data-tip="Add to queue"
           >
             <Plus className="h-4 w-4" strokeWidth={2} />
           </button>

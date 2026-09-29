@@ -1941,7 +1941,14 @@ button.noir-now-playing-source:hover {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: min(100%, 260px);
+  /* A real width: a % inside a shrink-wrapped control resolved to ~0 and hid the slider. */
+  width: 260px;
+  max-width: 100%;
+}
+
+.noir-settings-row-control:has(.noir-settings-slider-wrap) {
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .noir-settings-slider {
@@ -4702,4 +4709,34 @@ button.noir-now-playing-source:hover {
 .noir-segmented-item[data-active='true'] {
   background: rgba(255, 255, 255, 0.14);
   color: var(--noir-text-primary);
+}
+
+/* T22 quiet tooltip (NoirTooltipHost). `translate` positions; motion owns `transform`. */
+.noir-tooltip {
+  position: fixed;
+  z-index: 13000;
+  max-width: 40ch;
+  padding: 6px 9px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--noir-elevated, #161616);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--noir-text-primary);
+  pointer-events: none;
+  white-space: normal;
+}
+.noir-tooltip[data-placement='top'] {
+  translate: -50% -100%;
+  transform-origin: 50% 100%;
+}
+.noir-tooltip[data-placement='bottom'] {
+  translate: -50% 0;
+  transform-origin: 50% 0;
+}
+.noir-tooltip[data-rail='true'] {
+  translate: 0 -50%;
+  transform-origin: 0 50%;
 }

@@ -349,7 +349,7 @@ export function NoirArtistView({
           <p className="noir-artist-hero-label">{strings.artist.label}</p>
           <h1
             className={`noir-artist-hero-name${artist.name.length > 16 ? ' is-long' : ''}`}
-            title={artist.name}
+            data-tip={artist.name}
           >
             {artist.name}
           </h1>
@@ -386,7 +386,7 @@ export function NoirArtistView({
               onClick={shuffleAll}
               className="noir-artist-icon elva-focus-ring"
               aria-label={strings.artist.shuffle}
-              title={strings.artist.shuffle}
+              data-tip={strings.artist.shuffle}
             >
               <Shuffle className="h-[18px] w-[18px]" strokeWidth={1.9} />
             </button>
@@ -400,7 +400,7 @@ export function NoirArtistView({
                 }}
                 className="noir-artist-icon elva-focus-ring"
                 aria-label={strings.artist.startRadio}
-                title={strings.artist.startRadio}
+                data-tip={strings.artist.startRadio}
               >
                 <Radio className="h-[18px] w-[18px]" strokeWidth={1.9} />
               </button>

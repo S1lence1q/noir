@@ -65,7 +65,7 @@ function HourStrip({ hours, peakHour }: { hours: number[]; peakHour: number }) {
           key={hour}
           className={`noir-stats-hour-dot${hour === peakHour && count > 0 ? ' is-peak' : ''}`}
           style={{ opacity: count === 0 ? 0.2 : 0.35 + (count / max) * 0.65 }}
-          title={`${formatHourLabel(hour)} · ${count}`}
+          data-tip={`${formatHourLabel(hour)} · ${count}`}
         />
       ))}
     </div>

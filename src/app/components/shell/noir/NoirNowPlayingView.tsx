@@ -393,7 +393,7 @@ export function NoirNowPlayingView({
                         type="button"
                         onClick={onOpenArtist}
                         className="noir-now-playing-artist !mt-0 text-left hover:underline elva-focus-ring rounded-sm"
-                        title={strings.songMenu.goToArtist}
+                        data-tip={strings.songMenu.goToArtist}
                       >
                         {song.artist}
                       </button>
@@ -406,7 +406,7 @@ export function NoirNowPlayingView({
                         onClick={onStartRadio}
                         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white elva-focus-ring"
                         aria-label={strings.songMenu.startRadio}
-                        title={strings.songMenu.startRadio}
+                        data-tip={strings.songMenu.startRadio}
                       >
                         <Radio className="h-4 w-4" strokeWidth={1.75} />
                       </button>
@@ -417,7 +417,7 @@ export function NoirNowPlayingView({
                         onClick={onToggleFavorite}
                         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white elva-focus-ring"
                         aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                        title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                        data-tip={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                       >
                         <Heart
                           className={`h-4 w-4 ${isFavorite ? 'fill-current text-[color:var(--noir-accent)]' : ''}`}
@@ -434,7 +434,7 @@ export function NoirNowPlayingView({
                           type="button"
                           className="noir-now-playing-source elva-focus-ring rounded-sm"
                           onClick={onOpenQueueSource}
-                          title={strings.nowPlaying.openSource}
+                          data-tip={strings.nowPlaying.openSource}
                         >
                           {strings.nowPlaying.playingFrom(queueSource)}
                         </button>
@@ -577,7 +577,7 @@ export function NoirNowPlayingView({
                         key={track.id}
                         onClick={() => addTracks([track])}
                         className="group min-w-0 text-left elva-focus-ring"
-                        title={strings.nextUp.addOne(track.title)}
+                        data-tip={strings.nextUp.addOne(track.title)}
                         initial={{ opacity: 0, y: reduced ? 0 : 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={withReducedMotion({ ...MOTION.panel, delay: 0.06 + i * 0.04 })}
@@ -791,7 +791,7 @@ function QueueTrackItem({
               onClick={onRemove}
               className="flex h-8 w-8 items-center justify-center rounded-full text-[color:var(--noir-text-tertiary)] hover:bg-white/[0.08] hover:text-white"
               aria-label="Remove from queue"
-              title="Remove"
+              data-tip="Remove"
             >
               <X className="h-3.5 w-3.5" strokeWidth={2} />
             </button>

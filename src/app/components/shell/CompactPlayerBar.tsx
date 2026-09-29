@@ -287,7 +287,7 @@ export function CompactPlayerBar({
               onClick={onExpand}
               className="noir-compact-close elva-focus-ring"
               aria-label={strings.compact.closeNowPlaying}
-              title={strings.compact.closeNowPlaying}
+              data-tip={strings.compact.closeNowPlaying}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, transition: { duration: reduced ? 0.1 : 0.18, ease: EASE_PREMIUM } }}
@@ -374,7 +374,7 @@ export function CompactPlayerBar({
                         e.stopPropagation();
                         onOpenArtist();
                       }}
-                      title={strings.songMenu.goToArtist}
+                      data-tip={strings.songMenu.goToArtist}
                     >
                       {song.artist}
                     </button>
@@ -391,7 +391,7 @@ export function CompactPlayerBar({
               onClick={onStartRadio}
               className="noir-compact-ctrl shrink-0"
               aria-label={strings.songMenu.startRadio}
-              title={strings.songMenu.startRadio}
+              data-tip={strings.songMenu.startRadio}
             >
               <Radio className="h-4 w-4" strokeWidth={1.75} />
             </button>
@@ -402,7 +402,7 @@ export function CompactPlayerBar({
               onClick={onToggleFavorite}
               className="noir-compact-ctrl shrink-0"
               aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-              title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+              data-tip={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             >
               <Heart
                 className={`h-4 w-4 ${isFavorite ? 'fill-current text-[color:var(--noir-accent)]' : ''}`}
@@ -488,7 +488,7 @@ export function CompactPlayerBar({
           className={`noir-compact-queue${lyricsOpen ? ' noir-compact-queue--on' : ''}`}
           aria-pressed={lyricsOpen}
           aria-label={lyricsOpen ? strings.lyrics.hide : strings.lyrics.show}
-          title={
+          data-tip={
             lyricsOpen ? strings.lyrics.hide : lyricsAvailable ? strings.lyrics.show : strings.lyrics.unavailable
           }
         >
@@ -507,7 +507,7 @@ export function CompactPlayerBar({
                 ? `${strings.compact.showUpNext}, ${upNextCount}`
                 : strings.compact.showUpNext
           }
-          title={
+          data-tip={
             expanded && queueRailOpen
               ? strings.compact.hideUpNext
               : upNextCount > 0
@@ -561,7 +561,7 @@ export function CompactPlayerBar({
                   ? 'Unmute'
                   : 'Mute — hold to charge and shoot volume'
             }
-            title="Hold to charge & shoot volume · Click to mute"
+            data-tip={strings.tips.volume}
             onKeyDown={(e) => {
               if (e.key === ' ') e.preventDefault();
             }}

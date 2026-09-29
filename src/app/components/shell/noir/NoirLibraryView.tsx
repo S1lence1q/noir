@@ -181,7 +181,7 @@ export function NoirLibraryView({
                         }}
                         className="noir-icon-button elva-focus-ring"
                         aria-label={strings.playlist.shuffle}
-                        title={strings.playlist.shuffle}
+                        data-tip={strings.playlist.shuffle}
                       >
                         <Shuffle className="h-[18px] w-[18px]" strokeWidth={1.75} />
                       </button>

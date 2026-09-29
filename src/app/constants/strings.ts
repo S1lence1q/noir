@@ -159,6 +159,11 @@ export const strings = {
     historyMore: 'Show earlier',
     historyPlays: (n: number) => (n === 1 ? '1 play' : `${n} plays`),
   },
+  tips: {
+    search: 'Search songs or artists. You can also paste a YouTube link.',
+    uploadFile: 'Play a local audio file',
+    volume: 'Click to mute · hold to charge the volume',
+  },
   radio: {
     starting: 'Starting radio…',
     started: (artist: string) => `Playing radio · ${artist}`,

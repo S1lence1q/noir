@@ -59,7 +59,7 @@ export function AppSidebar({
           type="button"
           className="noir-sidebar-wordmark noir-sidebar-wordmark--cycle elva-focus-ring"
           onClick={cycle}
-          title={`Nav icons: ${label} — click to compare`}
+          data-tip={`Nav icons: ${label} — click to compare`}
           aria-label={`Nav icon set ${label}. Click to try the next set.`}
         >
           <span className="noir-sidebar-wordmark-text text-[13px] font-bold tracking-[0.34em]">NOIR</span>
@@ -75,6 +75,8 @@ export function AppSidebar({
           onClick={() => window.dispatchEvent(new Event('elva-open-search-palette'))}
           data-active="false"
           className="noir-nav-item noir-nav-search flex h-11 items-center gap-3 px-3 text-left text-[15px] font-medium elva-focus-ring"
+          data-tip={`${strings.search.navLabel} · ${SEARCH_KBD_HINT}`}
+          data-tip-rail
         >
           <NoirSearchGlyph size={18} />
           <span className="noir-nav-label flex-1">{strings.search.navLabel}</span>
@@ -98,6 +100,8 @@ export function AppSidebar({
               className="noir-nav-item flex h-11 items-center gap-3 px-3 text-left text-[15px] font-medium elva-focus-ring"
               aria-current={isActive ? 'page' : undefined}
               aria-label={navLabel}
+              data-tip={navLabel}
+              data-tip-rail
             >
               <Icon size={18} strokeWidth={isActive ? 2.1 : 1.65} className="shrink-0" />
               <span className="noir-nav-label">{navLabel}</span>
@@ -114,6 +118,8 @@ export function AppSidebar({
           data-active={favoritesActive ? 'true' : 'false'}
           className="noir-nav-item flex h-10 items-center gap-3 px-3 text-left text-[14px] font-medium elva-focus-ring"
           aria-current={favoritesActive ? 'page' : undefined}
+          data-tip="Favorites"
+          data-tip-rail
         >
           <NoirFavoritesCover size={22} radius={5} />
           <span className="noir-nav-label flex-1">Favorites</span>
@@ -131,7 +137,7 @@ export function AppSidebar({
             onClick={() => onOpenPlaylist?.(createPlaylist().id)}
             className="flex h-6 w-6 items-center justify-center rounded-md text-[color:var(--noir-text-tertiary)] transition-colors hover:bg-white/[0.06] hover:text-white elva-focus-ring"
             aria-label={strings.playlist.newPlaylist}
-            title={strings.playlist.newPlaylist}
+            data-tip={strings.playlist.newPlaylist}
           >
             <Plus className="h-3.5 w-3.5" strokeWidth={2} />
           </button>
@@ -177,6 +183,8 @@ export function AppSidebar({
                       dragOverPlaylistId === playlist.id ? 'bg-white/[0.08] text-white' : ''
                     }`}
                     aria-current={isActive ? 'page' : undefined}
+                    data-tip={playlist.name}
+                    data-tip-rail
                   >
                     <motion.span
                       initial={{ scale: 0.3, rotate: -20 }}
@@ -207,6 +215,8 @@ export function AppSidebar({
           onClick={() => onTabChange('settings')}
           data-active={activeTab === 'settings' ? 'true' : 'false'}
           className="noir-nav-item flex h-11 w-full items-center gap-3 px-3 text-left text-[15px] font-medium elva-focus-ring"
+          data-tip="Settings"
+          data-tip-rail
         >
           <Settings className="h-[18px] w-[18px] shrink-0" strokeWidth={activeTab === 'settings' ? 2.25 : 1.75} />
           <span className="noir-nav-label">Settings</span>
