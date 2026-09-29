@@ -10,7 +10,6 @@ import {
   resolveUrlToSearchResult,
   shouldShowArtistCard,
 } from '../../../utils/apiUtils';
-import { getArtistImage } from '../../../services/musicGraph';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
@@ -84,10 +83,8 @@ export function NoirSearchPalette({
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const [artistPortrait, setArtistPortrait] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestIdRef = useRef(0);
-
   const suggestions = recentTracks.slice(0, 3);
   const showingSuggestions = !query.trim() && !isSearching;
   const artistCard = useMemo(
@@ -98,7 +95,7 @@ export function NoirSearchPalette({
   const trackOffset = showArtistRow ? 1 : 0;
   const trackRows = showingSuggestions ? suggestions : results;
   const rowCount = trackRows.length + trackOffset;
-  const artistThumb = artistPortrait || artistCard?.thumbnail || '';
+  const artistThumb = artistCard?.thumbnail || '';
   const artistInitial = (artistCard?.name.trim().charAt(0) || '·').toUpperCase();
 
   useEffect(() => {
@@ -107,7 +104,6 @@ export function NoirSearchPalette({
     setResults([]);
     setIsSearching(false);
     setFocusedIndex(0);
-    setArtistPortrait(null);
     const t = window.setTimeout(() => inputRef.current?.focus(), 30);
     return () => window.clearTimeout(t);
   }, [open]);
@@ -115,21 +111,6 @@ export function NoirSearchPalette({
   useEffect(() => {
     setFocusedIndex(0);
   }, [rowCount, showingSuggestions]);
-
-  useEffect(() => {
-    if (!artistCard?.name) {
-      setArtistPortrait(null);
-      return;
-    }
-    let cancelled = false;
-    setArtistPortrait(null);
-    void getArtistImage(artistCard.name).then((url) => {
-      if (!cancelled && url) setArtistPortrait(url);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [artistCard?.name]);
 
   useEffect(() => {
     if (!open) return;

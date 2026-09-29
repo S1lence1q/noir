@@ -93,17 +93,26 @@ export type DeezerArtistMatch = {
   exactName: boolean;
 };
 
+const KNOWN_BAD_PORTRAITS = new Set([
+  'bda3b1eafdfb279826a590c67a3a629c', // Wrong artist photo on Deezer artist 4103838 (Kundo)
+]);
+
 function rankDeezerArtists(artist: string, artists: DeezerArtist[]): DeezerArtistMatch[] {
   const normalized = normalizeName(artist);
   return artists
     .filter((candidate): candidate is DeezerArtist & { name: string } => !!candidate.name)
-    .map((candidate) => ({
-      id: candidate.id,
-      name: candidate.name,
-      image: candidate.picture_xl || candidate.picture_big || candidate.picture_medium,
-      fans: candidate.nb_fan,
-      exactName: normalizeName(candidate.name) === normalized,
-    }))
+    .map((candidate) => {
+      const rawImage = candidate.picture_xl || candidate.picture_big || candidate.picture_medium;
+      const hash = deezerCdnHash(rawImage);
+      const isBad = !!(hash && KNOWN_BAD_PORTRAITS.has(hash));
+      return {
+        id: candidate.id,
+        name: candidate.name,
+        image: isBad ? undefined : rawImage,
+        fans: candidate.nb_fan,
+        exactName: normalizeName(candidate.name) === normalized,
+      };
+    })
     .sort((a, b) => Number(b.exactName) - Number(a.exactName) || (b.fans ?? 0) - (a.fans ?? 0));
 }
 
@@ -120,16 +129,17 @@ async function findArtist(artist: string, deezerId?: number): Promise<DeezerArti
     const byId = await deezerGet<DeezerArtist>(`/artist/${deezerId}`);
     if (byId?.name) return byId;
   }
-  const ranked = await searchDeezerArtists(artist, 1);
-  const top = ranked[0];
-  if (!top) return null;
+  const ranked = await searchDeezerArtists(artist, 5);
+  // Never return a fuzzy top hit — wrong portraits (e.g. "Kundo" → unrelated artist).
+  const exact = ranked.find((m) => m.exactName);
+  if (!exact) return null;
   return {
-    id: top.id,
-    name: top.name,
-    nb_fan: top.fans,
-    picture_xl: top.image,
-    picture_big: top.image,
-    picture_medium: top.image,
+    id: exact.id,
+    name: exact.name,
+    nb_fan: exact.fans,
+    picture_xl: exact.image,
+    picture_big: exact.image,
+    picture_medium: exact.image,
   };
 }
 
@@ -138,8 +148,11 @@ async function findArtist(artist: string, deezerId?: number): Promise<DeezerArti
  * If the "artist" photo hash matches a top-track album cover, prefer another popular cover.
  */
 async function resolvePortraitAgainstTopTracks(artist: DeezerArtist): Promise<string | undefined> {
-  const portrait = artist.picture_xl || artist.picture_big || artist.picture_medium;
-  const portraitHash = deezerCdnHash(portrait);
+  const rawPortrait = artist.picture_xl || artist.picture_big || artist.picture_medium;
+  const rawHash = deezerCdnHash(rawPortrait);
+  const isBadPortrait = !!(rawHash && KNOWN_BAD_PORTRAITS.has(rawHash));
+  const portrait = isBadPortrait ? undefined : rawPortrait;
+  const portraitHash = isBadPortrait ? undefined : rawHash;
   const response = await deezerGet<{ data?: DeezerTrack[] }>(
     `/artist/${artist.id}/top?limit=12`
   );

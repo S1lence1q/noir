@@ -175,6 +175,22 @@ export function useSearchLogic({
     }
   }, [searchQuery]);
 
+  // Purge any historically poisoned localStorage entries with bad Deezer hashes
+  useEffect(() => {
+    try {
+      const badHash = 'bda3b1eafdfb279826a590c67a3a629c';
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('elva_artist_img_')) {
+          const val = localStorage.getItem(key);
+          if (val && val.includes(badHash)) {
+            localStorage.removeItem(key);
+          }
+        }
+      }
+    } catch {}
+  }, []);
+
   // Verify artist via MusicBrainz API in background to enrich metadata
   useEffect(() => {
     let active = true;
@@ -210,39 +226,34 @@ export function useSearchLogic({
       try {
         const queryVal = candidate.name.trim();
 
-        try {
-          if (handPicked) {
-            localStorage.setItem(`elva_artist_img_${queryVal.toLowerCase()}`, handPicked);
-          } else {
-            const deezerRes = await fetchWithTimeout(
-              `/deezer/search/artist?q=${encodeURIComponent(queryVal)}`,
-              {},
-              2500
-            );
-            if (deezerRes.ok) {
-              const deezerData = await deezerRes.json();
-              const deezerArtist =
-                (deezerData.data || []).find(
-                  (a: any) => a.name.toLowerCase() === queryVal.toLowerCase()
-                ) || deezerData.data?.[0];
+        if (handPicked) {
+          localStorage.setItem(`elva_artist_img_${queryVal.toLowerCase()}`, handPicked);
+        } else {
+          try {
+            const identity = await resolveArtistIdentity({
+              name: candidate.name,
+              channelId: candidate.channelId,
+              thumbnail: candidate.thumbnail,
+              isTopic: candidate.isTopic,
+              skipChannelResolve: true,
+            });
 
-              if (active && deezerArtist && (deezerArtist.picture_big || deezerArtist.picture_medium)) {
-                const imgUrl = deezerArtist.picture_big || deezerArtist.picture_medium;
-                localStorage.setItem(`elva_artist_img_${queryVal.toLowerCase()}`, imgUrl);
-                setVerifiedArtist((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        thumbnail: imgUrl,
-                        deezerId: typeof deezerArtist.id === 'number' ? deezerArtist.id : prev.deezerId,
-                      }
-                    : null
-                );
-              }
-            }
+            if (!active) return;
+
+            // Enrich metadata without swapping the card thumbnail on screen (avoids flashing wrong/unwanted photos)
+            setVerifiedArtist((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    deezerId: identity.deezerId ?? prev.deezerId,
+                    mbid: identity.mbid ?? prev.mbid,
+                    confidence: identity.confidence,
+                  }
+                : null
+            );
+          } catch (de) {
+            console.warn('Artist identity resolution failed in search:', de);
           }
-        } catch (de) {
-          console.warn('Deezer artist image fetch failed:', de);
         }
 
         const response = await fetchWithTimeout(
@@ -266,12 +277,9 @@ export function useSearchLogic({
         const queryLower = queryVal.toLowerCase();
 
         const matchedArtist = artists.find((artist: any) => {
-          const nameLower = (artist.name || '').toLowerCase();
+          const nameLower = (artist.name || '').toLowerCase().trim();
           const score = artist.score || 0;
-          return (
-            score >= 85 &&
-            (nameLower === queryLower || nameLower.includes(queryLower) || queryLower.includes(nameLower))
-          );
+          return score >= 85 && nameLower === queryLower;
         });
 
         if (matchedArtist && active) {
@@ -315,14 +323,16 @@ export function useSearchLogic({
     const verified = identityToVerifiedArtist(identity, {
       thumbnail: artistPortraitUrl(seedArtist.thumbnail),
     });
+    const seedThumb = artistPortraitUrl(seedArtist.thumbnail);
     const handPickedUrl = getHandPickedImage(verified.name);
     const displayArtist: VerifiedArtist = {
       ...verified,
       name: displayArtistName(verified.name),
       thumbnail:
         handPickedUrl ||
-        artistPortraitUrl(verified.thumbnail) ||
-        artistPortraitUrl(seedArtist.thumbnail) ||
+        (hasRealArtwork(seedThumb) ? seedThumb : '') ||
+        (identity.confidence === 'high' ? artistPortraitUrl(verified.thumbnail) : '') ||
+        seedThumb ||
         '',
     };
 
@@ -357,7 +367,11 @@ export function useSearchLogic({
 
     try {
       const portraitForCache = artistPortraitUrl(displayArtist.thumbnail);
-      if (portraitForCache && !isPlaceholderOrEmpty(portraitForCache)) {
+      if (
+        displayArtist.confidence !== 'low' &&
+        portraitForCache &&
+        !isPlaceholderOrEmpty(portraitForCache)
+      ) {
         localStorage.setItem(
           `elva_artist_img_${displayArtist.name.toLowerCase()}`,
           portraitForCache

@@ -2,7 +2,7 @@ import {
   loadArtistDiscographyWithCache,
   peekCachedDiscography,
 } from '../../utils/artistDiscographyLoader';
-import { pickArtistCardFromSearchResults, shouldShowArtistCard } from '../../utils/api/artistHelpers';
+import { getHandPickedImage, pickArtistCardFromSearchResults, shouldShowArtistCard } from '../../utils/api/artistHelpers';
 import type { SearchResult, VerifiedArtist } from './types';
 
 export { peekCachedDiscography, shouldShowArtistCard };
@@ -22,5 +22,9 @@ export async function loadArtistDiscographyTracks(
 }
 
 export function getCachedArtistThumbnail(name: string, fallback: string): string {
-  return localStorage.getItem(`elva_artist_img_${name.toLowerCase()}`) || fallback;
+  const handPicked = getHandPickedImage(name);
+  if (handPicked) return handPicked;
+  const stored = localStorage.getItem(`elva_artist_img_${name.toLowerCase()}`);
+  if (stored && stored.includes('bda3b1eafdfb279826a590c67a3a629c')) return fallback;
+  return stored || fallback;
 }

@@ -3,9 +3,9 @@ import { motion } from 'motion/react';
 import { History, Play, Music, ListMusic, Sparkles } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../types';
 import { AccentColor, ACCENT_THEMES } from '../themeUtils';
-import { getHandPickedImage } from '../../utils/apiUtils';
 import { ElvaEmptyState } from '../ElvaEmptyState';
 import { strings } from '../../constants/strings';
+import { ArtistAvatar } from '../queue/ArtistAvatar';
 
 interface Playlist {
   id: string;
@@ -25,57 +25,6 @@ interface OverviewTabProps {
   handlePlayPlaylist: (playlist: Playlist) => void;
   accentColor: AccentColor;
 }
-
-const ArtistAvatar = ({ name, fallbackThumbnail }: { name: string; fallbackThumbnail: string }) => {
-  const handPicked = getHandPickedImage(name);
-  const [imgUrl, setImgUrl] = useState(handPicked || fallbackThumbnail);
-
-  useEffect(() => {
-    if (handPicked) {
-      setImgUrl(handPicked);
-      return;
-    }
-    let active = true;
-    const fetchRealImg = async () => {
-      try {
-        const cached = localStorage.getItem(`elva_artist_img_${name.toLowerCase()}`);
-        if (cached) {
-          setImgUrl(cached);
-          return;
-        }
-        
-        const res = await fetch(`https://corsproxy.io/?https://api.deezer.com/search/artist?q=${encodeURIComponent(name)}`);
-        if (res.ok) {
-          const data = await res.json();
-          const artist = (data.data || []).find((a: any) => a.name.toLowerCase() === name.toLowerCase()) || data.data?.[0];
-          if (artist && active && (artist.picture_medium || artist.picture_big)) {
-            const url = artist.picture_medium || artist.picture_big;
-            setImgUrl(url);
-            localStorage.setItem(`elva_artist_img_${name.toLowerCase()}`, url);
-          }
-        }
-      } catch (e) {
-        // Safe silent fallback
-      }
-    };
-    
-    const handleLoaded = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      if (customEvent.detail && customEvent.detail.name.toLowerCase() === name.toLowerCase()) {
-        setImgUrl(customEvent.detail.url);
-      }
-    };
-    
-    fetchRealImg();
-    window.addEventListener('elva-artist-image-loaded', handleLoaded);
-    return () => {
-      active = false;
-      window.removeEventListener('elva-artist-image-loaded', handleLoaded);
-    };
-  }, [name, fallbackThumbnail]);
-
-  return <img src={imgUrl} alt={name} className="w-full h-full object-cover rounded-full scale-105 group-hover:scale-110 transition-transform duration-500" />;
-};
 
 export function OverviewTab({
   recentlyPlayed,

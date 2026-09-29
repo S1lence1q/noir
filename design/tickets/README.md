@@ -65,6 +65,7 @@ Exact behavior, layout, copy, tokens, states.
 | T14 | Now Playing — **A+B+C DONE** (lyrics beside cover, queue rail toggle, Soft Shuffle); similar/D parked | M | | Opus |
 | T17 | Your sound + NOIR Replay — **DONE** (Library tab, Bone story, Save image) | M | | Opus |
 | T21 | Cold start — Pick 3 artists — **DONE** | M | | Opus |
+| T22 | Quiet tooltips (search + deferred help) — **BACKLOG** | M | | — |
 
 ### Original index
 
