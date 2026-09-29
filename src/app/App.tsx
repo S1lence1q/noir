@@ -17,6 +17,7 @@ import { prefetchChartTracks } from './utils/chartPrefetch';
 import { parseLocalMetadata } from './utils/metadataParser';
 import { getPlaybackSongKey } from './utils/playbackSongKey';
 import { ensureFavoritedAt, isTrackFavorite } from './utils/favoriteUtils';
+import { favoriteBurst, flyToQueue } from './utils/actionMotion';
 import { restoreLocalTrack, saveLocalTrack } from './utils/localTrackStorage';
 import { strings } from './constants/strings';
 import { waitForYouTubeApi } from './utils/youtubeApiReady';
@@ -605,6 +606,7 @@ export default function App() {
   }, []);
 
   const handleToggleFavorite = (song: SearchResult) => {
+    if (!isTrackFavorite(favorites, song)) favoriteBurst();
     setFavorites((prev) => {
       const exists = prev.some(
         (item) =>
@@ -997,6 +999,7 @@ export default function App() {
       return [...prev, result];
     });
     if (!options?.silent) {
+      flyToQueue();
       noirToast({
         text: strings.songMenu.addedToQueue,
         cover: result.thumbnail,
@@ -1545,6 +1548,7 @@ export default function App() {
     }
     
     setQueue(newQueue);
+    flyToQueue();
     noirToast({
       text: strings.songMenu.playingNext,
       cover: result.thumbnail,

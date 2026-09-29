@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Compass, Pause, Play, Plus, Search } from 'lucide-react';
+import { Compass, Play, Plus, Search } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { shouldShowArtistCard } from '../../../utils/apiUtils';
@@ -13,6 +13,7 @@ import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motio
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import { NoirDitherCover } from './NoirDitherCover';
 import { NoirArtwork } from './NoirArtwork';
+import { NoirPlayPauseIcon } from './NoirPlayPauseIcon';
 import { NoirFavoritesCover } from './NoirFavoritesCover';
 import { NoirHomeShelf } from './NoirHomeShelf';
 import { NoirColdStart } from './NoirColdStart';
@@ -307,11 +308,7 @@ export function NoirHomeView({
                   whileTap={{ scale: 0.94 }}
                   transition={MOTION.tap}
                 >
-                  {isFeaturedPlaying ? (
-                    <Pause className="h-5 w-5 fill-current" />
-                  ) : (
-                    <Play className="ml-0.5 h-5 w-5 fill-current" />
-                  )}
+                  <NoirPlayPauseIcon playing={isFeaturedPlaying} size={22} />
                 </motion.button>
               </motion.div>
             </div>

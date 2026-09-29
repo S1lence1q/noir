@@ -4121,3 +4121,16 @@ button.noir-now-playing-source:hover {
     font-size: 32px;
   }
 }
+
+/* Favorite burst: the NOIR mark springs from the pressed heart (Phase E). */
+.noir-fav-burst {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  color: var(--noir-accent);
+}
+
+.noir-compact-queue-count {
+  display: inline-flex;
+  overflow: hidden;
+}

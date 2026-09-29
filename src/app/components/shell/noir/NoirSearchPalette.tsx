@@ -336,6 +336,7 @@ export function NoirSearchPalette({
                     <div
                       key={track.id}
                       data-active={active ? 'true' : 'false'}
+                      data-fly-source
                       className="noir-search-palette-row group"
                       onMouseEnter={() => setFocusedIndex(rowIndex)}
                     >

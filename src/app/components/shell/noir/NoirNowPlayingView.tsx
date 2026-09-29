@@ -77,6 +77,13 @@ function uniqueByKey(tracks: SearchResult[]): SearchResult[] {
 
 const QUEUE_RAIL_WIDTH = 360;
 
+/** Track change: covers move like a deck — in from the side you're heading, out the other. */
+const deckVariants = {
+  enter: (dir: 1 | -1) => ({ opacity: 0, x: `${dir * 38}%`, scale: 0.94, rotate: dir * 2.5 }),
+  center: { opacity: 1, x: '0%', scale: 1, rotate: 0 },
+  exit: (dir: 1 | -1) => ({ opacity: 0, x: `${dir * -30}%`, scale: 0.92, rotate: dir * -2 }),
+};
+
 type AtmosphereMode = 'glow' | 'grain';
 const ATMOSPHERE_KEY = 'noir_atmosphere';
 
@@ -199,6 +206,16 @@ export function NoirNowPlayingView({
     []
   );
 
+  // Deck direction for the cover swap: forward when the new song sits later in the queue, back when earlier.
+  const prevDeckRef = useRef<{ key: string; index: number; dir: 1 | -1 }>({ key: '', index: -1, dir: 1 });
+  let deckDir: 1 | -1 = prevDeckRef.current.dir;
+  if (prevDeckRef.current.key && prevDeckRef.current.key !== (currentKey ?? '')) {
+    deckDir = currentIndex >= 0 && prevDeckRef.current.index >= 0 && currentIndex < prevDeckRef.current.index ? -1 : 1;
+  }
+  useEffect(() => {
+    prevDeckRef.current = { key: currentKey ?? '', index: currentIndex, dir: deckDir };
+  });
+
   const byId = new Map(upNext.map((track) => [track.id, track]));
   const orderedUpNext = order.map((id) => byId.get(id)).filter((track): track is SearchResult => !!track);
   const songKey = currentKey ?? `${song.title}::${song.artist}`;
@@ -297,33 +314,37 @@ export function NoirNowPlayingView({
               style={{ borderRadius: 18, boxShadow: '0 28px 80px rgba(0,0,0,0.55)' }}
               transition={{ type: 'spring', stiffness: 320, damping: 34, mass: 0.85 }}
             >
-              <AnimatePresence mode="sync" initial={false}>
+              <AnimatePresence mode="sync" initial={false} custom={deckDir}>
                 {hasRealArtwork(song.artworkUrl) ? (
                   <motion.img
                     key={song.artworkUrl}
                     src={song.artworkUrl}
                     alt=""
                     className="noir-now-playing-art"
-                    initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 12 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.03, y: -8 }}
+                    custom={deckDir}
+                    variants={deckVariants}
+                    initial={reduced ? { opacity: 0 } : 'enter'}
+                    animate="center"
+                    exit={reduced ? { opacity: 0 } : 'exit'}
                     transition={
                       reduced
                         ? { duration: 0.2 }
-                        : { type: 'spring', stiffness: 280, damping: 28, mass: 0.85 }
+                        : { ...MOTION.settle, opacity: { duration: 0.22 } }
                     }
                   />
                 ) : (
                   <motion.div
                     key={`dither:${songKey}`}
                     className="noir-now-playing-art overflow-hidden"
-                    initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 12 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.03, y: -8 }}
+                    custom={deckDir}
+                    variants={deckVariants}
+                    initial={reduced ? { opacity: 0 } : 'enter'}
+                    animate="center"
+                    exit={reduced ? { opacity: 0 } : 'exit'}
                     transition={
                       reduced
                         ? { duration: 0.2 }
-                        : { type: 'spring', stiffness: 280, damping: 28, mass: 0.85 }
+                        : { ...MOTION.settle, opacity: { duration: 0.22 } }
                     }
                   >
                     <NoirDitherCover

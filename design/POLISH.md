@@ -78,10 +78,11 @@ Phase A notes: Library root is now the collection grid (Favorites card first); F
 
 ### Phase E — Motion pass
 Principle: motion explains cause → effect (where did it go, what changed). One expressive beat per action, everything around it quiet (MOTION.panel/settle). Creation gets the "new playlist" spring; ambient things never loop for attention.
-- [ ] Add to queue / Play next: artwork flies to the bar's Next up button; count rolls.
-- [ ] Favorite: heart pops, a small spray-mark burst (brand asterisk), not confetti.
-- [ ] Play ↔ pause: icon morph instead of swap (bar, hero, Now Playing).
-- [ ] Track change in Now Playing: cover slides like a deck in the direction of next/prev.
+- [x] Add to queue / Play next: the pressed row's artwork arcs into the bar's Next up button (`utils/actionMotion.ts`, origin = last touched row, incl. palette rows via `data-fly-source`); button pulses on arrival; count rolls.
+- [x] Favorite: the pressed heart pops and the NOIR mark (same five arms) springs from it in ember.
+- [x] Play ↔ pause: `NoirPlayPauseIcon` morphs triangle halves ↔ bars (bar + Home hero).
+- [x] Track change in Now Playing: deck slide by queue direction (next → from right, prev → from left).
+- [ ] 🟡 Perf: a track switch blocks the main thread ~200–500 ms, so the deck starts late. Profile the stream switch in usePlaybackCore.
 - [ ] Tab/page change: content settles in (fade + 8 px rise, sections staggered 40 ms).
 - [ ] Shelves: items stagger in the first time they scroll into view.
 - [ ] Search palette: opens with a settle (scale .98 → 1), results stagger.

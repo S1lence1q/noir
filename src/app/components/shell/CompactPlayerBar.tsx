@@ -5,8 +5,6 @@ import {
   Heart,
   ListMusic,
   Quote,
-  Pause,
-  Play,
   Radio,
   SkipBack,
   SkipForward,
@@ -20,6 +18,7 @@ import { strings } from '../../constants/strings';
 import { hasRealArtwork } from '../../utils/artwork';
 import { worldForCollection } from '../../utils/ditherCover';
 import { NoirDitherCover } from './noir/NoirDitherCover';
+import { NoirPlayPauseIcon } from './noir/NoirPlayPauseIcon';
 
 type SongPreview = {
   title: string;
@@ -421,11 +420,7 @@ export function CompactPlayerBar({
             whileTap={reduced ? undefined : { scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 500, damping: 28 }}
           >
-            {playback.isPlaying ? (
-              <Pause className="h-[15px] w-[15px]" fill="currentColor" />
-            ) : (
-              <Play className="ml-px h-[15px] w-[15px]" fill="currentColor" />
-            )}
+            <NoirPlayPauseIcon playing={playback.isPlaying} size={17} />
           </motion.button>
           <button
             type="button"
@@ -492,6 +487,7 @@ export function CompactPlayerBar({
           onClick={() => onToggleQueue?.()}
           className={`noir-compact-queue${expanded && queueRailOpen ? ' noir-compact-queue--on' : ''}`}
           aria-pressed={expanded && queueRailOpen}
+          data-fly-target="queue"
           aria-label={
             expanded && queueRailOpen
               ? strings.compact.hideUpNext
@@ -509,8 +505,20 @@ export function CompactPlayerBar({
         >
           <ListMusic className="h-4 w-4 shrink-0" strokeWidth={1.75} />
           {upNextCount > 0 && (
+            // The count rolls: new number rises in from below, the old one leaves upward.
             <span className="noir-compact-queue-count" aria-hidden>
-              {upNextCount > 99 ? '99+' : upNextCount}
+              <AnimatePresence mode="popLayout" initial={false}>
+                <motion.span
+                  key={upNextCount}
+                  className="inline-block"
+                  initial={reduced ? { opacity: 0 } : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={reduced ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                  transition={{ duration: 0.26, ease: EASE_PREMIUM }}
+                >
+                  {upNextCount > 99 ? '99+' : upNextCount}
+                </motion.span>
+              </AnimatePresence>
             </span>
           )}
         </button>
