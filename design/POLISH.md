@@ -46,7 +46,7 @@ NOIR is single-user and local-first; a "profile" has no audience. Add **History*
 
 Phase A notes: Library root is now the collection grid (Favorites card first); Favorites and playlists are sub-pages with a back link. Real artwork goes through `NoirArtwork` (skeleton → decode → one fade; dither mark only as fallback). Dither kept for playlists, mixes, tags, Replay.
 - [ ] 🟡 Search palette drops the first keystrokes typed right after ⌘K / `/` (input not focused yet). Buffer or focus synchronously.
-- [ ] ⚪ Discography cards get a grey hover box — match the new Latest release hover (cover dims, play appears).
+- [x] ⚪ Collection cards (discography, Library grid): no hover box; artwork dims, play appears.
 
 ### Phase B — Now Playing
 - [x] 🔴 Lyrics ↔ queue flow (D2). Lyrics + Next up are two toggles side by side in the bar (quote / list icons, shared on-state). Rail animates width (spring), cover shrinks via CSS width transition, exclusive only below 1200px.
@@ -62,9 +62,9 @@ Phase A notes: Library root is now the collection grid (Favorites card first); F
 - [x] 🟡 "Queue ends soon": toast-family card, one row, Not now / Keep playing, hairline empties with the song. No checkbox: after Keep playing a toast offers **Always** (learned preference). Toasts step up while it shows.
 
 ### Phase C — Artist profile
-- [ ] 🔴 Load choreography (D3).
-- [ ] ⚪ About card refresh (its dithered background sits behind text — breaks "never behind text").
-- [ ] 🟡 Hero name truncates ("Kim Larsen Og B…"). Wrap to two lines / step down size instead.
+- [x] 🔴 Load choreography (D3). Hero (name + colour) renders instantly; portrait holds a skeleton (`pending`) instead of a fallback. Popular + Latest release reveal together behind an exact-shape skeleton once tracks, albums, portrait and latest cover are decoded (max 1.2 s). Below-fold sections mount after the reveal. Previous artist's albums/fans are cleared on navigation.
+- [x] ⚪ About: text only (hero owns the portrait), bio clamped by lines with Read more only when it cuts, facts column (From / Albums / Singles & EPs / Bio source).
+- [x] 🟡 Hero name wraps to two balanced lines; long names step down a size.
 
 ### Phase D — Cold start
 - [ ] 🟡 Pick 1+ (no max, no forced 3). Button reads "Start with N".

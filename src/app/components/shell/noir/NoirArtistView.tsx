@@ -4,7 +4,7 @@ import { Play, Radio, Shuffle } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
 import { NoirRankedSongRow } from './NoirRankedSongRow';
 import { NoirDitherCover } from './NoirDitherCover';
-import { NoirArtwork } from './NoirArtwork';
+import { NoirArtwork, preloadArtwork } from './NoirArtwork';
 import { NoirArtistDisambiguation } from './NoirArtistDisambiguation';
 import { NoirHomeShelf } from './NoirHomeShelf';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
@@ -43,6 +43,8 @@ export type NoirArtistViewProps = {
 };
 
 const POPULAR_COUNT = 5;
+/** Upper bound on holding the above-the-fold reveal (D3); after this, show what we have. */
+const REVEAL_MAX_WAIT_MS = 1200;
 
 function normalizeTitle(title: string, artist: string): string {
   const escaped = artist.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -103,7 +105,15 @@ export function NoirArtistView({
   const [albums, setAlbums] = useState<GraphAlbum[]>([]);
   const [discogFilter, setDiscogFilter] = useState<'all' | 'albums' | 'singles'>('all');
   const [artistBio, setArtistBio] = useState<ArtistBio | null>(null);
+  const artistKey = `${artist.name.toLowerCase()}::${artist.deezerId ?? ''}`;
+  // D3 reveal gate: which artist the albums / portrait belong to, and whether we stopped waiting.
+  const [albumsFor, setAlbumsFor] = useState<string | null>(null);
+  const [portraitFor, setPortraitFor] = useState<string | null>(null);
+  const [gaveUpFor, setGaveUpFor] = useState<string | null>(null);
+  const [latestArtFor, setLatestArtFor] = useState<string | null>(null);
   const [bioExpanded, setBioExpanded] = useState(false);
+  const bioRef = useRef<HTMLParagraphElement>(null);
+  const [bioOverflows, setBioOverflows] = useState(false);
   const world = worldForCollection(`artist:${artist.name.toLowerCase()}`);
   const palette = COLOR_WORLDS[world];
   const unique = useMemo(() => dedupeTracks(tracks, artist.name), [tracks, artist.name]);
@@ -165,6 +175,11 @@ export function NoirArtistView({
       scroller.scrollTop = 0;
     }
     let active = true;
+    // Never show the previous artist's releases / fans while the new ones load.
+    setAlbums([]);
+    setSimilarArtists([]);
+    const key = artistKey;
+    const giveUp = window.setTimeout(() => active && setGaveUpFor(key), REVEAL_MAX_WAIT_MS);
     getSimilarArtists(artist.name, 10, artist.deezerId)
       .then((results) => {
         if (!active) return;
@@ -183,10 +198,12 @@ export function NoirArtistView({
       .then((res) => {
         if (!active) return;
         setAlbums(res);
+        setAlbumsFor(key);
       })
       .catch(() => {
         if (!active) return;
         setAlbums([]);
+        setAlbumsFor(key);
       });
 
     setArtistBio(null);
@@ -203,8 +220,57 @@ export function NoirArtistView({
 
     return () => {
       active = false;
+      window.clearTimeout(giveUp);
     };
   }, [artist.name, artist.deezerId]);
+
+  // Portrait counts as ready once decoded, or confirmed missing after tracks resolved.
+  useEffect(() => {
+    const key = artistKey;
+    const src = artist.thumbnail;
+    if (!src) {
+      if (!isLoading) setPortraitFor(key);
+      return;
+    }
+    let active = true;
+    void preloadArtwork(src).then(() => active && setPortraitFor(key));
+    return () => {
+      active = false;
+    };
+  }, [artistKey, artist.thumbnail, isLoading]);
+
+  // The latest release cover is above the fold too: decode it before the reveal.
+  const latestImage = albumsFor === artistKey ? latestRelease?.image : undefined;
+  useEffect(() => {
+    if (albumsFor !== artistKey) return;
+    const key = artistKey;
+    if (!latestImage) {
+      setLatestArtFor(key);
+      return;
+    }
+    let active = true;
+    void preloadArtwork(latestImage).then(() => active && setLatestArtFor(key));
+    return () => {
+      active = false;
+    };
+  }, [albumsFor, artistKey, latestImage]);
+
+  const albumCount = albums.filter((a) => a.recordType === 'album' || a.recordType === 'compile').length;
+  const singleCount = albums.filter((a) => a.recordType === 'single' || a.recordType === 'ep').length;
+
+  // Clamp by lines (no mid-word slicing); only offer "Read more" when the clamp actually cuts.
+  useEffect(() => {
+    const el = bioRef.current;
+    if (!el || bioExpanded) return;
+    setBioOverflows(el.scrollHeight > el.clientHeight + 2);
+  });
+
+  const revealed =
+    gaveUpFor === artistKey ||
+    (!isLoading &&
+      albumsFor === artistKey &&
+      portraitFor === artistKey &&
+      latestArtFor === artistKey);
 
   const shuffleAll = () => {
     if (unique.length === 0 || !onPlayFromIndex) return;
@@ -245,21 +311,32 @@ export function NoirArtistView({
             seed={`artist:${artist.name}`}
             size={320}
             radius={0}
+            pending={isLoading}
           />
         </motion.div>
 
         <div className="noir-artist-hero-text">
           <p className="noir-artist-hero-label">{strings.artist.label}</p>
-          <h1 className="noir-artist-hero-name">{artist.name}</h1>
-          {((isLoading && unique.length === 0) || artist.country || resolvedTags.length > 0) && (
-            <p className="noir-artist-hero-meta">
-              {isLoading && unique.length === 0
-                ? strings.artist.loading
-                : [resolvedTags.slice(0, 2).join(' · '), formatCountry(artist.country)]
-                    .filter(Boolean)
-                    .join(' · ')}
-            </p>
-          )}
+          <h1
+            className={`noir-artist-hero-name${artist.name.length > 16 ? ' is-long' : ''}`}
+            title={artist.name}
+          >
+            {artist.name}
+          </h1>
+          {/* Fixed-height line: skeleton until the page reveals, then the meta fades in — never swaps text. */}
+          <p className="noir-artist-hero-meta">
+            {!revealed ? (
+              <span className="noir-artist-hero-meta-skeleton" aria-hidden />
+            ) : (
+              <motion.span
+                initial={reduced ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={MOTION.panel}
+              >
+                {[resolvedTags.slice(0, 2).join(' · '), formatCountry(artist.country)].filter(Boolean).join(' · ')}
+              </motion.span>
+            )}
+          </p>
           <div className="mt-6 flex items-center gap-2">
             <motion.button
               type="button"
@@ -302,7 +379,40 @@ export function NoirArtistView({
         </div>
       </motion.section>
 
-      <div className={`mt-10 grid gap-10 ${latestRelease ? 'lg:grid-cols-[minmax(0,1fr)_240px]' : 'grid-cols-1'}`}>
+      {!revealed ? (
+        // Exact-shape skeleton of Popular + Latest release; both reveal together.
+        <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_240px]" aria-busy="true" aria-label={strings.artist.loading}>
+          <section className="min-w-0">
+            <h2 className="noir-section-title mb-4 px-1">{strings.artist.popular}</h2>
+            <div className="flex flex-col gap-0.5">
+              {Array.from({ length: POPULAR_COUNT }).map((_, i) => (
+                <div key={i} className="noir-artist-row-skeleton">
+                  <span className="noir-skeleton-box w-6" />
+                  <span className="noir-skeleton-box h-12 w-12 rounded-[6px]" />
+                  <span className="flex flex-1 flex-col gap-2">
+                    <span className="noir-skeleton-box h-3" style={{ width: `${[46, 38, 52, 34, 42][i]}%` }} />
+                    <span className="noir-skeleton-box h-2.5 w-[18%]" />
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+          <section className="hidden min-w-0 lg:block">
+            <h2 className="noir-section-title mb-4 px-1">{strings.artist.latestRelease}</h2>
+            <div className="px-1">
+              <span className="noir-skeleton-box block aspect-square w-full max-w-[232px]" />
+              <span className="noir-skeleton-box mt-3 block h-3 w-[60%]" />
+              <span className="noir-skeleton-box mt-2 block h-2.5 w-[35%]" />
+            </div>
+          </section>
+        </div>
+      ) : (
+        <motion.div
+          className={`mt-10 grid gap-10 ${latestRelease ? 'lg:grid-cols-[minmax(0,1fr)_240px]' : 'grid-cols-1'}`}
+          initial={reduced ? false : { opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={MOTION.panel}
+        >
         <section className="min-w-0 flex flex-col">
           <h2 className="noir-section-title mb-4 px-1">{strings.artist.popular}</h2>
           {unique.length > 0 ? (
@@ -396,9 +506,10 @@ export function NoirArtistView({
             </motion.div>
           </section>
         )}
-      </div>
+      </motion.div>
+      )}
 
-      {albums.length > 0 && (
+      {revealed && albums.length > 0 && (
         <section className="mt-12">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3 px-1">
             <h2 className="noir-section-title">{strings.artist.discography}</h2>
@@ -495,7 +606,7 @@ export function NoirArtistView({
         </section>
       )}
 
-      {similarArtists.length >= 3 && (
+      {revealed && similarArtists.length >= 3 && (
         <section className="mt-12">
           <h2 className="noir-section-title mb-4 px-1">{strings.artist.fansAlsoLike}</h2>
           <NoirHomeShelf>
@@ -550,64 +661,61 @@ export function NoirArtistView({
         </section>
       )}
 
-      {artistBio && (
-        <section className="mt-12">
+      {revealed && artistBio && (
+        <motion.section
+          className="mt-12"
+          initial={reduced ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={MOTION.panel}
+        >
           <h2 className="noir-section-title mb-4 px-1">{strings.artist.aboutArtist(artist.name)}</h2>
-          <div className="noir-artist-about-card">
-            <div className="noir-artist-about-bg" aria-hidden="true">
-              <NoirDitherCover
-                source={artist.thumbnail || undefined}
-                world={world}
-                seed={`artist-about:${artist.name}`}
-                size={440}
-                radius={0}
-              />
-            </div>
-            <div className="noir-artist-about-content">
-              <p className="text-[26px] font-bold tracking-tight text-white mb-1">
-                {artist.name}
+          {/* Text only: the hero already carries the portrait (one graphic beat per screen). */}
+          <div className="noir-artist-about">
+            <div className="min-w-0">
+              <p
+                ref={bioRef}
+                className={`noir-artist-about-bio${bioExpanded ? ' is-expanded' : ''}`}
+              >
+                {artistBio.text}
               </p>
-
-              {(artist.country || albums.length > 0) && (
-                <p className="text-[13px] font-medium text-[color:var(--noir-text-secondary)] mb-4">
-                  {[
-                    formatCountry(artist.country),
-                    strings.artist.discographySummary(
-                      albums.filter((a) => a.recordType === 'album' || a.recordType === 'compile').length,
-                      albums.filter((a) => a.recordType === 'single' || a.recordType === 'ep').length
-                    ),
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </p>
+              {(bioOverflows || bioExpanded) && (
+                <button
+                  type="button"
+                  onClick={() => setBioExpanded((prev) => !prev)}
+                  className="noir-link mt-3 elva-focus-ring"
+                >
+                  {bioExpanded ? strings.artist.readLess : strings.artist.readMore}
+                </button>
               )}
-
-              <div className="text-[14px] leading-relaxed text-white/80 max-w-2xl">
-                <p className="whitespace-pre-line">
-                  {bioExpanded || artistBio.text.length <= 280
-                    ? artistBio.text
-                    : `${artistBio.text.slice(0, 270).trim()}…`}
-                </p>
-                {artistBio.text.length > 280 && (
-                  <button
-                    type="button"
-                    onClick={() => setBioExpanded((prev) => !prev)}
-                    className="mt-3 text-[13px] font-semibold text-white hover:text-white/80 transition-colors focus-visible:outline-none"
-                  >
-                    {bioExpanded ? strings.artist.readLess : strings.artist.readMore}
-                  </button>
-                )}
-              </div>
-
-              <p className="text-[11px] text-white/30 mt-5">
-                {strings.artist.sourcePrefix}{' '}
-                {artistBio.source === 'lastfm'
-                  ? strings.artist.sourceLastFm
-                  : strings.artist.sourceWikipedia}
-              </p>
             </div>
+            <dl className="noir-artist-about-facts">
+              {formatCountry(artist.country) && (
+                <div>
+                  <dt>{strings.artist.factFrom}</dt>
+                  <dd>{formatCountry(artist.country)}</dd>
+                </div>
+              )}
+              {albumCount > 0 && (
+                <div>
+                  <dt>{strings.artist.factAlbums}</dt>
+                  <dd>{albumCount}</dd>
+                </div>
+              )}
+              {singleCount > 0 && (
+                <div>
+                  <dt>{strings.artist.factSingles}</dt>
+                  <dd>{singleCount}</dd>
+                </div>
+              )}
+              <div>
+                <dt>{strings.artist.factSource}</dt>
+                <dd>
+                  {artistBio.source === 'lastfm' ? strings.artist.sourceLastFm : strings.artist.sourceWikipedia}
+                </dd>
+              </div>
+            </dl>
           </div>
-        </section>
+        </motion.section>
       )}
     </div>
   );

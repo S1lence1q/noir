@@ -99,15 +99,12 @@ export const strings = {
     aboutArtist: (name: string) => `About ${name}`,
     readMore: 'Read more',
     readLess: 'Read less',
-    sourcePrefix: 'Source:',
     sourceLastFm: 'Last.fm',
     sourceWikipedia: 'Wikipedia',
-    discographySummary: (albums: number, singles: number) => {
-      const parts: string[] = [];
-      if (albums > 0) parts.push(albums === 1 ? '1 album' : `${albums} albums`);
-      if (singles > 0) parts.push(singles === 1 ? '1 single' : `${singles} singles & EPs`);
-      return parts.join(' · ');
-    },
+    factFrom: 'From',
+    factAlbums: 'Albums',
+    factSingles: 'Singles & EPs',
+    factSource: 'Bio',
     showAll: (n: number) => `Show all ${n}`,
     showLess: 'Show less',
     empty: 'No songs found for this artist yet.',

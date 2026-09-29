@@ -13,25 +13,53 @@ export type NoirArtworkProps = {
   className?: string;
   /** Portraits render round. */
   round?: boolean;
+  /** No source *yet* (still resolving): hold the skeleton instead of showing the fallback (D3). */
+  pending?: boolean;
 };
 
 /** Decoded image URLs this session — these render instantly, without the fade. */
 const decoded = new Set<string>();
 
 /**
+ * Decode an image ahead of showing it (page reveal gates). Resolves either way; once it has
+ * resolved, NoirArtwork renders that source instantly, without its own fade.
+ */
+export function preloadArtwork(source: string): Promise<void> {
+  if (decoded.has(source)) return Promise.resolve();
+  const img = new Image();
+  img.decoding = 'async';
+  img.src = source;
+  return img
+    .decode()
+    .then(() => {
+      decoded.add(source);
+    })
+    .catch(() => undefined);
+}
+
+/**
  * Real artwork for real objects (albums, tracks, artists) — design rule D1.
  * Shows an exact-shape skeleton until the image has decoded, then fades in once (D3).
  * Falls back to the NOIR dither mark only when there is no image or it fails.
  */
-export function NoirArtwork({ source, world, seed, size, radius, className = '', round = false }: NoirArtworkProps) {
+export function NoirArtwork({
+  source,
+  world,
+  seed,
+  size,
+  radius,
+  className = '',
+  round = false,
+  pending = false,
+}: NoirArtworkProps) {
   const [status, setStatus] = useState<'loading' | 'ready' | 'failed'>(() =>
-    !source ? 'failed' : decoded.has(source) ? 'ready' : 'loading'
+    !source ? (pending ? 'loading' : 'failed') : decoded.has(source) ? 'ready' : 'loading'
   );
   const [instant, setInstant] = useState(() => !!source && decoded.has(source));
 
   useEffect(() => {
     if (!source) {
-      setStatus('failed');
+      setStatus(pending ? 'loading' : 'failed');
       return;
     }
     if (decoded.has(source)) {
@@ -55,7 +83,7 @@ export function NoirArtwork({ source, world, seed, size, radius, className = '',
     return () => {
       cancelled = true;
     };
-  }, [source]);
+  }, [source, pending]);
 
   const borderRadius = round ? '50%' : radius ?? (size >= 120 ? 'var(--noir-radius-md)' : 'var(--noir-radius-sm)');
 
