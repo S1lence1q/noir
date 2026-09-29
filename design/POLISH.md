@@ -66,11 +66,25 @@ Phase A notes: Library root is now the collection grid (Favorites card first); F
 - [x] ⚪ About: text only (hero owns the portrait), bio clamped by lines with Read more only when it cuts, facts column (From / Albums / Singles & EPs / Bio source).
 - [x] 🟡 Hero name wraps to two balanced lines; long names step down a size.
 
+- [x] 🔴 Profile loaded twice when hopping artists: gate was keyed on name+deezerId, and the id arrives later. Now keyed on name, refined refetch keeps the page, reveal is latched. Verified: 5 hops → exactly one skeleton each.
+- [x] 🔴 Artist opened from the bar landed *under* an open mix. Detail overlays now stack by recency; closing the top one reveals the one beneath.
+- [ ] 🟡 Identity: "Kim Larsen & Kjukken" opens as "Kim Larsen" (canonical name collapses a band into the solo artist).
+
 ### Phase D — Cold start
 - [ ] 🟡 Pick 1+ (no max, no forced 3). Button reads "Start with N".
 - [ ] 🟡 No dead wait: on start, play radio from the picks immediately and land on Home; mixes fill in with skeletons.
 - [x] Real portraits (D1) — note: loading skeletons are square while portraits are round.
 - [ ] 🟡 More artists (search + load more), stronger layout.
+
+### Phase E — Motion pass
+Principle: motion explains cause → effect (where did it go, what changed). One expressive beat per action, everything around it quiet (MOTION.panel/settle). Creation gets the "new playlist" spring; ambient things never loop for attention.
+- [ ] Add to queue / Play next: artwork flies to the bar's Next up button; count rolls.
+- [ ] Favorite: heart pops, a small spray-mark burst (brand asterisk), not confetti.
+- [ ] Play ↔ pause: icon morph instead of swap (bar, hero, Now Playing).
+- [ ] Track change in Now Playing: cover slides like a deck in the direction of next/prev.
+- [ ] Tab/page change: content settles in (fade + 8 px rise, sections staggered 40 ms).
+- [ ] Shelves: items stagger in the first time they scroll into view.
+- [ ] Search palette: opens with a settle (scale .98 → 1), results stagger.
 
 ### Later
 - [ ] T22 quiet tooltips (good delegation candidate once search bar lands).

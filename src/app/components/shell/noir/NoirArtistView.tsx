@@ -80,6 +80,24 @@ function formatCountry(country?: string): string | null {
   return country;
 }
 
+/** Exact shape of five ranked rows (72 px, rank · 48 px art · title/meta). One skeleton everywhere. */
+function PopularSkeleton() {
+  return (
+    <div className="flex flex-col gap-0.5">
+      {Array.from({ length: POPULAR_COUNT }).map((_, i) => (
+        <div key={i} className="noir-artist-row-skeleton">
+          <span className="noir-skeleton-box w-6" />
+          <span className="noir-skeleton-box h-12 w-12 rounded-[6px]" />
+          <span className="flex flex-1 flex-col gap-2">
+            <span className="noir-skeleton-box h-3" style={{ width: `${[46, 38, 52, 34, 42][i]}%` }} />
+            <span className="noir-skeleton-box h-2.5 w-[18%]" />
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function NoirArtistView({
   artist,
   tracks,
@@ -105,7 +123,10 @@ export function NoirArtistView({
   const [albums, setAlbums] = useState<GraphAlbum[]>([]);
   const [discogFilter, setDiscogFilter] = useState<'all' | 'albums' | 'singles'>('all');
   const [artistBio, setArtistBio] = useState<ArtistBio | null>(null);
-  const artistKey = `${artist.name.toLowerCase()}::${artist.deezerId ?? ''}`;
+  // Keyed by name only: identity resolution can add a deezerId a moment later — same artist, same page.
+  const artistKey = artist.name.trim().toLowerCase();
+  const shownKeyRef = useRef<string | null>(null);
+  const [revealedFor, setRevealedFor] = useState<string | null>(null);
   // D3 reveal gate: which artist the albums / portrait belong to, and whether we stopped waiting.
   const [albumsFor, setAlbumsFor] = useState<string | null>(null);
   const [portraitFor, setPortraitFor] = useState<string | null>(null);
@@ -168,17 +189,22 @@ export function NoirArtistView({
   }, [artist.tags, albums]);
 
   useEffect(() => {
-    setShowAll(false);
-    setDiscogFilter('all');
-    const scroller = containerRef.current?.closest('.overflow-y-auto');
-    if (scroller) {
-      scroller.scrollTop = 0;
-    }
     let active = true;
-    // Never show the previous artist's releases / fans while the new ones load.
-    setAlbums([]);
-    setSimilarArtists([]);
     const key = artistKey;
+    const isNewArtist = shownKeyRef.current !== key;
+    shownKeyRef.current = key;
+    if (isNewArtist) {
+      setShowAll(false);
+      setDiscogFilter('all');
+      const scroller = containerRef.current?.closest('.overflow-y-auto');
+      if (scroller) scroller.scrollTop = 0;
+      // Never show the previous artist's releases / fans while the new ones load.
+      setAlbums([]);
+      setSimilarArtists([]);
+      setArtistBio(null);
+      setBioExpanded(false);
+    }
+    // Same artist refined (e.g. deezerId arrived): refetch quietly, keep what's on screen.
     const giveUp = window.setTimeout(() => active && setGaveUpFor(key), REVEAL_MAX_WAIT_MS);
     getSimilarArtists(artist.name, 10, artist.deezerId)
       .then((results) => {
@@ -206,8 +232,6 @@ export function NoirArtistView({
         setAlbumsFor(key);
       });
 
-    setArtistBio(null);
-    setBioExpanded(false);
     getArtistBio(artist.name)
       .then((bio) => {
         if (!active) return;
@@ -265,12 +289,18 @@ export function NoirArtistView({
     setBioOverflows(el.scrollHeight > el.clientHeight + 2);
   });
 
-  const revealed =
+  const ready =
     gaveUpFor === artistKey ||
     (!isLoading &&
       albumsFor === artistKey &&
       portraitFor === artistKey &&
       latestArtFor === artistKey);
+  // Latched: once this artist's page is shown it never drops back to the skeleton,
+  // even if a refetch flips isLoading again.
+  useEffect(() => {
+    if (ready && revealedFor !== artistKey) setRevealedFor(artistKey);
+  }, [ready, revealedFor, artistKey]);
+  const revealed = ready || revealedFor === artistKey;
 
   const shuffleAll = () => {
     if (unique.length === 0 || !onPlayFromIndex) return;
@@ -384,18 +414,7 @@ export function NoirArtistView({
         <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_240px]" aria-busy="true" aria-label={strings.artist.loading}>
           <section className="min-w-0">
             <h2 className="noir-section-title mb-4 px-1">{strings.artist.popular}</h2>
-            <div className="flex flex-col gap-0.5">
-              {Array.from({ length: POPULAR_COUNT }).map((_, i) => (
-                <div key={i} className="noir-artist-row-skeleton">
-                  <span className="noir-skeleton-box w-6" />
-                  <span className="noir-skeleton-box h-12 w-12 rounded-[6px]" />
-                  <span className="flex flex-1 flex-col gap-2">
-                    <span className="noir-skeleton-box h-3" style={{ width: `${[46, 38, 52, 34, 42][i]}%` }} />
-                    <span className="noir-skeleton-box h-2.5 w-[18%]" />
-                  </span>
-                </div>
-              ))}
-            </div>
+            <PopularSkeleton />
           </section>
           <section className="hidden min-w-0 lg:block">
             <h2 className="noir-section-title mb-4 px-1">{strings.artist.latestRelease}</h2>
@@ -447,11 +466,7 @@ export function NoirArtistView({
               )}
             </>
           ) : isLoading ? (
-            <div className="flex flex-col gap-1">
-              {Array.from({ length: POPULAR_COUNT }).map((_, i) => (
-                <div key={i} className="noir-skeleton h-[72px] rounded-[var(--noir-radius-md)]" />
-              ))}
-            </div>
+            <PopularSkeleton />
           ) : (
             <p className="px-1 py-8 text-[14px] text-[color:var(--noir-text-secondary)]">{strings.artist.empty}</p>
           )}
