@@ -105,8 +105,13 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
     if (!events) return null;
     const weekMs = totalListenedMs(events, 7);
     const monthMs = totalListenedMs(events, 30);
-    const artists = topArtists(events, 30).slice(0, 5);
-    const tracks = topTracks(events, 30).slice(0, 5);
+    // Rankings here say "plays", so they rank by plays: skips don't count, and the taste score
+    // (which recommendations use) only breaks ties.
+    const played = events.filter((e) => e.outcome !== 'skipped' && e.source !== 'seed');
+    const byPlays = <T extends { plays: number; score: number }>(list: T[]) =>
+      [...list].sort((a, b) => b.plays - a.plays || b.score - a.score).slice(0, 5);
+    const artists = byPlays(topArtists(played, 30));
+    const tracks = byPlays(topTracks(played, 30));
     const clock = buildListeningClock(events, 30);
     const streak = streakDays(events);
     const replay = buildMonthlyReplayCards(events);
@@ -317,11 +322,13 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
                     />
                     <span className="noir-stats-tile-rank">{index + 1}</span>
                   </span>
-                  <span className="min-w-0">
+                  <span className="noir-stats-tile-copy">
                     <span className="noir-stats-tile-label block truncate">{track.title}</span>
-                    <span className="noir-stats-tile-meta block truncate">{track.artist}</span>
+                    <span className="noir-stats-tile-byline">
+                      <span className="truncate">{track.artist}</span>
+                      <span className="noir-stats-tile-plays">{strings.stats.plays(track.plays)}</span>
+                    </span>
                   </span>
-                  <span className="noir-stats-tile-meta shrink-0">{strings.stats.plays(track.plays)}</span>
                 </li>
               ))}
             </ol>

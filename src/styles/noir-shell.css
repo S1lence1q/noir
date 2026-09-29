@@ -3919,11 +3919,42 @@ button.noir-now-playing-source:hover {
   min-width: 22px;
   height: 22px;
   padding: 0 6px;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.72);
-  color: #ede8de;
-  font: var(--noir-type-label);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: #f2eee6;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
+}
+
+/* Title, then one byline: artist (truncates) · plays (never cut). */
+.noir-stats-tile-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.noir-stats-tile-byline {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  font: var(--noir-type-meta);
+  color: var(--noir-text-secondary);
+}
+
+.noir-stats-tile-plays {
+  flex-shrink: 0;
+  color: var(--noir-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.noir-stats-tile-plays::before {
+  content: '·';
+  margin: 0 6px;
 }
 
 .noir-stats-tile-label {
