@@ -8,6 +8,8 @@ export type NoirLyricsColumnProps = {
   isLoading: boolean;
   isSynced: boolean;
   currentIndex: number;
+  /** Paused playback holds the breathing dots mid-breath. */
+  isPlaying?: boolean;
   onSeek?: (time: number) => void;
 };
 
@@ -23,6 +25,7 @@ export function NoirLyricsColumn({
   isLoading,
   isSynced,
   currentIndex,
+  isPlaying = true,
   onSeek = seekViaShell,
 }: NoirLyricsColumnProps) {
   const reduced = prefersReducedMotion();
@@ -49,7 +52,7 @@ export function NoirLyricsColumn({
   }, [currentIndex, isSynced, reduced]);
 
   return (
-    <div className="noir-lyrics flex h-full min-h-0 flex-col">
+    <div className="noir-lyrics flex h-full min-h-0 flex-col" data-paused={isPlaying ? undefined : 'true'}>
       <div ref={scrollRef} className="noir-lyrics-scroll relative min-h-0 flex-1 overflow-y-auto scrollbar-none px-2 pb-8">
         {isLoading ? (
           // Exact-shape skeleton: bars on the line rhythm, so lyrics land where the bars were.

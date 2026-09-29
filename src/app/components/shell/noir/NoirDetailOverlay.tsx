@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { X } from 'lucide-react';
-import { MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
+import { EASE_OUT_SMOOTH, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 
 type NoirDetailOverlayProps = {
   children: ReactNode;
@@ -13,17 +13,17 @@ export function NoirDetailOverlay({ children, onClose, title }: NoirDetailOverla
   const reduced = prefersReducedMotion();
   return (
     <motion.div
-      // A page laid on top: settles in from just below, and on close slides down and away
-      // so the page underneath is what you land on.
+      // A page laid on top: settles in from just below. On close it steps back (fade, a hair
+      // smaller) while the page underneath brightens — no drop, it isn't a sheet being thrown.
       initial={reduced ? { opacity: 0 } : { opacity: 0, y: 28, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={
         reduced
           ? { opacity: 0, transition: { duration: 0.15 } }
-          : { opacity: 0, y: 36, scale: 0.985, transition: { duration: 0.26, ease: [0.4, 0, 0.9, 0.6] } }
+          : { opacity: 0, scale: 0.99, transition: { duration: 0.2, ease: EASE_OUT_SMOOTH } }
       }
       transition={reduced ? { duration: 0.15 } : { ...MOTION.settle, opacity: { duration: 0.22 } }}
-      style={{ transformOrigin: '50% 0%' }}
+      style={{ transformOrigin: '50% 30%' }}
       className="absolute inset-0 z-40 flex flex-col bg-black"
     >
       <header className="flex shrink-0 items-center justify-between gap-4 px-5 py-4">

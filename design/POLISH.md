@@ -89,6 +89,8 @@ Principle: motion explains cause → effect (where did it go, what changed). One
 - [x] Favorite: the pressed heart pops and the NOIR mark (same five arms) springs from it in ember.
 - [x] Play ↔ pause: `NoirPlayPauseIcon` morphs triangle halves ↔ bars (bar + Home hero).
 - [x] Track change in Now Playing: deck slide by queue direction (next → from right, prev → from left).
+- [x] Detail overlay close: steps back (fade + scale .99, 200 ms) instead of dropping away like a sheet.
+- [x] Lyrics breathing dots hold mid-breath while paused (`animation-play-state`).
 - [ ] 🟡 Perf: a track switch blocks the main thread ~200–500 ms, so the deck starts late. Profile the stream switch in usePlaybackCore.
 - [x] Tab/page change: content settles in (fade + 8 px rise, sections staggered 40 ms). CSS primitive `noir-settle-group` (direct children stagger, capped at 240 ms) / `noir-settle` in `noir-shell.css`, `backwards` fill so motion/react transforms aren't held. On Home idle, Discover, Library (+ Favorites / playlist grid), Settings, scaffold header. Old page exits in 120 ms.
 - [ ] Shelves: items stagger in the first time they scroll into view.

@@ -462,6 +462,7 @@ export function NoirNowPlayingView({
                     isLoading={isLoadingLyrics}
                     isSynced={isLyricsSynced}
                     currentIndex={currentLyricIndex}
+                    isPlaying={playback.isPlaying}
                   />
                 </div>
               </motion.div>

@@ -1640,6 +1640,9 @@ button.noir-now-playing-source:hover {
 .noir-lyrics-gap.is-active i:nth-child(2) { animation-delay: 0.35s; }
 .noir-lyrics-gap.is-active i:nth-child(3) { animation-delay: 0.7s; }
 
+/* Paused: the breath is held where it is and resumes from there. */
+.noir-lyrics[data-paused] .noir-lyrics-gap.is-active i { animation-play-state: paused; }
+
 @keyframes noir-lyrics-breathe {
   /* A slow breath, not a loading spinner. */
   0%, 100% { transform: scale(0.92); opacity: 0.4; }
