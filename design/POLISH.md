@@ -4,12 +4,13 @@
 Single source of truth for "not done yet". Tickets are for features; this is for finish.
 Severity: 🔴 broken · 🟡 feels off · ⚪ finish. Check a box only when the surface meets the Definition of Done.
 
-## Next up (handoff, 2026-09-29)
-1. ~~Phase E #5 — page/tab change motion~~ done (`noir-settle-group`).
-2. ~~Phase E #6–7 — shelves + search palette~~ done.
-3. ~~Phase D — cold start~~ done.
-4. Leftovers: none from the original list.
-Motion vocabulary lives in `utils/motionPresets.ts` (`MOTION.tap/panel/scene/settle`) and `utils/actionMotion.ts` (fly-to-queue, favorite burst).
+## Next up (handoff, 2026-09-29 evening)
+The punch list is clear (phases A–G, T22, D5, motion pass). Candidates for the next pass, in order:
+1. Real-device check on a phone (iOS Safari): tab bar safe area, mini-bar, long-press vs the More menu, Now Playing stacked layout.
+2. Pause the old song the moment a new one is tapped while its stream resolves (bar already shows `pendingSong`; needs a pause path in `usePlaybackCore` that doesn't break the next autoplay).
+3. Identity: two-name duos not on the `SINGLE_ACTS` list still split ("Andy & Lucas") — resolve against the graph instead of a list.
+4. Discover / Home at phone width: shelves and tiles pass, but no dedicated pass yet on long lists and cards.
+Motion vocabulary lives in `utils/motionPresets.ts` (`MOTION.tap/exit/panel/scene/settle` + the doc comment) and `utils/actionMotion.ts` (fly-to-queue, favorite burst).
 
 ## Definition of Done (per surface)
 All 6 states · nothing jumps · enter **and** exit motion · reduced motion · keyboard · copy in `strings.ts` · works at phone width · no fallback flash.
