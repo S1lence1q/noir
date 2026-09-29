@@ -4159,8 +4159,9 @@ button.noir-now-playing-source:hover {
   .noir-settle-group > * { animation: none; }
 }
 
-/* Shelves below the fold: items wait, then stagger in the first time the shelf is seen. */
-.noir-home-shelf[data-reveal='pending'] > * { opacity: 0; }
+/* Shelves below the fold: items wait, then stagger in the first time the shelf is seen.
+   visibility, not opacity: motion/react cards carry an inline opacity that would win. */
+.noir-home-shelf[data-reveal='pending'] > * { visibility: hidden; }
 .noir-home-shelf[data-reveal='in'] > * {
   animation: noir-settle 0.42s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
@@ -4183,5 +4184,5 @@ button.noir-now-playing-source:hover {
 .noir-stagger-rows > :nth-child(n + 7) { animation-delay: 120ms; }
 @media (prefers-reduced-motion: reduce) {
   .noir-home-shelf[data-reveal] > *,
-  .noir-stagger-rows > * { animation: none; opacity: 1; }
+  .noir-stagger-rows > * { animation: none; visibility: visible; }
 }

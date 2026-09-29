@@ -41,7 +41,8 @@ export function NoirHomeShelf({
         setReveal('in');
         io.disconnect();
       },
-      { threshold: 0.2 }
+      // First visible pixel: the cards start arriving as the shelf edge comes into view.
+      { threshold: 0 }
     );
     io.observe(el);
     return () => io.disconnect();
