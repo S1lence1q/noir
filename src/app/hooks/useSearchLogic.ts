@@ -344,6 +344,9 @@ export function useSearchLogic({
         (identity.confidence === 'high' ? artistPortraitUrl(verified.thumbnail) : '') ||
         seedThumb ||
         '',
+      disambiguation: verified.disambiguation || seedArtist.disambiguation,
+      country: verified.country || seedArtist.country,
+      tags: (verified.tags && verified.tags.length > 0) ? verified.tags : seedArtist.tags,
     };
 
     if (generation !== profileGenRef.current) return;
@@ -618,6 +621,9 @@ export function useSearchLogic({
         isTopic: artistClean.isTopic,
         mbid: artistClean.mbid,
         deezerId: artistClean.deezerId,
+        disambiguation: artistClean.disambiguation,
+        country: artistClean.country,
+        tags: artistClean.tags,
         skipChannelResolve: true,
       });
 

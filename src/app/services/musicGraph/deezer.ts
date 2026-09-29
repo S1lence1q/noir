@@ -257,6 +257,27 @@ export async function getDeezerNewReleases(artist: string, days: number): Promis
     }));
 }
 
+export const DEEZER_GENRE_NAMES: Record<number, string> = {
+  132: 'Pop',
+  116: 'Hip-Hop',
+  152: 'Rock',
+  113: 'Electronic',
+  85: 'Alternative',
+  165: 'R&B',
+  129: 'Jazz',
+  464: 'Metal',
+  144: 'Reggae',
+  169: 'Soul & Funk',
+  98: 'Classical',
+  153: 'Blues',
+  173: 'Soundtrack',
+  2: 'African',
+  16: 'Asian',
+  75: 'Brazilian',
+  81: 'Indian',
+  197: 'Latin',
+};
+
 export type GraphAlbum = {
   id: number;
   title: string;
@@ -265,6 +286,8 @@ export type GraphAlbum = {
   releaseDate?: string;
   year?: string;
   image?: string;
+  genreId?: number;
+  genre?: string;
 };
 
 export async function getDeezerArtistAlbums(
@@ -283,6 +306,7 @@ export async function getDeezerArtistAlbums(
       cover_xl?: string;
       cover_big?: string;
       cover_medium?: string;
+      genre_id?: number;
     }>;
   }>(`/artist/${match.id}/albums?limit=${Math.min(100, Math.max(1, limit))}`);
 
@@ -296,6 +320,8 @@ export async function getDeezerArtistAlbums(
       releaseDate: a.release_date,
       year: a.release_date ? a.release_date.slice(0, 4) : undefined,
       image: a.cover_xl || a.cover_big || a.cover_medium,
+      genreId: a.genre_id,
+      genre: a.genre_id ? DEEZER_GENRE_NAMES[a.genre_id] : undefined,
     }));
 }
 

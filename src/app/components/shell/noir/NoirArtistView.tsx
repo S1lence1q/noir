@@ -134,6 +134,18 @@ export function NoirArtistView({
           : strings.artist.latestRelease
     : null;
 
+  const resolvedTags = useMemo(() => {
+    if (artist.tags && artist.tags.length > 0) return artist.tags;
+    const albumGenres = Array.from(
+      new Set(
+        albums
+          .map((a) => a.genre)
+          .filter((g): g is string => typeof g === 'string' && g.length > 0)
+      )
+    );
+    return albumGenres;
+  }, [artist.tags, albums]);
+
   useEffect(() => {
     setShowAll(false);
     setDiscogFilter('all');
@@ -216,11 +228,16 @@ export function NoirArtistView({
         <div className="noir-artist-hero-text">
           <p className="noir-artist-hero-label">{strings.artist.label}</p>
           <h1 className="noir-artist-hero-name">{artist.name}</h1>
-          {((isLoading && unique.length === 0) || artist.disambiguation || artist.country) && (
+          {((isLoading && unique.length === 0) || artist.disambiguation || artist.country || resolvedTags.length > 0) && (
             <p className="noir-artist-hero-meta">
               {isLoading && unique.length === 0
                 ? strings.artist.loading
-                : [artist.disambiguation, formatCountry(artist.country)].filter(Boolean).join(' · ')}
+                : [
+                    artist.disambiguation || (resolvedTags.length > 0 ? resolvedTags.slice(0, 2).join(' · ') : undefined),
+                    formatCountry(artist.country),
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
             </p>
           )}
           <div className="mt-6 flex items-center gap-2">
@@ -545,9 +562,9 @@ export function NoirArtistView({
               </p>
             )}
 
-            {artist.tags && artist.tags.length > 0 && (
+            {resolvedTags.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {artist.tags.map((tag) => (
+                {resolvedTags.map((tag) => (
                   <span
                     key={tag}
                     className="rounded-full bg-white/[0.06] border border-white/[0.08] px-3 py-1 text-[12px] font-medium text-[color:var(--noir-text-secondary)]"
