@@ -223,18 +223,6 @@ export function NoirArtistView({
                 : [artist.disambiguation, formatCountry(artist.country)].filter(Boolean).join(' · ')}
             </p>
           )}
-          {artist.tags && artist.tags.length > 0 && (
-            <div className="mt-2.5 flex flex-wrap gap-1.5 opacity-90">
-              {artist.tags.slice(0, 3).map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border border-current/15 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider opacity-85"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
           <div className="mt-6 flex items-center gap-2">
             <motion.button
               type="button"

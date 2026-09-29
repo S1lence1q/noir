@@ -35,9 +35,10 @@ The artist page feels like a curated profile rather than a flat file list. Adds 
 - Rich card at the bottom of the artist profile with dithered portrait backdrop masked with a soft radial fade.
 - Highlights artist name, disambiguation, formatted country of origin (e.g. `Denmark`), and full genre tags (Apple Music style, avoiding inaccurate third-party follower counts).
 
-### 5. Hero metadata: Origin, Disambiguation & Genre tags
-- Follows Apple Music / Tidal approach: avoids platform-skewed listener counters.
-- Displays origin / disambiguation (e.g. `Danish Rapper · Denmark`) when available, plus up to 3 discrete genre tags in subtle rounded chips matching the hero color world.
+### 5. Hero metadata: Clean Minimalist Banner (Apple Music style)
+- Follows Apple Music / Tidal approach: avoids platform-skewed listener counters and removes distracting tag pills from the hero banner.
+- Displays artist label, name, and origin / disambiguation (e.g. `Denmark` or `Danish Rapper · Denmark`) cleanly above the playback controls.
+- Full genre tags are kept strictly inside the bottom "About [Artist]" section to maintain a pristine, editorial hero header.
 
 ### 6. Instant load speed (<300 ms cold, 0 ms warm)
 - `resolveArtistIdentity` uses `skipChannelResolve: true` on profile open to eliminate the 2.8s channel timeout.
@@ -58,7 +59,7 @@ The artist page feels like a curated profile rather than a flat file list. Adds 
 - `src/app/services/artistIdentity/types.ts` & `resolveArtist.ts` — forward `disambiguation`, `country`, `tags`
 - `src/app/types.ts` — verified artist definition
 - `src/app/hooks/useSearchLogic.ts` — instant popular paint, immediate cache, non-blocking discography, shortcut artists
-- `src/app/components/shell/noir/NoirArtistView.tsx` — 2-column layout, discography filter, Fans also like, About card
+- `src/app/components/shell/noir/NoirArtistView.tsx` — 2-column layout, discography filter, Fans also like, About card, clean hero banner
 - `src/app/components/LandingPage.tsx` — wire `onSelectArtist`, `onPlayAlbum`, `onSelectAlbum`
 
 ## Acceptance
@@ -67,7 +68,7 @@ The artist page feels like a curated profile rather than a flat file list. Adds 
 - [x] About [Artist] section renders with dithered portrait backdrop, artist name, country origin, and genre tags.
 - [x] Artist page loads "Fans also like" shelf with similar artists when available (>= 3).
 - [x] Playing or clicking an album plays the tracklist or opens the collection overlay.
-- [x] Hero displays origin and genre tags cleanly without misleading listener counts.
+- [x] Hero displays a clean, minimalist header (Artist, Name, Origin, Play/Shuffle) without tag pill clutter.
 - [x] Profile paints in <300ms on cold load (popular-first) and 0ms on revisit.
 - [x] Switching artists resets `showAll` and filter state, and scrolls to top.
 - [x] All copy in `strings.ts`.
