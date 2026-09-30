@@ -301,6 +301,23 @@ export default function App() {
     isLyricsSynced,
   } = useLyrics(songData ?? EMPTY_LYRICS_SONG, shellPlayback.currentTime, shellPlayback.duration);
 
+  /**
+   * `showLyrics` is the listener's choice and survives song changes. Whether the lyrics stage is actually
+   * shown also depends on the song having any: a song without lyrics falls back to the normal cover layout
+   * (no "No lyrics found" stage) and the choice re-opens by itself on the next song that has them.
+   * The short settle delay stops the stage collapsing in the frame between "loaded" and "lines set".
+   */
+  const [noLyricsSettled, setNoLyricsSettled] = useState(false);
+  useEffect(() => {
+    if (isLoadingLyrics || lyrics.length > 0) {
+      setNoLyricsSettled(false);
+      return;
+    }
+    const t = setTimeout(() => setNoLyricsSettled(true), 350);
+    return () => clearTimeout(t);
+  }, [isLoadingLyrics, lyrics.length, songData?.title, songData?.artist]);
+  const lyricsActive = showLyrics && !noLyricsSettled;
+
   const [sidePanelOpen, setSidePanelOpen] = useState(() => {
     try {
       return localStorage.getItem('elva_np_side_panel') !== '0';
@@ -335,7 +352,7 @@ export default function App() {
 
   const toggleLyrics = () => {
     if (!songData) return;
-    const next = !showLyrics;
+    const next = !lyricsActive;
     if (next && lyrics.length === 0) return;
     if (next) {
       if (!canHoldLyricsAndQueue()) setSidePanelOpen(false);
@@ -1850,7 +1867,7 @@ export default function App() {
               setNowPlayingOpen((open) => !open);
             }}
             onToggleQueue={toggleQueueRail}
-            lyricsOpen={nowPlayingOpen && showLyrics}
+            lyricsOpen={nowPlayingOpen && lyricsActive}
             lyricsAvailable={lyrics.length > 0}
             onToggleLyrics={toggleLyrics}
             showCompactPlayer
@@ -1937,7 +1954,7 @@ export default function App() {
                     duration: shellPlayback.duration,
                     isPlaying: isMiniPlaying,
                   }}
-                  showLyrics={showLyrics}
+                  showLyrics={lyricsActive}
                   onShowLyrics={setShowLyrics}
                   lyrics={lyrics}
                   isLoadingLyrics={isLoadingLyrics}
