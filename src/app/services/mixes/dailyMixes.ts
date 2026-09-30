@@ -109,6 +109,7 @@ function eventToSearchResult(event: ListeningEvent): SearchResult {
     artist: event.artist,
     thumbnail: youtubeThumb(event.songKey) || '',
     videoId: event.songKey.length === 11 && !event.songKey.startsWith('local:') ? event.songKey : '',
+    duration: event.durationMs && event.durationMs > 0 ? Math.round(event.durationMs / 1000) : undefined,
   };
 }
 

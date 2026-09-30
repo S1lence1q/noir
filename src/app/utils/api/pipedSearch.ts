@@ -2,6 +2,7 @@ import { SearchResult } from '../../types';
 import { fetchFromFirstSuccessfulInstance, robustFetch } from './httpClient';
 import {
   isLikelyNonMusicStream,
+  positiveSeconds,
   isOfficialMusicTrack,
   mapPipedSearchItems,
 } from './musicStreamFilters';
@@ -135,6 +136,7 @@ const executeRawSearchAPI = async (query: string, limit: number = 8): Promise<Se
             thumbnail: `https://i.ytimg.com/vi/${item.videoId}/maxresdefault.jpg`,
             videoId: item.videoId,
             channelId: item.authorId,
+            duration: positiveSeconds(item.lengthSeconds),
           }));
 
           if (mapped.length > 0) return mapped;

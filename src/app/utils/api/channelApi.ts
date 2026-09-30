@@ -5,6 +5,7 @@ import {
   cleanTrackTitle,
   dedupeSearchResults,
   isLikelyNonMusicStream,
+  positiveSeconds,
 } from './musicStreamFilters';
 import { fetchPaginatedPipedSearch } from './pipedSearch';
 import { INVIDIOUS_INSTANCES, PIPED_INSTANCES, TOPIC_INVIDIOUS_INSTANCES } from './pipedInstances';
@@ -36,6 +37,7 @@ export const executeChannelUploadsAPI = async (
                 thumbnail: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
                 videoId,
                 channelId,
+                duration: positiveSeconds(item.duration),
               };
             })
             .filter((item: any) => item.id.length === 11);
@@ -71,6 +73,7 @@ export const executeChannelUploadsAPI = async (
               thumbnail: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
               videoId,
               channelId,
+              duration: positiveSeconds(item.lengthSeconds),
             };
           })
           .filter((item: any) => item.id && item.id.length === 11);
@@ -235,6 +238,7 @@ export const fetchAllChannelUploads = async (
       thumbnail: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
       videoId,
       channelId: cId || channelId,
+      duration: positiveSeconds(item.duration),
     };
   };
 
@@ -290,6 +294,7 @@ export const fetchAllChannelUploads = async (
           thumbnail: `https://i.ytimg.com/vi/${v.videoId}/maxresdefault.jpg`,
           videoId: v.videoId,
           channelId,
+          duration: positiveSeconds(v.lengthSeconds),
         }));
       if (mapped.length > 0) return mapped.slice(0, limit);
     } catch {

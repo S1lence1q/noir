@@ -23,6 +23,10 @@ const countTitleEmojis = (title: string): number => {
   }
 };
 
+/** Whole seconds when the source gave a real length (Piped sends -1 for live streams), else undefined. */
+export const positiveSeconds = (value: unknown): number | undefined =>
+  typeof value === 'number' && value > 0 ? Math.round(value) : undefined;
+
 /** Returns true when a result is almost certainly not a music track. */
 export const isLikelyNonMusicStream = (
   title: string,
@@ -87,6 +91,7 @@ export const mapPipedSearchItems = (
       thumbnail: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
       videoId,
       channelId,
+      duration: positiveSeconds(item.duration),
     };
   });
 };

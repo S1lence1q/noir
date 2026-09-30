@@ -19,6 +19,7 @@ type DeezerTrack = {
   artist?: { id?: number; name?: string };
   album?: { title?: string; cover_xl?: string; cover_big?: string };
   rank?: number;
+  duration?: number;
 };
 
 function logFailure(path: string, error: unknown) {
@@ -185,6 +186,7 @@ function mapTrack(track: DeezerTrack, fallbackArtist: string): GraphTrack | null
     title: track.title,
     artist: track.artist?.name || fallbackArtist,
     image: track.album?.cover_xl || track.album?.cover_big,
+    durationSec: track.duration && track.duration > 0 ? track.duration : undefined,
   };
 }
 
