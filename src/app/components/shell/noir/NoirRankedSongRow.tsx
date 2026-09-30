@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Heart, Plus } from 'lucide-react';
+import { Heart, Play, Plus } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { openSongMenu, SongRowOptions } from '../../SongRowOptions';
 import { prefersReducedMotion } from '../../../utils/motionPresets';
@@ -20,6 +20,12 @@ type NoirRankedSongRowProps = {
   showDuration?: boolean;
   /** Hide the cover column (e.g. album where every row shares one cover). */
   hideArt?: boolean;
+  /** Quieter collection page: the number turns into play on hover, the playing row is marked. */
+  calm?: boolean;
+  /** This row is the loaded song. */
+  playing?: boolean;
+  /** The player is running (bars move) rather than paused. */
+  isPlaying?: boolean;
 };
 
 function formatDuration(duration: number) {
@@ -38,6 +44,9 @@ export function NoirRankedSongRow({
   onToggleFavorite,
   showDuration = false,
   hideArt = false,
+  calm = false,
+  playing = false,
+  isPlaying = false,
 }: NoirRankedSongRowProps) {
   const reduced = prefersReducedMotion();
   const rankLabel = String(rank).padStart(2, '0');
@@ -67,20 +76,36 @@ export function NoirRankedSongRow({
       onKeyDown={(e) => {
         if (e.key === 'Enter') onPlay();
       }}
+      data-playing={playing ? 'true' : undefined}
+      data-calm={calm ? 'true' : undefined}
       className={`noir-track-row noir-song-grid group cursor-pointer px-3 py-3 ${
         showDuration ? 'noir-track-row--with-duration' : ''
       } ${hideArt ? 'noir-track-row--no-art' : ''}`}
       whileTap={reduced ? undefined : { scale: 0.985 }}
       transition={{ type: 'spring', stiffness: 520, damping: 34 }}
     >
-      <span
-        className={`tabular-nums text-[14px] font-medium leading-none ${
-          rank === 1 ? 'text-white/35' : 'text-[color:var(--noir-text-tertiary)]'
-        }`}
-        aria-hidden
-      >
-        {rankLabel}
-      </span>
+      {calm ? (
+        <span className="noir-rank-cell" aria-hidden>
+          <span className="noir-rank-num">{rankLabel}</span>
+          {playing ? (
+            <span className={`noir-playing-bars noir-rank-bars ${isPlaying ? '' : 'is-paused'}`}>
+              <span />
+              <span />
+              <span />
+            </span>
+          ) : null}
+          <Play className="noir-rank-play h-3.5 w-3.5 fill-current" />
+        </span>
+      ) : (
+        <span
+          className={`tabular-nums text-[14px] font-medium leading-none ${
+            rank === 1 ? 'text-white/35' : 'text-[color:var(--noir-text-tertiary)]'
+          }`}
+          aria-hidden
+        >
+          {rankLabel}
+        </span>
+      )}
 
       {!hideArt && (
         <div className={`noir-art relative h-12 w-12 overflow-hidden ${hasThumb ? 'bg-[color:var(--noir-gray-dark)]' : ''}`}>

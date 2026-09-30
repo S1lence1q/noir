@@ -393,6 +393,9 @@ export function LandingPage({
                 onPlayPlaylist={handlePlayPlaylist}
                 onPlayNext={handlePlayNext}
                 onToggleFavorite={handleToggleFavorite}
+                activeSongKey={activeSongKey}
+                activeTrack={activeTrack}
+                isPlaying={isPlaying}
               />
             </NoirDetailOverlay>
   );

@@ -2634,105 +2634,98 @@ button.noir-now-playing-source:hover {
 }
 
 
-/* Mix / genre / chart page: three big cards, then a two-column list. */
-.noir-collection-featured {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 36px;
-}
-
-.noir-collection-feature {
+/* Mix / genre / chart page: a calm single-column list tinted by the page's colour. */
+.noir-collection-list {
+  --hero-tint: color-mix(in srgb, var(--hero-field) 55%, #fff);
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
 }
 
-.noir-collection-feature-art {
+.noir-collection-list .noir-track-row {
   position: relative;
-  display: block;
-  aspect-ratio: 1;
-  margin-bottom: 10px;
-  overflow: hidden;
-  border-radius: var(--noir-radius-md);
-  background: var(--noir-gray-dark, #151515);
+  border-radius: 12px;
+  transition: background-color 0.2s ease;
 }
 
-.noir-collection-feature-art :is(.noir-artwork, img) {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover;
-  transition: transform 0.5s var(--noir-ease-out, ease-out);
-}
-
-.noir-collection-feature:hover .noir-collection-feature-art :is(.noir-artwork, img) {
-  transform: scale(1.04);
-}
-
-.noir-collection-feature-rank {
+/* Hairline between rows, inset so it never touches the rounded hover. */
+.noir-collection-list .noir-track-row::after {
+  content: '';
   position: absolute;
-  left: 12px;
-  top: 8px;
-  font-size: 44px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: #fff;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55), 0 0 2px rgba(0, 0, 0, 0.35);
+  left: 14px;
+  right: 14px;
+  bottom: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.noir-collection-feature-play {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
+.noir-collection-list .noir-track-row:hover,
+.noir-collection-list .noir-track-row:focus-visible {
+  background-color: color-mix(in srgb, var(--hero-field) 16%, transparent);
+}
+
+.noir-collection-list .noir-track-row:hover::after,
+.noir-collection-list .noir-track-row[data-playing='true']::after {
   opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.2s, transform 0.2s var(--noir-ease-out, ease-out);
 }
 
-.noir-collection-feature:hover .noir-collection-feature-play,
-.noir-collection-feature:focus-visible .noir-collection-feature-play {
-  opacity: 1;
-  transform: none;
+.noir-collection-list .noir-track-row[data-playing='true'] {
+  background-color: color-mix(in srgb, var(--hero-field) 22%, transparent);
 }
 
-.noir-collection-list-label {
-  margin: 0 0 8px;
-  padding: 0 12px;
-  font: var(--noir-type-label);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+.noir-collection-list .noir-track-row[data-playing='true'] .noir-song-title {
+  color: var(--hero-tint);
+}
+
+/* Rank cell: number at rest, play on hover, bars while it's the loaded song. */
+.noir-rank-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 32px;
+  height: 20px;
   color: var(--noir-text-tertiary);
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
-.noir-collection-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 24px;
-  row-gap: 2px;
+.noir-rank-play,
+.noir-rank-bars {
+  position: absolute;
+  left: 0;
 }
 
-@media (max-width: 1100px) {
-  .noir-collection-list {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.noir-rank-play {
+  opacity: 0;
+  color: var(--hero-tint);
 }
 
-@media (max-width: 560px) {
-  .noir-collection-featured {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-  .noir-collection-feature:first-child {
-    grid-column: span 2;
-  }
+.noir-rank-bars {
+  color: var(--hero-tint);
+}
+
+.noir-rank-bars span {
+  background: var(--hero-tint);
+}
+
+.noir-rank-bars.is-paused span {
+  animation-play-state: paused;
+  transform: scaleY(0.45);
+}
+
+.noir-track-row:hover .noir-rank-num,
+.noir-track-row[data-playing='true'] .noir-rank-num {
+  opacity: 0;
+}
+
+.noir-track-row:hover .noir-rank-play {
+  opacity: 1;
+}
+
+/* Hovering the playing row shows play again, not the bars. */
+.noir-track-row[data-playing='true']:hover .noir-rank-bars {
+  opacity: 0;
 }
 
 /* Collection pages (user playlists) */
