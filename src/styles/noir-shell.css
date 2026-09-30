@@ -5076,16 +5076,53 @@ button.noir-now-playing-source:hover {
   align-items: center;
 }
 
+/* The spotlight is a banner, like Home's: one flat field (the chart's colour), grain, the cover on it. */
 .noir-discover-top .noir-discover-spotlight {
+  position: relative;
   margin: 0;
+  padding: 28px;
+  border-radius: 28px;
+  overflow: hidden;
+  isolation: isolate;
+  color: #0b0b0b;
 }
 
-.noir-discover-top-label {
-  margin: 0 0 12px 4px;
-  font: var(--noir-type-label);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--noir-text-tertiary);
+.noir-discover-top .noir-discover-spotlight::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.noir-discover-top .noir-discover-spotlight[data-dark] {
+  color: #f2eee6;
+}
+
+.noir-discover-top :is(.noir-discover-spotlight-title, .noir-discover-spotlight-artist, .noir-discover-spotlight-eyebrow) {
+  color: inherit;
+}
+
+.noir-discover-top .noir-discover-spotlight-eyebrow,
+.noir-discover-top .noir-discover-spotlight-artist {
+  opacity: 0.7;
+}
+
+.noir-discover-top .noir-discover-spotlight:not([data-dark]) .noir-button-primary {
+  background: #0b0b0b;
+  color: #f2eee6;
+}
+
+.noir-discover-top .noir-discover-spotlight .noir-button-secondary {
+  color: inherit;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.noir-discover-top .noir-discover-spotlight-cover {
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
 }
 
 @media (max-width: 1000px) {
@@ -5131,6 +5168,28 @@ button.noir-now-playing-source:hover {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--noir-text-tertiary);
+}
+
+/* Discover genres: compact rows (symbol + name), spread over columns like Moving now. */
+.noir-genre-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px 24px;
+}
+
+.noir-genre-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 8px 12px 8px 8px;
+  border-radius: var(--noir-radius-md);
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+
+.noir-genre-row:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .noir-discover-chart-stack {

@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight, Play, RefreshCw } from 'lucide-react';
+import { ArrowRight, ChevronRight, Play, RefreshCw } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
 import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { NoirDitherCover } from './NoirDitherCover';
-import { NoirMixCover, mosaicLayout } from './NoirMixCover';
+import { NoirMixCover } from './NoirMixCover';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirHomeShelf } from './NoirHomeShelf';
-import { worldForCollection } from '../../../utils/ditherCover';
+import { COLOR_WORLDS, worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
 import { getListeningEvents } from '../../../services/listening/eventsStore';
@@ -250,6 +250,9 @@ export function NoirDiscoverView({
       {spotlightTrack && (
           <motion.section
             className="noir-discover-spotlight"
+            // The chart's own colour: Denmark ember, global cobalt (same as the chart covers).
+            data-dark={localHits.length > 0 ? undefined : true}
+            style={{ background: COLOR_WORLDS[localHits.length > 0 ? 'ember' : 'cobalt'].field }}
             initial={reduced ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: EASE_PREMIUM }}
@@ -271,8 +274,8 @@ export function NoirDiscoverView({
               <p className="noir-discover-spotlight-eyebrow">{strings.discover.spotlight}</p>
               <h2 className="noir-discover-spotlight-title">{spotlightTrack.title}</h2>
               <p className="noir-discover-spotlight-artist">{spotlightTrack.artist}</p>
-              <p className="mt-2 text-[13px] text-[color:var(--noir-text-tertiary)]">
-                {strings.discover.onTheCharts}
+              <p className="mt-2 text-[13px] opacity-60">
+                #1 · {(localHits.length > 0 ? localPlaylist : globalPlaylist).name}
               </p>
               <div className="mt-5 flex flex-wrap gap-2">
                 <button
@@ -297,7 +300,7 @@ export function NoirDiscoverView({
           </motion.section>
         )}
         <section className="noir-discover-top-charts">
-          <h3 className="noir-discover-top-label">{strings.discover.charts}</h3>
+          <h3 className="noir-section-heading !mt-0 px-1">{strings.discover.charts}</h3>
           <div className="noir-discover-chart-stack">
             {chartSlots.map(({ key, playlist }) =>
               playlist ? (
@@ -359,26 +362,27 @@ export function NoirDiscoverView({
         </div>
       )}
 
-      {/* Genres as a mosaic of their symbols; each opens the genre. */}
+      {/* Genres: compact rows with their symbol — navigation shouldn't shout louder than the music. */}
       {tagShelves.length > 0 && (
         <section>
           <h3 className="noir-section-heading px-1">{strings.discover.genres}</h3>
-          <div className="noir-mosaic" {...(mosaicLayout(tagShelves.length) as object)}>
+          <div className="noir-genre-list">
             {tagShelves.map((shelf, i) => (
               <motion.button
                 key={shelf.id}
                 type="button"
-                className="noir-collection-card group elva-focus-ring"
+                className="noir-genre-row group elva-focus-ring"
                 onClick={() => openTagShelf(shelf.title, shelf.tracks, shelf.id)}
-                initial={reduced ? false : { opacity: 0, y: 8 }}
+                initial={reduced ? false : { opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: i * 0.04 }}
+                transition={{ duration: 0.32, ease: EASE_PREMIUM, delay: i * 0.04 }}
               >
-                <NoirMixCover tag={shelf.title} size={i === 0 ? 360 : 180} className="noir-mosaic-cover" />
-                <span className="min-w-0">
-                  <span className="noir-song-title block truncate">{shelf.title}</span>
+                <NoirMixCover tag={shelf.title} size={72} radius={10} />
+                <span className="min-w-0 flex-1">
+                  <span className="noir-song-title block truncate text-[15px]">{shelf.title}</span>
                   <span className="noir-song-meta mt-0.5 block truncate">{strings.discover.songs(shelf.tracks.length)}</span>
                 </span>
+                <ChevronRight className="h-4 w-4 shrink-0 opacity-0 transition-opacity group-hover:opacity-60" />
               </motion.button>
             ))}
           </div>
@@ -539,9 +543,10 @@ function ChartRow({ playlist, onOpen, onPlay }: { playlist: Playlist; onOpen: ()
         size={72}
       />
       <span className="min-w-0 flex-1">
-        <span className="noir-label block">{strings.discover.chart}</span>
-        <span className="noir-song-title mt-1 block truncate text-[15px]">{playlist.name}</span>
-        <span className="noir-song-meta block truncate">{strings.discover.songs(playlist.tracks.length)}</span>
+        <span className="noir-song-title block truncate text-[15px]">{playlist.name}</span>
+        <span className="noir-song-meta mt-0.5 block truncate">
+          {strings.discover.songs(playlist.tracks.length)} · {strings.discover.updatedDaily}
+        </span>
       </span>
       <button
         type="button"

@@ -303,6 +303,7 @@ export const strings = {
     onTheCharts: 'On the charts now',
     movingNow: 'Moving now',
     genres: 'Genres',
+    updatedDaily: 'updated daily',
     playSpotlight: 'Play',
     openWorld: 'Open',
   },
