@@ -1670,6 +1670,7 @@ button.noir-now-playing-source:hover {
 .noir-now-playing-queue-inner > ul {
   flex: 1;
   min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
 }
 
@@ -1816,7 +1817,7 @@ button.noir-now-playing-source:hover {
 }
 
 .noir-now-playing-queue-empty {
-  max-width: 220px;
+  max-width: 252px;
   padding-top: 8px;
 }
 
@@ -3657,14 +3658,16 @@ button.noir-now-playing-source:hover {
 /* Now Playing — empty Next up */
 .noir-queue-empty-covers {
   display: grid;
-  grid-template-columns: repeat(3, 72px);
+  /* Fluid, so three covers always fit the column instead of pushing it sideways. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
 .noir-queue-empty-cover {
   display: block;
-  width: 72px;
-  height: 72px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
   border-radius: var(--noir-radius-sm);
   object-fit: cover;
   background: var(--noir-elevated);
@@ -3672,7 +3675,7 @@ button.noir-now-playing-source:hover {
 
 .noir-queue-empty-cover-title {
   display: block;
-  width: 72px;
+  width: 100%;
   margin-top: 6px;
   overflow: hidden;
   font-size: 11px;
