@@ -146,6 +146,7 @@ export const strings = {
     buildTitle: 'Building your station',
     buildReading: 'Reading your picks',
     buildFinding: 'Finding the best tracks',
+    buildCueing: 'Cueing up',
   },
   library: {
     favoritesSortLabel: 'Sort by',
