@@ -3528,6 +3528,30 @@ button.noir-now-playing-source:hover {
   transform: translateY(0);
 }
 
+.noir-filter-tab {
+  position: relative;
+  padding: 4px 0 7px;
+  font: var(--noir-type-meta);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--noir-text-tertiary);
+  transition: color 0.15s ease;
+}
+.noir-filter-tab:hover,
+.noir-filter-tab[data-active='true'] {
+  color: var(--noir-text-primary);
+}
+/* The active tab's mark: a short bone bar that slides between tabs. */
+.noir-filter-tab-mark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: #ede8de;
+}
+
 .noir-filter-chip {
   padding: 6px 14px;
   font: var(--noir-type-meta);

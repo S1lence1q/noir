@@ -528,40 +528,36 @@ export function NoirArtistView({
 
       {revealed && albums.length > 0 && (
         <section className="mt-12">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 px-1">
+          <div className="mb-4 flex flex-wrap items-baseline gap-x-8 gap-y-2 px-1">
             <h2 className="noir-section-title">{strings.artist.discography}</h2>
             {showFilterTabs && (
-              <div className="flex items-center gap-1.5" role="tablist" aria-label={strings.artist.discography}>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={discogFilter === 'all'}
-                  onClick={() => setDiscogFilter('all')}
-                  data-active={discogFilter === 'all'}
-                  className="noir-filter-chip elva-focus-ring cursor-pointer"
-                >
-                  {strings.artist.filterAll}
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={discogFilter === 'albums'}
-                  onClick={() => setDiscogFilter('albums')}
-                  data-active={discogFilter === 'albums'}
-                  className="noir-filter-chip elva-focus-ring cursor-pointer"
-                >
-                  {strings.artist.filterAlbums}
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={discogFilter === 'singles'}
-                  onClick={() => setDiscogFilter('singles')}
-                  data-active={discogFilter === 'singles'}
-                  className="noir-filter-chip elva-focus-ring cursor-pointer"
-                >
-                  {strings.artist.filterSingles}
-                </button>
+              <div className="flex items-center gap-5" role="tablist" aria-label={strings.artist.discography}>
+                {(
+                  [
+                    ['all', strings.artist.filterAll],
+                    ['albums', strings.artist.filterAlbums],
+                    ['singles', strings.artist.filterSingles],
+                  ] as const
+                ).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    aria-selected={discogFilter === id}
+                    onClick={() => setDiscogFilter(id)}
+                    data-active={discogFilter === id}
+                    className="noir-filter-tab elva-focus-ring cursor-pointer"
+                  >
+                    {label}
+                    {discogFilter === id && (
+                      <motion.span
+                        layoutId="noir-discog-tab"
+                        className="noir-filter-tab-mark"
+                        transition={reduced ? { duration: 0 } : MOTION.panel}
+                      />
+                    )}
+                  </button>
+                ))}
               </div>
             )}
           </div>
