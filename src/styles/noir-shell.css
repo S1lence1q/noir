@@ -2405,6 +2405,11 @@ button.noir-now-playing-source:hover {
   align-items: center;
   justify-content: center;
   background: var(--noir-canvas);
+  transition: background-color 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.noir-station-building[data-cueing] {
+  background-color: transparent;
 }
 
 .noir-station-building-card {

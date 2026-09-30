@@ -2101,6 +2101,9 @@ export default function App() {
                   title={
                     (loadingSongId && queue.find((t) => t.id === loadingSongId)?.title) || songData?.title || null
                   }
+                  artist={
+                    (loadingSongId && queue.find((t) => t.id === loadingSongId)?.artist) || songData?.artist || null
+                  }
                 />
               )}
               {appState === 'processing' && !songData && !stationBuild && (
