@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
+import { NoirMark } from './NoirMark';
 
 export type NoirToastAction = {
   label: string;
@@ -17,7 +18,7 @@ export type NoirToastOptions = {
   duration?: number;
 };
 
-type ActiveToast = NoirToastOptions & { id: number };
+type ActiveToast = NoirToastOptions & { id: number; ms: number };
 
 const TOAST_EVENT = 'noir-toast';
 
@@ -54,8 +55,9 @@ export function NoirToastHost() {
       const detail = (e as CustomEvent<NoirToastOptions>).detail;
       if (!detail?.text) return;
       idRef.current += 1;
-      setToast({ ...detail, id: idRef.current });
-      startTimer(detail.duration ?? (detail.action ? 5000 : 3000));
+      const ms = detail.duration ?? (detail.action ? 5000 : 3000);
+      setToast({ ...detail, id: idRef.current, ms });
+      startTimer(ms);
     };
     window.addEventListener(TOAST_EVENT, onToast);
     return () => {
@@ -81,14 +83,18 @@ export function NoirToastHost() {
           <motion.div
             key={toast.id}
             className={`noir-toast${toast.action ? '' : ' noir-toast--plain'}`}
-            initial={{ opacity: 0, y: 18, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.98, transition: withReducedMotion({ duration: 0.18, ease: 'easeIn' }) }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6, transition: withReducedMotion({ duration: 0.18, ease: 'easeIn' }) }}
             transition={withReducedMotion({ ...MOTION.settle, opacity: { duration: 0.18 } })}
             onMouseEnter={pause}
             onMouseLeave={resume}
           >
-            {toast.cover && <img src={toast.cover} alt="" className="noir-toast-cover" />}
+            {toast.cover ? (
+              <img src={toast.cover} alt="" className="noir-toast-cover" />
+            ) : (
+              <NoirMark size={11} className="noir-toast-mark" />
+            )}
             <span className="noir-toast-body">
               <span className="noir-toast-text">{toast.text}</span>
               {toast.description && <span className="noir-toast-description">{toast.description}</span>}
@@ -106,6 +112,10 @@ export function NoirToastHost() {
                 {toast.action.label}
               </button>
             )}
+            {/* The hairline empties with the toast's time — same device as the queue-end card. */}
+            <span className="noir-toast-time" aria-hidden>
+              <span style={{ animationDuration: `${toast.ms}ms` }} />
+            </span>
           </motion.div>
         )}
       </AnimatePresence>
