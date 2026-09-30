@@ -79,6 +79,8 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
     const { lines, synced } = pickLyrics(candidates, roundedDuration);
     setLyrics(lines);
     setIsLyricsSynced(synced);
+    // Loading ends here, in the same render that has the lines — never a frame of "loaded, but empty".
+    setIsLoadingLyrics(false);
   }, [candidates, roundedDuration]);
 
   useEffect(() => {
@@ -139,15 +141,15 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
         if (!res.ok) throw new Error('API Error');
         const data = await res.json();
 
+        // The candidates effect picks the lines and ends the loading state together.
         if (isMounted) setCandidates(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Lyrics fetch error:', err);
         if (isMounted) {
           setLyrics([]);
           setIsLyricsSynced(false);
+          setIsLoadingLyrics(false);
         }
-      } finally {
-        if (isMounted) setIsLoadingLyrics(false);
       }
     };
 

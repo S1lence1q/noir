@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { LyricLine } from '../../../types';
 import { prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
@@ -34,6 +34,17 @@ export function NoirLyricsColumn({
   const activeRef = useRef<HTMLButtonElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const initialScrollRef = useRef(true);
+  // Most lookups finish in a blink: a skeleton that shows for a few ms just reads as a flicker.
+  // Show it only when the wait is real; until then the column is simply quiet.
+  const [showSkeleton, setShowSkeleton] = useState(false);
+  useEffect(() => {
+    if (!isLoading) {
+      setShowSkeleton(false);
+      return;
+    }
+    const t = setTimeout(() => setShowSkeleton(true), 320);
+    return () => clearTimeout(t);
+  }, [isLoading]);
 
   useEffect(() => {
     initialScrollRef.current = true;
@@ -55,14 +66,16 @@ export function NoirLyricsColumn({
     <div className="noir-lyrics flex h-full min-h-0 flex-col" data-paused={isPlaying ? undefined : 'true'}>
       <div ref={scrollRef} className="noir-lyrics-scroll relative min-h-0 flex-1 overflow-y-auto scrollbar-none px-2 pb-8">
         {isLoading ? (
-          // Exact-shape skeleton: bars on the line rhythm, so lyrics land where the bars were.
-          <div className="noir-lyrics-skeleton pt-[min(24vh,220px)]" role="status" aria-label={strings.lyrics.loading}>
-            {SKELETON_WIDTHS.map((w, i) => (
-              <span key={i} style={{ width: `${w}%`, animationDelay: `${i * 90}ms` }} />
-            ))}
-          </div>
+          showSkeleton ? (
+            // Exact-shape skeleton: bars on the line rhythm, so lyrics land where the bars were.
+            <div className="noir-lyrics-skeleton noir-lyrics-enter pt-[min(24vh,220px)]" role="status" aria-label={strings.lyrics.loading}>
+              {SKELETON_WIDTHS.map((w, i) => (
+                <span key={i} style={{ width: `${w}%`, animationDelay: `${i * 90}ms` }} />
+              ))}
+            </div>
+          ) : null
         ) : lyrics.length === 0 ? (
-          <div className="px-1 pt-6">
+          <div className="noir-lyrics-enter px-1 pt-6">
             <p className="text-[15px] font-medium text-[color:var(--noir-text-secondary)]">
               {strings.lyrics.empty}
             </p>
@@ -71,7 +84,7 @@ export function NoirLyricsColumn({
             </p>
           </div>
         ) : isSynced ? (
-          <div className="flex flex-col gap-0 pt-[min(24vh,220px)]">
+          <div className="noir-lyrics-enter flex flex-col gap-0 pt-[min(24vh,220px)]">
             {hasIntro && (
               <div className={`noir-lyrics-gap${currentIndex < 0 ? ' is-active' : ' is-past'}`} aria-hidden>
                 <i /><i /><i />
@@ -113,7 +126,7 @@ export function NoirLyricsColumn({
             <div className="h-[min(40vh,360px)] shrink-0" aria-hidden />
           </div>
         ) : (
-          <div className="flex flex-col gap-1 pt-1">
+          <div className="noir-lyrics-enter flex flex-col gap-1 pt-1">
             {lyrics.map((line, idx) => (
               <p key={idx} className="noir-lyrics-plain">
                 {line.text}
