@@ -225,7 +225,24 @@ async function buildTagShelves(tags: string[]): Promise<DiscoverTagShelf[]> {
   return shelves.filter((shelf): shelf is DiscoverTagShelf => !!shelf).slice(0, 3);
 }
 
-export async function loadDiscoverFeed(events: ReadonlyArray<ListeningEvent>): Promise<DiscoverFeed> {
+const FEED_TTL_MS = 30 * 60 * 1000;
+const feedMemo = new Map<string, { at: number; feed: Promise<DiscoverFeed> }>();
+
+/** Same taste within half an hour shares one fetch, so a warm-up makes Discover open ready. */
+export function loadDiscoverFeed(events: ReadonlyArray<ListeningEvent>): Promise<DiscoverFeed> {
+  const key = topArtists(events, 30)
+    .slice(0, 8)
+    .map((entry) => entry.artist)
+    .join('|');
+  const hit = feedMemo.get(key);
+  if (hit && Date.now() - hit.at < FEED_TTL_MS) return hit.feed;
+  const feed = buildDiscoverFeed(events);
+  feedMemo.set(key, { at: Date.now(), feed });
+  feed.catch(() => feedMemo.delete(key));
+  return feed;
+}
+
+async function buildDiscoverFeed(events: ReadonlyArray<ListeningEvent>): Promise<DiscoverFeed> {
   const taste = topArtists(events, 30).slice(0, 8);
   const seedNames = taste.map((entry) => entry.artist);
 

@@ -1446,38 +1446,34 @@ export default function App() {
     }
   }, [songData, shellPlayback.duration, Math.floor(shellPlayback.currentTime)]);
 
-  const [stationBuild, setStationBuild] = useState<{ artists: string[]; cueing: boolean; startedAt: number } | null>(
+  const [stationBuild, setStationBuild] = useState<{ artists: string[]; cueing: boolean; warm: boolean; startedAt: number } | null>(
     null
   );
-  const homeLoadingRef = useRef(true);
-  const [homeLoading, setHomeLoading] = useState(true);
   useEffect(() => {
-    const onLoading = (e: Event) => {
-      const loading = !!(e as CustomEvent<{ loading?: boolean }>).detail?.loading;
-      homeLoadingRef.current = loading;
-      setHomeLoading(loading);
+    const onWarm = () => setStationBuild((prev) => (prev ? { ...prev, warm: true } : prev));
+    window.addEventListener('noir-cold-start-warm', onWarm);
+    const onFailed = () => setStationBuild(null);
+    window.addEventListener('noir-cold-start-failed', onFailed);
+    return () => {
+      window.removeEventListener('noir-cold-start-warm', onWarm);
+      window.removeEventListener('noir-cold-start-failed', onFailed);
     };
-    window.addEventListener('noir-home-loading', onLoading);
-    return () => window.removeEventListener('noir-home-loading', onLoading);
   }, []);
-  // Lift the takeover once the first track plays, but never flash it: hold a minimum, and give up after a cap.
+  // Lift the takeover once the first track plays and the warm-up is done (or capped), never sooner than a minimum.
   useEffect(() => {
     if (!stationBuild) return;
     const MIN_MS = 2600;
     const MAX_MS = 25000;
-    // Home still loading after the track plays: give it a few seconds, then show what there is.
-    const settled = stationBuild.cueing && !!songData && !loadingSongId && appState !== 'processing';
     const elapsed = Date.now() - stationBuild.startedAt;
-    const ready = stationBuild.cueing && !!songData && !loadingSongId && appState !== 'processing' && !homeLoading;
-    const wait = ready ? Math.max(0, MIN_MS - elapsed) : settled ? 6000 : Math.max(0, MAX_MS - elapsed);
-    const id = setTimeout(() => setStationBuild(null), wait);
+    const ready = stationBuild.cueing && stationBuild.warm && !!songData && !loadingSongId && appState !== 'processing';
+    const id = setTimeout(() => setStationBuild(null), ready ? Math.max(0, MIN_MS - elapsed) : Math.max(0, MAX_MS - elapsed));
     return () => clearTimeout(id);
-  }, [stationBuild, songData, loadingSongId, appState, homeLoading]);
+  }, [stationBuild, songData, loadingSongId, appState]);
 
   // Cold start: play a station from the picked artists right away (Home fills in behind it).
   const playColdStartPicks = async (artists: string[]) => {
     // One takeover owns the whole wait, so Home settling behind it never shows.
-    setStationBuild({ artists, cueing: false, startedAt: Date.now() });
+    setStationBuild({ artists, cueing: false, warm: false, startedAt: Date.now() });
     try {
       const station = await buildPicksStation(artists);
       if (station.length === 0) {

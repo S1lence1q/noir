@@ -16,6 +16,7 @@ import {
   seedTasteFromArtists,
   type ColdStartArtist,
 } from '../../../services/listening/seedTaste';
+import { warmHome } from '../../../services/listening/warmHome';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirSeedSign } from './NoirSeedSign';
 import { NoirSearchGlyph } from './NoirSearchGlyph';
@@ -220,10 +221,14 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
     window.dispatchEvent(new CustomEvent('noir-cold-start-play', { detail: { artists: names } }));
     try {
       await seedTasteFromArtists(names);
+      // Home and Discover fill in while the takeover is still up, so both open ready.
+      await warmHome();
+      window.dispatchEvent(new Event('noir-cold-start-warm'));
       onSeeded();
       void enrichSeedTaste(names).catch((err) => console.warn('[cold-start] enrich failed', err));
     } catch (err) {
       console.warn('[cold-start] seed failed', err);
+      window.dispatchEvent(new Event('noir-cold-start-failed'));
       setError('Couldn’t save your picks. Try again.');
       setSeeding(false);
     }

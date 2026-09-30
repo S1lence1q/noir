@@ -200,11 +200,6 @@ export function NoirHomeView({
     };
   }, [recentlyPlayed.length > 0, mixReloadKey]); // seed once recents exist; reload after cold start
 
-  // Lets the first-run takeover wait until the mixes row is real, not skeletons.
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent('noir-home-loading', { detail: { loading: mixesLoading } }));
-  }, [mixesLoading]);
-
   const handleColdStartSeeded = () => {
     setNeedsColdStart(false);
     setMixReloadKey((n) => n + 1);

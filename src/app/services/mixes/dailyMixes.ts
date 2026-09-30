@@ -282,7 +282,22 @@ async function buildOneMix(
  * Build 1–6 daily mixes. Uses listening events when present; falls back to
  * recently-played artists so Home still gets mixes before T09 history is deep.
  */
-export async function loadDailyMixes(
+const inflight = new Map<string, Promise<DailyMix[]>>();
+
+/** One build per day at a time: a warm-up and Home asking together share the same work. */
+export function loadDailyMixes(
+  events: ReadonlyArray<ListeningEvent>,
+  fallbackTracks: SearchResult[] = []
+): Promise<DailyMix[]> {
+  const day = dayKey();
+  const running = inflight.get(day);
+  if (running) return running;
+  const job = buildDailyMixes(events, fallbackTracks).finally(() => inflight.delete(day));
+  inflight.set(day, job);
+  return job;
+}
+
+async function buildDailyMixes(
   events: ReadonlyArray<ListeningEvent>,
   fallbackTracks: SearchResult[] = []
 ): Promise<DailyMix[]> {

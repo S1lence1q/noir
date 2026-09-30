@@ -4,8 +4,8 @@ import { cleanName, normalizeName } from './normalize';
 const LASTFM_ENDPOINT = 'https://ws.audioscrobbler.com/2.0/';
 const LASTFM_API_KEY = import.meta.env.VITE_LASTFM_API_KEY?.trim();
 
-let requestQueue = Promise.resolve();
-let lastRequestAt = 0;
+/** Next free start slot. Calls are spaced 250 ms apart but overlap in flight, so latency doesn't stack. */
+let nextSlotAt = 0;
 const loggedFailures = new Set<string>();
 
 function logFailure(method: string, error: unknown) {
@@ -24,15 +24,12 @@ function imageFromLastFm(images?: Array<{ '#text'?: string; size?: string }>) {
   return url && !url.includes(LASTFM_PLACEHOLDER) ? url : undefined;
 }
 
-function scheduleRequest<T>(request: () => Promise<T>): Promise<T> {
-  const next = requestQueue.then(async () => {
-    const waitMs = Math.max(0, 250 - (Date.now() - lastRequestAt));
-    if (waitMs > 0) await new Promise((resolve) => setTimeout(resolve, waitMs));
-    lastRequestAt = Date.now();
-    return request();
-  });
-  requestQueue = next.then(() => undefined, () => undefined);
-  return next;
+async function scheduleRequest<T>(request: () => Promise<T>): Promise<T> {
+  const slot = Math.max(Date.now(), nextSlotAt);
+  nextSlotAt = slot + 250;
+  const waitMs = slot - Date.now();
+  if (waitMs > 0) await new Promise((resolve) => setTimeout(resolve, waitMs));
+  return request();
 }
 
 async function requestLastFm<T>(
