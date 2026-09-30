@@ -57,6 +57,8 @@ export function usePlaybackCore({
   const isTransitioningRef = useRef(false);
   const isCrossfadingRef = useRef(false);
   const crossfadeRunIdRef = useRef(0);
+  /** Until a freshly picked song reports PLAYING, the engine's own PAUSED events (from loading) are not the user pausing. */
+  const awaitingPlayUntilRef = useRef(0);
   const ytPlayResolveRef = useRef<(() => void) | null>(null);
   const progressTimerRef = useRef<number | null>(null);
   const handleNextSongRef = useRef<() => Promise<void>>(async () => {});
@@ -266,6 +268,7 @@ export function usePlaybackCore({
       clearEndWatch();
       void handleNextSongRef.current();
     } else if (e.data === window.YT.PlayerState.PLAYING) {
+      awaitingPlayUntilRef.current = 0;
       setPlaying(true);
       isTransitioningRef.current = false;
       let dur = 0;
@@ -286,7 +289,7 @@ export function usePlaybackCore({
         void activeFadeVolume(1, 800);
       }
     } else if (e.data === window.YT.PlayerState.PAUSED) {
-      if (!isTransitioningRef.current && !isCrossfadingRef.current) {
+      if (!isTransitioningRef.current && !isCrossfadingRef.current && Date.now() > awaitingPlayUntilRef.current) {
         clearEndWatch();
         setPlaying(false);
       }
@@ -1026,6 +1029,7 @@ export function usePlaybackCore({
     if (songKey && songKey !== lastLoadedSongRef.current) {
       const isFirstLoad = !lastLoadedSongRef.current;
       lastLoadedSongRef.current = songKey;
+      awaitingPlayUntilRef.current = Date.now() + 8000;
       setPlaying(true);
       // Kill any running crossfade now, before the 300ms fade-out, so it can't finish mid-load.
       abortActiveCrossfade();
