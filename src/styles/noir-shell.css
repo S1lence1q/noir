@@ -3507,6 +3507,7 @@ button.noir-now-playing-source:hover {
   background: var(--noir-black);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
   pointer-events: auto;
+  transform-origin: 50% 100%;
 }
 
 .noir-toast--plain {
@@ -3514,7 +3515,6 @@ button.noir-now-playing-source:hover {
 }
 
 .noir-toast-mark {
-  flex-shrink: 0;
   margin: 0 2px;
   color: var(--noir-accent);
 }
@@ -3527,35 +3527,9 @@ button.noir-now-playing-source:hover {
   flex-shrink: 0;
 }
 
-.noir-toast-time {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.noir-toast-time > span {
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.5);
-  transform-origin: left center;
-  animation: noir-toast-drain linear forwards;
-}
-
-.noir-toast:hover .noir-toast-time > span {
-  animation-play-state: paused;
-}
-
-@keyframes noir-toast-drain {
-  to { transform: scaleX(0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .noir-toast-time > span {
-    animation: none;
-  }
+.noir-toast-lead {
+  display: flex;
+  flex-shrink: 0;
 }
 
 .noir-toast-host > * {

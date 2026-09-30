@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
+import { EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
 import { NoirMark } from './NoirMark';
 
 export type NoirToastAction = {
@@ -18,7 +18,7 @@ export type NoirToastOptions = {
   duration?: number;
 };
 
-type ActiveToast = NoirToastOptions & { id: number; ms: number };
+type ActiveToast = NoirToastOptions & { id: number };
 
 const TOAST_EVENT = 'noir-toast';
 
@@ -37,6 +37,7 @@ export function NoirToastHost() {
   const remainingRef = useRef(0);
   const startedAtRef = useRef(0);
   const idRef = useRef(0);
+  const reduced = prefersReducedMotion();
 
   const clearTimer = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -55,9 +56,8 @@ export function NoirToastHost() {
       const detail = (e as CustomEvent<NoirToastOptions>).detail;
       if (!detail?.text) return;
       idRef.current += 1;
-      const ms = detail.duration ?? (detail.action ? 5000 : 3000);
-      setToast({ ...detail, id: idRef.current, ms });
-      startTimer(ms);
+      setToast({ ...detail, id: idRef.current });
+      startTimer(detail.duration ?? (detail.action ? 5000 : 3000));
     };
     window.addEventListener(TOAST_EVENT, onToast);
     return () => {
@@ -78,31 +78,53 @@ export function NoirToastHost() {
 
   return (
     <div className="noir-toast-host" aria-live="polite" role="status">
-      <AnimatePresence mode="popLayout" initial={false}>
+      {/* "sync", not "popLayout": the outgoing toast stays in the grid cell, so the host never collapses
+          and the card can't jump sideways while it fades. */}
+      <AnimatePresence mode="sync" initial={false}>
         {toast && (
           <motion.div
             key={toast.id}
             className={`noir-toast${toast.action ? '' : ' noir-toast--plain'}`}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6, transition: withReducedMotion({ duration: 0.18, ease: 'easeIn' }) }}
-            transition={withReducedMotion({ ...MOTION.settle, opacity: { duration: 0.18 } })}
+            /* Arrives like a new playlist row: grows in with a little life, the mark pops after it. */
+            initial={reduced ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={
+              reduced
+                ? { opacity: 0, transition: { duration: 0.12 } }
+                : { opacity: 0, y: 10, scale: 0.96, transition: { duration: 0.2, ease: [0.4, 0, 1, 1] } }
+            }
+            transition={reduced ? { duration: 0.12 } : { type: 'spring', stiffness: 420, damping: 28, mass: 0.8 }}
             onMouseEnter={pause}
             onMouseLeave={resume}
           >
-            {toast.cover ? (
-              <img src={toast.cover} alt="" className="noir-toast-cover" />
-            ) : (
-              <NoirMark size={11} className="noir-toast-mark" />
-            )}
-            <span className="noir-toast-body">
+            <motion.span
+              className="noir-toast-lead"
+              initial={reduced ? false : { scale: 0.3, rotate: -20 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 18, delay: 0.08 }}
+            >
+              {toast.cover ? (
+                <img src={toast.cover} alt="" className="noir-toast-cover" />
+              ) : (
+                <NoirMark size={11} className="noir-toast-mark" />
+              )}
+            </motion.span>
+            <motion.span
+              className="noir-toast-body"
+              initial={reduced ? false : { opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.26, ease: EASE_PREMIUM, delay: 0.1 }}
+            >
               <span className="noir-toast-text">{toast.text}</span>
               {toast.description && <span className="noir-toast-description">{toast.description}</span>}
-            </span>
+            </motion.span>
             {toast.action && (
-              <button
+              <motion.button
                 type="button"
                 className="noir-toast-action elva-focus-ring"
+                initial={reduced ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.24, delay: 0.2 }}
                 onClick={() => {
                   toast.action?.onClick();
                   clearTimer();
@@ -110,12 +132,8 @@ export function NoirToastHost() {
                 }}
               >
                 {toast.action.label}
-              </button>
+              </motion.button>
             )}
-            {/* The hairline empties with the toast's time — same device as the queue-end card. */}
-            <span className="noir-toast-time" aria-hidden>
-              <span style={{ animationDuration: `${toast.ms}ms` }} />
-            </span>
           </motion.div>
         )}
       </AnimatePresence>
