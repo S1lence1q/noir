@@ -1,8 +1,5 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { getArtistImage } from '../../../services/musicGraph';
-import { NoirArtwork } from './NoirArtwork';
+import type { CSSProperties } from 'react';
 import { Play } from 'lucide-react';
-import { displayArtistName } from '../../../utils/stringUtils';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
@@ -71,38 +68,6 @@ export function NoirPlaylistView({
   const world = playlist.coverWorld ?? worldForCollection(playlist.id);
 
   const symbolKind = symbolCollectionKind(playlist);
-  const [artistFilter, setArtistFilter] = useState<string | null>(null);
-  const [portraits, setPortraits] = useState<Record<string, string | null>>({});
-  // Who is in this: artists by how many tracks they have here, for the strip under the hero.
-  const strip = useMemo(() => {
-    if (!symbolKind) return [];
-    const counts = new Map<string, { name: string; n: number }>();
-    for (const t of playlist.tracks) {
-      const name = displayArtistName(t.artist);
-      if (!name) continue;
-      const key = name.toLowerCase();
-      const entry = counts.get(key);
-      counts.set(key, { name: entry?.name ?? name, n: (entry?.n ?? 0) + 1 });
-    }
-    return counts.size >= 3 ? [...counts.values()].sort((a, b) => b.n - a.n).slice(0, 10).map((e) => e.name) : [];
-  }, [symbolKind, playlist.tracks]);
-  useEffect(() => {
-    let cancelled = false;
-    for (const name of strip) {
-      void getArtistImage(name)
-        .catch(() => undefined)
-        .then((url) => {
-          if (!cancelled) setPortraits((prev) => (name in prev ? prev : { ...prev, [name]: url ?? null }));
-        });
-    }
-    return () => {
-      cancelled = true;
-    };
-  }, [strip]);
-  useEffect(() => setArtistFilter(null), [playlist.id]);
-  const shownTracks = artistFilter
-    ? playlist.tracks.filter((t) => displayArtistName(t.artist).toLowerCase() === artistFilter.toLowerCase())
-    : playlist.tracks;
   const coverTag =
     playlist.id.startsWith('mix:') || playlist.id.startsWith('tag:') || playlist.id.startsWith('start:')
       ? playlist.name
@@ -180,41 +145,11 @@ export function NoirPlaylistView({
         </div>
       )}
 
-      {strip.length > 0 && (
-        <div className="noir-collection-artists" role="group" aria-label="Filter by artist">
-          {strip.map((name) => {
-            const selected = artistFilter === name;
-            return (
-              <button
-                key={name}
-                type="button"
-                className="noir-collection-artist elva-focus-ring"
-                data-selected={selected ? 'true' : 'false'}
-                aria-pressed={selected}
-                onClick={() => setArtistFilter(selected ? null : name)}
-              >
-                <span className="noir-collection-artist-art">
-                  <NoirArtwork
-                    source={portraits[name] ?? undefined}
-                    pending={portraits[name] === undefined}
-                    world={symbolWorld}
-                    seed={`strip:${name}`}
-                    size={56}
-                    radius={999}
-                  />
-                </span>
-                <span className="noir-collection-artist-name">{name}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       <section>
         {playlist.tracks.length > 0 ? (
           <>
             <div className={symbolKind ? 'noir-collection-list' : 'flex flex-col gap-0.5'}>
-              {shownTracks.map((track, i) => (
+              {playlist.tracks.map((track, i) => (
                 <NoirRankedSongRow
                   key={track.id}
                   rank={i + 1}
@@ -224,7 +159,7 @@ export function NoirPlaylistView({
                   playing={isActiveTrack(track, activeSongKey, activeTrack)}
                   isPlaying={isPlaying}
                   isFavorite={isTrackFavorite(favorites, track)}
-                  onPlay={() => onPlayPlaylist(shownTracks, artistFilter ? `${playlist.name} · ${artistFilter}` : playlist.name, i)}
+                  onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name, i)}
                   onAddToQueue={onAddToQueue}
                   onPlayNext={onPlayNext}
                   onToggleFavorite={onToggleFavorite}
