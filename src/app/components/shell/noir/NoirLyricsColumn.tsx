@@ -14,6 +14,8 @@ export type NoirLyricsColumnProps = {
 };
 
 const SKELETON_WIDTHS = [72, 54, 81, 46, 66, 58];
+const SKELETON_DELAY_MS = 120;
+const SKELETON_MIN_MS = 650;
 
 function seekViaShell(time: number) {
   window.dispatchEvent(new CustomEvent('elva-seek', { detail: { time } }));
@@ -34,15 +36,20 @@ export function NoirLyricsColumn({
   const activeRef = useRef<HTMLButtonElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const initialScrollRef = useRef(true);
-  // Most lookups finish in a blink: a skeleton that shows for a few ms just reads as a flicker.
-  // Show it only when the wait is real; until then the column is simply quiet.
+  // The skeleton appears quickly and, once it is up, stays for a minimum time: it then reads as a
+  // deliberate "loading" beat that the lyrics settle out of, instead of a flash.
   const [showSkeleton, setShowSkeleton] = useState(false);
+  const skeletonSinceRef = useRef(0);
   useEffect(() => {
-    if (!isLoading) {
-      setShowSkeleton(false);
-      return;
+    if (isLoading) {
+      const t = setTimeout(() => {
+        skeletonSinceRef.current = Date.now();
+        setShowSkeleton(true);
+      }, SKELETON_DELAY_MS);
+      return () => clearTimeout(t);
     }
-    const t = setTimeout(() => setShowSkeleton(true), 320);
+    const left = Math.max(0, SKELETON_MIN_MS - (Date.now() - skeletonSinceRef.current));
+    const t = setTimeout(() => setShowSkeleton(false), left);
     return () => clearTimeout(t);
   }, [isLoading]);
 
@@ -65,7 +72,7 @@ export function NoirLyricsColumn({
   return (
     <div className="noir-lyrics flex h-full min-h-0 flex-col" data-paused={isPlaying ? undefined : 'true'}>
       <div ref={scrollRef} className="noir-lyrics-scroll relative min-h-0 flex-1 overflow-y-auto scrollbar-none px-2 pb-8">
-        {isLoading ? (
+        {isLoading || showSkeleton ? (
           showSkeleton ? (
             // Exact-shape skeleton: bars on the line rhythm, so lyrics land where the bars were.
             <div className="noir-lyrics-skeleton noir-lyrics-enter pt-[min(24vh,220px)]" role="status" aria-label={strings.lyrics.loading}>
