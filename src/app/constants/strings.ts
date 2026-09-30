@@ -184,6 +184,11 @@ export const strings = {
     clear: 'Clear',
     queueCleared: 'Queue cleared',
     playingFrom: (source: string) => `Playing from ${source}`,
+    /** Whole-queue length, rounded to the minute: "41 min", "1 h 12 min". */
+    totalLength: (totalSec: number) => {
+      const min = Math.max(1, Math.round(totalSec / 60));
+      return min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${min % 60} min`;
+    },
     queueEndsSoon: 'Queue ends soon',
     queueEndsSoonDesc: 'More like this, picked from what’s playing',
     keepPlaying: 'Keep playing',

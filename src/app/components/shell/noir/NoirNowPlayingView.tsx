@@ -179,6 +179,18 @@ export function NoirNowPlayingView({
   const [layoutMode, setLayoutMode] = useState<'drag' | 'shuffle'>('drag');
   const [shufflePulse, setShufflePulse] = useState(0);
   const shuffleResetRef = useRef<number | null>(null);
+  /** Set while a row click is skipping ahead: the rows it jumps over sweep up, the rest glide into place. */
+  const skipRef = useRef<{ sel: number } | null>(null);
+  const skipResetRef = useRef<number | null>(null);
+  const skipTo = (index: number, id: string) => {
+    if (skipResetRef.current != null) window.clearTimeout(skipResetRef.current);
+    skipRef.current = { sel: index };
+    skipResetRef.current = window.setTimeout(() => {
+      skipRef.current = null;
+      skipResetRef.current = null;
+    }, 1200);
+    onSelectFromQueue(id);
+  };
   useEffect(() => {
     setOrder(upNext.map((track) => track.id));
   }, [upNext.map((track) => track.id).join('\0')]);
@@ -200,6 +212,7 @@ export function NoirNowPlayingView({
   useEffect(
     () => () => {
       if (shuffleResetRef.current != null) window.clearTimeout(shuffleResetRef.current);
+      if (skipResetRef.current != null) window.clearTimeout(skipResetRef.current);
     },
     []
   );
@@ -214,6 +227,11 @@ export function NoirNowPlayingView({
     prevDeckRef.current = { key: currentKey ?? '', index: currentIndex, dir: deckDir };
   });
 
+  // Only when every song knows its length: a partial sum would read as a real number and be wrong.
+  const totalSec =
+    upNext.length > 0 && upNext.every((track) => (track.duration ?? 0) > 0)
+      ? upNext.reduce((sum, track) => sum + (track.duration ?? 0), 0)
+      : null;
   const byId = new Map(upNext.map((track) => [track.id, track]));
   const orderedUpNext = order.map((id) => byId.get(id)).filter((track): track is SearchResult => !!track);
   const songKey = currentKey ?? `${song.title}::${song.artist}`;
@@ -515,10 +533,27 @@ export function NoirNowPlayingView({
               <div className="noir-now-playing-side-header-text min-w-0">
                 <p className="text-[14px] font-medium text-[color:var(--noir-text-primary)]">
                   {strings.nextUp.title}
-                  {upNext.length > 0 && <span className="noir-queue-count">{upNext.length}</span>}
+                  {upNext.length > 0 && (
+                    <motion.span
+                      key={upNext.length}
+                      className="noir-queue-count"
+                      initial={reduced ? false : { opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={withReducedMotion({ duration: 0.28, ease: EASE_PREMIUM, delay: 0.12 })}
+                    >
+                      {upNext.length}
+                    </motion.span>
+                  )}
                 </p>
-                {queueSource && upNext.length > 0 && (
-                  <p className="noir-now-playing-side-source">{strings.nextUp.playingFrom(queueSource)}</p>
+                {upNext.length > 0 && (queueSource || totalSec != null) && (
+                  <p className="noir-now-playing-side-source">
+                    {[
+                      queueSource ? strings.nextUp.playingFrom(queueSource) : null,
+                      totalSec != null ? strings.nextUp.totalLength(totalSec) : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </p>
                 )}
               </div>
               <div className="flex shrink-0 items-center gap-2">
@@ -654,7 +689,7 @@ export function NoirNowPlayingView({
                 onReorder={setOrder}
                 className="flex flex-col gap-0.5"
               >
-                <AnimatePresence initial={false}>
+                <AnimatePresence initial={false} custom={skipRef.current}>
                   {orderedUpNext.map((track, index) => (
                     <QueueTrackItem
                       key={track.id}
@@ -663,7 +698,7 @@ export function NoirNowPlayingView({
                       layoutMode={layoutMode}
                       shufflePulse={shufflePulse}
                       onDragEnd={() => onReorderQueue?.(orderRef.current)}
-                      onSelect={() => onSelectFromQueue(track.id)}
+                      onSelect={() => skipTo(index, track.id)}
                       onRemove={onRemoveFromQueue ? () => onRemoveFromQueue(track.id) : undefined}
                       onAddToQueue={onAddToQueue}
                     />
@@ -715,6 +750,29 @@ function QueueTrackItem({
       }
     : { duration: 0.12, ease: EASE_PREMIUM };
 
+  // Skipping ahead to row N: rows above it sweep up in a quick wave, the chosen one glides toward the
+  // cover (it is the song now), and every leaving row folds its height away so the rest rises with it.
+  // Any other removal just fades.
+  const exitVariants = {
+    exit: (c: { sel: number } | null) => {
+      if (reduced || !c) return { opacity: 0, transition: { duration: reduced ? 0.1 : 0.16 } };
+      const wave = Math.min(index, 6) * 0.035;
+      return index < c.sel
+        ? {
+            opacity: 0,
+            y: -10,
+            height: 0,
+            transition: { duration: 0.34, delay: wave, ease: EASE_PREMIUM, opacity: { duration: 0.2, delay: wave } },
+          }
+        : {
+            opacity: 0,
+            x: -18,
+            height: 0,
+            transition: { duration: 0.36, delay: wave, ease: EASE_PREMIUM, opacity: { duration: 0.24, delay: wave } },
+          };
+    },
+  };
+
   // Soft: ease into the dip from sharp/full, then ease out — never start at max blur.
   const animate = shuffling
     ? {
@@ -744,7 +802,8 @@ function QueueTrackItem({
       className="noir-playlist-item select-none"
       initial={{ opacity: 0, y: -8 }}
       animate={animate}
-      exit={{ opacity: 0, transition: { duration: 0.16 } }}
+      variants={exitVariants}
+      exit="exit"
       whileDrag={{
         scale: 1.02,
         boxShadow: '0 12px 32px rgba(0,0,0,0.65)',
