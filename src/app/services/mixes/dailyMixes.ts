@@ -14,13 +14,15 @@ import {
 import { normalizeName } from '../musicGraph/normalize';
 import { graphTrackToSearchResult } from '../discover/discoverFeed';
 import { hasRealArtwork, youtubeThumb } from '../../utils/artwork';
+import { genreTitle } from '../../utils/genreName';
 
 const MIX_TRACK_COUNT = 25;
 const YOUR_SHARE = 0.4;
 /** Show the shelf once we have at least one usable mix. */
 const MIN_SHOW = 1;
 const MAX_MIXES = 6;
-const CACHE_PREFIX = 'noir_daily_mixes_v3:';
+// v4: genre names now "Lo-Fi", "R&B"… (cached mixes carry their name).
+const CACHE_PREFIX = 'noir_daily_mixes_v4:';
 
 const SKIP_TAGS = new Set([
   'seen live',
@@ -50,13 +52,7 @@ function dayKey(now = new Date()) {
   return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
 }
 
-function titleCaseTag(tag: string) {
-  return tag
-    .split(/[\s-_]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
+const titleCaseTag = genreTitle;
 
 function mulberry32(seed: number) {
   let a = seed;

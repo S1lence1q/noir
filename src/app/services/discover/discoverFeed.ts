@@ -14,6 +14,7 @@ import {
   type GraphTrack,
 } from '../musicGraph';
 import { normalizeName } from '../musicGraph/normalize';
+import { genreTitle } from '../../utils/genreName';
 
 const MIN_SHELF = 3;
 const RELEASE_DAYS = 45;
@@ -89,13 +90,7 @@ function playedArtistKeys(events: ReadonlyArray<ListeningEvent>) {
   return keys;
 }
 
-function titleCaseTag(tag: string) {
-  return tag
-    .split(/[\s-_]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
+const titleCaseTag = genreTitle;
 
 /** Generic Last.fm tags that don't make good shelf titles. */
 const SKIP_TAGS = new Set([
@@ -128,13 +123,26 @@ async function collectTopTags(artists: string[], limit = 4): Promise<string[]> {
     .slice(0, limit);
 }
 
+/** Case- and quote-insensitive, but keeps accents and punctuation: "chrome!" ≠ "Chromé". */
+const strictName = (name: string) =>
+  name.normalize('NFC').toLocaleLowerCase().replace(/[’‘`´]/g, "'").replace(/\s+/g, ' ').trim();
+
 async function buildNewReleases(artists: string[]): Promise<DiscoverReleaseCard[]> {
-  const batches = await Promise.all(artists.slice(0, 6).map((artist) => getNewReleases(artist, RELEASE_DAYS)));
+  const played = artists.slice(0, 6);
+  const batches = await Promise.all(played.map((artist) => getNewReleases(artist, RELEASE_DAYS)));
   const seen = new Set<string>();
   const cards: DiscoverReleaseCard[] = [];
 
-  for (const batch of batches) {
+  for (const [i, batch] of batches.entries()) {
     for (const release of batch) {
+      // A namesake, not your artist: the names only match once accents/punctuation are stripped
+      // (you play the Danish "chrome!", the search found Taiwanese "Chromé").
+      if (
+        normalizeName(release.artist) === normalizeName(played[i]) &&
+        strictName(release.artist) !== strictName(played[i])
+      ) {
+        continue;
+      }
       const key = release.deezerId
         ? `dz:${release.deezerId}`
         : `${normalizeName(release.artist)}:${normalizeName(release.title)}`;
