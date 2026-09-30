@@ -248,6 +248,12 @@
   height: 100%;
   border-radius: 999px;
   background: #fff;
+  /* Playback time arrives every 250 ms; gliding between ticks reads as one clean motion, not steps. */
+  transition: width 0.26s linear;
+}
+.noir-compact-seek:active .noir-compact-seek-fill,
+.noir-compact-seek:active .noir-compact-seek-thumb {
+  transition: none;
 }
 
 .noir-compact-seek-thumb {
@@ -260,7 +266,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
   transform: translate(-50%, -50%) scale(0);
   opacity: 0;
-  transition: transform 0.12s ease, opacity 0.12s ease;
+  transition: transform 0.12s ease, opacity 0.12s ease, left 0.26s linear;
 }
 
 .noir-compact-seek:hover .noir-compact-seek-track,
