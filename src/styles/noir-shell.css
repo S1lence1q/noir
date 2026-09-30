@@ -2539,6 +2539,100 @@ button.noir-now-playing-source:hover {
   }
 }
 
+
+/* Mix / genre / chart page: one flat field, one big symbol. */
+.noir-collection-hero {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-height: 300px;
+  border-radius: 28px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.noir-collection-hero-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 10px;
+  max-width: 52%;
+  padding: 32px 36px 34px;
+}
+
+.noir-collection-hero-kicker {
+  margin: 0;
+  font: var(--noir-type-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+.noir-collection-hero-title {
+  margin: 0;
+  font-size: clamp(2.3rem, 5.2vw, 3.8rem);
+  font-weight: 600;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.noir-collection-hero-meta {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 14px;
+  line-height: 1.4;
+  opacity: 0.7;
+}
+
+.noir-collection-hero-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  margin-top: 14px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--hero-ink);
+  color: var(--hero-field);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s var(--noir-ease-out, ease-out);
+}
+
+.noir-collection-hero-play:hover {
+  transform: scale(1.03);
+}
+
+.noir-collection-hero-art {
+  position: absolute;
+  top: 50%;
+  right: -36px;
+  z-index: 0;
+  display: flex;
+  transform: translateY(-50%);
+}
+
+@media (max-width: 720px) {
+  .noir-collection-hero {
+    min-height: 340px;
+  }
+  .noir-collection-hero-copy {
+    max-width: 100%;
+    padding: 24px;
+  }
+  .noir-collection-hero-art {
+    top: -24px;
+    right: -60px;
+    transform: none;
+    opacity: 0.9;
+  }
+}
+
 /* Collection pages (user playlists) */
 .noir-label {
   font: var(--noir-type-label);
