@@ -2395,6 +2395,133 @@ button.noir-now-playing-source:hover {
   white-space: nowrap;
 }
 
+
+/* First-run takeover: owns the wait between "Start listening" and the first note. */
+.noir-station-building {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--noir-canvas);
+}
+
+.noir-station-building-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: min(420px, 86vw);
+  text-align: center;
+}
+
+.noir-station-building-sign {
+  margin-bottom: 22px;
+  animation: noir-cold-sign-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.noir-station-building-sign .noir-seed-sign-disc {
+  animation: noir-station-turn 14s linear infinite;
+}
+
+.noir-station-building-sign circle {
+  transition-duration: 1.1s;
+}
+
+@keyframes noir-station-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.noir-station-building-title {
+  margin: 0;
+  font-size: clamp(1.6rem, 3.4vw, 2.2rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  color: var(--noir-text-primary);
+}
+
+.noir-station-building-names {
+  margin: 0;
+  font: var(--noir-type-meta);
+  color: var(--noir-text-secondary);
+}
+
+.noir-station-building-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.noir-station-building-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font: var(--noir-type-meta);
+  color: var(--noir-text-tertiary);
+  transition: color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.noir-station-building-step[data-state='active'] {
+  color: var(--noir-text-primary);
+}
+
+.noir-station-building-step[data-state='done'] {
+  color: var(--noir-text-secondary);
+}
+
+.noir-station-building-label {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.noir-station-building-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border-radius: 999px;
+  border: 1.5px solid currentColor;
+  color: inherit;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.noir-station-building-step[data-state='active'] .noir-station-building-dot {
+  border-color: rgba(255, 255, 255, 0.2);
+  border-top-color: var(--noir-accent, #fff);
+  animation: noir-station-spin 0.8s linear infinite;
+}
+
+.noir-station-building-step[data-state='done'] .noir-station-building-dot {
+  background: var(--noir-accent, #fff);
+  border-color: var(--noir-accent, #fff);
+  color: #000;
+}
+
+@keyframes noir-station-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noir-station-building-sign,
+  .noir-station-building-sign .noir-seed-sign-disc,
+  .noir-station-building-step[data-state='active'] .noir-station-building-dot {
+    animation: none !important;
+  }
+}
+
 /* Collection pages (user playlists) */
 .noir-label {
   font: var(--noir-type-label);

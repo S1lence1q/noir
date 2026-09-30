@@ -49,6 +49,7 @@ import { AppShell } from './components/shell/AppShell';
 import { ShellPlaybackState } from './components/shell/types';
 import { NoirNowPlayingView } from './components/shell/noir/NoirNowPlayingView';
 import { NoirPlaybackLoading } from './components/shell/noir/NoirPlaybackLoading';
+import { NoirStationBuilding } from './components/shell/noir/NoirStationBuilding';
 import { NoirQueueEndPrompt } from './components/shell/noir/NoirQueueEndPrompt';
 import { NoirToastHost, noirToast } from './components/shell/noir/NoirToast';
 import { NoirSearchPalette } from './components/shell/noir/NoirSearchPalette';
@@ -1445,18 +1446,36 @@ export default function App() {
     }
   }, [songData, shellPlayback.duration, Math.floor(shellPlayback.currentTime)]);
 
+  const [stationBuild, setStationBuild] = useState<{ artists: string[]; cueing: boolean; startedAt: number } | null>(
+    null
+  );
+  // Lift the takeover once the first track plays, but never flash it: hold a minimum, and give up after a cap.
+  useEffect(() => {
+    if (!stationBuild) return;
+    const MIN_MS = 2600;
+    const MAX_MS = 25000;
+    const elapsed = Date.now() - stationBuild.startedAt;
+    const ready = stationBuild.cueing && !!songData && !loadingSongId && appState !== 'processing';
+    const id = setTimeout(() => setStationBuild(null), ready ? Math.max(0, MIN_MS - elapsed) : Math.max(0, MAX_MS - elapsed));
+    return () => clearTimeout(id);
+  }, [stationBuild, songData, loadingSongId, appState]);
+
   // Cold start: play a station from the picked artists right away (Home fills in behind it).
   const playColdStartPicks = async (artists: string[]) => {
-    noirToast({ text: strings.radio.starting });
+    // One takeover owns the whole wait, so Home settling behind it never shows.
+    setStationBuild({ artists, cueing: false, startedAt: Date.now() });
     try {
       const station = await buildPicksStation(artists);
       if (station.length === 0) {
+        setStationBuild(null);
         noirToast({ text: strings.radio.empty });
         return;
       }
+      setStationBuild((prev) => (prev ? { ...prev, cueing: true } : prev));
       await handlePlayPlaylist(station, strings.home.coldStartStation);
     } catch (error) {
       console.warn('[cold-start] station failed', error);
+      setStationBuild(null);
       noirToast({ text: strings.radio.failed });
     }
   };
@@ -2060,7 +2079,17 @@ export default function App() {
             </ErrorBoundary>
 
             <AnimatePresence>
-              {appState === 'processing' && !songData && (
+              {stationBuild && (
+                <NoirStationBuilding
+                  key="station-building"
+                  artists={stationBuild.artists}
+                  cueing={stationBuild.cueing}
+                  title={
+                    (loadingSongId && queue.find((t) => t.id === loadingSongId)?.title) || songData?.title || null
+                  }
+                />
+              )}
+              {appState === 'processing' && !songData && !stationBuild && (
                 <NoirPlaybackLoading
                   key="playback-loading"
                   title={

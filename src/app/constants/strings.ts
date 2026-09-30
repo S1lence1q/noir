@@ -143,6 +143,10 @@ export const strings = {
     coldStartNoHits: 'No artists matched. Try another spelling.',
     coldStartChartsEmpty: 'Charts are slow right now — search for an artist you love.',
     coldStartStation: 'Your picks',
+    buildTitle: 'Building your station',
+    buildReading: 'Reading your picks',
+    buildFinding: 'Finding the best tracks',
+    buildCueing: 'Cueing up',
   },
   library: {
     favoritesSortLabel: 'Sort by',
