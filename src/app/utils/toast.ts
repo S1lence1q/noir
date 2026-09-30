@@ -13,5 +13,5 @@ export const toast = Object.assign(show, {
   success: show,
   info: show,
   message: show,
-  error: (text: string, options?: LegacyToastOptions) => show(text, { duration: 4000, ...options }),
+  error: (text: string, options?: LegacyToastOptions) => show(text, { duration: 3000, ...options }),
 });

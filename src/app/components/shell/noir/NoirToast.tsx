@@ -14,7 +14,7 @@ export type NoirToastOptions = {
   description?: string;
   cover?: string;
   action?: NoirToastAction;
-  /** ms. Defaults to 3000, or 5000 when there is an action. */
+  /** ms. Defaults to 2000, or 3500 when there is an action. */
   duration?: number;
 };
 
@@ -57,7 +57,7 @@ export function NoirToastHost() {
       if (!detail?.text) return;
       idRef.current += 1;
       setToast({ ...detail, id: idRef.current });
-      startTimer(detail.duration ?? (detail.action ? 5000 : 3000));
+      startTimer(detail.duration ?? (detail.action ? 3500 : 2000));
     };
     window.addEventListener(TOAST_EVENT, onToast);
     return () => {
@@ -73,7 +73,7 @@ export function NoirToastHost() {
   };
 
   const resume = () => {
-    if (toast && !timerRef.current) startTimer(Math.max(1200, remainingRef.current));
+    if (toast && !timerRef.current) startTimer(Math.max(800, remainingRef.current));
   };
 
   return (
