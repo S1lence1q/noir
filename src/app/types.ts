@@ -7,6 +7,8 @@ export interface SearchResult {
   channelId?: string;
   audioUrl?: string;
   duration?: number;
+  /** Primary genre when the source knows it (Apple charts do). */
+  genre?: string;
   /** Epoch ms when the track was added to Favorites (Library / Spotify-style). */
   favoritedAt?: number;
 }

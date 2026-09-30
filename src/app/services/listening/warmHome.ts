@@ -3,7 +3,7 @@ import { loadDailyMixes } from '../mixes/dailyMixes';
 import { loadDiscoverFeed } from '../discover/discoverFeed';
 
 /** Mixes and shelves take 15s+ on a fresh profile; wait for what's quick, the rest finishes behind Home. */
-const WARM_TIMEOUT_MS = 9000;
+const WARM_TIMEOUT_MS = 6000;
 
 function preload(urls: (string | undefined)[]) {
   return Promise.all(

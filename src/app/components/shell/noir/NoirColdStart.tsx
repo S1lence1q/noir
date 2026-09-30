@@ -16,6 +16,7 @@ import {
   seedTasteFromArtists,
   type ColdStartArtist,
 } from '../../../services/listening/seedTaste';
+import { markStartersToday } from '../../../services/mixes/starterMixes';
 import { warmHome } from '../../../services/listening/warmHome';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirSeedSign } from './NoirSeedSign';
@@ -221,6 +222,7 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
     window.dispatchEvent(new CustomEvent('noir-cold-start-play', { detail: { artists: names } }));
     try {
       await seedTasteFromArtists(names);
+      markStartersToday();
       // Home and Discover fill in while the takeover is still up, so both open ready.
       await warmHome();
       window.dispatchEvent(new Event('noir-cold-start-warm'));

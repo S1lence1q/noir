@@ -25,6 +25,7 @@ import { topArtists } from '../../../services/listening/tasteProfile';
 import { isTasteEmpty } from '../../../services/listening/seedTaste';
 import { getArtistImage } from '../../../services/musicGraph';
 import { DailyMix, loadDailyMixes } from '../../../services/mixes/dailyMixes';
+import { buildStarterMixes, startersActiveToday } from '../../../services/mixes/starterMixes';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { NoirHomeHero, heroField, heroInk, heroWorld } from './NoirHomeHero';
 import { prefetchArtistProfile } from '../../../utils/artistDiscographyLoader';
@@ -93,6 +94,15 @@ export function NoirHomeView({
   const [mixes, setMixes] = useState<DailyMix[]>([]);
   const [mixesLoading, setMixesLoading] = useState(true);
   const [mixReloadKey, setMixReloadKey] = useState(0);
+  /** After first-run picks, chart-based starters fill the row while personal mixes build. */
+  const [starterActive, setStarterActive] = useState(startersActiveToday);
+  const starters = useMemo(() => (starterActive ? buildStarterMixes() : []), [starterActive]);
+  const personalCount = mixes.length;
+  const displayMixes = useMemo(() => {
+    if (personalCount >= 4 || starters.length === 0) return mixes;
+    const have = new Set(mixes.map((m) => m.tag.toLowerCase()));
+    return [...mixes, ...starters.filter((s) => !have.has(s.tag.toLowerCase()))].slice(0, 6);
+  }, [mixes, starters, personalCount]);
   /** null = still checking events; true = show F7 picker */
   const [needsColdStart, setNeedsColdStart] = useState<boolean | null>(null);
   /** From real plays — not “artists you opened once”. */
@@ -204,6 +214,7 @@ export function NoirHomeView({
 
   const handleColdStartSeeded = () => {
     setNeedsColdStart(false);
+    setStarterActive(true);
     setMixReloadKey((n) => n + 1);
   };
   useEffect(() => {
@@ -377,7 +388,7 @@ export function NoirHomeView({
                 <NoirColdStart onSeeded={handleColdStartSeeded} onBrowseDiscover={onOpenDiscover} />
               )}
 
-              {!featuredTrack && needsColdStart === false && !mixesLoading && mixes.length === 0 && (
+              {!featuredTrack && needsColdStart === false && !mixesLoading && displayMixes.length === 0 && (
                 <div className="noir-home-start-card mb-10 max-w-xl">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[color:var(--noir-text-tertiary)]">
                     Start listening
@@ -457,7 +468,7 @@ export function NoirHomeView({
                 </section>
               )}
 
-              {mixesLoading && mixes.length === 0 && (
+              {mixesLoading && displayMixes.length === 0 && (
                 <section>
                   <div className="noir-skeleton mb-4 mt-[var(--noir-section-gap)] h-5 w-36 rounded px-1" />
                   <NoirHomeShelf>
@@ -471,12 +482,14 @@ export function NoirHomeView({
                 </section>
               )}
 
-              {mixes.length > 0 && (
+              {displayMixes.length > 0 && (
                 <section>
-                  <h2 className="noir-section-heading px-1">{strings.home.yourMixes}</h2>
+                  <h2 className="noir-section-heading px-1">
+                    {mixes.length > 0 ? strings.home.yourMixes : strings.home.startHere}
+                  </h2>
                   {/* Mosaic, not a shelf: the first mix (For You) is large, the rest fill in beside it. */}
-                  <div className="noir-mosaic" {...(mosaicLayout(mixes.length) as object)}>
-                    {mixes.map((mix, i) => (
+                  <div className="noir-mosaic" {...(mosaicLayout(displayMixes.length) as object)}>
+                    {displayMixes.map((mix, i) => (
                       <motion.div
                         key={mix.id}
                         role="button"

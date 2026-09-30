@@ -86,12 +86,17 @@ function mapAppleFeedToTracks(data: unknown, idPrefix: string): SearchResult[] {
         ? artworkUrl.replace('100x100bb', '600x600bb')
         : '';
 
+      const genre = (Array.isArray(entry?.genres) ? entry.genres : [])
+        .map((g: any) => String(g?.name || '').trim())
+        .find((name: string) => name && name.toLowerCase() !== 'music');
+
       return {
         id: `${idPrefix}_${id}`,
         title,
         artist,
         thumbnail,
         videoId: '',
+        ...(genre ? { genre } : {}),
       };
     })
     .filter((t): t is SearchResult => t !== null);
