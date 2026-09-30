@@ -54,6 +54,8 @@ type NoirNowPlayingViewProps = {
 };
 
 const sheetEase = EASE_PREMIUM;
+/** Stand-in length for queue songs whose duration isn't known yet (pop/rock average ≈ 3:15). */
+const TYPICAL_SONG_SEC = 195;
 const BATCH_SIZE = 10;
 const SHUFFLE_SETTLE_MS = 540;
 
@@ -227,11 +229,12 @@ export function NoirNowPlayingView({
     prevDeckRef.current = { key: currentKey ?? '', index: currentIndex, dir: deckDir };
   });
 
-  // Only when every song knows its length: a partial sum would read as a real number and be wrong.
-  const totalSec =
-    upNext.length > 0 && upNext.every((track) => (track.duration ?? 0) > 0)
-      ? upNext.reduce((sum, track) => sum + (track.duration ?? 0), 0)
-      : null;
+  // Exact when every song knows its length; otherwise an estimate (unknown songs count as a typical
+  // 3:15), marked with "~" so it never passes for a measured number.
+  const knownSec = upNext.reduce((sum, track) => sum + Math.max(0, track.duration ?? 0), 0);
+  const unknownCount = upNext.filter((track) => !((track.duration ?? 0) > 0)).length;
+  const totalSec = upNext.length > 0 ? knownSec + unknownCount * TYPICAL_SONG_SEC : null;
+  const totalIsEstimate = unknownCount > 0;
   const byId = new Map(upNext.map((track) => [track.id, track]));
   const orderedUpNext = order.map((id) => byId.get(id)).filter((track): track is SearchResult => !!track);
   const songKey = currentKey ?? `${song.title}::${song.artist}`;
@@ -549,7 +552,7 @@ export function NoirNowPlayingView({
                   <p className="noir-now-playing-side-source">
                     {[
                       queueSource ? strings.nextUp.playingFrom(queueSource) : null,
-                      totalSec != null ? strings.nextUp.totalLength(totalSec) : null,
+                      totalSec != null ? `${totalIsEstimate ? '~' : ''}${strings.nextUp.totalLength(totalSec)}` : null,
                     ]
                       .filter(Boolean)
                       .join(' · ')}
