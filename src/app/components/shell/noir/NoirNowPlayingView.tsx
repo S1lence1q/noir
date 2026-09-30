@@ -548,15 +548,8 @@ export function NoirNowPlayingView({
                     </motion.span>
                   )}
                 </p>
-                {upNext.length > 0 && (queueSource || totalSec != null) && (
-                  <p className="noir-now-playing-side-source">
-                    {[
-                      queueSource ? strings.nextUp.playingFrom(queueSource) : null,
-                      totalSec != null ? `${totalIsEstimate ? '~' : ''}${strings.nextUp.totalLength(totalSec)}` : null,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </p>
+                {queueSource && upNext.length > 0 && (
+                  <p className="noir-now-playing-side-source">{strings.nextUp.playingFrom(queueSource)}</p>
                 )}
               </div>
               <div className="flex shrink-0 items-center gap-2">
@@ -708,6 +701,12 @@ export function NoirNowPlayingView({
                   ))}
                 </AnimatePresence>
               </Reorder.Group>
+            )}
+            {upNext.length > 0 && totalSec != null && (
+              <p className="noir-queue-foot">
+                {totalIsEstimate ? '~' : ''}
+                {strings.nextUp.totalLength(totalSec)} left
+              </p>
             )}
             </div>
           </motion.aside>

@@ -1684,6 +1684,15 @@ button.noir-now-playing-source:hover {
 .noir-now-playing-queue-inner .noir-playlist-item {
   background: transparent;
   overflow: hidden; /* leaving rows fold their height away without spilling */
+  flex-shrink: 0; /* overflow:hidden drops the min-height floor; rows must scroll, never squash */
+}
+
+.noir-queue-foot {
+  flex-shrink: 0;
+  padding: 10px 2px 0;
+  font: var(--noir-type-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--noir-text-tertiary);
 }
 
 .noir-queue-count {
