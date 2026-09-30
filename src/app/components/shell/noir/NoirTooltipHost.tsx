@@ -5,11 +5,11 @@ import { prefersReducedMotion } from '../../../utils/motionPresets';
 
 /**
  * T22 — one quiet tooltip for the whole shell. Any element with `data-tip="…"` gets it:
- * after 400 ms of hover, at once on keyboard focus, never on touch. Replaces native `title`
+ * after 800 ms of hover, at once on keyboard focus, never on touch. Replaces native `title`
  * bubbles (grey, slow, off-system). `data-tip-rail` = only while the element's `.noir-nav-label`
  * is hidden (sidebar icon rail). Text inputs tip on hover only, so opening the palette doesn't.
  */
-const HOVER_DELAY_MS = 400;
+const HOVER_DELAY_MS = 800;
 const GAP = 8;
 
 type Tip = { text: string; x: number; y: number; placement: 'top' | 'bottom' };
