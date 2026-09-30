@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { ATMOSPHERE_EVENT, readAtmosphereMode, type AtmosphereMode } from '../../../utils/atmosphere';
 import { AnimatePresence, motion, Reorder, useIsPresent } from 'motion/react';
 import { Compass, Heart, Plus, Radio, Shuffle, X } from 'lucide-react';
@@ -514,9 +514,8 @@ export function NoirNowPlayingView({
             <div className="noir-now-playing-side-header">
               <div className="noir-now-playing-side-header-text min-w-0">
                 <p className="text-[14px] font-medium text-[color:var(--noir-text-primary)]">
-                  {upNext.length > 0
-                    ? strings.nextUp.headerTitle(upNext.length)
-                    : strings.nextUp.title}
+                  {strings.nextUp.title}
+                  {upNext.length > 0 && <span className="noir-queue-count">{upNext.length}</span>}
                 </p>
                 {queueSource && upNext.length > 0 && (
                   <p className="noir-now-playing-side-source">{strings.nextUp.playingFrom(queueSource)}</p>
@@ -758,7 +757,10 @@ function QueueTrackItem({
       }}
       onContextMenu={(event) => openSongMenu(track, event)}
     >
-      <div className="noir-track-row group flex w-full items-center gap-2 px-2 py-2.5">
+      <div
+        className="noir-track-row noir-queue-row group flex w-full items-center gap-2 px-2 py-2.5"
+        style={{ '--d': Math.min(index, 8) } as CSSProperties}
+      >
         <button
           type="button"
           onClick={() => {
@@ -766,6 +768,9 @@ function QueueTrackItem({
           }}
           className="flex min-w-0 flex-1 items-center gap-3 text-left elva-focus-ring"
         >
+          <span className={`noir-queue-index${index === 0 ? ' is-next' : ''}`} aria-hidden="true">
+            {index + 1}
+          </span>
           <span className="noir-art relative h-11 w-11 shrink-0 overflow-hidden">
             {hasRealArtwork(track.thumbnail) ? (
               <img src={track.thumbnail} alt="" className="h-full w-full object-cover" />

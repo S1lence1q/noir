@@ -1674,6 +1674,56 @@ button.noir-now-playing-source:hover {
   overflow-y: auto;
 }
 
+/* Next up: a lineup, not a stack of cards. The list dissolves at the bottom like lyrics do. */
+.noir-now-playing-queue-inner > ul {
+  padding-bottom: 28px;
+  mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 36px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 36px), transparent 100%);
+}
+
+.noir-now-playing-queue-inner .noir-playlist-item {
+  background: transparent;
+}
+
+.noir-queue-count {
+  margin-left: 8px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: var(--noir-text-tertiary);
+}
+
+/* Position in the lineup; #1 (what plays next) is the only accent. */
+.noir-queue-index {
+  flex-shrink: 0;
+  width: 14px;
+  margin-right: -2px;
+  text-align: center;
+  font: var(--noir-type-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--noir-text-tertiary);
+  opacity: 0.7;
+}
+
+.noir-queue-index.is-next {
+  color: var(--noir-accent);
+  opacity: 1;
+  font-weight: 600;
+}
+
+/* Rows fade with distance from "next", so the eye stays at the top; hover brings a row back. */
+.noir-queue-row .noir-art,
+.noir-queue-row .noir-queue-index,
+.noir-queue-row button > span:last-child {
+  opacity: calc(1 - var(--d, 0) * 0.055);
+  transition: opacity 0.2s ease;
+}
+
+.noir-queue-row:hover .noir-art,
+.noir-queue-row:hover .noir-queue-index,
+.noir-queue-row:hover button > span:last-child {
+  opacity: 1;
+}
+
 .noir-lyrics-scroll {
   mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 93%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 93%, transparent 100%);
