@@ -40,8 +40,8 @@ export function NoirPlaylistView({
   return (
     <div className="flex w-full flex-col gap-10">
       <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:items-end sm:text-left">
-        {playlist.id.startsWith('mix:') ? (
-          <NoirMixCover tag={playlist.name} size={160} />
+        {playlist.id.startsWith('mix:') || playlist.id === 'dk_hits' || playlist.id === 'global_hits' ? (
+          <NoirMixCover tag={playlist.id.startsWith('mix:') ? playlist.name : playlist.id} size={160} />
         ) : (
           <NoirDitherCover source={cover} world={world} seed={playlist.id} size={160} />
         )}

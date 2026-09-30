@@ -4,7 +4,6 @@ import { ArrowRight, ChevronRight, Play, RefreshCw } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
 import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
-import { NoirDitherCover } from './NoirDitherCover';
 import { NoirMixCover } from './NoirMixCover';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirHomeShelf } from './NoirHomeShelf';
@@ -536,12 +535,7 @@ function ChartRow({ playlist, onOpen, onPlay }: { playlist: Playlist; onOpen: ()
       }}
       className="noir-chart-row group elva-focus-ring"
     >
-      <NoirDitherCover
-        source={playlist.tracks[0]?.thumbnail}
-        world={worldForCollection(playlist.id)}
-        seed={playlist.id}
-        size={72}
-      />
+      <NoirMixCover tag={playlist.id} size={72} radius={10} />
       <span className="min-w-0 flex-1">
         <span className="noir-song-title block truncate text-[15px]">{playlist.name}</span>
         <span className="noir-song-meta mt-0.5 block truncate">

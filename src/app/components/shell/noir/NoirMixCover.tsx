@@ -10,6 +10,8 @@ import { COLOR_WORLDS, hashString, worldForTag, type ColorWorld } from '../../..
 
 export type MixSymbol =
   | 'you'
+  | 'podium'
+  | 'globe'
   | 'chain'
   | 'bolt'
   | 'cross-dk'
@@ -32,6 +34,9 @@ type Resolved = { symbol: MixSymbol; world: ColorWorld };
 // where the colours are right: a wrong flag is worse than no flag.
 const RULES: { test: RegExp; symbol: MixSymbol; world: ColorWorld }[] = [
   { test: /for you|daily|made for|discover/, symbol: 'you', world: 'bone' },
+  // Charts before countries: "Top Hits: Denmark" is a chart, not the Danish mix.
+  { test: /global_hits|global|worldwide/, symbol: 'globe', world: 'cobalt' },
+  { test: /dk_hits|top hits|chart/, symbol: 'podium', world: 'ember' },
   { test: /danish|dansk|denmark|danmark/, symbol: 'cross-dk', world: 'ember' },
   { test: /swedish|svensk|sweden|sverige/, symbol: 'cross-se', world: 'cobalt' },
   { test: /norwegian|norsk|norway|norge/, symbol: 'cross-no', world: 'ember' },
@@ -100,6 +105,23 @@ function shape(symbol: MixSymbol, seed: string, ink: string, id: string): ReactN
           <circle cx="50" cy="50" r="36" fill="none" stroke={ink} strokeWidth="13" />
           <circle cx="50" cy="50" r="12" />
         </>
+      );
+    case 'podium':
+      // Top of the chart: 1 in the middle, 2 left, 3 right.
+      return (
+        <>
+          <rect x="35" y="18" width="30" height="72" rx="3" />
+          <rect x="3" y="44" width="30" height="46" rx="3" />
+          <rect x="67" y="60" width="30" height="30" rx="3" />
+        </>
+      );
+    case 'globe':
+      return (
+        <g fill="none" stroke={ink} strokeWidth="9">
+          <circle cx="50" cy="50" r="41" />
+          <ellipse cx="50" cy="50" rx="17" ry="41" />
+          <line x1="9" y1="50" x2="91" y2="50" />
+        </g>
       );
     case 'chain':
       return (
@@ -279,7 +301,7 @@ export function mosaicLayout(n: number): { 'data-layout': string; style: { ['--m
 
 /** Dev check: every symbol on its field. `?covers` on Home. */
 export function NoirMixCoverGallery() {
-  const samples = ['For You', 'Rap', 'Rock', 'Danish', 'Swedish', 'Norwegian', 'Finnish', 'Lo Fi', 'Dream Pop', 'Pop', 'Electronic', 'Jazz', 'Soul', 'Indie', 'Metal', 'Reggae', 'Classical'];
+  const samples = ['For You', 'dk_hits', 'global_hits', 'Rap', 'Rock', 'Danish', 'Swedish', 'Norwegian', 'Finnish', 'Lo Fi', 'Dream Pop', 'Pop', 'Electronic', 'Jazz', 'Soul', 'Indie', 'Metal', 'Reggae', 'Classical'];
   return (
     <div className="noir-mix-gallery">
       {samples.map((name) => (
