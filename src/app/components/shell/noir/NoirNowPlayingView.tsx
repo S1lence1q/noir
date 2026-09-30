@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ATMOSPHERE_EVENT, readAtmosphereMode, type AtmosphereMode } from '../../../utils/atmosphere';
 import { AnimatePresence, motion, Reorder, useIsPresent } from 'motion/react';
 import { Compass, Heart, Plus, Radio, Shuffle, X } from 'lucide-react';
@@ -15,6 +15,14 @@ import { hasRealArtwork } from '../../../utils/artwork';
 import { renderGrainField, worldForCollection } from '../../../utils/ditherCover';
 import { NoirDitherCover } from './NoirDitherCover';
 import type { LyricLine } from '../../../types';
+import { heroField, heroMark, heroWorld } from './NoirHomeHero';
+import { NoirPlateBloom } from './NoirPlateBloom';
+import { NoirHeatWeek } from './NoirHeatWeek';
+import { HEAT_RAMPS } from '../../../utils/heatFigure';
+import type { ColorWorld } from '../../../utils/ditherCover';
+import type { RampStop } from '../../../utils/grainRender';
+import { getListeningEvents } from '../../../services/listening/eventsStore';
+import { normalizeName } from '../../../services/musicGraph/normalize';
 
 type NowPlayingSong = {
   title: string;
@@ -103,6 +111,92 @@ function useGrainField(source: string | undefined, enabled: boolean) {
   return url;
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+const HEAT_DAYS = 30;
+
+/** Plays of this song per day, oldest first, over the last 30 days (today included). */
+function useSongHeat(songKey: string | null, title: string, artist: string) {
+  const [days, setDays] = useState<number[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const name = `${normalizeName(artist)}::${normalizeName(title)}`;
+    getListeningEvents()
+      .then((events) => {
+        if (cancelled) return;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const start = today.getTime() - (HEAT_DAYS - 1) * DAY_MS;
+        const next = new Array<number>(HEAT_DAYS).fill(0);
+        for (const e of events) {
+          if (e.source === 'seed' || e.outcome === 'skipped' || e.startedAt < start) continue;
+          // Same song from another source (another video id) still counts.
+          if (e.songKey !== songKey && `${normalizeName(e.artist)}::${normalizeName(e.title)}` !== name) continue;
+          next[Math.min(HEAT_DAYS - 1, Math.floor((e.startedAt - start) / DAY_MS))] += 1;
+        }
+        setDays(next);
+      })
+      .catch(() => !cancelled && setDays(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [songKey, title, artist]);
+  return days;
+}
+
+/** The song's line: its plate colour at the edges, the ramp's light core where you played most. */
+function songHeatRamp(world: ColorWorld): RampStop[] {
+  const ramp = HEAT_RAMPS[world];
+  return [
+    [0, ramp[0][1]],
+    [0.2, ramp[0][1]],
+    [0.5, ramp[2][1]],
+    [0.8, ramp[3][1]],
+    [1, ramp[3][1]],
+  ];
+}
+
+/**
+ * Plate geometry from the cover's layout box (offsets, so the shared-element flight's transforms
+ * don't drag the plate along). Written as CSS vars on the root; polled per frame because the
+ * identity glides (margin/width transitions) without resizing anything a ResizeObserver sees.
+ */
+function usePlateGeometry(enabled: boolean) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const slotRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!enabled) return;
+    let frame = 0;
+    let last = '';
+    const tick = () => {
+      const root = rootRef.current;
+      const slot = slotRef.current;
+      if (root && slot) {
+        let x = 0;
+        let y = 0;
+        let el: HTMLElement | null = slot;
+        while (el && el !== root) {
+          x += el.offsetLeft;
+          y += el.offsetTop;
+          el = el.offsetParent as HTMLElement | null;
+        }
+        const w = slot.offsetWidth;
+        const next = `${x}|${y}|${w}`;
+        if (next !== last) {
+          last = next;
+          root.style.setProperty('--plate-x', `${x + w / 2}px`);
+          root.style.setProperty('--plate-y', `${y + w}px`);
+          root.style.setProperty('--plate-cy', `${y + w / 2}px`);
+          root.style.setProperty('--plate-w', `${w}px`);
+        }
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    tick();
+    return () => cancelAnimationFrame(frame);
+  }, [enabled]);
+  return { rootRef, slotRef };
+}
+
 function useStackedLayout() {
   const query = '(max-width: 960px)';
   const [stacked, setStacked] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
@@ -155,6 +249,8 @@ export function NoirNowPlayingView({
     return () => window.removeEventListener(ATMOSPHERE_EVENT, onChange);
   }, []);
   const grainUrl = useGrainField(hasRealArtwork(song.artworkUrl) ? song.artworkUrl : undefined, atmosphere === 'grain');
+  const plate = atmosphere === 'plate';
+  const { rootRef, slotRef } = usePlateGeometry(plate);
   /** While cover flies home, keep layoutId mounted but fade everything else so title/queue don't ghost. */
   const isPresent = useIsPresent();
   const chromeFade = {
@@ -217,6 +313,18 @@ export function NoirNowPlayingView({
   const byId = new Map(upNext.map((track) => [track.id, track]));
   const orderedUpNext = order.map((id) => byId.get(id)).filter((track): track is SearchResult => !!track);
   const songKey = currentKey ?? `${song.title}::${song.artist}`;
+  // Same colour as the song gets on Home (keyed by the queue item's id when we have it).
+  const plateWorld = heroWorld({
+    id: queue[currentIndex]?.id ?? songKey,
+    title: song.title,
+    artist: song.artist,
+    thumbnail: '',
+    videoId: '',
+  });
+  const plateField = heroField(plateWorld);
+  const heatRamp = useMemo(() => songHeatRamp(plateWorld), [plateWorld]);
+  const songHeat = useSongHeat(currentKey, song.title, song.artist);
+  const playsLately = songHeat?.reduce((sum, n) => sum + n, 0) ?? 0;
   const favoriteAdds = uniqueByKey(favoriteTracks.filter((track) => getPlaybackSongKey(track) !== currentKey));
   const recentAdds = uniqueByKey(quickAddTracks.filter((track) => getPlaybackSongKey(track) !== currentKey));
   const quickAddSource = favoriteAdds.length > 0 ? 'favorites' : recentAdds.length > 0 ? 'recents' : null;
@@ -244,7 +352,12 @@ export function NoirNowPlayingView({
   };
 
   return (
-    <div className={`noir-now-playing${sidePanelOpen ? '' : ' is-side-collapsed'}`}>
+    <div
+      ref={rootRef}
+      className={`noir-now-playing${sidePanelOpen ? '' : ' is-side-collapsed'}`}
+      data-atmosphere={atmosphere}
+      data-playing={playback.isPlaying || undefined}
+    >
       <motion.div
         className="noir-now-playing-atmosphere"
         aria-hidden
@@ -256,8 +369,27 @@ export function NoirNowPlayingView({
             : chromeFade.transition
         }
       >
+        {plate && (
+          <>
+            <div className="noir-now-playing-plate" style={{ backgroundColor: plateField }} />
+            <div className="noir-plate-bloom">
+              <AnimatePresence mode="sync" initial={false}>
+                <motion.div
+                  key={songKey}
+                  className="noir-plate-bloom-inner"
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.04 }}
+                  transition={{ duration: reduced ? 0.2 : 0.7, ease: sheetEase }}
+                >
+                  <NoirPlateBloom seed={songKey} field={plateField} ink={heroMark[plateWorld]} />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </>
+        )}
         <AnimatePresence mode="sync" initial={false}>
-          {atmosphere === 'grain' ? (
+          {plate ? null : atmosphere === 'grain' ? (
             grainUrl ? (
               <motion.img
                 key={grainUrl}
@@ -307,6 +439,7 @@ export function NoirNowPlayingView({
         <div className={`noir-now-playing-stage-row${showLyrics ? ' has-lyrics' : ''}`}>
           <div className="noir-now-playing-identity">
             <motion.div
+              ref={slotRef}
               layoutId={reduced ? undefined : 'np-cover'}
               // Measure only when the slot can move. Otherwise every playback tick re-measures mid-flight
               // and restarts the shared crossfade from transparent (the dip was playing-only).
@@ -433,6 +566,21 @@ export function NoirNowPlayingView({
                       </button>
                     )}
                   </div>
+                  {plate && songHeat && (
+                    <div className="noir-now-playing-heat">
+                      <NoirHeatWeek
+                        values={songHeat}
+                        seed={`np:${songKey}`}
+                        className="noir-now-playing-heat-canvas"
+                        span={[0.015, 0.985]}
+                        world={plateWorld}
+                        ramp={heatRamp}
+                        tail="end"
+                        transparent
+                      />
+                      <p className="noir-now-playing-heat-label">{strings.nowPlaying.playsLately(playsLately)}</p>
+                    </div>
+                  )}
                   {/* Source lives in the queue rail header when that's visible — never twice. */}
                   {queueSource && !(sidePanelOpen && upNext.length > 0) && (
                     <div className="noir-now-playing-meta">

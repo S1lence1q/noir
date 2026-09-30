@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ColorWorld } from '../../../utils/ditherCover';
-import { applyHeat, buildRamp, seededRandom } from '../../../utils/grainRender';
+import { applyHeat, buildRamp, seededRandom, type RampStop } from '../../../utils/grainRender';
 import { HEAT_RAMPS } from '../../../utils/heatFigure';
 
 /**
@@ -50,9 +50,16 @@ function catmull(points: Pt[], steps = 14): Pt[] {
   return out;
 }
 
-type RenderOptions = { seed: string; span: [number, number]; world: ColorWorld; tail: 'exit' | 'end' };
+type RenderOptions = {
+  seed: string;
+  span: [number, number];
+  world: ColorWorld;
+  tail: 'exit' | 'end';
+  ramp?: RampStop[];
+  transparent?: boolean;
+};
 
-function render(canvas: HTMLCanvasElement, values: number[], { seed, span, world, tail }: RenderOptions) {
+function render(canvas: HTMLCanvasElement, values: number[], { seed, span, world, tail, ramp, transparent }: RenderOptions) {
   const cssW = canvas.clientWidth;
   const cssH = canvas.clientHeight;
   if (!cssW || !cssH) return false;
@@ -107,7 +114,14 @@ function render(canvas: HTMLCanvasElement, values: number[], { seed, span, world
 
   // 2. Heat ramp + grain.
   const out = ctx.createImageData(w, h);
-  applyHeat(sx.getImageData(0, 0, w, h).data, out.data, rampFor(world), seededRandom(seed));
+  applyHeat(
+    sx.getImageData(0, 0, w, h).data,
+    out.data,
+    ramp ? buildRamp(ramp) : rampFor(world),
+    seededRandom(seed),
+    22,
+    transparent
+  );
   ctx.putImageData(out, 0, 0);
   return true;
 }
@@ -119,6 +133,8 @@ export function NoirHeatWeek({
   span = [HEAT_WEEK_X0, HEAT_WEEK_X1],
   world = 'cobalt',
   tail = 'exit',
+  ramp,
+  transparent = false,
 }: {
   values: number[];
   seed: string;
@@ -127,6 +143,9 @@ export function NoirHeatWeek({
   span?: [number, number];
   world?: ColorWorld;
   tail?: 'exit' | 'end';
+  /** Overrides the world's ramp (e.g. one that starts from black). */
+  ramp?: RampStop[];
+  transparent?: boolean;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = useState(false);
@@ -140,7 +159,7 @@ export function NoirHeatWeek({
     const draw = () => {
       if (canvas.clientWidth === lastW) return;
       lastW = canvas.clientWidth;
-      if (render(canvas, values, { seed, span, world, tail })) setReady(true);
+      if (render(canvas, values, { seed, span, world, tail, ramp, transparent })) setReady(true);
     };
     draw();
     const observer = new ResizeObserver(() => {
@@ -153,7 +172,7 @@ export function NoirHeatWeek({
       observer.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, seed, world, tail, span[0], span[1]]);
+  }, [key, seed, world, tail, span[0], span[1], transparent, ramp?.map((r) => r.join(':')).join()]);
 
   return <canvas ref={ref} className={className} data-ready={ready || undefined} aria-hidden />;
 }

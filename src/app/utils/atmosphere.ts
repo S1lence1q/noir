@@ -1,17 +1,25 @@
-/** Now Playing background: a soft colour glow from the cover (default) or its colours as dither grain. */
-export type AtmosphereMode = 'glow' | 'grain';
+/**
+ * Now Playing background: a NOIR plate in the song's colour (default), a soft colour glow from the
+ * cover, or the cover's colours as dither grain.
+ */
+export type AtmosphereMode = 'plate' | 'glow' | 'grain';
 
-const ATMOSPHERE_KEY = 'noir_atmosphere';
+const MODES: AtmosphereMode[] = ['plate', 'glow', 'grain'];
+const isMode = (value: string | null): value is AtmosphereMode => MODES.includes(value as AtmosphereMode);
+
+// v2: the plate arrived as the new default; an old stored 'glow' was usually just never changed.
+const ATMOSPHERE_KEY = 'noir_atmosphere_v2';
 export const ATMOSPHERE_EVENT = 'noir-atmosphere-change';
 
-/** `?atmosphere=grain|glow` still works (and is remembered) for quick A/B links. */
+/** `?atmosphere=plate|glow|grain` still works (and is remembered) for quick A/B links. */
 export function readAtmosphereMode(): AtmosphereMode {
   try {
     const param = new URLSearchParams(window.location.search).get('atmosphere');
-    if (param === 'grain' || param === 'glow') localStorage.setItem(ATMOSPHERE_KEY, param);
-    return localStorage.getItem(ATMOSPHERE_KEY) === 'grain' ? 'grain' : 'glow';
+    if (isMode(param)) localStorage.setItem(ATMOSPHERE_KEY, param);
+    const stored = localStorage.getItem(ATMOSPHERE_KEY);
+    return isMode(stored) ? stored : 'plate';
   } catch {
-    return 'glow';
+    return 'plate';
   }
 }
 
