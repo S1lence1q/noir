@@ -18,6 +18,11 @@ function toPlainLines(track: LrclibTrack): LyricLine[] {
     .map((text) => ({ time: 0, text }));
 }
 
+/** Whether the choice of lyrics (synced or not, which version) depends on the track length at all. */
+function needsDuration(candidates: LrclibTrack[]): boolean {
+  return candidates.some((t) => t.syncedLyrics && t.duration != null);
+}
+
 /**
  * lrclib often returns several versions (remaster, live, radio edit) with different intros.
  * Pick the one whose length matches the playing track; if none is close, show plain text
@@ -109,14 +114,26 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
   // Choose among lrclib versions once the track length is known (re-picks if it arrives late).
   const rounded = Math.round(duration);
   const roundedDuration = rounded === staleDurationRef.current ? 0 : rounded;
+  // If the length never arrives (stream with no duration) stop waiting for it after a moment.
+  const [durationWaitOver, setDurationWaitOver] = useState(false);
+  useEffect(() => {
+    setDurationWaitOver(false);
+    const t = window.setTimeout(() => setDurationWaitOver(true), 2500);
+    return () => window.clearTimeout(t);
+  }, [songData.title, songData.artist, songData.videoId]);
+
   useEffect(() => {
     if (!candidates) return;
+    // Picking without the length means guessing (synced vs plain, which version), and the guess gets
+    // corrected a moment later — the visible flip. Stay in "loading" until the length is known,
+    // unless the answer doesn't depend on it (nothing found, or nothing to compare against).
+    if (roundedDuration <= 0 && !durationWaitOver && needsDuration(candidates)) return;
     const { lines, synced } = pickLyrics(candidates, roundedDuration);
     setLyrics(lines);
     setIsLyricsSynced(synced);
     // Loading ends here, in the same render that has the lines — never a frame of "loaded, but empty".
     setIsLoadingLyrics(false);
-  }, [candidates, roundedDuration]);
+  }, [candidates, roundedDuration, durationWaitOver]);
 
   useEffect(() => {
     if (lyrics.length === 0 || !isLyricsSynced) return;
@@ -144,12 +161,13 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
       // so the stage and the cover change once, cleanly.
       const known = lyricsCache.get(lyricsKey(songData.title, songData.artist));
       if (known && !loadCustomLyrics(songData.videoId, songData.title, songData.artist)) {
-        const { lines, synced } = pickLyrics(known, 0);
-        setLyrics(lines);
-        setIsLyricsSynced(synced);
+        // Known answer: no network. The candidates effect picks the lines (once the length is known, if
+        // that matters) and ends loading; the stage holds its state meanwhile.
+        setIsLoadingLyrics(true);
+        setLyrics([]);
+        setIsLyricsSynced(false);
         setCurrentLyricIndex(-1);
-        setCandidates(known);
-        setIsLoadingLyrics(false);
+        setCandidates([...known]); // fresh array: replaying the same song must still re-run the pick
         return;
       }
       setIsLoadingLyrics(true);
