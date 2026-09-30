@@ -3749,6 +3749,7 @@ button.noir-now-playing-source:hover {
 
 /* Now Playing — empty Next up */
 .noir-queue-empty-covers {
+  position: relative; /* popLayout pins a leaving cover to this grid */
   display: grid;
   /* Fluid, so three covers always fit the column instead of pushing it sideways. */
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -237,17 +237,17 @@ export function NoirNowPlayingView({
   const unknownCount = upNext.filter((track) => !((track.duration ?? 0) > 0)).length;
   const totalSec = upNext.length > 0 ? knownSec + unknownCount * TYPICAL_SONG_SEC : null;
   const totalIsEstimate = unknownCount > 0;
-  // Empty → filled (Add 10, a mix starting): the rows cascade in from the top instead of popping as one block.
-  const wasEmptyRef = useRef(upNext.length === 0);
-  const lineupEnterAtRef = useRef(0);
-  if (wasEmptyRef.current && upNext.length > 0) lineupEnterAtRef.current = Date.now();
-  wasEmptyRef.current = upNext.length === 0;
-  const lineupEntering = Date.now() - lineupEnterAtRef.current < 600;
   const byId = new Map(upNext.map((track) => [track.id, track]));
   const orderedUpNext = order.map((id) => byId.get(id)).filter((track): track is SearchResult => !!track);
   const songKey = currentKey ?? `${song.title}::${song.artist}`;
-  const favoriteAdds = uniqueByKey(favoriteTracks.filter((track) => getPlaybackSongKey(track) !== currentKey));
-  const recentAdds = uniqueByKey(quickAddTracks.filter((track) => getPlaybackSongKey(track) !== currentKey));
+  // A saved favorite has no videoId until it plays, so its key differs from the playing copy of itself:
+  // match on title + artist too, or the current song gets offered as "add" and adds nothing.
+  const sameSong = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+  const isCurrentSong = (track: SearchResult) =>
+    getPlaybackSongKey(track) === currentKey ||
+    (sameSong(track.title, song.title) && sameSong(track.artist, song.artist));
+  const favoriteAdds = uniqueByKey(favoriteTracks.filter((track) => !isCurrentSong(track)));
+  const recentAdds = uniqueByKey(quickAddTracks.filter((track) => !isCurrentSong(track)));
   const quickAddSource = favoriteAdds.length > 0 ? 'favorites' : recentAdds.length > 0 ? 'recents' : null;
   const addPool = favoriteAdds.length > 0 ? favoriteAdds : recentAdds;
   const quickAdds = addPool.slice(0, 3);
@@ -595,14 +595,14 @@ export function NoirNowPlayingView({
             </div>
 
             {/* Empty ↔ list: the empty card steps out, then the lineup fades in — never a hard swap. */}
-            <AnimatePresence mode="wait" initial={false}>
+            <AnimatePresence mode="popLayout" initial={false}>
             {upNext.length === 0 ? (
               <motion.div
                 key={`empty:${quickAddSource ?? 'none'}`}
                 className="noir-now-playing-queue-empty px-2 pt-1"
                 initial={{ opacity: 0, y: reduced ? 0 : 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: reduced ? 0 : -6, transition: { duration: reduced ? 0.1 : 0.12, ease: EASE_PREMIUM } }}
+                exit={{ opacity: 0, transition: { duration: 0.12, ease: 'easeOut' } }}
                 transition={withReducedMotion(MOTION.panel)}
               >
                 <p className="flex items-center gap-2 text-[17px] font-semibold leading-tight tracking-[-0.02em] text-[color:var(--noir-text-primary)]">
@@ -619,15 +619,19 @@ export function NoirNowPlayingView({
 
                 {onAddToQueue && quickAdds.length > 0 && (
                   <div className="noir-queue-empty-covers mt-4">
+                    {/* A picked cover leaves, the others glide over and the next one settles in — no jumps. */}
+                    <AnimatePresence mode="popLayout" initial={false}>
                     {quickAdds.map((track, i) => (
                       <motion.button
                         type="button"
                         key={track.id}
+                        layout={!reduced}
                         onClick={() => addTracks([track])}
                         className="group min-w-0 text-left elva-focus-ring"
                         data-tip={strings.nextUp.addOne(track.title)}
                         initial={{ opacity: 0, y: reduced ? 0 : 6 }}
                         animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: reduced ? 1 : 0.94, transition: { duration: 0.14 } }}
                         transition={withReducedMotion({ ...MOTION.panel, delay: 0.06 + i * 0.04 })}
                       >
                         <span className="relative block overflow-hidden rounded-[var(--noir-radius-sm)]">
@@ -654,6 +658,7 @@ export function NoirNowPlayingView({
                         <span className="noir-queue-empty-cover-title">{track.title}</span>
                       </motion.button>
                     ))}
+                    </AnimatePresence>
                   </div>
                 )}
 
@@ -696,14 +701,20 @@ export function NoirNowPlayingView({
                 values={order}
                 onReorder={setOrder}
                 className="flex flex-col gap-0.5"
+                /* Empty → filled: the lineup is drawn down from the top like a curtain, rows standing still. */
+                initial={reduced ? { opacity: 0 } : { opacity: 0, clipPath: 'inset(0 0 100% 0)' }}
+                animate={reduced ? { opacity: 1 } : { opacity: 1, clipPath: 'inset(0 0 0% 0)' }}
+                transition={withReducedMotion({
+                  clipPath: { duration: 0.6, ease: EASE_PREMIUM },
+                  opacity: { duration: 0.3, ease: 'easeOut' },
+                })}
               >
-                <AnimatePresence initial={lineupEntering} custom={skipRef.current}>
+                <AnimatePresence initial={false} custom={skipRef.current}>
                   {orderedUpNext.map((track, index) => (
                     <QueueTrackItem
                       key={track.id}
                       track={track}
                       index={index}
-                      enterDelay={lineupEntering ? Math.min(index, 10) * 0.04 : 0}
                       layoutMode={layoutMode}
                       shufflePulse={shufflePulse}
                       onDragEnd={() => onReorderQueue?.(orderRef.current)}
@@ -733,7 +744,6 @@ export function NoirNowPlayingView({
 type QueueTrackItemProps = {
   track: SearchResult;
   index: number;
-  enterDelay: number;
   layoutMode: 'drag' | 'shuffle';
   shufflePulse: number;
   onDragEnd: () => void;
@@ -745,7 +755,6 @@ type QueueTrackItemProps = {
 function QueueTrackItem({
   track,
   index,
-  enterDelay,
   layoutMode,
   shufflePulse,
   onDragEnd,
@@ -803,7 +812,7 @@ function QueueTrackItem({
 
   const motionTransition = shuffling
     ? { duration: 0.48, ease: EASE_PREMIUM, times: [0, 0.4, 1] as number[], delay: stagger }
-    : { ...MOTION.panel, delay: enterDelay };
+    : MOTION.panel;
 
   return (
     <Reorder.Item
@@ -818,7 +827,7 @@ function QueueTrackItem({
         }, 0);
       }}
       className="noir-playlist-item select-none"
-      initial={{ opacity: 0, y: reduced ? 0 : enterDelay > 0 || index === 0 ? 14 : -8 }}
+      initial={{ opacity: 0, y: -8 }}
       animate={animate}
       variants={exitVariants}
       exit="exit"
