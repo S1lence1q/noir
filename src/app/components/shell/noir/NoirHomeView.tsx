@@ -12,7 +12,7 @@ import { NoirSongRow } from './NoirSongRow';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import { NoirDitherCover } from './NoirDitherCover';
-import { NoirMixCover, NoirMixCoverGallery } from './NoirMixCover';
+import { NoirMixCover, NoirMixCoverGallery, mosaicLayout } from './NoirMixCover';
 import { NoirPlaylistCover } from './NoirPlaylistCover';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirPlayPauseIcon } from './NoirPlayPauseIcon';
@@ -469,7 +469,8 @@ export function NoirHomeView({
               {!mixesLoading && mixes.length > 0 && (
                 <section>
                   <h2 className="noir-section-heading px-1">{strings.home.yourMixes}</h2>
-                  <NoirHomeShelf>
+                  {/* Mosaic, not a shelf: the first mix (For You) is large, the rest fill in beside it. */}
+                  <div className="noir-mosaic" {...(mosaicLayout(mixes.length) as object)}>
                     {mixes.map((mix, i) => (
                       <motion.div
                         key={mix.id}
@@ -488,7 +489,7 @@ export function NoirHomeView({
                         transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.08 + i * 0.04 }}
                       >
                         <span className="relative block">
-                          <NoirMixCover tag={mix.tag} size={188} />
+                          <NoirMixCover tag={mix.tag} size={i === 0 ? 360 : 188} className="noir-mosaic-cover" />
                           {onPlayPlaylist && (
                             <motion.button
                               type="button"
@@ -511,7 +512,7 @@ export function NoirHomeView({
                         </span>
                       </motion.div>
                     ))}
-                  </NoirHomeShelf>
+                  </div>
                 </section>
               )}
 

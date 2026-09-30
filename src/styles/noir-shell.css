@@ -5027,3 +5027,111 @@ button.noir-now-playing-source:hover {
   font-size: 13px;
   color: var(--noir-text-secondary);
 }
+
+/* Mosaic (Home mixes, Discover genres): the first tile is large, the rest fill in beside it. */
+.noir-mosaic {
+  display: grid;
+  /* Capped tiles: on a wide screen the mosaic keeps its proportions instead of ballooning. */
+  grid-template-columns: repeat(var(--mosaic-cols, 4), minmax(0, 210px));
+  grid-auto-flow: dense;
+  gap: 20px 16px;
+}
+
+.noir-mosaic[data-layout='feature'] > :first-child {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.noir-mosaic[data-layout='feature'] > :first-child .noir-song-title {
+  font-size: 17px;
+}
+
+.noir-mosaic .noir-collection-card {
+  width: auto;
+}
+
+.noir-mosaic-cover {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1;
+}
+
+@media (max-width: 700px) {
+  .noir-mosaic {
+    --mosaic-cols: 2 !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .noir-mosaic[data-layout='feature'] > :first-child {
+    grid-row: auto;
+  }
+}
+
+/* Discover front page: moving-now list beside the charts. */
+.noir-discover-front {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 40px;
+  margin-top: var(--noir-section-gap);
+}
+
+@media (max-width: 900px) {
+  .noir-discover-front {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.noir-rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.noir-rank-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 6px 10px 6px 4px;
+  border-radius: var(--noir-radius-sm);
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+
+.noir-rank-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.noir-rank-row-n {
+  width: 28px;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--noir-text-tertiary);
+}
+
+.noir-discover-chart-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.noir-chart-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  border-radius: var(--noir-radius-md);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.noir-chart-row:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
