@@ -228,7 +228,8 @@ export function NoirDiscoverView({
   const spotlightTrack = localHits[0] ?? globalHits[0] ?? feed?.tags[0]?.tracks[0] ?? null;
   const spotlightPool =
     localHits.length > 0 ? localHits : globalHits.length > 0 ? globalHits : feed?.tags[0]?.tracks ?? [];
-  const movingNow = (localHits.length > 0 ? localHits : globalHits).slice(0, 6);
+  // #1 is the spotlight; the list carries on from #2.
+  const movingNow = (localHits.length > 0 ? localHits : globalHits).slice(1, 7);
   const exploreArtists = feed?.artistsLike?.length ? feed.artistsLike : chartArtists;
   const tagShelves = feed?.tags ?? [];
 
@@ -244,58 +245,78 @@ export function NoirDiscoverView({
         <div className="noir-skeleton mb-10 h-[200px] w-full rounded-[var(--noir-radius-lg)]" />
       )}
 
+      {/* Top: the spotlight, with the charts beside it (that space was empty). */}
+      <div className="noir-discover-top">
       {spotlightTrack && (
-        <motion.section
-          className="noir-discover-spotlight"
-          initial={reduced ? false : { opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: EASE_PREMIUM }}
-        >
-          <button
-            type="button"
-            className="noir-discover-spotlight-cover elva-focus-ring"
-            onClick={() => onPlayPlaylist(spotlightPool, strings.discover.onTheCharts, 0)}
-            aria-label={`${strings.discover.playSpotlight}: ${spotlightTrack.title}`}
+          <motion.section
+            className="noir-discover-spotlight"
+            initial={reduced ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: EASE_PREMIUM }}
           >
-            <NoirArtwork
-              source={spotlightTrack.thumbnail}
-              world={worldForCollection(spotlightTrack.id || 'spotlight')}
-              seed={spotlightTrack.id || spotlightTrack.title}
-              size={220}
-            />
-          </button>
-          <div className="noir-discover-spotlight-copy min-w-0">
-            <p className="noir-discover-spotlight-eyebrow">{strings.discover.spotlight}</p>
-            <h2 className="noir-discover-spotlight-title">{spotlightTrack.title}</h2>
-            <p className="noir-discover-spotlight-artist">{spotlightTrack.artist}</p>
-            <p className="mt-2 text-[13px] text-[color:var(--noir-text-tertiary)]">
-              {strings.discover.onTheCharts}
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="noir-button-primary elva-focus-ring"
-                onClick={() => onPlayPlaylist(spotlightPool, strings.discover.onTheCharts, 0)}
-              >
-                <Play className="h-3.5 w-3.5 fill-current" />
-                {strings.discover.playSpotlight}
-              </button>
-              {localHits.length > 0 && (
+            <button
+              type="button"
+              className="noir-discover-spotlight-cover elva-focus-ring"
+              onClick={() => onPlayPlaylist(spotlightPool, strings.discover.onTheCharts, 0)}
+              aria-label={`${strings.discover.playSpotlight}: ${spotlightTrack.title}`}
+            >
+              <NoirArtwork
+                source={spotlightTrack.thumbnail}
+                world={worldForCollection(spotlightTrack.id || 'spotlight')}
+                seed={spotlightTrack.id || spotlightTrack.title}
+                size={220}
+              />
+            </button>
+            <div className="noir-discover-spotlight-copy min-w-0">
+              <p className="noir-discover-spotlight-eyebrow">{strings.discover.spotlight}</p>
+              <h2 className="noir-discover-spotlight-title">{spotlightTrack.title}</h2>
+              <p className="noir-discover-spotlight-artist">{spotlightTrack.artist}</p>
+              <p className="mt-2 text-[13px] text-[color:var(--noir-text-tertiary)]">
+                {strings.discover.onTheCharts}
+              </p>
+              <div className="mt-5 flex flex-wrap gap-2">
                 <button
                   type="button"
-                  className="noir-button-secondary elva-focus-ring"
-                  onClick={() => onSelectPlaylist(localPlaylist)}
+                  className="noir-button-primary elva-focus-ring"
+                  onClick={() => onPlayPlaylist(spotlightPool, strings.discover.onTheCharts, 0)}
                 >
-                  {strings.discover.openWorld}
+                  <Play className="h-3.5 w-3.5 fill-current" />
+                  {strings.discover.playSpotlight}
                 </button>
-              )}
+                {localHits.length > 0 && (
+                  <button
+                    type="button"
+                    className="noir-button-secondary elva-focus-ring"
+                    onClick={() => onSelectPlaylist(localPlaylist)}
+                  >
+                    {strings.discover.openWorld}
+                  </button>
+                )}
+              </div>
             </div>
+          </motion.section>
+        )}
+        <section className="noir-discover-top-charts">
+          <h3 className="noir-discover-top-label">{strings.discover.charts}</h3>
+          <div className="noir-discover-chart-stack">
+            {chartSlots.map(({ key, playlist }) =>
+              playlist ? (
+                <ChartRow
+                key={playlist.id}
+                playlist={playlist}
+                onOpen={() => onSelectPlaylist(playlist)}
+                onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name)}
+                />
+              ) : chartsLoading ? (
+                <div key={key} className="noir-skeleton h-[96px] rounded-[var(--noir-radius-md)]" />
+              ) : null
+            )}
           </div>
-        </motion.section>
-      )}
+        </section>
+      </div>
 
       {/* Front page: what's moving (a numbered list) beside the charts. */}
-      {(movingNow.length > 0 || chartsLoading || localHits.length > 0 || globalHits.length > 0) && (
+      {movingNow.length > 0 && (
         <div className="noir-discover-front">
           <section>
             <h3 className="noir-section-heading !mt-0 px-1">{strings.discover.movingNow}</h3>
@@ -314,11 +335,11 @@ export function NoirDiscoverView({
                       onPlayPlaylist(
                         localHits.length > 0 ? localHits : globalHits,
                         localHits.length > 0 ? localPlaylist.name : globalPlaylist.name,
-                        i
+                        i + 1
                       )
                     }
                   >
-                    <span className="noir-rank-row-n">{i + 1}</span>
+                    <span className="noir-rank-row-n">{i + 2}</span>
                     <NoirArtwork
                       source={track.thumbnail}
                       world={worldForCollection(track.id)}
@@ -334,23 +355,6 @@ export function NoirDiscoverView({
                 </motion.li>
               ))}
             </ol>
-          </section>
-          <section>
-            <h3 className="noir-section-heading !mt-0 px-1">{strings.discover.charts}</h3>
-            <div className="noir-discover-chart-stack">
-              {chartSlots.map(({ key, playlist }) =>
-                playlist ? (
-                  <ChartRow
-                    key={playlist.id}
-                    playlist={playlist}
-                    onOpen={() => onSelectPlaylist(playlist)}
-                    onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name)}
-                  />
-                ) : chartsLoading ? (
-                  <div key={key} className="noir-skeleton h-[96px] rounded-[var(--noir-radius-md)]" />
-                ) : null
-              )}
-            </div>
           </section>
         </div>
       )}

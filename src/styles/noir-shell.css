@@ -5068,23 +5068,41 @@ button.noir-now-playing-source:hover {
 }
 
 /* Discover front page: moving-now list beside the charts. */
-.noir-discover-front {
+/* Discover top: spotlight with the charts beside it. */
+.noir-discover-top {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
   gap: 40px;
-  margin-top: var(--noir-section-gap);
+  align-items: center;
 }
 
-@media (max-width: 900px) {
-  .noir-discover-front {
+.noir-discover-top .noir-discover-spotlight {
+  margin: 0;
+}
+
+.noir-discover-top-label {
+  margin: 0 0 12px 4px;
+  font: var(--noir-type-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--noir-text-tertiary);
+}
+
+@media (max-width: 1000px) {
+  .noir-discover-top {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
+.noir-discover-front {
+  margin-top: var(--noir-section-gap);
+}
+
+/* Numbered list spread over columns, so it fills the width instead of hugging the left. */
 .noir-rank-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 4px 24px;
   margin: 0;
   padding: 0;
   list-style: none;
