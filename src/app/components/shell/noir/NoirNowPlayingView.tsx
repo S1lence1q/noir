@@ -783,19 +783,28 @@ function QueueTrackItem({
   const exitVariants = {
     exit: (c: { sel: number } | null) => {
       if (reduced || !c) return { opacity: 0, transition: { duration: reduced ? 0.1 : 0.16 } };
-      const wave = Math.min(index, 6) * 0.035;
+      // Opacity and drift sweep in a soft wave, but every row folds its height (and the 2px flex gap
+      // with it) on the same clock, so the rest of the queue rises as one smooth motion and nothing
+      // nudges when the last exiting row unmounts.
+      const wave = Math.min(index, 6) * 0.025;
+      const fold = { duration: 0.5, ease: EASE_PREMIUM };
+      const drift = { duration: 0.4, delay: wave, ease: EASE_PREMIUM };
       return index < c.sel
         ? {
             opacity: 0,
             y: -10,
             height: 0,
-            transition: { duration: 0.34, delay: wave, ease: EASE_PREMIUM, opacity: { duration: 0.2, delay: wave } },
+            marginTop: -2,
+            overflow: 'hidden',
+            transition: { height: fold, marginTop: fold, y: drift, opacity: { duration: 0.28, delay: wave } },
           }
         : {
             opacity: 0,
             x: -18,
             height: 0,
-            transition: { duration: 0.36, delay: wave, ease: EASE_PREMIUM, opacity: { duration: 0.24, delay: wave } },
+            marginTop: -2,
+            overflow: 'hidden',
+            transition: { height: fold, marginTop: fold, x: drift, opacity: { duration: 0.3, delay: wave } },
           };
     },
   };
