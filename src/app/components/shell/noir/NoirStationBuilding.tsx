@@ -4,6 +4,7 @@ import { Check } from 'lucide-react';
 import { strings } from '../../../constants/strings';
 import { EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
 import { NoirSeedSign } from './NoirSeedSign';
+import { NoirMark } from './NoirMark';
 
 type NoirStationBuildingProps = {
   artists: string[];
@@ -44,11 +45,26 @@ export function NoirStationBuilding({ artists, cueing, title }: NoirStationBuild
       transition={{ duration: reduced ? 0.15 : 0.4, ease: EASE_PREMIUM }}
     >
       <div className="noir-station-building-card">
-        <NoirSeedSign
-          picks={[1, 3, 6][stage]}
-          size={168}
-          className="noir-station-building-sign"
-        />
+        {stage < 2 ? (
+          <NoirSeedSign picks={[1, 3][stage]} size={168} className="noir-station-building-sign" />
+        ) : (
+          /* The orange spray mark from the old cueing screen: the last beat before the music. */
+          <motion.span
+            className="noir-station-building-mark"
+            initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, ease: EASE_PREMIUM }}
+          >
+            <span className="noir-playback-loading-glow" aria-hidden />
+            <motion.span
+              className="noir-playback-loading-mark"
+              animate={reduced ? undefined : { rotate: 360 }}
+              transition={reduced ? undefined : { duration: 10, repeat: Infinity, ease: 'linear' }}
+            >
+              <NoirMark size={96} variant="spray" color="var(--noir-accent)" />
+            </motion.span>
+          </motion.span>
+        )}
         <h2 className="noir-station-building-title">{strings.home.buildTitle}</h2>
         {names && <p className="noir-station-building-names">{names}</p>}
         <ol className="noir-station-building-steps">

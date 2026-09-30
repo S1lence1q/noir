@@ -1449,16 +1449,30 @@ export default function App() {
   const [stationBuild, setStationBuild] = useState<{ artists: string[]; cueing: boolean; startedAt: number } | null>(
     null
   );
+  const homeLoadingRef = useRef(true);
+  const [homeLoading, setHomeLoading] = useState(true);
+  useEffect(() => {
+    const onLoading = (e: Event) => {
+      const loading = !!(e as CustomEvent<{ loading?: boolean }>).detail?.loading;
+      homeLoadingRef.current = loading;
+      setHomeLoading(loading);
+    };
+    window.addEventListener('noir-home-loading', onLoading);
+    return () => window.removeEventListener('noir-home-loading', onLoading);
+  }, []);
   // Lift the takeover once the first track plays, but never flash it: hold a minimum, and give up after a cap.
   useEffect(() => {
     if (!stationBuild) return;
     const MIN_MS = 2600;
     const MAX_MS = 25000;
+    // Home still loading after the track plays: give it a few seconds, then show what there is.
+    const settled = stationBuild.cueing && !!songData && !loadingSongId && appState !== 'processing';
     const elapsed = Date.now() - stationBuild.startedAt;
-    const ready = stationBuild.cueing && !!songData && !loadingSongId && appState !== 'processing';
-    const id = setTimeout(() => setStationBuild(null), ready ? Math.max(0, MIN_MS - elapsed) : Math.max(0, MAX_MS - elapsed));
+    const ready = stationBuild.cueing && !!songData && !loadingSongId && appState !== 'processing' && !homeLoading;
+    const wait = ready ? Math.max(0, MIN_MS - elapsed) : settled ? 6000 : Math.max(0, MAX_MS - elapsed);
+    const id = setTimeout(() => setStationBuild(null), wait);
     return () => clearTimeout(id);
-  }, [stationBuild, songData, loadingSongId, appState]);
+  }, [stationBuild, songData, loadingSongId, appState, homeLoading]);
 
   // Cold start: play a station from the picked artists right away (Home fills in behind it).
   const playColdStartPicks = async (artists: string[]) => {

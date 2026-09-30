@@ -2435,6 +2435,22 @@ button.noir-now-playing-source:hover {
   }
 }
 
+.noir-station-building-mark {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 168px;
+  height: 168px;
+  margin-bottom: 22px;
+}
+
+.noir-station-building-mark .noir-playback-loading-glow {
+  width: 220px;
+  height: 220px;
+  transform: translate(-50%, -50%);
+}
+
 .noir-station-building-title {
   margin: 0;
   font-size: clamp(1.6rem, 3.4vw, 2.2rem);
