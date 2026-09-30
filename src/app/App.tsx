@@ -1040,10 +1040,14 @@ export default function App() {
     }
 
     setQueue((prev) => {
-      if (prev.some((item) => item.id === result.id || (key !== null && getPlaybackSongKey(item) === key))) {
-        return prev;
-      }
-      return [...prev, result];
+      // Only what's still ahead counts as "already queued". A copy that already played (before the
+      // current song) is moved to the end instead, otherwise adding it silently did nothing.
+      const active = activeKey ? prev.findIndex((item) => getPlaybackSongKey(item) === activeKey) : -1;
+      const start = active >= 0 ? active : 0;
+      const matches = (item: SearchResult) =>
+        item.id === result.id || (key !== null && getPlaybackSongKey(item) === key);
+      if (prev.some((item, index) => index >= start && matches(item))) return prev;
+      return [...prev.filter((item, index) => !(index < start && matches(item))), result];
     });
     if (!options?.silent) {
       flyToQueue();

@@ -588,12 +588,15 @@ export function NoirNowPlayingView({
               </div>
             </div>
 
+            {/* Empty ↔ list: the empty card steps out, then the lineup fades in — never a hard swap. */}
+            <AnimatePresence mode="wait" initial={false}>
             {upNext.length === 0 ? (
               <motion.div
-                key={quickAddSource ?? 'none'}
+                key={`empty:${quickAddSource ?? 'none'}`}
                 className="noir-now-playing-queue-empty px-2 pt-1"
                 initial={{ opacity: 0, y: reduced ? 0 : 8 }}
                 animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: reduced ? 0 : -6, transition: { duration: reduced ? 0.1 : 0.16, ease: EASE_PREMIUM } }}
                 transition={withReducedMotion(MOTION.panel)}
               >
                 <p className="flex items-center gap-2 text-[17px] font-semibold leading-tight tracking-[-0.02em] text-[color:var(--noir-text-primary)]">
@@ -682,10 +685,15 @@ export function NoirNowPlayingView({
               </motion.div>
             ) : (
               <Reorder.Group
+                key="lineup"
                 axis="y"
                 values={order}
                 onReorder={setOrder}
                 className="flex flex-col gap-0.5"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, transition: { duration: 0.16 } }}
+                transition={withReducedMotion({ duration: 0.3, ease: EASE_PREMIUM })}
               >
                 <AnimatePresence initial={false} custom={skipRef.current}>
                   {orderedUpNext.map((track, index) => (
@@ -704,6 +712,7 @@ export function NoirNowPlayingView({
                 </AnimatePresence>
               </Reorder.Group>
             )}
+            </AnimatePresence>
             {SHOW_QUEUE_LENGTH && upNext.length > 0 && totalSec != null && (
               <p className="noir-queue-foot">
                 {totalIsEstimate ? '~' : ''}
