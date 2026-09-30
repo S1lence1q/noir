@@ -78,7 +78,7 @@ export function NoirLyricsColumn({
           // No "not found" message on purpose: the stage simply steps away when a song has no lyrics.
           null
         ) : isSynced ? (
-          <div className="noir-lyrics-enter flex flex-col gap-0 pt-[min(24vh,220px)]">
+          <div key={`${lyrics.length}:${lyrics[0]?.text}`} className="noir-lyrics-enter flex flex-col gap-0 pt-[min(24vh,220px)]">
             {hasIntro && (
               <div className={`noir-lyrics-gap${currentIndex < 0 ? ' is-active' : ' is-past'}`} aria-hidden>
                 <i /><i /><i />
@@ -120,7 +120,7 @@ export function NoirLyricsColumn({
             <div className="h-[min(40vh,360px)] shrink-0" aria-hidden />
           </div>
         ) : (
-          <div className="noir-lyrics-enter flex flex-col gap-1 pt-1">
+          <div key={`${lyrics.length}:${lyrics[0]?.text}`} className="noir-lyrics-enter flex flex-col gap-1 pt-1">
             {lyrics.map((line, idx) => (
               <p key={idx} className="noir-lyrics-plain">
                 {line.text}

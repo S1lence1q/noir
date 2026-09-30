@@ -40,6 +40,41 @@ function pickLyrics(candidates: LrclibTrack[], duration: number): { lines: Lyric
   return plain ? { lines: toPlainLines(plain), synced: false } : { lines: [], synced: false };
 }
 
+const lyricsCache = new Map<string, LrclibTrack[]>();
+const lyricsInflight = new Map<string, Promise<LrclibTrack[]>>();
+
+const lyricsKey = (title: string, artist: string) => `${cleanSongTitle(title)}::${artist}`.toLowerCase();
+const isLookupable = (artist: string) => artist !== 'Unknown Artist' && artist !== 'Web Stream';
+
+/** One lrclib lookup per song, shared by the player and by the prefetch. Failures are not cached. */
+function fetchCandidates(title: string, artist: string): Promise<LrclibTrack[]> {
+  const key = lyricsKey(title, artist);
+  const hit = lyricsCache.get(key);
+  if (hit) return Promise.resolve(hit);
+  const running = lyricsInflight.get(key);
+  if (running) return running;
+  const query = encodeURIComponent(`${cleanSongTitle(title)} ${isLookupable(artist) ? artist : ''}`.trim());
+  const p = fetch(`https://lrclib.net/api/search?q=${query}`)
+    .then((res) => {
+      if (!res.ok) throw new Error('API Error');
+      return res.json();
+    })
+    .then((data) => {
+      const list: LrclibTrack[] = Array.isArray(data) ? data : [];
+      lyricsCache.set(key, list);
+      return list;
+    })
+    .finally(() => lyricsInflight.delete(key));
+  lyricsInflight.set(key, p);
+  return p;
+}
+
+/** Warm the answer for a song that is about to play, so the stage knows before the song changes. */
+export function prefetchLyrics(title: string, artist: string) {
+  if (!title || !isLookupable(artist) || loadCustomLyrics(undefined, title, artist)) return;
+  fetchCandidates(title, artist).catch(() => {});
+}
+
 export function useLyrics(songData: PlaybackSongData, currentTime: number, duration = 0) {
   const [showLyrics, setShowLyrics] = useState(false);
   const [lyrics, setLyrics] = useState<LyricLine[]>([]);
@@ -105,6 +140,18 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
 
     let isMounted = true;
     const fetchLyricsData = async () => {
+      // Already known (prefetched or heard before): swap in one step, never passing through empty,
+      // so the stage and the cover change once, cleanly.
+      const known = lyricsCache.get(lyricsKey(songData.title, songData.artist));
+      if (known && !loadCustomLyrics(songData.videoId, songData.title, songData.artist)) {
+        const { lines, synced } = pickLyrics(known, 0);
+        setLyrics(lines);
+        setIsLyricsSynced(synced);
+        setCurrentLyricIndex(-1);
+        setCandidates(known);
+        setIsLoadingLyrics(false);
+        return;
+      }
       setIsLoadingLyrics(true);
       setLyrics([]);
       setCurrentLyricIndex(-1);
@@ -133,16 +180,9 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
       }
 
       try {
-        const cleanedTitle = cleanSongTitle(songData.title);
-        const query = encodeURIComponent(
-          `${cleanedTitle} ${songData.artist !== 'Unknown Artist' && songData.artist !== 'Web Stream' ? songData.artist : ''}`.trim()
-        );
-        const res = await fetch(`https://lrclib.net/api/search?q=${query}`);
-        if (!res.ok) throw new Error('API Error');
-        const data = await res.json();
-
         // The candidates effect picks the lines and ends the loading state together.
-        if (isMounted) setCandidates(Array.isArray(data) ? data : []);
+        const data = await fetchCandidates(songData.title, songData.artist);
+        if (isMounted) setCandidates(data);
       } catch (err) {
         console.error('Lyrics fetch error:', err);
         if (isMounted) {

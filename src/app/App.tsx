@@ -40,7 +40,7 @@ import { useBackgroundColors } from './hooks/useBackgroundColors';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useSearchLogic } from './hooks/useSearchLogic';
 import { useListeningRecorder } from './hooks/useListeningRecorder';
-import { useLyrics } from './hooks/useLyrics';
+import { useLyrics, prefetchLyrics } from './hooks/useLyrics';
 import { LandingPage } from './components/LandingPage';
 import type { PlaybackSongData } from './types/playback';
 import { Playlist } from './components/PlaylistDetailsView';
@@ -308,6 +308,15 @@ export default function App() {
    * useLyrics ends loading in the same render that has the lines, so "not loading and empty" is final —
    * no settle delay, the cover starts back the moment the lookup says there is nothing.
    */
+  // Look the next song's lyrics up ahead of time: the answer is then known the moment the song changes.
+  useEffect(() => {
+    if (!songData) return;
+    const activeKey = getPlaybackSongKey(songData);
+    const at = queue.findIndex((item) => getPlaybackSongKey(item) === activeKey);
+    const next = queue[at + 1];
+    if (next) prefetchLyrics(next.title, next.artist);
+  }, [songData?.id, songData?.title, queue]);
+
   // While a lookup runs the stage keeps whatever state it had (no open-then-close bounce on a run of
   // songs without lyrics); it only changes when the answer is in.
   const [lyricsStageOn, setLyricsStageOn] = useState(false);
