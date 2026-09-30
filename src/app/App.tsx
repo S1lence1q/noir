@@ -305,18 +305,17 @@ export default function App() {
    * `showLyrics` is the listener's choice and survives song changes. Whether the lyrics stage is actually
    * shown also depends on the song having any: a song without lyrics falls back to the normal cover layout
    * (no empty "not found" stage) and the choice re-opens by itself on the next song that has them.
-   * The short settle delay stops the stage collapsing in the frame between "loaded" and "lines set".
+   * useLyrics ends loading in the same render that has the lines, so "not loading and empty" is final —
+   * no settle delay, the cover starts back the moment the lookup says there is nothing.
    */
-  const [noLyricsSettled, setNoLyricsSettled] = useState(false);
+  // While a lookup runs the stage keeps whatever state it had (no open-then-close bounce on a run of
+  // songs without lyrics); it only changes when the answer is in.
+  const [lyricsStageOn, setLyricsStageOn] = useState(false);
   useEffect(() => {
-    if (isLoadingLyrics || lyrics.length > 0) {
-      setNoLyricsSettled(false);
-      return;
-    }
-    const t = setTimeout(() => setNoLyricsSettled(true), 350);
-    return () => clearTimeout(t);
-  }, [isLoadingLyrics, lyrics.length, songData?.title, songData?.artist]);
-  const lyricsActive = showLyrics && !noLyricsSettled;
+    if (lyrics.length > 0) setLyricsStageOn(true);
+    else if (!isLoadingLyrics) setLyricsStageOn(false);
+  }, [lyrics.length, isLoadingLyrics]);
+  const lyricsActive = showLyrics && lyricsStageOn;
 
   const [sidePanelOpen, setSidePanelOpen] = useState(() => {
     try {
