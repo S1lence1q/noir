@@ -6,7 +6,7 @@ import { Playlist } from '../../PlaylistDetailsView';
 import { NoirRankedSongRow } from './NoirRankedSongRow';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { worldForCollection } from '../../../utils/ditherCover';
-import { NoirDitherCover } from './NoirDitherCover';
+import { NoirArtwork } from './NoirArtwork';
 import { NoirMixCover, resolveMixCover } from './NoirMixCover';
 import { inkOn } from './NoirMixCover';
 import { COLOR_WORLDS } from '../../../utils/ditherCover';
@@ -73,10 +73,13 @@ export function NoirPlaylistView({
       ? playlist.name
       : playlist.id;
   // Mixes carry the colour the Home row gave them, so the page matches its tile.
-  const symbolWorld =
-    (playlist.id.startsWith('mix:') || playlist.id.startsWith('start:')) && playlist.coverWorld
+  const symbolWorld = symbolKind
+    ? (playlist.id.startsWith('mix:') || playlist.id.startsWith('start:')) && playlist.coverWorld
       ? playlist.coverWorld
-      : resolveMixCover(coverTag).world;
+      : resolveMixCover(coverTag).world
+    : world;
+  // Albums and playlists share the hero; their real cover sits inside it instead of a symbol.
+  const kicker = symbolKind ?? (playlist.id.startsWith('album:') ? 'Album' : 'Playlist');
 
   const artists = [...new Set(playlist.tracks.map((t) => t.artist).filter(Boolean))];
   const meta = [
@@ -89,7 +92,7 @@ export function NoirPlaylistView({
     <button
       type="button"
       onClick={() => onPlayPlaylist(playlist.tracks, playlist.name)}
-      className={symbolKind ? 'noir-collection-hero-play elva-focus-ring' : 'noir-button-primary mt-4 elva-focus-ring'}
+      className="noir-collection-hero-play elva-focus-ring"
     >
       <Play className="h-3.5 w-3.5 fill-current" />
       {strings.playlist.playAll}
@@ -100,62 +103,54 @@ export function NoirPlaylistView({
     <div
       className="flex w-full flex-col gap-10"
       style={
-        symbolKind
-          ? ({
-              '--hero-field': COLOR_WORLDS[symbolWorld].field,
-              '--hero-ink': inkOn(symbolWorld),
-            } as CSSProperties)
-          : undefined
+        {
+          '--hero-field': COLOR_WORLDS[symbolWorld].field,
+          '--hero-ink': inkOn(symbolWorld),
+        } as CSSProperties
       }
     >
-      {symbolKind ? (
-        /* Mixes, genres and charts: one flat field and one big symbol, the same language as Home. */
-        <section
-          className="noir-collection-hero"
-          style={{
-            background: COLOR_WORLDS[symbolWorld].field,
-            color: inkOn(symbolWorld),
-          }}
-        >
-          <div className="noir-collection-hero-copy">
-            <p className="noir-collection-hero-kicker">{symbolKind}</p>
-            <h1 className="noir-collection-hero-title">{playlist.name}</h1>
-            <p className="noir-collection-hero-meta">{meta}</p>
-            {playAll}
-          </div>
+      {/* One flat field: mixes, genres and charts carry a big symbol, albums and playlists their real cover. */}
+      <section
+        className="noir-collection-hero"
+        data-cover={symbolKind ? undefined : 'real'}
+        style={{
+          background: COLOR_WORLDS[symbolWorld].field,
+          color: inkOn(symbolWorld),
+        }}
+      >
+        <div className="noir-collection-hero-copy">
+          <p className="noir-collection-hero-kicker">{kicker}</p>
+          <h1 className="noir-collection-hero-title">{playlist.name}</h1>
+          {!symbolKind && playlist.description && (
+            <p className="noir-collection-hero-meta">{playlist.description}</p>
+          )}
+          <p className="noir-collection-hero-meta">
+            {symbolKind ? meta : strings.playlist.songCount(playlist.tracks.length)}
+          </p>
+          {playAll}
+        </div>
+        {symbolKind ? (
           <span className="noir-collection-hero-art" aria-hidden>
             <NoirMixCover tag={coverTag} world={symbolWorld} size={320} radius={0} />
           </span>
-        </section>
-      ) : (
-        <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:items-end sm:text-left">
-          <NoirDitherCover source={cover} world={world} seed={playlist.id} size={160} />
-          <div className="min-w-0 flex-1">
-            <h1 className="text-[clamp(1.5rem,3.5vw,2.25rem)] font-semibold leading-tight tracking-[-0.03em] text-[color:var(--noir-text-primary)]">
-              {playlist.name}
-            </h1>
-            {playlist.description && (
-              <p className="mt-2 text-[14px] text-[color:var(--noir-text-secondary)]">{playlist.description}</p>
-            )}
-            <p className="mt-1 text-[13px] text-[color:var(--noir-text-tertiary)]">
-              {strings.playlist.songCount(playlist.tracks.length)}
-            </p>
-            {playAll}
-          </div>
-        </div>
-      )}
+        ) : (
+          <span className="noir-collection-hero-cover" aria-hidden>
+            <NoirArtwork source={cover} world={world} seed={playlist.id} size={236} radius={16} />
+          </span>
+        )}
+      </section>
 
       <section>
         {playlist.tracks.length > 0 ? (
           <>
-            <div className={symbolKind ? 'noir-collection-list' : 'flex flex-col gap-0.5'}>
+            <div className="noir-collection-list">
               {playlist.tracks.map((track, i) => (
                 <NoirRankedSongRow
                   key={track.id}
                   rank={i + 1}
                   track={track}
                   hideArt={hideArt}
-                  calm={!!symbolKind}
+                  calm
                   playing={isActiveTrack(track, activeSongKey, activeTrack)}
                   isPlaying={isPlaying}
                   isFavorite={isTrackFavorite(favorites, track)}

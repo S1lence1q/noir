@@ -2623,7 +2623,37 @@ button.noir-now-playing-source:hover {
   transform: translateY(-50%);
 }
 
+.noir-collection-hero[data-cover='real'] .noir-collection-hero-copy {
+  max-width: calc(100% - 300px);
+}
+
+/* Real cover (album / playlist): sits inside the field, sharp, not bleeding off like a symbol. */
+.noir-collection-hero-cover {
+  position: absolute;
+  top: 50%;
+  right: 32px;
+  z-index: 0;
+  display: flex;
+  transform: translateY(-50%);
+  box-shadow: 0 18px 40px -14px rgba(0, 0, 0, 0.55);
+  border-radius: 16px;
+}
+
 @media (max-width: 720px) {
+  .noir-collection-hero[data-cover='real'] .noir-collection-hero-copy {
+    max-width: 100%;
+  }
+  .noir-collection-hero-cover {
+    top: 24px;
+    right: 24px;
+    transform: none;
+    width: 120px;
+    height: 120px;
+  }
+  .noir-collection-hero-cover > * {
+    width: 100% !important;
+    height: 100% !important;
+  }
   .noir-collection-hero {
     min-height: 340px;
   }
