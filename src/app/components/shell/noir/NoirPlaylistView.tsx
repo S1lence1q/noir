@@ -1,4 +1,9 @@
 import { Play } from 'lucide-react';
+import { motion } from 'motion/react';
+import { NoirArtwork } from './NoirArtwork';
+import { hasRealArtwork, youtubeThumb } from '../../../utils/artwork';
+import { displayArtistName } from '../../../utils/stringUtils';
+import { EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
 import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
 import { NoirRankedSongRow } from './NoirRankedSongRow';
@@ -49,6 +54,11 @@ export function NoirPlaylistView({
   const world = playlist.coverWorld ?? worldForCollection(playlist.id);
 
   const symbolKind = symbolCollectionKind(playlist);
+  const reduced = prefersReducedMotion();
+  // On mix / genre / chart pages the first three get big cards; the rest is a two-column list.
+  const useFeatured = !!symbolKind && !hideArt && playlist.tracks.length >= 6;
+  const featured = useFeatured ? playlist.tracks.slice(0, 3) : [];
+  const rest = useFeatured ? playlist.tracks.slice(3) : playlist.tracks;
   const artists = [...new Set(playlist.tracks.map((t) => t.artist).filter(Boolean))];
   const meta = [
     strings.playlist.songCount(playlist.tracks.length),
@@ -118,21 +128,60 @@ export function NoirPlaylistView({
 
       <section>
         {playlist.tracks.length > 0 ? (
-          <div className="flex flex-col gap-0.5">
-            {playlist.tracks.map((track, i) => (
-              <NoirRankedSongRow
-                key={track.id}
-                rank={i + 1}
-                track={track}
-                hideArt={hideArt}
-                isFavorite={isTrackFavorite(favorites, track)}
-                onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name, i)}
-                onAddToQueue={onAddToQueue}
-                onPlayNext={onPlayNext}
-                onToggleFavorite={onToggleFavorite}
-              />
-            ))}
-          </div>
+          <>
+            {featured.length > 0 && (
+              <div className="noir-collection-featured">
+                {featured.map((track, i) => {
+                  const art = hasRealArtwork(track.thumbnail) ? track.thumbnail : youtubeThumb(track.videoId, 'hq') || undefined;
+                  return (
+                    <motion.button
+                      key={track.id}
+                      type="button"
+                      className="noir-collection-feature elva-focus-ring"
+                      onClick={() => onPlayPlaylist(playlist.tracks, playlist.name, i)}
+                      initial={reduced ? false : { opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, ease: EASE_PREMIUM, delay: 0.1 + i * 0.06 }}
+                    >
+                      <span className="noir-collection-feature-art">
+                        <NoirArtwork
+                          source={art}
+                          world={world}
+                          seed={`feature:${track.id}`}
+                          size={220}
+                          radius={0}
+                        />
+                        <span className="noir-collection-feature-rank" aria-hidden>
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                        <span className="noir-collection-feature-play noir-play-round" aria-hidden>
+                          <Play className="ml-0.5 h-4 w-4 fill-current" />
+                        </span>
+                      </span>
+                      <span className="noir-song-title block truncate">{track.title}</span>
+                      <span className="noir-song-meta block truncate">{displayArtistName(track.artist)}</span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            )}
+            {featured.length > 0 && rest.length > 0 && <p className="noir-collection-list-label">All tracks</p>}
+            <div className={symbolKind ? 'noir-collection-list' : 'flex flex-col gap-0.5'}>
+              {rest.map((track, i) => (
+                <NoirRankedSongRow
+                  key={track.id}
+                  rank={featured.length + i + 1}
+                  track={track}
+                  hideArt={hideArt}
+                  isFavorite={isTrackFavorite(favorites, track)}
+                  onPlay={() => onPlayPlaylist(playlist.tracks, playlist.name, featured.length + i)}
+                  onAddToQueue={onAddToQueue}
+                  onPlayNext={onPlayNext}
+                  onToggleFavorite={onToggleFavorite}
+                />
+              ))}
+            </div>
+          </>
         ) : (
           <p className="py-12 text-center text-[14px] text-[color:var(--noir-text-secondary)]">
             {strings.playlist.emptyRow}

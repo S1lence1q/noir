@@ -2633,6 +2633,108 @@ button.noir-now-playing-source:hover {
   }
 }
 
+
+/* Mix / genre / chart page: three big cards, then a two-column list. */
+.noir-collection-featured {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 36px;
+}
+
+.noir-collection-feature {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.noir-collection-feature-art {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border-radius: var(--noir-radius-md);
+  background: var(--noir-gray-dark, #151515);
+}
+
+.noir-collection-feature-art :is(.noir-artwork, img) {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  transition: transform 0.5s var(--noir-ease-out, ease-out);
+}
+
+.noir-collection-feature:hover .noir-collection-feature-art :is(.noir-artwork, img) {
+  transform: scale(1.04);
+}
+
+.noir-collection-feature-rank {
+  position: absolute;
+  left: 12px;
+  top: 8px;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: #fff;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55), 0 0 2px rgba(0, 0, 0, 0.35);
+}
+
+.noir-collection-feature-play {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.2s, transform 0.2s var(--noir-ease-out, ease-out);
+}
+
+.noir-collection-feature:hover .noir-collection-feature-play,
+.noir-collection-feature:focus-visible .noir-collection-feature-play {
+  opacity: 1;
+  transform: none;
+}
+
+.noir-collection-list-label {
+  margin: 0 0 8px;
+  padding: 0 12px;
+  font: var(--noir-type-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--noir-text-tertiary);
+}
+
+.noir-collection-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+  row-gap: 2px;
+}
+
+@media (max-width: 1100px) {
+  .noir-collection-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .noir-collection-featured {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .noir-collection-feature:first-child {
+    grid-column: span 2;
+  }
+}
+
 /* Collection pages (user playlists) */
 .noir-label {
   font: var(--noir-type-label);
