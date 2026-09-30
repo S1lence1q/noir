@@ -29,8 +29,16 @@ function preload(urls: (string | undefined)[]) {
 export async function warmHome(): Promise<void> {
   const work = (async () => {
     const events = await getListeningEvents();
+    // Mixes go first: Last.fm calls share one paced line, and the Discover feed alone sends dozens of them.
+    // Only the lead mix is worth waiting for; the rest land on Home one at a time.
+    let firstMix!: () => void;
+    const lead = new Promise<void>((resolve) => (firstMix = resolve));
+    const mixes = loadDailyMixes(events, [], (ready) => {
+      void preload(ready.flatMap((m) => [m.coverImage, m.tracks[0]?.thumbnail])).then(firstMix);
+    }).then(firstMix);
+    await lead;
     await Promise.allSettled([
-      loadDailyMixes(events, []).then((mixes) => preload(mixes.flatMap((m) => [m.coverImage, m.tracks[0]?.thumbnail]))),
+      mixes,
       loadDiscoverFeed(events).then((feed) =>
         preload([
           ...feed.newReleases.map((r) => r.image),

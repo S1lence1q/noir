@@ -282,24 +282,41 @@ async function buildOneMix(
  * Build 1–6 daily mixes. Uses listening events when present; falls back to
  * recently-played artists so Home still gets mixes before T09 history is deep.
  */
-const inflight = new Map<string, Promise<DailyMix[]>>();
+type MixListener = (mixes: DailyMix[]) => void;
+type MixJob = { promise: Promise<DailyMix[]>; partial: DailyMix[]; listeners: Set<MixListener> };
+const inflight = new Map<string, MixJob>();
 
-/** One build per day at a time: a warm-up and Home asking together share the same work. */
+/**
+ * One build per day at a time: a warm-up and Home asking together share the same work.
+ * `onProgress` hears the mixes that are ready so far, in order, as each one finishes.
+ */
 export function loadDailyMixes(
   events: ReadonlyArray<ListeningEvent>,
-  fallbackTracks: SearchResult[] = []
+  fallbackTracks: SearchResult[] = [],
+  onProgress?: MixListener
 ): Promise<DailyMix[]> {
   const day = dayKey();
-  const running = inflight.get(day);
-  if (running) return running;
-  const job = buildDailyMixes(events, fallbackTracks).finally(() => inflight.delete(day));
-  inflight.set(day, job);
-  return job;
+  let job = inflight.get(day);
+  if (!job) {
+    const created: MixJob = { promise: Promise.resolve([]), partial: [], listeners: new Set() };
+    created.promise = buildDailyMixes(events, fallbackTracks, (mixes) => {
+      created.partial = mixes;
+      created.listeners.forEach((listener) => listener(mixes));
+    }).finally(() => inflight.delete(day));
+    inflight.set(day, created);
+    job = created;
+  }
+  if (onProgress) {
+    job.listeners.add(onProgress);
+    if (job.partial.length > 0) onProgress(job.partial);
+  }
+  return job.promise;
 }
 
 async function buildDailyMixes(
   events: ReadonlyArray<ListeningEvent>,
-  fallbackTracks: SearchResult[] = []
+  fallbackTracks: SearchResult[] = [],
+  emit: MixListener = () => {}
 ): Promise<DailyMix[]> {
   const day = dayKey();
   const cached = readCache(day);
@@ -337,11 +354,21 @@ async function buildDailyMixes(
   const singles = ranked.filter((c) => c.size === 1);
   const chosen = [...multi, ...singles].slice(0, MAX_MIXES);
 
-  // Build a few in parallel — sequential was too slow on Home.
+  // Build a few in parallel — sequential was too slow on Home. Each one is announced as it lands,
+  // but only as an unbroken run from the first, so the big lead mix never swaps places.
+  const slots: (DailyMix | null | undefined)[] = chosen.map(() => undefined);
   const built = await Promise.all(
-    chosen.map((cluster) =>
-      buildOneMix(events, fallbackTracks, cluster.tag, cluster.artists, day)
-    )
+    chosen.map(async (cluster, i) => {
+      const mix = await buildOneMix(events, fallbackTracks, cluster.tag, cluster.artists, day).catch(() => null);
+      slots[i] = mix;
+      const ready: DailyMix[] = [];
+      for (const slot of slots) {
+        if (slot === undefined) break;
+        if (slot) ready.push(slot);
+      }
+      if (ready.length > 0) emit(ready);
+      return mix;
+    })
   );
 
   const mixes = built.filter((mix): mix is DailyMix => !!mix).slice(0, MAX_MIXES);

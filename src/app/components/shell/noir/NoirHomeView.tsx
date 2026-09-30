@@ -186,7 +186,9 @@ export function NoirHomeView({
     void (async () => {
       try {
         const events = await getListeningEvents();
-        const next = await loadDailyMixes(events, recentlyPlayed);
+        const next = await loadDailyMixes(events, recentlyPlayed, (partial) => {
+          if (!cancelled) setMixes(partial);
+        });
         if (!cancelled) setMixes(next);
       } catch (error) {
         console.warn('[mixes] Failed to load daily mixes', error);
@@ -455,7 +457,7 @@ export function NoirHomeView({
                 </section>
               )}
 
-              {mixesLoading && (
+              {mixesLoading && mixes.length === 0 && (
                 <section>
                   <div className="noir-skeleton mb-4 mt-[var(--noir-section-gap)] h-5 w-36 rounded px-1" />
                   <NoirHomeShelf>
@@ -469,7 +471,7 @@ export function NoirHomeView({
                 </section>
               )}
 
-              {!mixesLoading && mixes.length > 0 && (
+              {mixes.length > 0 && (
                 <section>
                   <h2 className="noir-section-heading px-1">{strings.home.yourMixes}</h2>
                   {/* Mosaic, not a shelf: the first mix (For You) is large, the rest fill in beside it. */}
