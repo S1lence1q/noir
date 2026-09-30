@@ -304,7 +304,7 @@ export default function App() {
   /**
    * `showLyrics` is the listener's choice and survives song changes. Whether the lyrics stage is actually
    * shown also depends on the song having any: a song without lyrics falls back to the normal cover layout
-   * (no "No lyrics found" stage) and the choice re-opens by itself on the next song that has them.
+   * (no empty "not found" stage) and the choice re-opens by itself on the next song that has them.
    * The short settle delay stops the stage collapsing in the frame between "loaded" and "lines set".
    */
   const [noLyricsSettled, setNoLyricsSettled] = useState(false);

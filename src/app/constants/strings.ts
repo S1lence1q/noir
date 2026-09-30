@@ -206,8 +206,6 @@ export const strings = {
   lyrics: {
     title: 'Lyrics',
     loading: 'Finding lyrics…',
-    empty: 'No lyrics found',
-    emptyHint: 'Enjoy the music instead.',
     show: 'Show lyrics',
     hide: 'Hide lyrics',
     unavailable: 'No lyrics for this song',

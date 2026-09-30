@@ -75,14 +75,8 @@ export function NoirLyricsColumn({
             </div>
           ) : null
         ) : lyrics.length === 0 ? (
-          <div className="noir-lyrics-enter px-1 pt-6">
-            <p className="text-[15px] font-medium text-[color:var(--noir-text-secondary)]">
-              {strings.lyrics.empty}
-            </p>
-            <p className="mt-1.5 text-[13px] leading-[1.45] text-[color:var(--noir-text-tertiary)]">
-              {strings.lyrics.emptyHint}
-            </p>
-          </div>
+          // No "not found" message on purpose: the stage simply steps away when a song has no lyrics.
+          null
         ) : isSynced ? (
           <div className="noir-lyrics-enter flex flex-col gap-0 pt-[min(24vh,220px)]">
             {hasIntro && (
