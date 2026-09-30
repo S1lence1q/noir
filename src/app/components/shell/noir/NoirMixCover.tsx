@@ -13,6 +13,8 @@ export type MixSymbol =
   | 'podium'
   | 'globe'
   | 'chain'
+  | 'crown'
+  | 'gem'
   | 'bolt'
   | 'cross-dk'
   | 'cross-se'
@@ -41,7 +43,10 @@ const RULES: { test: RegExp; symbol: MixSymbol; world: ColorWorld }[] = [
   { test: /swedish|svensk|sweden|sverige/, symbol: 'cross-se', world: 'cobalt' },
   { test: /norwegian|norsk|norway|norge/, symbol: 'cross-no', world: 'ember' },
   { test: /finnish|suomi|finland/, symbol: 'cross-fi', world: 'bone' },
-  { test: /hip-?hop|rap|trap|drill|grime/, symbol: 'chain', world: 'sun' },
+  // Rap / hip-hop / trap sit side by side in Discover, so each gets its own symbol and field.
+  { test: /trap|drill|grime/, symbol: 'gem', world: 'cobalt' },
+  { test: /hip-?hop/, symbol: 'crown', world: 'rose' },
+  { test: /rap/, symbol: 'chain', world: 'sun' },
   { test: /metal|punk|hardcore|grunge|industrial/, symbol: 'thorns', world: 'ink' },
   { test: /rock|garage/, symbol: 'bolt', world: 'ink' },
   { test: /lo[\s-]?fi|chill|sleep|night/, symbol: 'moon', world: 'cobalt' },
@@ -150,6 +155,10 @@ function shape(symbol: MixSymbol, seed: string, ink: string, id: string): ReactN
           <rect x="40" y="40" width="56" height="34" rx="17" transform="rotate(-32 68 57)" />
         </g>
       );
+    case 'crown':
+      return <path d="M8 80 L12 28 L34 52 L50 16 L66 52 L88 28 L92 80 Z" />;
+    case 'gem':
+      return <path d="M27 14 H73 L95 40 L50 92 L5 40 Z" />;
     case 'bolt':
       return <path d="M60 6 L22 56 L46 56 L36 94 L80 40 L55 40 L68 6 Z" />;
     case 'cross-dk':
@@ -325,7 +334,7 @@ export function mosaicLayout(n: number): { 'data-layout': string; style: { ['--m
 
 /** Dev check: every symbol on its field. `?covers` on Home. */
 export function NoirMixCoverGallery() {
-  const samples = ['For You', 'dk_hits', 'global_hits', 'Rap', 'Rock', 'Danish', 'Swedish', 'Norwegian', 'Finnish', 'Lo Fi', 'Dream Pop', 'Pop', 'Electronic', 'Jazz', 'Soul', 'Indie', 'Metal', 'Reggae', 'Classical'];
+  const samples = ['For You', 'dk_hits', 'global_hits', 'Rap', 'Hip-Hop', 'Trap', 'Rock', 'Danish', 'Swedish', 'Norwegian', 'Finnish', 'Lo Fi', 'Dream Pop', 'Pop', 'Electronic', 'Jazz', 'Soul', 'Indie', 'Metal', 'Reggae', 'Classical'];
   return (
     <div className="noir-mix-gallery">
       {samples.map((name) => (
