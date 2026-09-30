@@ -5123,6 +5123,33 @@ button.noir-now-playing-source:hover {
   from { transform: translateX(-100%); }
   to { transform: translateX(340%); }
 }
+/* A new song starts: one bright ray shoots the length of the bar with a fading tail, then is gone. */
+.noir-compact-seek-rayclip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 999px;
+  pointer-events: none;
+}
+.noir-compact-seek-ray {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 28%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35) 70%, #fff);
+  box-shadow: 0 0 10px 1px rgba(255, 255, 255, 0.55);
+  animation: noir-compact-ray 0.85s cubic-bezier(0.5, 0, 0.2, 1) both;
+}
+@keyframes noir-compact-ray {
+  0% { transform: translateX(-100%); opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateX(360%); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .noir-compact-seek-ray { display: none; }
+}
 @media (prefers-reduced-motion: reduce) {
   .noir-compact[data-pending='true'] .noir-compact-seek-track::after {
     animation: none;

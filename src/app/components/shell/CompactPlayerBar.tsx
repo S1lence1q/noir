@@ -95,6 +95,11 @@ export function CompactPlayerBar({
   useEffect(() => {
     wasExpandedRef.current = expanded;
   }, [expanded]);
+  // One ray down the bar each time a song actually starts (once its stream has resolved).
+  const [rayKey, setRayKey] = useState(0);
+  useEffect(() => {
+    if (!pending) setRayKey((k) => k + 1);
+  }, [songKey, pending]);
   const [volume, setVolume] = useState(() => {
     const saved = localStorage.getItem('elva_player_volume');
     return saved !== null ? parseInt(saved, 10) : 70;
@@ -475,6 +480,11 @@ export function CompactPlayerBar({
             <div className="noir-compact-seek-track" aria-hidden>
               <div className="noir-compact-seek-fill" style={{ width: `${progress}%` }} />
               <div className="noir-compact-seek-thumb" style={{ left: `${progress}%` }} />
+              {rayKey > 0 && (
+                <span className="noir-compact-seek-rayclip">
+                  <span key={rayKey} className="noir-compact-seek-ray" />
+                </span>
+              )}
             </div>
           </div>
           <span className="noir-compact-time">{formatTime(playback.duration)}</span>
