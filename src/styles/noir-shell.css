@@ -1430,7 +1430,9 @@
   background: linear-gradient(to top, #000 12%, rgba(0, 0, 0, 0.45) 48%, rgba(0, 0, 0, 0.2) 100%);
 }
 
+/* The cover is still wider than its final size while the lyrics arrive; don't let that overflow show. */
 .noir-now-playing-stage {
+  overflow-x: clip;
   position: relative;
   z-index: 1;
   display: flex;
@@ -1454,6 +1456,8 @@
   gap: 32px;
   min-width: 0;
   max-width: 100%;
+  /* Lets the lyrics column size itself from the row's width (cqw), not from the cover that is still animating. */
+  container-type: inline-size;
 }
 
 .noir-now-playing-identity {
@@ -1503,10 +1507,12 @@
   position: relative;
   z-index: 1;
   display: flex;
-  flex: 1;
+  /* The width it will have once the cover has shrunk (cover column + gap taken off the row). Fixed from
+     frame one, so the text is wrapped once and never reflows while the cover animates. */
+  flex: none;
+  width: min(620px, calc(100cqw - min(34vh, 280px) - 56px));
   flex-direction: column;
   min-width: 0;
-  max-width: min(620px, 100%);
   height: min(74vh, 680px);
   margin-left: 0;
   overflow: hidden;
