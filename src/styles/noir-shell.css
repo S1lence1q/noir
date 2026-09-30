@@ -2621,13 +2621,19 @@ button.noir-now-playing-source:hover {
   transform-origin: 50% 60%;
 }
 
-.noir-home-hero-object[data-variant='2'] .noir-home-hero-object-inner svg {
+.noir-home-hero-spin {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.noir-home-hero-object[data-variant='2'] .noir-home-hero-spin {
   animation: noir-hero-turn 48s linear infinite;
   animation-play-state: paused;
 }
 
 .noir-home-hero-object[data-playing] img,
-.noir-home-hero-object[data-playing] svg {
+.noir-home-hero-object[data-playing] .noir-home-hero-spin {
   animation-play-state: running !important;
 }
 
@@ -2642,7 +2648,7 @@ button.noir-now-playing-source:hover {
 
 @media (prefers-reduced-motion: reduce) {
   .noir-home-hero-object img,
-  .noir-home-hero-object svg {
+  .noir-home-hero-object .noir-home-hero-spin {
     animation: none !important;
   }
 }

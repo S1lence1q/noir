@@ -69,6 +69,8 @@ export function NoirHomeHero({
 
   return (
     <div className="noir-home-hero-object" data-variant={variant} data-playing={playing || undefined} style={{ width: size, height: size }}>
+      {/* The turning lives here, on an element that survives song changes, so a new object keeps the angle. */}
+      <div className="noir-home-hero-spin">
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.div
           key={key}
@@ -85,6 +87,7 @@ export function NoirHomeHero({
           )}
         </motion.div>
       </AnimatePresence>
+      </div>
     </div>
   );
 }
