@@ -56,6 +56,7 @@ export function usePlaybackCore({
   const lastToggleTimeRef = useRef(0);
   const isTransitioningRef = useRef(false);
   const isCrossfadingRef = useRef(false);
+  const crossfadeRunIdRef = useRef(0);
   const ytPlayResolveRef = useRef<(() => void) | null>(null);
   const progressTimerRef = useRef<number | null>(null);
   const handleNextSongRef = useRef<() => Promise<void>>(async () => {});
@@ -226,6 +227,7 @@ export function usePlaybackCore({
   const abortActiveCrossfade = useCallback(() => {
     if (isCrossfadingRef.current) {
       isCrossfadingRef.current = false;
+      crossfadeRunIdRef.current += 1; // invalidates the running crossfade
       
       const inactiveEngine = activeEngineRef.current === 'A' ? 'B' : 'A';
       const oldAudio = inactiveEngine === 'A' ? audioRefA.current : audioRefB.current;
@@ -824,6 +826,8 @@ export function usePlaybackCore({
     }
 
     isCrossfadingRef.current = true;
+    const runId = ++crossfadeRunIdRef.current;
+    const cancelled = () => crossfadeRunIdRef.current !== runId;
     activeQueueIndexRef.current = nextIndex;
     setCurrentTime(0);
     setDuration(0);
@@ -840,6 +844,7 @@ export function usePlaybackCore({
 
       // Cue on inactive engine at vol 0 — crossfade curves control both engines
       await loadSongIntoEngine(nextEngine, resolvedSong, false);
+      if (cancelled()) return;
 
       // Set up a promise to wait until the next engine actually starts playing (to avoid silence during buffering)
       let playPromise = Promise.resolve();
@@ -884,6 +889,7 @@ export function usePlaybackCore({
 
       // Wait until the next engine starts making sound/playing before blending
       await playPromise;
+      if (cancelled()) return;
 
       const activeFadeOut = activeEngineRef.current === 'A' ? fadeVolumeA : fadeVolumeB;
       const inactiveFadeIn = activeEngineRef.current === 'A' ? fadeVolumeB : fadeVolumeA;
@@ -893,6 +899,7 @@ export function usePlaybackCore({
         activeFadeOut(0, fadeDurationMs),
         inactiveFadeIn(1, fadeDurationMs),
       ]);
+      if (cancelled()) return;
 
       const oldAudio = activeEngineRef.current === 'A' ? audioRefA.current : audioRefB.current;
       const oldYT = activeEngineRef.current === 'A' ? ytPlayerRefA.current : ytPlayerRefB.current;
@@ -913,7 +920,7 @@ export function usePlaybackCore({
     } catch (err) {
       console.error('Crossfade failed:', err);
     } finally {
-      isCrossfadingRef.current = false;
+      if (!cancelled()) isCrossfadingRef.current = false;
       advanceInFlightRef.current = false;
     }
   }, [
@@ -1014,12 +1021,14 @@ export function usePlaybackCore({
 
   // Manual Load Effect (Abort active crossfade and load new song)
   useEffect(() => {
-    if (isCrossfadingRef.current) return;
-
     const songKey = getPlaybackSongKey(songData);
+    // A crossfade sets lastLoadedSongRef itself, so only a genuine user pick gets past this check.
     if (songKey && songKey !== lastLoadedSongRef.current) {
       const isFirstLoad = !lastLoadedSongRef.current;
       lastLoadedSongRef.current = songKey;
+      // Kill any running crossfade now, before the 300ms fade-out, so it can't finish mid-load.
+      abortActiveCrossfade();
+      advanceInFlightRef.current = false;
       isTransitioningRef.current = true;
       
       const proceedManualLoad = async () => {
