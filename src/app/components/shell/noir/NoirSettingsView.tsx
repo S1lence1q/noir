@@ -287,9 +287,9 @@ export function NoirSettingsView() {
       </SettingsCard>
 
       <SettingsCard title="Appearance" icon={Palette}>
-        <SettingsRow label="Now Playing background" description="The song’s colour as a plate, or from the cover: a soft glow or its colours as grain">
+        <SettingsRow label="Now Playing background" description="From the cover: a soft glow, or its colours as grain">
           <div className="noir-segmented" role="radiogroup" aria-label="Now Playing background">
-            {(['plate', 'glow', 'grain'] as AtmosphereMode[]).map((mode) => (
+            {(['glow', 'grain'] as AtmosphereMode[]).map((mode) => (
               <button
                 key={mode}
                 type="button"
@@ -302,7 +302,7 @@ export function NoirSettingsView() {
                   setAtmosphereMode(mode);
                 }}
               >
-                {mode === 'plate' ? 'Plate' : mode === 'glow' ? 'Glow' : 'Grain'}
+                {mode === 'glow' ? 'Glow' : 'Grain'}
               </button>
             ))}
           </div>

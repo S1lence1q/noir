@@ -226,7 +226,6 @@ export const strings = {
     openSource: 'Open source',
     hideSide: 'Hide side panel',
     showSide: 'Show side panel',
-    playsLately: (n: number) => (n <= 1 ? 'New to you' : `${n} plays in 30 days`),
   },
   playlist: {
     label: 'Playlist',

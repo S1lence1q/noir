@@ -55,9 +55,7 @@ export function applyHeat(
   out: Uint8ClampedArray,
   ramp: Uint8ClampedArray,
   rand: () => number,
-  grain = 22,
-  /** Heat also drives alpha: the form floats on whatever is behind it (no field). */
-  transparent = false
+  grain = 22
 ) {
   for (let i = 0; i < shape.length; i += 4) {
     const heat = shape[i] / 255 + (rand() - 0.5) * 0.09;
@@ -66,6 +64,6 @@ export function applyHeat(
     out[i] = ramp[k] + g;
     out[i + 1] = ramp[k + 1] + g;
     out[i + 2] = ramp[k + 2] + g;
-    out[i + 3] = transparent ? Math.max(0, Math.min(255, Math.round(smoothstep(0.02, 0.3, heat) * 255))) : 255;
+    out[i + 3] = 255;
   }
 }
