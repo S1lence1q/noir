@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Check, Search, X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { strings } from '../../../constants/strings';
 import { fetchAppleMusicChart, getCachedChartTracks } from '../../../utils/chartFeeds';
 import { executeSearchAPI } from '../../../utils/api/pipedSearch';
@@ -18,6 +18,7 @@ import {
 } from '../../../services/listening/seedTaste';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirSeedSign } from './NoirSeedSign';
+import { NoirSearchGlyph } from './NoirSearchGlyph';
 
 export type NoirColdStartProps = {
   onSeeded: () => void;
@@ -251,7 +252,9 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
         <h2 className="noir-cold-start-title">{strings.home.coldStartTitle}</h2>
         <p className="noir-cold-start-body">{strings.home.coldStartBody}</p>
         <label className="noir-cold-start-search" htmlFor={searchId}>
-          <Search className="h-4 w-4 shrink-0 text-[color:var(--noir-text-tertiary)]" strokeWidth={1.75} />
+          <span className="noir-cold-start-search-glyph">
+            <NoirSearchGlyph size={18} />
+          </span>
           <input
             ref={searchRef}
             id={searchId}
@@ -286,7 +289,7 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
                 searchRef.current?.focus();
               }}
             >
-              <X className="h-3.5 w-3.5" strokeWidth={2} />
+              <X className="h-4 w-4" strokeWidth={1.75} />
             </button>
           ) : (
             <kbd className="noir-cold-start-kbd" aria-hidden>

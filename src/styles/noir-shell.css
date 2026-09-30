@@ -919,53 +919,58 @@
   border-color: rgba(255, 255, 255, 0.28);
 }
 
-/* Search is the second way in, so it sits in the header, big enough to aim at. */
+/* Search is the second way in: a flat field in the nav's language (NOIR glyph, no pill, no outline). */
 .noir-cold-start-search {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   max-width: 440px;
   margin-top: 24px;
-  padding: 0 8px 0 16px;
-  height: 48px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  padding: 0 12px 0 16px;
+  height: 52px;
+  border-radius: var(--noir-radius-md);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--noir-text-tertiary);
   cursor: text;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .noir-cold-start-search:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .noir-cold-start-search:focus-within {
-  border-color: rgba(255, 255, 255, 0.24);
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--noir-text-primary);
 }
 
-.noir-cold-start-kbd,
+.noir-cold-start-search-glyph {
+  display: flex;
+}
+
+/* Same quiet hint as the nav: plain text, no key cap. */
+.noir-cold-start-kbd {
+  flex-shrink: 0;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--noir-text-tertiary);
+  transition: opacity 0.15s ease;
+}
+
+.noir-cold-start-search:focus-within .noir-cold-start-kbd {
+  opacity: 0;
+}
+
 .noir-cold-start-clear {
   display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  color: var(--noir-text-tertiary);
-}
-
-.noir-cold-start-kbd {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.noir-cold-start-clear {
+  padding: 4px;
   border: none;
-  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--noir-radius-sm);
+  background: none;
+  color: var(--noir-text-tertiary);
   cursor: pointer;
 }
 
@@ -986,7 +991,8 @@
   border: none;
   background: transparent;
   color: var(--noir-text-primary);
-  font-size: 15px;
+  font-size: 16px;
+  font-weight: 500;
   outline: none;
   box-shadow: none;
 }
@@ -999,6 +1005,7 @@
 
 .noir-cold-start-input::placeholder {
   color: var(--noir-text-tertiary);
+  font-weight: 400;
 }
 
 .noir-cold-start-toolbar {
