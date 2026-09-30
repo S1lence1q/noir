@@ -17,6 +17,7 @@ import {
   type ColdStartArtist,
 } from '../../../services/listening/seedTaste';
 import { NoirArtwork } from './NoirArtwork';
+import { NoirMark } from './NoirMark';
 
 export type NoirColdStartProps = {
   onSeeded: () => void;
@@ -192,6 +193,12 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
   return (
     <div className="noir-cold-start">
       <div className="noir-settle-group">
+        <div className="mb-6 flex items-center gap-3">
+          <NoirMark size={28} variant="spray" color="var(--noir-text-primary)" />
+          <p className="m-0 text-[15px] leading-snug text-[color:var(--noir-text-secondary)]">
+            <span className="font-semibold text-[color:var(--noir-text-primary)]">NOIR</span> {strings.home.coldStartIntro}
+          </p>
+        </div>
         <p className="noir-stats-eyebrow !mb-3 !text-[color:var(--noir-text-tertiary)]">
           {strings.home.coldStartEyebrow}
         </p>

@@ -130,6 +130,7 @@ export const strings = {
     favorites: 'Favorites',
     artists: 'Artists you play',
     playMix: 'Play mix',
+    coldStartIntro: 'is a music player for any song or artist. Home, mixes and Replay build themselves from what you play.',
     coldStartEyebrow: 'First listen',
     coldStartTitle: 'Who do you love listening to?',
     coldStartBody: 'Pick one or a few. We’ll start playing right away and build Home around them.',
