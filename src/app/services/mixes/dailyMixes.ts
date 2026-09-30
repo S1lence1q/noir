@@ -319,10 +319,18 @@ async function buildDailyMixes(
   emit: MixListener = () => {}
 ): Promise<DailyMix[]> {
   const day = dayKey();
-  const cached = readCache(day);
+  const taste = resolveTaste(events, fallbackTracks);
+  // The cache follows who you listen to, not just the date: a new top artist means a fresh set of mixes.
+  const cacheKey = `${day}:${hashString(
+    taste
+      .slice(0, 12)
+      .map((entry) => normalizeName(entry.artist))
+      .sort()
+      .join('|')
+  )}`;
+  const cached = readCache(cacheKey);
   if (cached) return cached;
 
-  const taste = resolveTaste(events, fallbackTracks);
   if (taste.length < 1) return [];
 
   const tagged = await Promise.all(
@@ -374,7 +382,7 @@ async function buildDailyMixes(
   const mixes = built.filter((mix): mix is DailyMix => !!mix).slice(0, MAX_MIXES);
 
   if (mixes.length >= MIN_SHOW) {
-    writeCache(day, mixes);
+    writeCache(cacheKey, mixes);
   }
 
   return mixes.length >= MIN_SHOW ? mixes : [];
