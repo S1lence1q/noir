@@ -737,6 +737,8 @@ export default function App() {
   const handleSelectSong = async (result: SearchResult, isCrossfade?: boolean) => {
     const isLocal = !!(result.audioUrl?.startsWith('blob:') || result.id?.startsWith('local_'));
     const showPending = !isCrossfade && !!songData && !isLocal && result.id !== songData.id;
+    // Picking a song means "play": show it as playing straight away, not after the engine catches up.
+    if (!isCrossfade) setIsMiniPlaying(true);
     if (showPending) setPendingSong(result);
     try {
       await selectSong(result, isCrossfade);

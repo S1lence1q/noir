@@ -1026,6 +1026,7 @@ export function usePlaybackCore({
     if (songKey && songKey !== lastLoadedSongRef.current) {
       const isFirstLoad = !lastLoadedSongRef.current;
       lastLoadedSongRef.current = songKey;
+      setPlaying(true);
       // Kill any running crossfade now, before the 300ms fade-out, so it can't finish mid-load.
       abortActiveCrossfade();
       advanceInFlightRef.current = false;

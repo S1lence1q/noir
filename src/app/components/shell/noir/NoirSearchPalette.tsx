@@ -217,13 +217,14 @@ export function NoirSearchPalette({
             transition={{ duration: reduced ? 0.12 : 0.24, ease: EASE_PREMIUM }}
           >
             <div className="noir-search-palette-input-row">
-              {isSearching ? (
-                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[color:var(--noir-text-tertiary)]" />
-              ) : (
-                <span className="flex shrink-0" data-tip={strings.tips.search}>
+              {/* One fixed slot, so the text doesn't shift when the mark swaps for the spinner. */}
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center" data-tip={strings.tips.search}>
+                {isSearching ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-[color:var(--noir-text-tertiary)]" />
+                ) : (
                   <NoirMark size={11} className="text-[color:var(--noir-text-primary)]" />
-                </span>
-              )}
+                )}
+              </span>
               <input
                 ref={inputRef}
                 type="text"
