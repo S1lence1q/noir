@@ -60,6 +60,26 @@ export function resolveMixCover(tagOrName: string): Resolved {
   return { symbol: rule.symbol, world: rule.world };
 }
 
+const WORLD_ORDER: ColorWorld[] = ['ember', 'cobalt', 'moss', 'rose', 'sun', 'bone'];
+
+/**
+ * Fields for a row of mixes: each tag keeps its own (rules above) unless an earlier mix already took it,
+ * then it moves to the next unused colour. Flags keep their real colours. Stops a row turning all yellow.
+ */
+export function assignMixWorlds(tags: string[]): ColorWorld[] {
+  const used = new Set<ColorWorld>();
+  return tags.map((tag) => {
+    const { symbol, world } = resolveMixCover(tag);
+    if (symbol.startsWith('cross') || !used.has(world)) {
+      used.add(world);
+      return world;
+    }
+    const free = WORLD_ORDER.find((w) => !used.has(w)) ?? world;
+    used.add(free);
+    return free;
+  });
+}
+
 /** Black on warm fields, bone on dark ones — never a second colour (flags excepted). */
 export const inkOn = (world: ColorWorld) => (world === 'cobalt' || world === 'moss' || world === 'ink' ? '#EDE8DE' : '#0B0B0B');
 
@@ -217,11 +237,15 @@ type NoirMixCoverProps = {
   radius?: number;
   madeForYou?: boolean;
   className?: string;
+  /** Overrides the field the tag would pick (see assignMixWorlds). */
+  world?: ColorWorld;
 };
 
-export function NoirMixCover({ tag, size, radius, className = '' }: NoirMixCoverProps) {
+export function NoirMixCover({ tag, size, radius, className = '', world: worldOverride }: NoirMixCoverProps) {
   const filterId = useId().replace(/:/g, '');
-  const { symbol, world } = resolveMixCover(tag);
+  const resolved = resolveMixCover(tag);
+  const symbol = resolved.symbol;
+  const world = worldOverride ?? resolved.world;
   const ink = CROSS_INK[symbol] ?? inkOn(world);
   const spray = size >= 72;
   const fullBleed = symbol.startsWith('cross');

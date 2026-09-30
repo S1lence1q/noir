@@ -12,7 +12,7 @@ import { NoirSongRow } from './NoirSongRow';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import { NoirDitherCover } from './NoirDitherCover';
-import { NoirMixCover, NoirMixCoverGallery, mosaicLayout } from './NoirMixCover';
+import { NoirMixCover, NoirMixCoverGallery, assignMixWorlds, mosaicLayout } from './NoirMixCover';
 import { NoirPlaylistCover } from './NoirPlaylistCover';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirPlayPauseIcon } from './NoirPlayPauseIcon';
@@ -26,7 +26,7 @@ import { isTasteEmpty } from '../../../services/listening/seedTaste';
 import { getArtistImage } from '../../../services/musicGraph';
 import { DailyMix, loadDailyMixes } from '../../../services/mixes/dailyMixes';
 import { buildStarterMixes, startersActiveToday } from '../../../services/mixes/starterMixes';
-import { worldForCollection } from '../../../utils/ditherCover';
+import { worldForCollection, type ColorWorld } from '../../../utils/ditherCover';
 import { NoirHomeHero, heroField, heroInk, heroWorld } from './NoirHomeHero';
 import { prefetchArtistProfile } from '../../../utils/artistDiscographyLoader';
 
@@ -223,7 +223,9 @@ export function NoirHomeView({
     };
   }, []);
 
-  const openMix = (mix: DailyMix) => {
+  const mixWorlds = useMemo(() => assignMixWorlds(displayMixes.map((m) => m.tag)), [displayMixes]);
+
+  const openMix = (mix: DailyMix, world: ColorWorld = mix.world) => {
     onSelectPlaylist?.({
       id: mix.id,
       name: mix.name,
@@ -231,7 +233,7 @@ export function NoirHomeView({
       tracks: mix.tracks,
       thumbnail: mix.coverImage ?? mix.tracks[0]?.thumbnail ?? '',
       accent: 'navy',
-      coverWorld: mix.world,
+      coverWorld: world,
     });
   };
 
@@ -494,11 +496,11 @@ export function NoirHomeView({
                         key={mix.id}
                         role="button"
                         tabIndex={0}
-                        onClick={() => openMix(mix)}
+                        onClick={() => openMix(mix, mixWorlds[i])}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            openMix(mix);
+                            openMix(mix, mixWorlds[i]);
                           }
                         }}
                         className="noir-collection-card noir-home-mix-card group elva-focus-ring"
@@ -507,7 +509,7 @@ export function NoirHomeView({
                         transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.08 + i * 0.04 }}
                       >
                         <span className="relative block">
-                          <NoirMixCover tag={mix.tag} size={i === 0 ? 360 : 188} className="noir-mosaic-cover" />
+                          <NoirMixCover tag={mix.tag} world={mixWorlds[i]} size={i === 0 ? 360 : 188} className="noir-mosaic-cover" />
                           {onPlayPlaylist && (
                             <motion.button
                               type="button"
