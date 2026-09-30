@@ -1,10 +1,10 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Check, Search } from 'lucide-react';
+import { Check, Search, X } from 'lucide-react';
 import { strings } from '../../../constants/strings';
 import { fetchAppleMusicChart, getCachedChartTracks } from '../../../utils/chartFeeds';
 import { executeSearchAPI } from '../../../utils/api/pipedSearch';
-import { COLOR_WORLDS, worldForCollection } from '../../../utils/ditherCover';
+import { worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion, withReducedMotion } from '../../../utils/motionPresets';
 import { normalizeName } from '../../../services/musicGraph/normalize';
 import { getArtistImage } from '../../../services/musicGraph';
@@ -17,7 +17,7 @@ import {
   type ColdStartArtist,
 } from '../../../services/listening/seedTaste';
 import { NoirArtwork } from './NoirArtwork';
-import { NoirMark } from './NoirMark';
+import { NoirSeedSign } from './NoirSeedSign';
 
 export type NoirColdStartProps = {
   onSeeded: () => void;
@@ -90,6 +90,7 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
   const [seeding, setSeeding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   /** Artist portraits (D1: artists show as themselves). undefined = resolving, null = none found. */
   const [portraits, setPortraits] = useState<Record<string, string | null>>({});
   const requestedRef = useRef(new Set<string>());
@@ -142,6 +143,20 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [query]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('input, textarea, [contenteditable="true"]')) return;
+      // On first run "/" means this search, not the global palette.
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      searchRef.current?.focus();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, []);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -219,36 +234,36 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
       ref={rootRef}
       style={{ '--cold-cols': cols } as CSSProperties}
     >
+      {onBrowseDiscover && (
+        <button
+          type="button"
+          className="noir-cold-start-skip elva-focus-ring"
+          disabled={seeding}
+          onClick={onBrowseDiscover}
+        >
+          {strings.home.coldStartBrowse}
+        </button>
+      )}
+
       <div className="noir-cold-start-head">
-        {/* The intro: one object on one field, like Favorites. The mark turns once into place. */}
-        <span className="noir-cold-start-sign" style={{ background: COLOR_WORLDS.ember.field }} aria-hidden>
-          <NoirMark size={44} variant="spray" color={COLOR_WORLDS.ember.mark} />
-        </span>
+        {/* The intro: a halftone seed that turns into place, then fills out as you pick. */}
+        <NoirSeedSign picks={picked.length} className="noir-cold-start-sign" />
         <h2 className="noir-cold-start-title">{strings.home.coldStartTitle}</h2>
         <p className="noir-cold-start-body">{strings.home.coldStartBody}</p>
-        {onBrowseDiscover && (
-          <button
-            type="button"
-            className="noir-cold-start-browse elva-focus-ring"
-            disabled={seeding}
-            onClick={onBrowseDiscover}
-          >
-            {strings.home.coldStartBrowse}
-          </button>
-        )}
-      </div>
-
-      <div className="noir-cold-start-toolbar">
-        <p className="noir-cold-start-label">
-          {searchMode ? strings.home.coldStartSearch : strings.home.coldStartSuggestions}
-        </p>
         <label className="noir-cold-start-search" htmlFor={searchId}>
           <Search className="h-4 w-4 shrink-0 text-[color:var(--noir-text-tertiary)]" strokeWidth={1.75} />
           <input
+            ref={searchRef}
             id={searchId}
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' && query) {
+                e.stopPropagation();
+                setQuery('');
+              }
+            }}
             placeholder={strings.home.coldStartSearch}
             aria-label={strings.home.coldStartSearch}
             autoComplete="off"
@@ -261,7 +276,30 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
               aria-hidden
             />
           )}
+          {query ? (
+            <button
+              type="button"
+              className="noir-cold-start-clear elva-focus-ring"
+              aria-label="Clear search"
+              onClick={() => {
+                setQuery('');
+                searchRef.current?.focus();
+              }}
+            >
+              <X className="h-3.5 w-3.5" strokeWidth={2} />
+            </button>
+          ) : (
+            <kbd className="noir-cold-start-kbd" aria-hidden>
+              /
+            </kbd>
+          )}
         </label>
+      </div>
+
+      <div className="noir-cold-start-toolbar">
+        <p className="noir-cold-start-label">
+          {searchMode ? strings.home.coldStartResults : strings.home.coldStartSuggestions}
+        </p>
       </div>
 
       {suggestionsLoading && !searchMode && grid.length === 0 ? (
