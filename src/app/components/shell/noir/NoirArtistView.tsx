@@ -8,7 +8,7 @@ import { NoirArtwork, preloadArtwork } from './NoirArtwork';
 import { NoirArtistDisambiguation } from './NoirArtistDisambiguation';
 import { NoirHomeShelf } from './NoirHomeShelf';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
-import { COLOR_WORLDS, worldForCollection } from '../../../utils/ditherCover';
+import { worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
 import {
@@ -19,6 +19,7 @@ import {
   type GraphAlbum,
   type GraphArtist,
 } from '../../../services/musicGraph';
+import { heroField, heroInk, heroWorld } from './NoirHomeHero';
 import { prefetchArtistProfile } from '../../../utils/artistDiscographyLoader';
 import type { ArtistIdentity } from '../../../services/artistIdentity';
 
@@ -135,8 +136,9 @@ export function NoirArtistView({
   const [bioExpanded, setBioExpanded] = useState(false);
   const bioRef = useRef<HTMLParagraphElement>(null);
   const [bioOverflows, setBioOverflows] = useState(false);
-  const world = worldForCollection(`artist:${artist.name.toLowerCase()}`);
-  const palette = COLOR_WORLDS[world];
+  // Full palette, spread by an avalanche hash (the plain hash put most artists on one colour).
+  const world = heroWorld({ id: `artist:${artistKey}`, title: '', artist: artist.name, thumbnail: '', videoId: '' });
+  const palette = { field: heroField(world), mark: heroInk(world) };
   const unique = useMemo(() => dedupeTracks(tracks, artist.name), [tracks, artist.name]);
   const visible = showAll ? unique : unique.slice(0, POPULAR_COUNT);
 
