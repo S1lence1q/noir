@@ -56,6 +56,8 @@ type NoirNowPlayingViewProps = {
 const sheetEase = EASE_PREMIUM;
 /** Stand-in length for queue songs whose duration isn't known yet (pop/rock average ≈ 3:15). */
 const TYPICAL_SONG_SEC = 195;
+/** Queue length footer ("~1 h 21 min left") is built but hidden: it crowded the rail. Flip to bring it back. */
+const SHOW_QUEUE_LENGTH = false;
 const BATCH_SIZE = 10;
 const SHUFFLE_SETTLE_MS = 540;
 
@@ -702,7 +704,7 @@ export function NoirNowPlayingView({
                 </AnimatePresence>
               </Reorder.Group>
             )}
-            {upNext.length > 0 && totalSec != null && (
+            {SHOW_QUEUE_LENGTH && upNext.length > 0 && totalSec != null && (
               <p className="noir-queue-foot">
                 {totalIsEstimate ? '~' : ''}
                 {strings.nextUp.totalLength(totalSec)} left
