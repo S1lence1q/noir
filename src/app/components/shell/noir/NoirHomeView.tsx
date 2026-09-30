@@ -45,6 +45,8 @@ export type NoirHomeViewProps = {
   loadingSongId: string | null;
   activeSongKey?: string | null;
   isPlaying?: boolean;
+  /** The song actually loaded in the player; the hero follows it, not just the last recent. */
+  activeTrack?: SearchResult | null;
   handleViewArtistProfile: (artist: VerifiedArtist) => void;
   handleUrlSubmit: (url: string) => void;
   handleSearch: (overrideQuery?: string) => void;
@@ -72,6 +74,7 @@ export function NoirHomeView({
   loadingSongId,
   activeSongKey = null,
   isPlaying = false,
+  activeTrack = null,
   handleViewArtistProfile,
   handleUrlSubmit,
   handleSearch,
@@ -107,7 +110,7 @@ export function NoirHomeView({
   const [stableRecents, setStableRecents] = useState<SearchResult[]>(recentlyPlayed);
   const [listFrozen, setListFrozen] = useState(false);
 
-  const featuredTrack = recentlyPlayed[0] ?? null;
+  const featuredTrack = activeTrack?.title ? activeTrack : recentlyPlayed[0] ?? null;
   const featuredKey = featuredTrack ? getPlaybackSongKey(featuredTrack) : null;
   const isFeaturedActive = !!featuredKey && featuredKey === activeSongKey;
   const isFeaturedPlaying = isFeaturedActive && isPlaying;

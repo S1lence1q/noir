@@ -62,6 +62,7 @@ interface LandingPageProps {
   focusedResultIndex: number;
   loadingSongId: string | null;
   activeSongKey?: string | null;
+  activeTrack?: SearchResult | null;
   isPlaying?: boolean;
   artistColors: any;
   artistTracks: SearchResult[];
@@ -144,6 +145,7 @@ export function LandingPage({
   focusedResultIndex,
   loadingSongId,
   activeSongKey = null,
+  activeTrack = null,
   isPlaying = false,
   artistColors,
   artistTracks,
@@ -439,6 +441,7 @@ export function LandingPage({
                   focusedResultIndex={focusedResultIndex}
                   loadingSongId={loadingSongId}
                   activeSongKey={activeSongKey}
+                  activeTrack={activeTrack}
                   isPlaying={isPlaying}
                   handleViewArtistProfile={handleViewArtistProfile}
                   handleUrlSubmit={handleUrlSubmit}

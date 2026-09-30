@@ -1980,6 +1980,7 @@ export default function App() {
               focusedResultIndex={focusedResultIndex}
               loadingSongId={loadingSongId}
               activeSongKey={songData ? getPlaybackSongKey(songData) : null}
+              activeTrack={songData ? { id: songData.id || '', title: songData.title, artist: songData.artist, thumbnail: songData.artworkUrl, videoId: songData.videoId || '', channelId: songData.channelId, audioUrl: songData.audioUrl } : null}
               isPlaying={isMiniPlaying}
               artistColors={selectedArtist ? ACCENT_THEMES[accentColor] : null}
               artistTracks={artistTracks}
