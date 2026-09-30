@@ -1,6 +1,6 @@
 /** Dither cover renderer — design/05-visual-language.md "Dither covers". */
 
-export type ColorWorld = 'cobalt' | 'ember' | 'moss' | 'bone' | 'rose' | 'ink';
+export type ColorWorld = 'cobalt' | 'ember' | 'moss' | 'bone' | 'rose' | 'ink' | 'sun';
 
 /** Bright image areas → `light`, dark areas → `dark`. `field` is the placeholder / fallback color. */
 export const COLOR_WORLDS: Record<ColorWorld, { field: string; light: string; dark: string; mark: string }> = {
@@ -10,9 +10,10 @@ export const COLOR_WORLDS: Record<ColorWorld, { field: string; light: string; da
   bone: { field: '#EDE8DE', light: '#EDE8DE', dark: '#0B0B0B', mark: '#0B0B0B' },
   rose: { field: '#E07A9A', light: '#E07A9A', dark: '#0B0B0B', mark: '#0B0B0B' },
   ink: { field: '#141414', light: '#F2EEE6', dark: '#141414', mark: '#F2EEE6' },
+  sun: { field: '#E9B21C', light: '#E9B21C', dark: '#0B0B0B', mark: '#0B0B0B' },
 };
 
-const HASH_WORLDS: ColorWorld[] = ['cobalt', 'ember', 'moss', 'rose', 'bone'];
+const HASH_WORLDS: ColorWorld[] = ['cobalt', 'ember', 'moss', 'rose', 'bone', 'sun'];
 
 const FIXED_WORLDS: Record<string, ColorWorld> = {
   dk_hits: 'ember',

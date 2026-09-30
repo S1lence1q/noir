@@ -16,7 +16,7 @@ import { PARTNER_INK, initialOf, renderMonogram } from '../../../utils/monogram'
 
 export type HomeHeroVariant = '1' | '2' | '3';
 
-const HERO_WORLDS: ColorWorld[] = ['cobalt', 'ember', 'moss', 'rose', 'bone'];
+const HERO_WORLDS: ColorWorld[] = ['cobalt', 'ember', 'moss', 'rose', 'bone', 'sun'];
 
 /** Each song gets its own field from the full palette (per artist, most days were one colour). */
 export function heroWorld(track: SearchResult): ColorWorld {

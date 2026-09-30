@@ -12,7 +12,10 @@ export type MixSymbol =
   | 'you'
   | 'chain'
   | 'bolt'
-  | 'cross'
+  | 'cross-dk'
+  | 'cross-se'
+  | 'cross-no'
+  | 'cross-fi'
   | 'moon'
   | 'cloud'
   | 'sparkle'
@@ -25,32 +28,41 @@ export type MixSymbol =
 
 type Resolved = { symbol: MixSymbol; world: ColorWorld };
 
-const RULES: { test: RegExp; symbol: MixSymbol; world?: ColorWorld }[] = [
+// Fixed fields per genre, spread over all seven colours (not pink everywhere). Flags only
+// where the colours are right: a wrong flag is worse than no flag.
+const RULES: { test: RegExp; symbol: MixSymbol; world: ColorWorld }[] = [
   { test: /for you|daily|made for|discover/, symbol: 'you', world: 'bone' },
-  { test: /danish|dansk|denmark|danmark/, symbol: 'cross', world: 'ember' },
-  { test: /swedish|svensk|sweden/, symbol: 'cross', world: 'cobalt' },
-  { test: /norwegian|norsk|norway|finnish|suomi|nordic|scandi/, symbol: 'cross', world: 'moss' },
-  { test: /hip-?hop|rap|trap|drill|grime/, symbol: 'chain' },
+  { test: /danish|dansk|denmark|danmark/, symbol: 'cross-dk', world: 'ember' },
+  { test: /swedish|svensk|sweden|sverige/, symbol: 'cross-se', world: 'cobalt' },
+  { test: /norwegian|norsk|norway|norge/, symbol: 'cross-no', world: 'ember' },
+  { test: /finnish|suomi|finland/, symbol: 'cross-fi', world: 'bone' },
+  { test: /hip-?hop|rap|trap|drill|grime/, symbol: 'chain', world: 'sun' },
   { test: /metal|punk|hardcore|grunge|industrial/, symbol: 'thorns', world: 'ink' },
-  { test: /rock|garage/, symbol: 'bolt' },
-  { test: /lo[\s-]?fi|chill|sleep|night/, symbol: 'moon' },
-  { test: /dream|shoegaze|ambient|ethereal/, symbol: 'cloud' },
-  { test: /electro|techno|house|edm|synth|trance|dnb|drum/, symbol: 'wave' },
-  { test: /jazz|blues|swing|bossa/, symbol: 'enso' },
-  { test: /r&b|rnb|soul|love/, symbol: 'heart' },
-  { test: /indie|folk|acoustic|singer|country/, symbol: 'leaf' },
-  { test: /pop|dance|disco|k-?pop/, symbol: 'sparkle' },
+  { test: /rock|garage/, symbol: 'bolt', world: 'ink' },
+  { test: /lo[\s-]?fi|chill|sleep|night/, symbol: 'moon', world: 'cobalt' },
+  { test: /dream|shoegaze|ambient|ethereal/, symbol: 'cloud', world: 'rose' },
+  { test: /electro|techno|house|edm|synth|trance|dnb|drum/, symbol: 'wave', world: 'moss' },
+  { test: /jazz|blues|swing|bossa/, symbol: 'enso', world: 'sun' },
+  { test: /r&b|rnb|soul|love/, symbol: 'heart', world: 'rose' },
+  { test: /indie|folk|acoustic|singer|country/, symbol: 'leaf', world: 'moss' },
+  { test: /pop|dance|disco|k-?pop/, symbol: 'sparkle', world: 'ember' },
 ];
 
 export function resolveMixCover(tagOrName: string): Resolved {
   const tag = tagOrName.toLowerCase().replace(/\s+mix$/, '').trim();
   const rule = RULES.find((r) => r.test.test(tag));
   if (!rule) return { symbol: 'sibling', world: worldForTag(tag) };
-  return { symbol: rule.symbol, world: rule.world ?? worldForTag(tag) };
+  return { symbol: rule.symbol, world: rule.world };
 }
 
-/** Black on warm fields, bone on dark ones — never a second colour. */
+/** Black on warm fields, bone on dark ones — never a second colour (flags excepted). */
 export const inkOn = (world: ColorWorld) => (world === 'cobalt' || world === 'moss' || world === 'ink' ? '#EDE8DE' : '#0B0B0B');
+
+const BONE = '#EDE8DE';
+const SUN = '#E9B21C';
+const COBALT = '#1F3FBF';
+/** Flag crosses carry their real colours. */
+const CROSS_INK: Partial<Record<MixSymbol, string>> = { 'cross-dk': BONE, 'cross-se': SUN, 'cross-no': BONE, 'cross-fi': COBALT };
 
 /** An asterisk sibling for genres without a symbol: arms, widths and turn from the name. */
 function sibling(seed: string) {
@@ -98,13 +110,22 @@ function shape(symbol: MixSymbol, seed: string, ink: string, id: string): ReactN
       );
     case 'bolt':
       return <path d="M60 6 L22 56 L46 56 L36 94 L80 40 L55 40 L68 6 Z" />;
-    case 'cross':
-      // The Nordic cross runs edge to edge (contained, it reads as a plus sign), but thin, so it
-      // doesn't shout louder than the other covers. Bar off-centre like the flag.
+    case 'cross-dk':
+    case 'cross-se':
+    case 'cross-fi':
+      // The Nordic cross runs edge to edge (contained, it reads as a plus sign), thin, bar off-centre.
       return (
         <>
           <rect x="-10" y="44" width="120" height="11" />
           <rect x="31" y="-10" width="11" height="120" />
+        </>
+      );
+    case 'cross-no':
+      // Norway: the white cross; the blue one inside is drawn over it (its own spray, see below).
+      return (
+        <>
+          <rect x="-10" y="40" width="120" height="19" />
+          <rect x="27" y="-10" width="19" height="120" />
         </>
       );
     case 'moon':
@@ -179,10 +200,9 @@ type NoirMixCoverProps = {
 export function NoirMixCover({ tag, size, radius, className = '' }: NoirMixCoverProps) {
   const filterId = useId().replace(/:/g, '');
   const { symbol, world } = resolveMixCover(tag);
-  // The Nordic cross is always light, like the flag's.
-  const ink = symbol === 'cross' ? '#EDE8DE' : inkOn(world);
+  const ink = CROSS_INK[symbol] ?? inkOn(world);
   const spray = size >= 72;
-  const fullBleed = symbol === 'cross';
+  const fullBleed = symbol.startsWith('cross');
 
   return (
     <span
@@ -214,11 +234,29 @@ export function NoirMixCover({ tag, size, radius, className = '' }: NoirMixCover
               <feFlood floodColor={ink} />
               <feComposite in2="grain" operator="in" />
             </filter>
+            {symbol === 'cross-no' && (
+              <filter id={`${filterId}-inner`} x="-25%" y="-25%" width="150%" height="150%">
+                <feGaussianBlur in="SourceAlpha" stdDeviation={1.2} result="soft" />
+                <feTurbulence type="fractalNoise" baseFrequency="1.8" numOctaves="1" seed="3" result="noise" />
+                <feComposite in="soft" in2="noise" operator="arithmetic" k2="1" k3="0.55" k4="-0.42" result="mixed" />
+                <feComponentTransfer in="mixed" result="grain">
+                  <feFuncA type="discrete" tableValues="0 1" />
+                </feComponentTransfer>
+                <feFlood floodColor={COBALT} />
+                <feComposite in2="grain" operator="in" />
+              </filter>
+            )}
           </defs>
         )}
         <g fill={ink} filter={spray ? `url(#${filterId})` : undefined}>
           {shape(symbol, tag, ink, filterId)}
         </g>
+        {symbol === 'cross-no' && (
+          <g fill={COBALT} filter={spray ? `url(#${filterId}-inner)` : undefined}>
+            <rect x="-10" y="45" width="120" height="9" />
+            <rect x="32" y="-10" width="9" height="120" />
+          </g>
+        )}
       </svg>
     </span>
   );
@@ -226,7 +264,7 @@ export function NoirMixCover({ tag, size, radius, className = '' }: NoirMixCover
 
 /** Dev check: every symbol on its field. `?covers` on Home. */
 export function NoirMixCoverGallery() {
-  const samples = ['For You', 'Rap', 'Rock', 'Danish', 'Swedish', 'Lo Fi', 'Dream Pop', 'Pop', 'Electronic', 'Jazz', 'Soul', 'Indie', 'Metal', 'Reggae', 'Classical'];
+  const samples = ['For You', 'Rap', 'Rock', 'Danish', 'Swedish', 'Norwegian', 'Finnish', 'Lo Fi', 'Dream Pop', 'Pop', 'Electronic', 'Jazz', 'Soul', 'Indie', 'Metal', 'Reggae', 'Classical'];
   return (
     <div className="noir-mix-gallery">
       {samples.map((name) => (

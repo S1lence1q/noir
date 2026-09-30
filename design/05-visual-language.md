@@ -25,7 +25,7 @@ Everything graphic is made of grain: ordered dither, halftone, spray, film noise
 | **Cinematic** | Existing plate wave photo | Sidebar brand only. |
 | **Heat** | A blurred shape mapped through a heat ramp (cream rim → peach → lavender core) on a cobalt grain field (ref: blurred figures on blue) | Data drawn as a form: Your sound › your week |
 | **Heat figure** | A small blurred creature (body + limbs) through the collection's world ramp, grain on top | User playlist covers: seeded by playlist id, one limb per ~3 songs (empty = egg), so it grows as you fill it |
-| **Mix symbol** | One spray-edged symbol that says what the mix is (for you = ring with a dot, rap = chain link, Danish = thin edge-to-edge Nordic cross, lo-fi = moon…), black or bone on one palette field — the Favorites recipe | Mixes and genres (`NoirMixCover`, map in `RULES`); unknown genres get an asterisk sibling. Gallery: Home with `?covers` |
+| **Mix symbol** | One spray-edged symbol that says what the mix is (for you = ring with a dot, rap = gold chain link, Nordic countries = their real crosses edge-to-edge, lo-fi = moon…; fixed fields spread over all seven colours), black or bone on one palette field — the Favorites recipe | Mixes and genres (`NoirMixCover`, map in `RULES`); unknown genres get an asterisk sibling. Gallery: Home with `?covers` |
 | **Halftone bloom** | Dot grid whose dot size follows a shape + low-frequency swirl, stipple at the fade (ref: `abstract cloud like form`) | Data as texture: Your sound › listening clock |
 
 Heat and halftone bloom are *generated from your data* (`NoirHeatWeek`, `NoirHalftoneClock`, shared helpers in `utils/grainRender.ts`). Same data → same image (seeded). Heat is glow **with** grain, so it stays inside rule 3.
@@ -52,6 +52,7 @@ UI stays black (`--noir-*` tokens in `src/styles/noir-shell.css`). Color lives o
 | Bone | `#EDE8DE` | `#0B0B0B` | Neutral, classic, stats cards |
 | Rose | `#E07A9A` | `#0B0B0B` | Pop, playful |
 | Ink | `#141414` | `#F2EEE6` | Dark, heavy (use sparingly) |
+| Sun | `#E9B21C` | `#0B0B0B` | Warm, brass, gold (added 2026-09-30: rap's gold chain, jazz, the Swedish cross) |
 
 Rules:
 - Max **one** color world per cover. Never gradients between worlds.

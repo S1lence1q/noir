@@ -14,6 +14,7 @@ export const PARTNER_INK: Record<ColorWorld, string> = {
   rose: '#1F3FBF',
   bone: '#E85002',
   ink: '#EDE8DE',
+  sun: '#1F3FBF',
 };
 
 /** First letter that means something: skips "The", digits allowed, falls back to N. */
