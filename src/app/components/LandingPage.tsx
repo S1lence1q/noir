@@ -377,6 +377,7 @@ export function LandingPage({
                     tracks: searchResults,
                     thumbnail: album.image || '',
                     accent: 'ember',
+                    recordType: album.recordType,
                   });
                 }}
               />

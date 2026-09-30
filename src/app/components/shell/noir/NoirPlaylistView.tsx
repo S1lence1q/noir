@@ -79,7 +79,11 @@ export function NoirPlaylistView({
       : resolveMixCover(coverTag).world
     : world;
   // Albums and playlists share the hero; their real cover sits inside it instead of a symbol.
-  const kicker = symbolKind ?? (playlist.id.startsWith('album:') ? 'Album' : 'Playlist');
+  const isRelease = playlist.id.startsWith('album:') || playlist.id.startsWith('release:');
+  const n = playlist.tracks.length;
+  // Known release type wins; otherwise guess from length so a one-track page never says "Album".
+  const releaseType = playlist.recordType ?? (n <= 1 ? 'single' : n <= 6 ? 'ep' : 'album');
+  const kicker = symbolKind ?? (isRelease ? (releaseType === 'single' ? 'Single' : releaseType === 'ep' ? 'EP' : 'Album') : 'Playlist');
 
   const artists = [...new Set(playlist.tracks.map((t) => t.artist).filter(Boolean))];
   const meta = [

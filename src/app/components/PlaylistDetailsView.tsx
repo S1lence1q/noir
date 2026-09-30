@@ -22,6 +22,8 @@ export interface Playlist {
   accent: AccentColor;
   /** Optional dither world (mixes). Falls back to hash of id. */
   coverWorld?: ColorWorld;
+  /** Albums / releases: what kind of release this is, for the page kicker. */
+  recordType?: 'album' | 'single' | 'ep' | 'compile';
 }
 
 interface PlaylistDetailsViewProps {
