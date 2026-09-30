@@ -81,9 +81,9 @@ export function NoirToastHost() {
           <motion.div
             key={toast.id}
             className={`noir-toast${toast.action ? '' : ' noir-toast--plain'}`}
-            initial={{ opacity: 0, y: 14, scale: 0.97 }}
+            initial={{ opacity: 0, y: 18, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.98, transition: withReducedMotion({ duration: 0.16, ease: 'easeIn' }) }}
+            exit={{ opacity: 0, y: 8, scale: 0.98, transition: withReducedMotion({ duration: 0.18, ease: 'easeIn' }) }}
             transition={withReducedMotion({ ...MOTION.settle, opacity: { duration: 0.18 } })}
             onMouseEnter={pause}
             onMouseLeave={resume}
