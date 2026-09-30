@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Check, Search } from 'lucide-react';
 import { strings } from '../../../constants/strings';
@@ -18,6 +18,7 @@ import {
 } from '../../../services/listening/seedTaste';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirMark } from './NoirMark';
+import { NoirHalftoneClock } from './NoirHalftoneClock';
 
 export type NoirColdStartProps = {
   onSeeded: () => void;
@@ -26,7 +27,29 @@ export type NoirColdStartProps = {
 
 /** Suggestions pool from both charts; shown a page at a time. */
 const POOL_SIZE = 36;
-const PAGE_SIZE = 18;
+/** Grid tiles: min width + gap must match `.noir-cold-start-grid`. Rows always fill, so no dangling last row. */
+const TILE_MIN = 128;
+const TILE_GAP = 12;
+const START_ROWS = 3;
+const MORE_ROWS = 2;
+/** A fixed, lopsided bloom for the header: three petals of different size, the biggest (evening) in Ember. */
+const BLOOM_LOBES: [hour: number, weight: number, width: number][] = [
+  [21, 1, 1.9],
+  [14.5, 0.6, 1.5],
+  [8.5, 0.38, 1.3],
+  [3, 0.22, 1.2],
+];
+const BLOOM_HOURS = Array.from({ length: 24 }, (_, h) => {
+  let v = 0.03;
+  for (const [at, weight, width] of BLOOM_LOBES) {
+    const d = Math.min(Math.abs(h - at), 24 - Math.abs(h - at));
+    v += weight * Math.exp(-(d * d) / (2 * width * width));
+  }
+  // The clock takes a square root of this; cubing keeps the petals distinct instead of a round disc.
+  return v ** 3;
+});
+const BLOOM_PEAK = 21;
+const BLOOM_MIN_WIDTH = 880;
 const SKELETON_COUNT = 12;
 const AVATAR_STACK = 5;
 /** A portrait that hasn't answered by then falls back to the chart cover. */
@@ -75,7 +98,9 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
     mergeArtists(alternate(...chartStores().map((store) => artistsFromChart(getCachedChartTracks(store), POOL_SIZE))))
   );
   const [suggestionsLoading, setSuggestionsLoading] = useState(suggestions.length === 0);
-  const [shown, setShown] = useState(PAGE_SIZE);
+  const [rows, setRows] = useState(START_ROWS);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [rootWidth, setRootWidth] = useState(0);
   const [query, setQuery] = useState('');
   const [searchHits, setSearchHits] = useState<ColdStartArtist[]>([]);
   const [searching, setSearching] = useState(false);
@@ -136,11 +161,27 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
     };
   }, [query]);
 
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const measure = () => setRootWidth(el.clientWidth);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const cols = Math.max(2, Math.floor((rootWidth + TILE_GAP) / (TILE_MIN + TILE_GAP)) || 4);
+  // Whole rows only: 7 columns x 3 rows, never 7 + 7 + 4.
+  const capacity = rows * cols;
+  const fullRows = Math.floor(suggestions.length / cols) * cols;
+  const visibleCount = Math.min(capacity, fullRows > 0 ? fullRows : suggestions.length);
+
   const searchMode = query.trim().length >= 2;
   // Picks made through search stay visible (and removable) once the search is cleared.
   const pickedOffGrid = picked.filter((a) => !suggestions.some((s) => artistKey(s) === artistKey(a)));
-  const grid = searchMode ? searchHits : [...pickedOffGrid, ...suggestions.slice(0, shown)];
-  const canShowMore = !searchMode && !suggestionsLoading && suggestions.length > shown;
+  const grid = searchMode ? searchHits : [...pickedOffGrid, ...suggestions.slice(0, visibleCount)];
+  const canShowMore = !searchMode && !suggestionsLoading && suggestions.length > visibleCount && fullRows > visibleCount;
 
   useEffect(() => {
     for (const artist of grid) {
@@ -191,7 +232,19 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
   };
 
   return (
-    <div className="noir-cold-start">
+    <div
+      className="noir-cold-start"
+      ref={rootRef}
+      style={{ '--cold-cols': cols } as CSSProperties}
+    >
+      {rootWidth >= BLOOM_MIN_WIDTH && (
+        <NoirHalftoneClock
+          hours={BLOOM_HOURS}
+          peakHour={BLOOM_PEAK}
+          seed="cold-start-bloom"
+          className="noir-cold-start-bloom"
+        />
+      )}
       <div className="noir-settle-group">
         <p className="noir-stats-eyebrow !mb-3 flex items-center gap-2 !text-[color:var(--noir-text-tertiary)]">
           <NoirMark size={14} variant="spray" color="currentColor" />
@@ -306,7 +359,7 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
         <button
           type="button"
           className="noir-button-secondary noir-cold-start-more elva-focus-ring"
-          onClick={() => setShown((n) => n + PAGE_SIZE)}
+          onClick={() => setRows((n) => n + MORE_ROWS)}
         >
           {strings.home.coldStartMore}
         </button>
