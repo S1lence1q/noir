@@ -4,7 +4,7 @@ import { Check, Search } from 'lucide-react';
 import { strings } from '../../../constants/strings';
 import { fetchAppleMusicChart, getCachedChartTracks } from '../../../utils/chartFeeds';
 import { executeSearchAPI } from '../../../utils/api/pipedSearch';
-import { worldForCollection } from '../../../utils/ditherCover';
+import { COLOR_WORLDS, worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion, withReducedMotion } from '../../../utils/motionPresets';
 import { normalizeName } from '../../../services/musicGraph/normalize';
 import { getArtistImage } from '../../../services/musicGraph';
@@ -18,7 +18,6 @@ import {
 } from '../../../services/listening/seedTaste';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirMark } from './NoirMark';
-import { NoirHalftoneClock } from './NoirHalftoneClock';
 
 export type NoirColdStartProps = {
   onSeeded: () => void;
@@ -30,27 +29,10 @@ const POOL_SIZE = 36;
 /** Grid tiles: min width + gap must match `.noir-cold-start-grid`. Rows always fill, so no dangling last row. */
 const TILE_MIN = 128;
 const TILE_GAP = 12;
-const START_ROWS = 3;
+const START_ROWS = 2;
+/** Narrow screens get extra rows so the first page still offers a real choice. */
+const START_MIN_TILES = 10;
 const MORE_ROWS = 2;
-/** A fixed, lopsided bloom for the header: three petals of different size, the biggest (evening) in Ember. */
-const BLOOM_LOBES: [hour: number, weight: number, width: number][] = [
-  [21, 1, 1.9],
-  [14.5, 0.6, 1.5],
-  [8.5, 0.38, 1.3],
-  [3, 0.22, 1.2],
-];
-const BLOOM_HOURS = Array.from({ length: 24 }, (_, h) => {
-  let v = 0.03;
-  for (const [at, weight, width] of BLOOM_LOBES) {
-    const d = Math.min(Math.abs(h - at), 24 - Math.abs(h - at));
-    v += weight * Math.exp(-(d * d) / (2 * width * width));
-  }
-  // The clock takes a square root of this; cubing keeps the petals distinct instead of a round disc.
-  return v ** 3;
-});
-const BLOOM_PEAK = 21;
-const BLOOM_MIN_WIDTH = 880;
-const SKELETON_COUNT = 12;
 const AVATAR_STACK = 5;
 /** A portrait that hasn't answered by then falls back to the chart cover. */
 const PORTRAIT_TIMEOUT_MS = 2500;
@@ -173,7 +155,7 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
 
   const cols = Math.max(2, Math.floor((rootWidth + TILE_GAP) / (TILE_MIN + TILE_GAP)) || 4);
   // Whole rows only: 7 columns x 3 rows, never 7 + 7 + 4.
-  const capacity = rows * cols;
+  const capacity = Math.max(rows, Math.ceil(START_MIN_TILES / cols)) * cols;
   const fullRows = Math.floor(suggestions.length / cols) * cols;
   const visibleCount = Math.min(capacity, fullRows > 0 ? fullRows : suggestions.length);
 
@@ -237,37 +219,29 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
       ref={rootRef}
       style={{ '--cold-cols': cols } as CSSProperties}
     >
-      {rootWidth >= BLOOM_MIN_WIDTH && (
-        <NoirHalftoneClock
-          hours={BLOOM_HOURS}
-          peakHour={BLOOM_PEAK}
-          seed="cold-start-bloom"
-          className="noir-cold-start-bloom"
-        />
-      )}
-      <div className="noir-settle-group">
-        <p className="noir-stats-eyebrow !mb-3 flex items-center gap-2 !text-[color:var(--noir-text-tertiary)]">
-          <NoirMark size={14} variant="spray" color="currentColor" />
-          {strings.home.coldStartEyebrow}
-        </p>
+      <div className="noir-cold-start-head">
+        {/* The intro: one object on one field, like Favorites. The mark turns once into place. */}
+        <span className="noir-cold-start-sign" style={{ background: COLOR_WORLDS.ember.field }} aria-hidden>
+          <NoirMark size={44} variant="spray" color={COLOR_WORLDS.ember.mark} />
+        </span>
         <h2 className="noir-cold-start-title">{strings.home.coldStartTitle}</h2>
-        <p className="noir-cold-start-body">
-          {strings.home.coldStartBody}
-          {onBrowseDiscover && (
-            <>
-              {' '}
-              <button
-                type="button"
-                className="noir-cold-start-browse elva-focus-ring"
-                disabled={seeding}
-                onClick={onBrowseDiscover}
-              >
-                {strings.home.coldStartBrowse}
-              </button>
-            </>
-          )}
-        </p>
+        <p className="noir-cold-start-body">{strings.home.coldStartBody}</p>
+        {onBrowseDiscover && (
+          <button
+            type="button"
+            className="noir-cold-start-browse elva-focus-ring"
+            disabled={seeding}
+            onClick={onBrowseDiscover}
+          >
+            {strings.home.coldStartBrowse}
+          </button>
+        )}
+      </div>
 
+      <div className="noir-cold-start-toolbar">
+        <p className="noir-cold-start-label">
+          {searchMode ? strings.home.coldStartSearch : strings.home.coldStartSuggestions}
+        </p>
         <label className="noir-cold-start-search" htmlFor={searchId}>
           <Search className="h-4 w-4 shrink-0 text-[color:var(--noir-text-tertiary)]" strokeWidth={1.75} />
           <input
@@ -276,6 +250,7 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={strings.home.coldStartSearch}
+            aria-label={strings.home.coldStartSearch}
             autoComplete="off"
             disabled={seeding}
             className="noir-cold-start-input"
@@ -287,15 +262,11 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
             />
           )}
         </label>
-
-        <p className="noir-cold-start-label">
-          {searchMode ? strings.home.coldStartSearch : strings.home.coldStartSuggestions}
-        </p>
       </div>
 
       {suggestionsLoading && !searchMode && grid.length === 0 ? (
         <div className="noir-cold-start-grid" aria-hidden>
-          {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+          {Array.from({ length: Math.max(START_ROWS, Math.ceil(START_MIN_TILES / cols)) * cols }).map((_, i) => (
             <div key={i} className="noir-cold-start-skel">
               <span className="noir-skeleton noir-cold-start-skel-art" />
               <span className="noir-skeleton noir-cold-start-skel-name" />
