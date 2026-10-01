@@ -1554,6 +1554,21 @@
      pixelated image and it lands ~1px off, which showed as a jump on every song skip. */
   will-change: opacity, transform;
   transform: translateZ(0);
+  opacity: 0.42;
+}
+
+.noir-now-playing-atmosphere-grain-wrap {
+  position: absolute;
+  inset: 0;
+  will-change: opacity;
+}
+
+/* A mirrored, much fainter copy that only lives on the left, so the colour isn't all on the queue side. */
+.noir-now-playing-atmosphere-grain.is-echo {
+  opacity: 0.2;
+  transform: translateZ(0) scaleX(-1);
+  mask-image: linear-gradient(to right, black 0, transparent 45%);
+  -webkit-mask-image: linear-gradient(to right, black 0, transparent 45%);
 }
 
 .noir-now-playing-atmosphere-wash {
