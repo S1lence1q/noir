@@ -1,6 +1,6 @@
 # PROJECT_STATE — NOIR
 
-*Last updated: 2026-09-29*
+*Last updated: 2026-10-02*
 *Repository:* `S1lence1q/noir` · *Live Production:* https://noir.arkivet.xyz/
 
 ---
@@ -127,12 +127,20 @@ src/
 
 ## 6. Active Backlog & Next Roadmap Items
 
-1. **T22 — Quiet Tooltips (M):**
-   - Implement lightweight, non-intrusive tooltip component (`--noir-elevated`, portal, ~400ms delay, subtle fade).
-   - Add tooltips to search inputs, key action buttons, and obscure controls without cluttering the UI with permanent helper copy.
-2. **Surface Audits & Micro-Interactions:**
-   - Review keyboard navigation across Home shelves.
-   - Refine touch gestures for mobile/tablet responsive viewports.
+*Done since last update:* T22 quiet tooltips (`NoirTooltipHost`, 800 ms delay). Graphics theme: one Settings choice, **Heat / Grain** (`utils/graphicsTheme.ts`), read by Now Playing, History hero and Home hero. Library › History has a "Most played this week" hero and an empty state; both follow the theme (`NoirGrainField` is the shared grain panel, levelled for dark/pale/grey covers).
+
+**In progress (next session picks up here):**
+1. Audio fades: check what the dual-engine crossfade already does; soft fade on pause/resume and on skip.
+2. Alignment audit of the shell (measure edges/gaps with JS on every screen).
+3. The six mandatory states (empty, loading, partial, error, offline, done) per screen: Discover, Artist, Search, Home, Library.
+4. Favorites: songs can be added from inside it, like the other playlists.
+
+**Later (ideas worth keeping, not scheduled):**
+- **Graphics theme everywhere:** Stats week hero and Artist hero still only have the Heat look; give them a Grain version so the Settings choice means something on every screen.
+- **Taste portrait:** your taste as one halftone/heat image (genres + top artists shape a field in their colours), possibly on Your sound. Data-made graphic, NOIR's signature.
+- **Sleep timer:** only if it can be done without adding UI noise (e.g. a quiet entry in the player menu, no permanent control).
+- **Rediscover hero** (History): a song played often but not heard for 3+ weeks. Dropped for now: too little history for anyone to see it.
+- Keyboard navigation across Home shelves; touch gestures on tablet.
 
 ---
 
