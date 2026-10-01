@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { parseLrc, loadCustomLyrics } from '../utils/lyricsUtils';
 import { useLyricsTimingControls } from '../utils/lyricsTiming';
 import { cleanSongTitle } from '../utils/stringUtils';
-import { lookupLyrics, type LyricsTrack } from '../services/lyrics';
+import { lookupLyrics, readLyricsCache, writeLyricsCache, type LyricsTrack } from '../services/lyrics';
 import type { LyricLine } from '../types';
 import type { PlaybackSongData } from '../types/playback';
 
@@ -65,13 +65,22 @@ function pickLyrics(candidates: LyricsTrack[], duration: number, allowOffsetGues
 const lyricsCache = new Map<string, LyricsTrack[]>();
 const lyricsInflight = new Map<string, Promise<LyricsTrack[]>>();
 
+/** Memory first, then what was remembered from earlier visits. */
+function cachedCandidates(key: string): LyricsTrack[] | null {
+  const hit = lyricsCache.get(key);
+  if (hit) return hit;
+  const stored = readLyricsCache(key);
+  if (stored) lyricsCache.set(key, stored);
+  return stored;
+}
+
 const lyricsKey = (title: string, artist: string) => `${cleanSongTitle(title, artist)}::${artist}`.toLowerCase();
 const isLookupable = (artist: string) => artist !== 'Unknown Artist' && artist !== 'Web Stream';
 
 /** One lyrics lookup per song, shared by the player and by the prefetch. Failures are not cached. */
 function fetchCandidates(title: string, artist: string): Promise<LyricsTrack[]> {
   const key = lyricsKey(title, artist);
-  const hit = lyricsCache.get(key);
+  const hit = cachedCandidates(key);
   if (hit) return Promise.resolve(hit);
   const running = lyricsInflight.get(key);
   if (running) return running;
@@ -79,7 +88,10 @@ function fetchCandidates(title: string, artist: string): Promise<LyricsTrack[]> 
     .then(({ list, complete }) => {
       // An answer that might be missing something because a search failed is shown, but not remembered:
       // the next play asks again instead of keeping a false "nothing found".
-      if (complete) lyricsCache.set(key, list);
+      if (complete) {
+        lyricsCache.set(key, list);
+        writeLyricsCache(key, list);
+      }
       return list;
     })
     .finally(() => lyricsInflight.delete(key));
@@ -230,7 +242,7 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
     const fetchLyricsData = async () => {
       // Already known (prefetched or heard before): swap in one step, never passing through empty,
       // so the stage and the cover change once, cleanly.
-      const known = lyricsCache.get(lyricsKey(songData.title, songData.artist));
+      const known = cachedCandidates(lyricsKey(songData.title, songData.artist));
       if (known && !loadCustomLyrics(songData.videoId, songData.title, songData.artist)) {
         setIsCustomLyrics(false);
         // Known answer: no network. The candidates effect picks the lines (once the length is known, if
