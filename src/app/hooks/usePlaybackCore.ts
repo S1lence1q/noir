@@ -264,7 +264,7 @@ export function usePlaybackCore({
     const activeFadeVolume = isEngineA ? fadeVolumeA : fadeVolumeB;
 
     if (e.data === window.YT.PlayerState.ENDED) {
-      if (isCrossfadingRef.current) return; // ignore ended event during active crossfade
+      if (isCrossfadingRef.current || isTransitioningRef.current) return; // ignore ended during crossfade / manual load
       clearEndWatch();
       void handleNextSongRef.current();
     } else if (e.data === window.YT.PlayerState.PLAYING) {
@@ -782,7 +782,9 @@ export function usePlaybackCore({
 
   // 6. Natural Song End Crossfading Check
   const checkCrossfade = useCallback(async (current: number, dur: number) => {
-    if (isCrossfadingRef.current || advanceInFlightRef.current || dur <= 0 || queueRef.current.length < 2) {
+    // While a manual pick is loading, the old song's clock is still near its end but songDataRef
+    // already names the new song: advancing now would skip the song the listener just picked.
+    if (isTransitioningRef.current || isCrossfadingRef.current || advanceInFlightRef.current || dur <= 0 || queueRef.current.length < 2) {
       return;
     }
 
@@ -1035,6 +1037,8 @@ export function usePlaybackCore({
       abortActiveCrossfade();
       advanceInFlightRef.current = false;
       isTransitioningRef.current = true;
+      // A timer armed for the old song must not fire against the new one.
+      clearEndWatch();
       
       const proceedManualLoad = async () => {
         // User-initiated load (not a queue advance) — allow future advances from this song.
@@ -1076,7 +1080,7 @@ export function usePlaybackCore({
         void proceedManualLoad();
       }
     }
-  }, [songData, activeEngine, loadSongIntoEngine, abortActiveCrossfade, setPlaying, isPlaying, fadeVolumeA, fadeVolumeB]);
+  }, [songData, activeEngine, loadSongIntoEngine, abortActiveCrossfade, clearEndWatch, setPlaying, isPlaying, fadeVolumeA, fadeVolumeB]);
 
   // Media Session API registration
   useEffect(() => {
@@ -1229,7 +1233,7 @@ export function usePlaybackCore({
         clock.ended ||
         (clock.dur > 0 && clock.current >= clock.dur - 0.5);
 
-      if (nearEnd && !isCrossfadingRef.current) {
+      if (nearEnd && !isCrossfadingRef.current && !isTransitioningRef.current) {
         void handleNextSongRef.current();
         return;
       }
@@ -1304,12 +1308,12 @@ export function usePlaybackCore({
     const audioB = audioRefB.current;
 
     const onEndedA = () => {
-      if (isCrossfadingRef.current) return;
+      if (isCrossfadingRef.current || isTransitioningRef.current) return;
       if (activeEngineRef.current !== 'A') return;
       void handleNextSongRef.current();
     };
     const onEndedB = () => {
-      if (isCrossfadingRef.current) return;
+      if (isCrossfadingRef.current || isTransitioningRef.current) return;
       if (activeEngineRef.current !== 'B') return;
       void handleNextSongRef.current();
     };
