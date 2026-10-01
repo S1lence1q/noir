@@ -2000,10 +2000,11 @@ export default function App() {
                   }}
                   showLyrics={lyricsActive}
                   onShowLyrics={setShowLyrics}
-                  lyrics={lyrics}
-                  isLoadingLyrics={isLoadingLyrics}
+                  // The new title shows while its stream is still being found; the lyrics held belong to the old song.
+                  lyrics={pendingSong ? [] : lyrics}
+                  isLoadingLyrics={isLoadingLyrics || !!pendingSong}
                   isLyricsSynced={isLyricsSynced}
-                  currentLyricIndex={currentLyricIndex}
+                  currentLyricIndex={pendingSong ? -1 : currentLyricIndex}
                   lyricsOffset={lyricsOffset}
                   onNudgeLyrics={nudgeLyricsOffset}
                   onResetLyricsOffset={resetLyricsOffset}

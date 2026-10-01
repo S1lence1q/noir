@@ -135,12 +135,19 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
   const [isLyricsSynced, setIsLyricsSynced] = useState(false);
   const [isLyricsModalOpen, setIsLyricsModalOpen] = useState(false);
   const [lyricsVersion, setLyricsVersion] = useState(0);
-  const [candidates, setCandidates] = useState<LyricsTrack[] | null>(null);
+  // The versions found for one song, with the song they were found for: a late or leftover answer for
+  // another song must never be applied to the one playing now.
+  const [candidates, setCandidates] = useState<{ key: string; list: LyricsTrack[] } | null>(null);
   // Seconds the timing is shifted by: guessed from the length difference, or set by the listener.
   const timingControls = useLyricsTimingControls();
   const [guessedOffset, setGuessedOffset] = useState(0);
   const [userOffset, setUserOffset] = useState<number | null>(null);
   const [isCustomLyrics, setIsCustomLyrics] = useState(false);
+  // Which song the lines in state were loaded for. Between a song change and the lookup starting, they still
+  // belong to the previous song and must not be shown under the new title.
+  const songKey = `${songData.title}::${songData.artist}::${songData.videoId ?? ''}`;
+  const [loadedFor, setLoadedFor] = useState('');
+  const isStale = !!songData.title && loadedFor !== songKey;
   // The offset belongs to this upload of the song (a video's intro), so it is keyed by video when known.
   const offsetKey = songData.videoId || lyricsKey(songData.title, songData.artist);
   // Right after a song change the player can still report the previous song's time for a moment.
@@ -205,18 +212,18 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
   }, [songData.title, songData.artist, songData.videoId]);
 
   useEffect(() => {
-    if (!candidates) return;
+    if (!candidates || candidates.key !== songKey) return;
     // Picking without the length means guessing (synced vs plain, which version), and the guess gets
     // corrected a moment later — the visible flip. Stay in "loading" until the length is known,
     // unless the answer doesn't depend on it (nothing found, or nothing to compare against).
-    if (roundedDuration <= 0 && !durationWaitOver && needsDuration(candidates)) return;
-    const { lines, synced, guessedOffset: guess } = pickLyrics(candidates, roundedDuration, timingControls);
+    if (roundedDuration <= 0 && !durationWaitOver && needsDuration(candidates.list)) return;
+    const { lines, synced, guessedOffset: guess } = pickLyrics(candidates.list, roundedDuration, timingControls);
     setLyrics(lines);
     setGuessedOffset(guess);
     setIsLyricsSynced(synced);
     // Loading ends here, in the same render that has the lines — never a frame of "loaded, but empty".
     setIsLoadingLyrics(false);
-  }, [candidates, roundedDuration, durationWaitOver, timingControls]);
+  }, [candidates, songKey, roundedDuration, durationWaitOver, timingControls]);
 
   useEffect(() => {
     if (shiftedLyrics.length === 0 || !isLyricsSynced) return;
@@ -238,6 +245,7 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
   useEffect(() => {
     if (!songData.title) return;
 
+    setLoadedFor(songKey);
     let isMounted = true;
     const fetchLyricsData = async () => {
       // Already known (prefetched or heard before): swap in one step, never passing through empty,
@@ -251,7 +259,7 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
         setLyrics([]);
         setIsLyricsSynced(false);
         setCurrentLyricIndex(-1);
-        setCandidates([...known]); // fresh array: replaying the same song must still re-run the pick
+        setCandidates({ key: songKey, list: [...known] }); // fresh object: replaying the same song must still re-run the pick
         return;
       }
       setIsLoadingLyrics(true);
@@ -285,7 +293,7 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
       try {
         // The candidates effect picks the lines and ends the loading state together.
         const data = await fetchCandidates(songData.title, songData.artist);
-        if (isMounted) setCandidates(data);
+        if (isMounted) setCandidates({ key: songKey, list: data });
       } catch (err) {
         console.error('Lyrics fetch error:', err);
         if (isMounted) {
@@ -305,9 +313,9 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
   return {
     showLyrics,
     setShowLyrics,
-    lyrics: shiftedLyrics,
-    isLoadingLyrics,
-    currentLyricIndex,
+    lyrics: isStale ? [] : shiftedLyrics,
+    isLoadingLyrics: isLoadingLyrics || isStale,
+    currentLyricIndex: isStale ? -1 : currentLyricIndex,
     isLyricsSynced,
     isLyricsModalOpen,
     setIsLyricsModalOpen,
