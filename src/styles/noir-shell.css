@@ -5694,7 +5694,8 @@ button.noir-now-playing-source:hover {
 }
 .noir-grain-field-img {
   position: absolute;
-  inset: 0;
+  /* Oversized, so the swap's 0.94 start scale never shows an edge. */
+  inset: -4%;
   background-size: cover;
   background-position: center;
   image-rendering: pixelated;
