@@ -1771,9 +1771,21 @@ button.noir-now-playing-source:hover {
 
 /* Over the grain field the checker pattern fights the rows: sink it behind a dark, blurred pane. */
 .noir-now-playing-queue.is-over-grain {
-  background: rgba(0, 0, 0, 0.5);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
+  border-left-color: transparent;
+}
+
+/* The pane eases in from the left edge instead of starting as a hard seam. */
+.noir-now-playing-queue.is-over-grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.42);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
+  mask-image: linear-gradient(to right, transparent 0, black 140px);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 140px);
 }
 
 /* Fixed-width content: the rail animates its width, the list inside never reflows mid-slide. */
