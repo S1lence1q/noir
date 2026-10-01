@@ -10,9 +10,6 @@ import { NoirHistoryHero } from './NoirHistoryHero';
 type NoirHistoryViewProps = {
   favorites: SearchResult[];
   recentTracks: SearchResult[];
-  /** What's loaded in the player: the hero follows it, so it never lags behind what you hear. */
-  activeTrack?: SearchResult | null;
-  isPlaying?: boolean;
   onPlayPlaylist: (tracks: SearchResult[], label?: string, startIndex?: number) => void;
   onAddToQueue: (song: SearchResult) => void;
   onPlayNext?: (song: SearchResult) => void;
@@ -48,8 +45,6 @@ function dayLabel(ts: number, now = new Date()): string {
 export function NoirHistoryView({
   favorites,
   recentTracks,
-  activeTrack = null,
-  isPlaying = false,
   onPlayPlaylist,
   onAddToQueue,
   onPlayNext,
@@ -111,6 +106,36 @@ export function NoirHistoryView({
     return out;
   }, [events, limit, known]);
 
+  // The week's most played song (ties go to the newest). Nothing this week: the last one played.
+  const hero = useMemo(() => {
+    if (!events || events.length === 0) return null;
+    const since = Date.now() - 7 * 86_400_000;
+    const counts = new Map<string, { event: ListeningEvent; plays: number }>();
+    let previous = '';
+    // Newest first, like `events`: a song straight after itself is one play.
+    for (const e of events) {
+      if (e.startedAt < since) break;
+      const key = trackKey(e.title, e.artist);
+      const dayKey = `${new Date(e.startedAt).toDateString()}|${key}`;
+      if (dayKey === previous) continue;
+      previous = dayKey;
+      const hit = counts.get(key);
+      if (hit) hit.plays += 1;
+      else counts.set(key, { event: e, plays: 1 });
+    }
+    let top: { event: ListeningEvent; plays: number } | null = null;
+    for (const entry of counts.values()) if (!top || entry.plays > top.plays) top = entry;
+    const event = top?.event ?? events[0];
+    const track: SearchResult = known.get(trackKey(event.title, event.artist)) ?? {
+      id: `history:${event.songKey}`,
+      title: event.title,
+      artist: event.artist,
+      thumbnail: '',
+      videoId: '',
+    };
+    return { track, plays: top?.plays ?? 0 };
+  }, [events, known]);
+
   // The day as a queue, each song once (a day can hold the same song twice; the queue can't).
   const playFromDay = (tracks: SearchResult[], index: number) => {
     const seen = new Set<string>();
@@ -150,13 +175,12 @@ export function NoirHistoryView({
 
   return (
     <div className="noir-history flex flex-col pb-6">
-      {(activeTrack || days[0]) && (
+      {hero && (
         <NoirHistoryHero
-          track={activeTrack ?? days[0].tracks[0]}
-          playingNow={!!activeTrack && isPlaying}
-          onPlay={() =>
-            activeTrack ? onPlayPlaylist([activeTrack], strings.library.historyStation, 0) : playFromDay(days[0].tracks, 0)
-          }
+          track={hero.track}
+          eyebrow={hero.plays > 0 ? strings.library.historyTopWeek : strings.library.historyLastPlayed}
+          meta={hero.plays > 0 ? strings.library.historyTopWeekMeta(hero.track.artist, hero.plays) : hero.track.artist}
+          onPlay={() => onPlayPlaylist([hero.track], strings.library.historyStation, 0)}
         />
       )}
       {days.map((day) => (

@@ -29,8 +29,6 @@ export type LibraryFocus = {
 export type NoirLibraryViewProps = {
   favorites: SearchResult[];
   recentTracks?: SearchResult[];
-  activeTrack?: SearchResult | null;
-  isPlaying?: boolean;
   focus?: LibraryFocus | null;
   onPlaylistOpenChange?: (playlistId: string | null) => void;
   onSectionChange?: (section: LibrarySection) => void;
@@ -55,8 +53,6 @@ const SECTIONS: { id: LibrarySection; label: string; icon: typeof ListMusic }[] 
 export function NoirLibraryView({
   favorites,
   recentTracks = [],
-  activeTrack = null,
-  isPlaying = false,
   focus = null,
   onPlaylistOpenChange,
   onSectionChange,
@@ -333,8 +329,6 @@ export function NoirLibraryView({
               <NoirHistoryView
                 favorites={favorites}
                 recentTracks={recentTracks}
-                activeTrack={activeTrack}
-                isPlaying={isPlaying}
                 onPlayPlaylist={onPlayPlaylist}
                 onAddToQueue={onAddToQueue}
                 onPlayNext={onPlayNext}

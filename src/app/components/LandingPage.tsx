@@ -501,8 +501,6 @@ export function LandingPage({
                   <NoirLibraryView
                     favorites={favorites}
                     recentTracks={recentlyPlayed}
-                    activeTrack={activeTrack}
-                    isPlaying={isPlaying}
                     focus={libraryFocus}
                     onPlaylistOpenChange={onLibraryPlaylistOpenChange}
                     onSectionChange={onLibrarySectionChange}
