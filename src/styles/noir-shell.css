@@ -1535,16 +1535,37 @@
 /* Grain carries on into the sidebar: the field reaches under it and fades in from its outer edge, so
    the sidebar gets a trace of colour and the seam to the canvas is a slope, not a line. */
 .noir-now-playing-atmosphere.is-grain {
-  left: -248px;
-  mask-image: linear-gradient(to right, transparent 0, rgba(0, 0, 0, 0.5) 248px, black 440px);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, rgba(0, 0, 0, 0.5) 248px, black 440px);
+  --np-sidebar-w: 248px;
+  left: calc(var(--np-sidebar-w) * -1);
+  --np-grain-mask: linear-gradient(
+    to right,
+    transparent 0,
+    rgba(0, 0, 0, 0.5) var(--np-sidebar-w),
+    black calc(var(--np-sidebar-w) + 192px)
+  );
+  mask-image: var(--np-grain-mask);
+  -webkit-mask-image: var(--np-grain-mask);
 }
 
 @media (max-width: 1023px) {
   .noir-now-playing-atmosphere.is-grain {
-    left: -72px;
-    mask-image: linear-gradient(to right, transparent 0, rgba(0, 0, 0, 0.5) 72px, black 260px);
-    -webkit-mask-image: linear-gradient(to right, transparent 0, rgba(0, 0, 0, 0.5) 72px, black 260px);
+    --np-sidebar-w: 72px;
+  }
+}
+
+/* Queue open beside the stage: fade out to the right the same way, so both side panels sit on an
+   equally faint field and the strongest colour is in the middle. */
+@media (min-width: 961px) {
+  .noir-now-playing:not(.is-side-collapsed) .noir-now-playing-atmosphere.is-grain {
+    --np-grain-mask: linear-gradient(
+      to right,
+      transparent 0,
+      rgba(0, 0, 0, 0.5) var(--np-sidebar-w),
+      black calc(var(--np-sidebar-w) + 192px),
+      black calc(100% - 600px),
+      rgba(0, 0, 0, 0.5) calc(100% - 360px),
+      rgba(0, 0, 0, 0.1) 100%
+    );
   }
 }
 
