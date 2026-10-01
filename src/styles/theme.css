@@ -340,8 +340,8 @@
 
 :root {
   --font-size: 16px;
-  --background: #ffffff;
-  --foreground: oklch(0.145 0 0);
+  --background: #000000;
+  --foreground: oklch(0.985 0 0);
   --card: #ffffff;
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -483,15 +483,12 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Outfit', sans-serif;
+    background-color: #000000;
   }
-
-  /**
-  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
-  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
-  */
 
   html {
     font-size: var(--font-size);
+    background-color: #000000;
   }
 
   h1 {

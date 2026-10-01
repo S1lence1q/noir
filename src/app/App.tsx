@@ -1796,7 +1796,7 @@ export default function App() {
     <div
       ref={containerRef}
       data-accent={accentColor}
-      className="size-full relative overflow-hidden bg-[#0a0a0a] flex items-center justify-center"
+      className="size-full min-h-full min-h-screen min-h-[100dvh] relative overflow-hidden bg-[#000000] flex items-center justify-center"
     >
 
       {/* Premium Multi-Color Ambient Background & Vector Grid */}

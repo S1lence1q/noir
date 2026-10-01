@@ -93,7 +93,7 @@ export function AppShell({
         onDropSongToPlaylist={onDropSongToPlaylist}
       />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col bg-[#000000]">
         {/* overflow-visible: the Now Playing cover flies up from the bar and must not be clipped at this edge. */}
         <main className="noir-canvas relative min-h-0 flex-1 overflow-visible">
           <div className="noir-canvas-grain" aria-hidden />
