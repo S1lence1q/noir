@@ -257,12 +257,62 @@ export function renderDitherCover(source: string, world: ColorWorld, seed: strin
 const grainCache = new Map<string, Promise<string>>();
 
 /**
+ * Auto-levels for a grain field (RGBA, in place): stretch brightness between its 4th and 96th
+ * percentile, scale each pixel's colour to match, and push saturation. A near-grey field is first
+ * tinted toward `tint`, since saturation can't invent colour.
+ */
+function liftField(d: Uint8ClampedArray, tint?: string) {
+  const n = d.length / 4;
+  const lum = new Float32Array(n);
+  let chroma = 0;
+  for (let i = 0; i < n; i++) {
+    const r = d[i * 4], g = d[i * 4 + 1], b = d[i * 4 + 2];
+    lum[i] = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    chroma += (Math.max(r, g, b) - Math.min(r, g, b)) / 255;
+  }
+  chroma /= n;
+  const sorted = Float32Array.from(lum).sort();
+  const lo = sorted[Math.floor(n * 0.04)];
+  const hi = Math.max(lo + 0.12, sorted[Math.floor(n * 0.96)]);
+  const [tr, tg, tb] = tint ? hexToRgb(tint) : [0, 0, 0];
+  const greyMix = tint && chroma < 0.09 ? 0.7 : 0;
+  for (let i = 0; i < n; i++) {
+    const o = i * 4;
+    const stretched = Math.min(1, Math.max(0, (lum[i] - lo) / (hi - lo)));
+    const target = 0.1 + 0.9 * stretched;
+    let r = d[o], g = d[o + 1], b = d[o + 2];
+    if (greyMix) {
+      const l = Math.max(lum[i], 0.05);
+      r += (tr * l - r) * greyMix;
+      g += (tg * l - g) * greyMix;
+      b += (tb * l - b) * greyMix;
+    }
+    const k = Math.min(3.5, Math.max(0.6, target / Math.max(lum[i], 0.03)));
+    r *= k; g *= k; b *= k;
+    const grey = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    const sat = 1.4;
+    d[o] = Math.min(255, grey + (r - grey) * sat);
+    d[o + 1] = Math.min(255, grey + (g - grey) * sat);
+    d[o + 2] = Math.min(255, grey + (b - grey) * sat);
+  }
+}
+
+/**
  * Atmosphere in the cover's own colours, as grain instead of blur: the cover is reduced to a soft
  * colour field, then its brightness is ordered-dithered (hue kept). Shown scaled up, pixelated.
  * Returns a PNG data URL (small — `cells` px square).
  */
-export function renderGrainField(source: string, cells = 220): Promise<string> {
-  const key = `${source}|${cells}|lum`;
+export type GrainFieldOptions = {
+  /**
+   * For hero panels: stretch the field's brightness to the full range and lift its colour, so dark,
+   * pale and grey covers still show grain. `tint` colours a near-grey cover (a hex, e.g. its world).
+   */
+  levels?: { tint?: string };
+};
+
+export function renderGrainField(source: string, cells = 220, options: GrainFieldOptions = {}): Promise<string> {
+  const levels = options.levels;
+  const key = `${source}|${cells}|lum${levels ? `|lv:${levels.tint ?? ''}` : ''}`;
   const hit = grainCache.get(key);
   if (hit) return hit;
   const job = (async () => {
@@ -282,6 +332,7 @@ export function renderGrainField(source: string, cells = 220): Promise<string> {
     //    toward black. Two tones per area, like the covers — no per-channel rainbow noise.
     const data = fctx.getImageData(0, 0, cells, cells);
     const d = data.data;
+    if (levels) liftField(d, levels.tint);
     for (let y = 0; y < cells; y++) {
       for (let x = 0; x < cells; x++) {
         const t = BAYER_8[(y % 8) * 8 + (x % 8)];

@@ -5688,18 +5688,16 @@ button.noir-now-playing-source:hover {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background-size: cover;
-  background-position: center;
-  image-rendering: pixelated;
-  filter: saturate(1.7) contrast(1.06);
-  opacity: 0;
-  transition: opacity 0.6s var(--noir-ease-out, ease-out);
   /* Text side stays black; the grain gathers toward the right edge. */
   -webkit-mask-image: linear-gradient(to right, transparent 22%, rgba(0, 0, 0, 0.12) 36%, rgba(0, 0, 0, 0.4) 52%, rgba(0, 0, 0, 0.78) 72%, #000 92%);
   mask-image: linear-gradient(to right, transparent 22%, rgba(0, 0, 0, 0.12) 36%, rgba(0, 0, 0, 0.4) 52%, rgba(0, 0, 0, 0.78) 72%, #000 92%);
 }
-.noir-grain-field[data-ready] {
-  opacity: 1;
+.noir-grain-field-img {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  image-rendering: pixelated;
 }
 .noir-history-hero-copy {
   display: flex;
