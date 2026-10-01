@@ -113,6 +113,10 @@ Principle: motion explains cause → effect (where did it go, what changed). One
 - [x] ⚪ Shortcut map was the old Elva modal ("Elva Power-User Map", accent glows, 32 px radius). Rebuilt on the search palette's surface, grouped Playback / Now Playing / Go to.
 - [x] 🟡 Tab title shows the playing song ("Title · Artist", NOIR when paused); lock screen / OS media UI gets position (`setPositionState`).
 
+### Open (noted 2026-10-01)
+- [ ] 🔴 Artist profile for **Mas** shows the wrong artist (a different act with a similar name). Find out why identity resolution picks it (search ranking in `utils/api/artistHelpers.ts`, `ArtistIdentity`) and fix it.
+- [ ] 🟡 Lyrics coverage: lrclib has few/no synced lyrics for newer Danish artists (D1ma's new songs, Wicky, Gilli, Branco, Specktors, Rasmus Seebach...). Decision pending on a second source (Musixmatch via a small proxy) — see `LYRICS_ENHANCEMENT_PLAN.md`; measured 2026-10-01: big English songs ~100 % synced, new Danish mostly none.
+
 ### Later
 - [x] T22 quiet tooltips: one `NoirTooltipHost` (portal, 400 ms hover / instant keyboard focus, never touch, 40 ch). Every shell `title=` (34) moved to `data-tip` — no more native grey bubbles. Search ★ + File carry the ticket copy (`strings.tips`, no Apple Music mention). Sidebar rail items tip to the right only while labels are hidden (`data-tip-rail`).
 - [x] History in Library (D5): Library › History, every listen ≥ 20 s newest first, grouped Today / Yesterday / weekday / date, play count per day; rows play from that day onward; consecutive repeats collapse; seed listens excluded; "Show earlier" pages by 120. Verified: 22 rows, no consecutive repeats, a row plays with the rest of the day queued.
