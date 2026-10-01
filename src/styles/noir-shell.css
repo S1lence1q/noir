@@ -1550,6 +1550,10 @@
   height: 100%;
   object-fit: cover;
   image-rendering: pixelated;
+  /* Stay on its own compositor layer: when the fade ends Chrome would otherwise re-raster the
+     pixelated image and it lands ~1px off, which showed as a jump on every song skip. */
+  will-change: opacity, transform;
+  transform: translateZ(0);
 }
 
 .noir-now-playing-atmosphere-wash {
@@ -1763,6 +1767,13 @@ button.noir-now-playing-source:hover {
   min-height: 0;
   overflow: hidden;
   border-left: 1px solid var(--noir-rule-faint);
+}
+
+/* Over the grain field the checker pattern fights the rows: sink it behind a dark, blurred pane. */
+.noir-now-playing-queue.is-over-grain {
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
 }
 
 /* Fixed-width content: the rail animates its width, the list inside never reflows mid-slide. */

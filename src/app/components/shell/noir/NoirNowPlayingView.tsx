@@ -528,7 +528,7 @@ export function NoirNowPlayingView({
         {sidePanelOpen && (
           <motion.aside
             key="np-side"
-            className="noir-now-playing-queue"
+            className={`noir-now-playing-queue${atmosphere === 'grain' ? ' is-over-grain' : ''}`}
             aria-label={strings.nextUp.title}
             /* Side-by-side: the rail opens in width so the stage reflows with it instead of snapping. */
             initial={reduced || stacked ? { opacity: 0 } : { opacity: 0, width: 0 }}
