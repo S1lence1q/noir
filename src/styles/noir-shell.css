@@ -5691,6 +5691,7 @@ button.noir-now-playing-source:hover {
   background-size: cover;
   background-position: center;
   image-rendering: pixelated;
+  filter: saturate(1.7) contrast(1.06);
   opacity: 0;
   transition: opacity 0.6s var(--noir-ease-out, ease-out);
   /* Text side stays black; the grain gathers toward the right edge. */
@@ -5708,6 +5709,7 @@ button.noir-now-playing-source:hover {
   height: 100%;
   max-width: 46%;
   padding: 0 32px;
+  animation: noir-dither-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .noir-history-hero-eyebrow {
   margin: 0;

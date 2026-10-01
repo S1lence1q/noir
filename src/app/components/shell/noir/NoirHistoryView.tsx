@@ -10,6 +10,9 @@ import { NoirHistoryHero } from './NoirHistoryHero';
 type NoirHistoryViewProps = {
   favorites: SearchResult[];
   recentTracks: SearchResult[];
+  /** What's loaded in the player: the hero follows it, so it never lags behind what you hear. */
+  activeTrack?: SearchResult | null;
+  isPlaying?: boolean;
   onPlayPlaylist: (tracks: SearchResult[], label?: string, startIndex?: number) => void;
   onAddToQueue: (song: SearchResult) => void;
   onPlayNext?: (song: SearchResult) => void;
@@ -45,6 +48,8 @@ function dayLabel(ts: number, now = new Date()): string {
 export function NoirHistoryView({
   favorites,
   recentTracks,
+  activeTrack = null,
+  isPlaying = false,
   onPlayPlaylist,
   onAddToQueue,
   onPlayNext,
@@ -145,7 +150,15 @@ export function NoirHistoryView({
 
   return (
     <div className="noir-history flex flex-col pb-6">
-      {days[0] && <NoirHistoryHero track={days[0].tracks[0]} onPlay={() => playFromDay(days[0].tracks, 0)} />}
+      {(activeTrack || days[0]) && (
+        <NoirHistoryHero
+          track={activeTrack ?? days[0].tracks[0]}
+          playingNow={!!activeTrack && isPlaying}
+          onPlay={() =>
+            activeTrack ? onPlayPlaylist([activeTrack], strings.library.historyStation, 0) : playFromDay(days[0].tracks, 0)
+          }
+        />
+      )}
       {days.map((day) => (
         <section key={day.label} className="noir-history-day">
           <h3 className="noir-history-day-label">

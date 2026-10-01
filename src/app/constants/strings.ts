@@ -163,6 +163,7 @@ export const strings = {
     historyEmptyHint: 'Everything you listen to lands here, day by day.',
     historyMore: 'Show earlier',
     historyLastPlayed: 'Last played',
+    historyPlayingNow: 'Playing now',
     historyPlayAgain: 'Play again',
     historyPlays: (n: number) => (n === 1 ? '1 play' : `${n} plays`),
   },
