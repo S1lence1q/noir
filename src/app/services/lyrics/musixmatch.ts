@@ -1,3 +1,4 @@
+import { readExtraLyricsSource } from '../../utils/lyricsSources';
 import type { LyricsProvider, LyricsTrack } from './types';
 
 /**
@@ -13,6 +14,9 @@ export const musixmatchProvider: LyricsProvider | null = PROXY_URL
   ? {
       name: 'musixmatch',
       async lookup(title, artist) {
+        if (!readExtraLyricsSource()) return { list: [], complete: true };
+        // No artist to check the match against: too easy to return the wrong song.
+        if (!artist) return { list: [], complete: true };
         const res = await fetch(`${PROXY_URL}/lyrics?${new URLSearchParams({ title, artist })}`);
         if (res.status === 404) return { list: [], complete: true };
         if (!res.ok) throw new Error('Lyrics proxy error');

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { ChevronRight, Globe, Info, Keyboard, Volume1, Volume2, VolumeX, Waves, Palette } from 'lucide-react';
 import { readAtmosphereMode, setAtmosphereMode, type AtmosphereMode } from '../../../utils/atmosphere';
 import { readLyricsTimingControls, setLyricsTimingControls } from '../../../utils/lyricsTiming';
+import { EXTRA_LYRICS_SOURCE_AVAILABLE, readExtraLyricsSource, setExtraLyricsSource } from '../../../utils/lyricsSources';
 import * as Slider from '@radix-ui/react-slider';
 import { STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { showMiniHUD } from '../../../utils/hudUtils';
@@ -133,6 +134,7 @@ export function NoirSettingsView() {
   const [autoplay, setAutoplay] = useState<AutoplayPreference>(() => readAutoplayPreference());
   const [atmosphere, setAtmosphere] = useState<AtmosphereMode>(readAtmosphereMode);
   const [lyricsTiming, setLyricsTiming] = useState(readLyricsTimingControls);
+  const [extraLyrics, setExtraLyrics] = useState(readExtraLyricsSource);
 
   const gapless = crossfade === 0;
 
@@ -301,6 +303,25 @@ export function NoirSettingsView() {
             }}
           />
         </SettingsRow>
+
+        {EXTRA_LYRICS_SOURCE_AVAILABLE && (
+          <>
+            <div className="noir-settings-divider" />
+
+            <SettingsRow
+              label="Extra lyrics source"
+              description="Experimental. Looks for synced lyrics elsewhere when the main source has none. May stop working at any time"
+            >
+              <NoirSwitch
+                checked={extraLyrics}
+                onChange={(on) => {
+                  setExtraLyrics(on);
+                  setExtraLyricsSource(on);
+                }}
+              />
+            </SettingsRow>
+          </>
+        )}
       </SettingsCard>
 
       <SettingsCard title="Appearance" icon={Palette}>
