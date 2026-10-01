@@ -130,8 +130,8 @@ src/
 *Done since last update:* T22 quiet tooltips (`NoirTooltipHost`, 800 ms delay). Graphics theme: one Settings choice, **Heat / Grain** (`utils/graphicsTheme.ts`), read by Now Playing, History hero and Home hero. Library › History has a "Most played this week" hero and an empty state; both follow the theme (`NoirGrainField` is the shared grain panel, levelled for dark/pale/grey covers).
 
 **In progress (next session picks up here):**
-1. Audio fades: check what the dual-engine crossfade already does; soft fade on pause/resume and on skip.
-2. Alignment audit of the shell (measure edges/gaps with JS on every screen).
+1. **Playback bug (reported, rare, not reproduced):** Favorites › "Add 10", then click the *first* song in the queue → it skips the clicked song and plays the next one. Suspects: `handleSelectFromQueue` / `handleSelectSong(…, isCrossfade)` in `App.tsx`, the dual-engine crossfade in `hooks/usePlaybackCore.ts` (`isCrossfadingRef`, end-watch, `ENDED` handling), and the 400 ms `fadeVolume(0)` before `onSelectFromQueue` in `MusicPlayer.tsx`. Crossfade is also a Settings option and may be unstable. Audio fades already exist (fade in 800 ms, fade out 400 ms on select, equal-power crossfade between engines A/B): no new fade work needed unless pause/skip turn out to be abrupt.
+2. Alignment audit of the shell (measure edges/gaps with JS on every screen). Includes the toast: `.noir-toast-host` is centred on the whole window (`left: 50%`), but the player controls are centred on the content area (sidebar excluded), so the toast sits left of them. Centre it on the content area.
 3. The six mandatory states (empty, loading, partial, error, offline, done) per screen: Discover, Artist, Search, Home, Library.
 4. Favorites: songs can be added from inside it, like the other playlists.
 
