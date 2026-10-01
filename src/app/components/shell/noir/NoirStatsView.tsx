@@ -24,7 +24,6 @@ import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { MOTION, withReducedMotion } from '../../../utils/motionPresets';
 import { NoirArtwork } from './NoirArtwork';
 import { renderHeatFigure } from '../../../utils/heatFigure';
-import { NoirGraphicAccent } from './NoirGraphicAccent';
 import { NoirHeatWeek, heatWeekNodeX } from './NoirHeatWeek';
 import { NoirHalftoneClock } from './NoirHalftoneClock';
 import { NoirReplayStory } from './NoirReplayStory';
@@ -222,13 +221,32 @@ export function NoirStatsView({ favorites = [], recentTracks = [] }: NoirStatsVi
   }
 
   if (!summary || events.length === 0) {
+    const emptyWeek = lastSevenDays([]);
     return (
       <div className="noir-stats noir-stats--empty">
-        <NoirGraphicAccent graphic="sprayAsterisk" className="noir-library-empty-spray" />
-        <p className="relative text-[15px] text-[color:var(--noir-text-primary)]">{strings.stats.emptyTitle}</p>
-        <p className="relative mt-2 max-w-sm text-[14px] text-[color:var(--noir-text-secondary)]">
-          {strings.stats.emptyBody}
-        </p>
+        {/* The same heat form as the real week, still flat: it swells once you listen. */}
+        <section className="noir-stats-hero">
+          <NoirHeatWeek
+            values={emptyWeek.map((day) => day.minutes)}
+            seed="your-week"
+            className="noir-stats-hero-canvas"
+          />
+          <div className="noir-stats-hero-copy">
+            <p className="noir-stats-hero-value noir-stats-hero-value--empty">{strings.stats.emptyTitle}</p>
+            <p className="noir-stats-hero-sub">{strings.stats.emptyBody}</p>
+          </div>
+          <ol className="noir-stats-hero-days" aria-hidden>
+            {emptyWeek.map((day, i) => (
+              <li
+                key={i}
+                style={{ left: `${heatWeekNodeX(i, emptyWeek.length) * 100}%` }}
+                data-today={i === emptyWeek.length - 1 || undefined}
+              >
+                {day.label}
+              </li>
+            ))}
+          </ol>
+        </section>
       </div>
     );
   }

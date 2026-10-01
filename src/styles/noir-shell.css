@@ -663,20 +663,6 @@
   transform: translateY(-55%);
 }
 
-.noir-library-empty-spray {
-  pointer-events: none;
-  position: absolute;
-  top: 42%;
-  right: 4%;
-  z-index: 0;
-  width: min(220px, 42vw);
-  max-width: 260px;
-  opacity: 0.28;
-  transform: translateY(-50%) rotate(-8deg);
-  -webkit-mask-image: radial-gradient(ellipse 70% 68% at 50% 48%, #000 30%, transparent 78%);
-  mask-image: radial-gradient(ellipse 70% 68% at 50% 48%, #000 30%, transparent 78%);
-}
-
 .noir-accent-wave-hero {
   pointer-events: none;
   position: absolute;
@@ -4622,7 +4608,10 @@ button.noir-now-playing-source:hover {
 
 .noir-stats--empty {
   position: relative;
-  padding-top: 48px;
+}
+
+.noir-stats-hero .noir-stats-hero-value--empty {
+  font-size: 30px;
 }
 
 .noir-stats-skeleton {
