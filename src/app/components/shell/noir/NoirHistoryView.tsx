@@ -170,6 +170,7 @@ export function NoirHistoryView({
       {hero && (
         <NoirHistoryHero
           track={hero.track}
+          plays={hero.plays}
           eyebrow={hero.plays > 0 ? strings.library.historyTopWeek : strings.library.historyLastPlayed}
           meta={hero.plays > 0 ? strings.library.historyTopWeekMeta(hero.track.artist, hero.plays) : hero.track.artist}
           onPlay={() => onPlayPlaylist([hero.track], strings.library.historyStation, 0)}

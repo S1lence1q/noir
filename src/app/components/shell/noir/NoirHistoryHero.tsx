@@ -3,6 +3,8 @@ import { Play } from 'lucide-react';
 import type { SearchResult } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { COLOR_WORLDS, renderGrainField, worldForCollection } from '../../../utils/ditherCover';
+import { NoirHistoryHeat } from './NoirHistoryHeat';
+import { heroField, heroInk, heroWorld } from './NoirHomeHero';
 
 /**
  * History's one graphic: a song from your history as grain in its own cover's colours (the same
@@ -13,19 +15,23 @@ export function NoirHistoryHero({
   track,
   eyebrow,
   meta,
+  plays,
   onPlay,
 }: {
   track: SearchResult;
   eyebrow: string;
   meta: string;
+  plays: number;
   onPlay: () => void;
 }) {
+  const art = readHistoryArt();
+  const heatWorld = heroWorld(track);
   const [grain, setGrain] = useState<string | null>(null);
   const world = COLOR_WORLDS[worldForCollection(`${track.artist}:${track.title}`)];
 
   useEffect(() => {
     setGrain(null);
-    if (!track.thumbnail) return;
+    if (art !== 'grain' || !track.thumbnail) return;
     let cancelled = false;
     renderGrainField(track.thumbnail)
       .then((url) => !cancelled && setGrain(url))
@@ -33,16 +39,23 @@ export function NoirHistoryHero({
     return () => {
       cancelled = true;
     };
-  }, [track.thumbnail]);
+  }, [track.thumbnail, art]);
 
   return (
-    <section className="noir-history-hero">
+    <section
+      className="noir-history-hero"
+      data-art={art}
+      style={art === 'heat' ? { background: heroField(heatWorld), color: heroInk(heatWorld) } : undefined}
+    >
+      {art === 'heat' && <NoirHistoryHeat world={heatWorld} seed={`${track.id}|${plays}`} plays={plays} />}
+      {art === 'grain' && (
       <div
         className="noir-history-hero-field"
         data-ready={grain || !track.thumbnail ? 'true' : undefined}
         style={grain ? { backgroundImage: `url(${grain})` } : { background: world.field }}
         aria-hidden
       />
+      )}
       <div className="noir-history-hero-copy">
         <p className="noir-history-hero-eyebrow">{eyebrow}</p>
         <h2 className="noir-history-hero-title" data-tip={track.title}>
@@ -61,4 +74,18 @@ export function NoirHistoryHero({
       </div>
     </section>
   );
+}
+
+/** Which graphic History wears. `?historyArt=heat|grain` is remembered; a Settings choice can take over later. */
+export type HistoryArt = 'grain' | 'heat';
+const HISTORY_ART_KEY = 'noir_history_art';
+
+function readHistoryArt(): HistoryArt {
+  try {
+    const param = new URLSearchParams(window.location.search).get('historyArt');
+    if (param === 'grain' || param === 'heat') localStorage.setItem(HISTORY_ART_KEY, param);
+    return localStorage.getItem(HISTORY_ART_KEY) === 'heat' ? 'heat' : 'grain';
+  } catch {
+    return 'grain';
+  }
 }
