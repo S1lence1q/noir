@@ -162,10 +162,9 @@ export const strings = {
     historyEmpty: 'Nothing played yet',
     historyEmptyHint: 'Everything you listen to lands here, day by day.',
     historyMore: 'Show earlier',
+    historyLastPlayed: 'Last played',
+    historyPlayAgain: 'Play again',
     historyPlays: (n: number) => (n === 1 ? '1 play' : `${n} plays`),
-    historyStripStart: '30 days ago',
-    historyStripLabel: 'Plays per day, last 30 days',
-    historyStripTip: (day: string, n: number) => `${day} · ${n === 1 ? '1 play' : `${n} plays`}`,
   },
   tips: {
     search: 'Search songs or artists. You can also paste a YouTube link.',

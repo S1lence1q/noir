@@ -5670,72 +5670,72 @@ button.noir-now-playing-source:hover {
   color: var(--noir-text-primary);
 }
 
-/* Library › History strip: 30 days as halftone columns. Fixed height; Ember marks the peak day. */
-.noir-history-strip,
-.noir-history-strip-skeleton {
-  height: 96px;
-  margin: 0 4px 28px;
-}
-.noir-history-strip-skeleton {
+/* Library › History hero: last played song as grain in its own colours. Fixed height. */
+.noir-history-hero,
+.noir-history-hero-skeleton {
   display: block;
-  height: 80px;
-  border-radius: var(--noir-radius-md);
+  height: 208px;
+  margin-bottom: 32px;
+  border-radius: 28px;
 }
-.noir-history-strip-cols {
-  display: grid;
-  grid-template-columns: repeat(30, minmax(0, 1fr));
-  align-items: end;
-  height: 76px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.noir-history-hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #0b0b0b;
 }
-.noir-history-strip-cols li {
+.noir-history-hero-field {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  image-rendering: pixelated;
+  opacity: 0;
+  transition: opacity 0.6s var(--noir-ease-out, ease-out);
+  /* Text side stays black; the grain gathers toward the right edge. */
+  -webkit-mask-image: linear-gradient(to right, transparent 22%, rgba(0, 0, 0, 0.12) 36%, rgba(0, 0, 0, 0.4) 52%, rgba(0, 0, 0, 0.78) 72%, #000 92%);
+  mask-image: linear-gradient(to right, transparent 22%, rgba(0, 0, 0, 0.12) 36%, rgba(0, 0, 0, 0.4) 52%, rgba(0, 0, 0, 0.78) 72%, #000 92%);
+}
+.noir-history-hero-field[data-ready] {
+  opacity: 1;
+}
+.noir-history-hero-copy {
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  align-items: flex-start;
   height: 100%;
+  max-width: 46%;
+  padding: 0 32px;
 }
-.noir-history-strip-col {
-  display: flex;
-  flex-direction: column-reverse;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 3px;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: default;
-}
-button.noir-history-strip-col {
-  cursor: pointer;
-}
-.noir-history-strip-dot {
-  display: block;
-  width: min(7px, 70%);
-  aspect-ratio: 1;
-  border-radius: 999px;
-  background: #ede8de;
-  transition: opacity 0.15s ease;
-}
-.noir-history-strip-dot[data-empty] {
-  width: min(3px, 40%);
-  opacity: 0.22;
-}
-.noir-history-strip-cols li[data-peak] .noir-history-strip-dot {
-  background: #e85002;
-}
-.noir-history-strip-cols:hover li:not(:hover) .noir-history-strip-dot:not([data-empty]) {
-  opacity: 0.35;
-}
-.noir-history-strip-axis {
-  display: flex;
-  justify-content: space-between;
-  margin: 10px 0 0;
+.noir-history-hero-eyebrow {
+  margin: 0;
   font: var(--noir-type-label);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--noir-text-tertiary);
+}
+.noir-history-hero-title {
+  margin: 8px 0 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--noir-text-primary);
+}
+.noir-history-hero-artist {
+  margin: 4px 0 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  color: var(--noir-text-secondary);
 }
 
 /* Library › History: day headings with a quiet play count. */
