@@ -5670,7 +5670,7 @@ button.noir-now-playing-source:hover {
   color: var(--noir-text-primary);
 }
 
-/* Library › History hero: last played song as grain in its own colours. Fixed height. */
+/* Grain graphics theme: a cover as grain in its own colours (History + Home hero). */
 .noir-history-hero,
 .noir-history-hero-skeleton {
   display: block;
@@ -5684,7 +5684,7 @@ button.noir-now-playing-source:hover {
   isolation: isolate;
   background: #0b0b0b;
 }
-.noir-history-hero-field {
+.noir-grain-field {
   position: absolute;
   inset: 0;
   z-index: -1;
@@ -5698,7 +5698,7 @@ button.noir-now-playing-source:hover {
   -webkit-mask-image: linear-gradient(to right, transparent 22%, rgba(0, 0, 0, 0.12) 36%, rgba(0, 0, 0, 0.4) 52%, rgba(0, 0, 0, 0.78) 72%, #000 92%);
   mask-image: linear-gradient(to right, transparent 22%, rgba(0, 0, 0, 0.12) 36%, rgba(0, 0, 0, 0.4) 52%, rgba(0, 0, 0, 0.78) 72%, #000 92%);
 }
-.noir-history-hero-field[data-ready] {
+.noir-grain-field[data-ready] {
   opacity: 1;
 }
 .noir-history-hero-copy {

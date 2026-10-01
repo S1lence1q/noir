@@ -28,6 +28,8 @@ import { DailyMix, loadDailyMixes } from '../../../services/mixes/dailyMixes';
 import { buildStarterMixes, startersActiveToday } from '../../../services/mixes/starterMixes';
 import { worldForCollection, type ColorWorld } from '../../../utils/ditherCover';
 import { NoirHomeHero, heroField, heroInk, heroWorld } from './NoirHomeHero';
+import { NoirGrainField } from './NoirGrainField';
+import { useGraphicsTheme } from '../../../utils/graphicsTheme';
 import { prefetchArtistProfile } from '../../../utils/artistDiscographyLoader';
 
 type SearchPanelPhase = 'idle' | 'loading' | 'results' | 'no-results';
@@ -121,6 +123,7 @@ export function NoirHomeView({
   const [listFrozen, setListFrozen] = useState(false);
 
   const featuredTrack = activeTrack?.title ? activeTrack : recentlyPlayed[0] ?? null;
+  const grainTheme = useGraphicsTheme() === 'grain';
   const featuredKey = featuredTrack ? getPlaybackSongKey(featuredTrack) : null;
   const isFeaturedActive = !!featuredKey && featuredKey === activeSongKey;
   const isFeaturedPlaying = isFeaturedActive && isPlaying;
@@ -302,16 +305,24 @@ export function NoirHomeView({
               The field follows the time of day. Copy sits on the flat left, never on the form. */}
           <motion.section
             className="noir-home-day"
-            data-light={heroWorld(featuredTrack) === 'bone' || undefined}
-            style={{
-              background: heroField(heroWorld(featuredTrack)),
-              color: heroInk(heroWorld(featuredTrack)),
-            }}
+            data-light={(!grainTheme && heroWorld(featuredTrack) === 'bone') || undefined}
+            style={
+              grainTheme
+                ? { background: '#0b0b0b', color: 'var(--noir-text-primary)' }
+                : {
+                    background: heroField(heroWorld(featuredTrack)),
+                    color: heroInk(heroWorld(featuredTrack)),
+                  }
+            }
             initial={reduced ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.42, ease: EASE_PREMIUM }}
           >
-            <NoirHomeHero track={featuredTrack} playing={isFeaturedPlaying} variant="2" size={248} />
+            {grainTheme ? (
+              <NoirGrainField track={featuredTrack} />
+            ) : (
+              <NoirHomeHero track={featuredTrack} playing={isFeaturedPlaying} variant="2" size={248} />
+            )}
             <div className="noir-home-day-copy">
               <h1 className="noir-home-greeting-title">{greeting}</h1>
               <div className="noir-home-day-now">

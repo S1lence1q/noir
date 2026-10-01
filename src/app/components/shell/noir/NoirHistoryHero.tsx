@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
 import { Play } from 'lucide-react';
 import type { SearchResult } from '../../../types';
 import { strings } from '../../../constants/strings';
-import { COLOR_WORLDS, renderGrainField, worldForCollection } from '../../../utils/ditherCover';
 import { useGraphicsTheme } from '../../../utils/graphicsTheme';
+import { NoirGrainField } from './NoirGrainField';
 import { NoirHistoryHeat } from './NoirHistoryHeat';
 import { heroField, heroInk, heroWorld } from './NoirHomeHero';
 
@@ -27,21 +26,6 @@ export function NoirHistoryHero({
 }) {
   const art = useGraphicsTheme();
   const heatWorld = heroWorld(track);
-  const [grain, setGrain] = useState<string | null>(null);
-  const world = COLOR_WORLDS[worldForCollection(`${track.artist}:${track.title}`)];
-
-  useEffect(() => {
-    setGrain(null);
-    if (art !== 'grain' || !track.thumbnail) return;
-    let cancelled = false;
-    renderGrainField(track.thumbnail)
-      .then((url) => !cancelled && setGrain(url))
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [track.thumbnail, art]);
-
   return (
     <section
       className="noir-history-hero"
@@ -49,14 +33,7 @@ export function NoirHistoryHero({
       style={art === 'heat' ? { background: heroField(heatWorld), color: heroInk(heatWorld) } : undefined}
     >
       {art === 'heat' && <NoirHistoryHeat world={heatWorld} seed={`${track.id}|${plays}`} plays={plays} />}
-      {art === 'grain' && (
-      <div
-        className="noir-history-hero-field"
-        data-ready={grain || !track.thumbnail ? 'true' : undefined}
-        style={grain ? { backgroundImage: `url(${grain})` } : { background: world.field }}
-        aria-hidden
-      />
-      )}
+      {art === 'grain' && <NoirGrainField track={track} />}
       <div className="noir-history-hero-copy">
         <p className="noir-history-hero-eyebrow">{eyebrow}</p>
         <h2 className="noir-history-hero-title" data-tip={track.title}>
