@@ -204,7 +204,7 @@ export function NoirLyricsColumn({
             className="noir-lyrics-timing-value elva-focus-ring"
             onClick={onResetOffset}
             aria-label="Reset lyrics timing"
-            title="Reset"
+            data-tip="Reset timing"
           >
             {offset > 0 ? '+' : ''}
             {offset.toFixed(1)}s

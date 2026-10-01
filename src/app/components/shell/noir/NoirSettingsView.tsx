@@ -211,6 +211,7 @@ export function NoirSettingsView() {
               onClick={toggleMute}
               className="text-[color:var(--noir-text-tertiary)] hover:text-white transition-colors shrink-0"
               aria-label={volume === 0 ? 'Unmute' : 'Mute'}
+              data-tip={volume === 0 ? 'Unmute' : 'Mute'}
             >
               {volume === 0 ? (
                 <VolumeX className="h-4 w-4" />
