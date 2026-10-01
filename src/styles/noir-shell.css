@@ -1810,18 +1810,17 @@ button.noir-now-playing-source:hover {
   border-left-color: transparent;
 }
 
-/* The pane eases in from the left edge instead of starting as a hard seam. */
+/* Same treatment as the sidebar: the dither is blurred into a colour wash, with a clear edge where
+   the checker stops. Reads as a panel, and the colour carries through instead of a dark smear. */
 .noir-now-playing-queue.is-over-grain::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: rgba(0, 0, 0, 0.46);
-  -webkit-backdrop-filter: blur(9px);
-  backdrop-filter: blur(9px);
-  mask-image: linear-gradient(to right, transparent 0, black 44px);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, black 44px);
+  background: rgba(0, 0, 0, 0.28);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
 }
 
 /* Fixed-width content: the rail animates its width, the list inside never reflows mid-slide. */
