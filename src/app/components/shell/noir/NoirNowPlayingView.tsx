@@ -202,14 +202,12 @@ export function NoirNowPlayingView({
   const triggerShuffle = () => {
     if (!onShuffleQueue || upNext.length < 2) return;
     if (shuffleResetRef.current != null) window.clearTimeout(shuffleResetRef.current);
-    if (!reduced) {
-      setLayoutMode('shuffle');
-      setShufflePulse((n) => n + 1);
-      shuffleResetRef.current = window.setTimeout(() => {
-        setLayoutMode('drag');
-        shuffleResetRef.current = null;
-      }, SHUFFLE_SETTLE_MS);
-    }
+    setLayoutMode('shuffle');
+    setShufflePulse((n) => n + 1);
+    shuffleResetRef.current = window.setTimeout(() => {
+      setLayoutMode('drag');
+      shuffleResetRef.current = null;
+    }, SHUFFLE_SETTLE_MS);
     onShuffleQueue();
   };
 
@@ -571,11 +569,9 @@ export function NoirNowPlayingView({
                     aria-label={strings.nextUp.shuffle}
                   >
                     <motion.span
-                      key={shufflePulse}
                       className="inline-flex"
-                      initial={reduced || shufflePulse === 0 ? false : { rotate: 0 }}
-                      animate={{ rotate: reduced || shufflePulse === 0 ? 0 : 180 }}
-                      transition={withReducedMotion({ duration: 0.42, ease: EASE_PREMIUM })}
+                      animate={{ rotate: shufflePulse * 360 }}
+                      transition={{ duration: 0.5, ease: EASE_PREMIUM }}
                     >
                       <Shuffle className="h-3.5 w-3.5" strokeWidth={1.75} />
                     </motion.span>
