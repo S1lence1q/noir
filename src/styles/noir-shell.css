@@ -1563,8 +1563,8 @@
       rgba(0, 0, 0, 0.5) var(--np-sidebar-w),
       black calc(var(--np-sidebar-w) + 192px),
       black calc(100% - 600px),
-      rgba(0, 0, 0, 0.5) calc(100% - 360px),
-      rgba(0, 0, 0, 0.1) 100%
+      rgba(0, 0, 0, 0.2) calc(100% - 360px),
+      rgba(0, 0, 0, 0.05) 100%
     );
   }
 }
