@@ -74,11 +74,27 @@ const lyricsInflight = new Map<string, Promise<LrclibTrack[]>>();
 const lyricsKey = (title: string, artist: string) => `${cleanSongTitle(title, artist)}::${artist}`.toLowerCase();
 const isLookupable = (artist: string) => artist !== 'Unknown Artist' && artist !== 'Web Stream';
 
+const RETRY_DELAYS_MS = [500, 1200];
+
+/**
+ * lrclib answers 503 or a non-list body now and then. That is not "no lyrics": retry a couple of times,
+ * and let a persistent failure throw so it is never mistaken for an empty result.
+ */
 async function searchLrclib(params: Record<string, string>): Promise<LrclibTrack[]> {
-  const res = await fetch(`https://lrclib.net/api/search?${new URLSearchParams(params)}`);
-  if (!res.ok) throw new Error('API Error');
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, RETRY_DELAYS_MS[attempt - 1]));
+    try {
+      const res = await fetch(`https://lrclib.net/api/search?${new URLSearchParams(params)}`);
+      if (!res.ok) throw new Error('API Error');
+      const data = await res.json();
+      if (!Array.isArray(data)) throw new Error('Unexpected response');
+      return data;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError;
 }
 
 const normName = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
@@ -92,11 +108,17 @@ function artistMatches(found: string | undefined, wanted: string): boolean {
  * Widening search: exact fields first, then free text, then title alone checked against the artist.
  * The first stage that has synced lyrics wins; if none does, the first stage with plain text is used.
  */
-async function lookupLrclib(title: string, artist: string): Promise<LrclibTrack[]> {
+export type LookupResult = {
+  list: LrclibTrack[];
+  /** False when some searches failed outright, so an empty answer may just be an outage. */
+  complete: boolean;
+};
+
+export async function lookupLrclib(title: string, artist: string): Promise<LookupResult> {
   const artists = isLookupable(artist) ? lyricsArtistVariants(artist) : [];
   const primary = artists[0] ?? '';
   const titles = lyricsTitleVariants(title, artist);
-  if (titles.length === 0) return [];
+  if (titles.length === 0) return { list: [], complete: true };
   const stages: Array<() => Promise<LrclibTrack[]>> = [];
   for (const t of titles) {
     for (const a of artists) stages.push(() => searchLrclib({ track_name: t, artist_name: a }));
@@ -117,11 +139,11 @@ async function lookupLrclib(title: string, artist: string): Promise<LrclibTrack[
       failures++;
       continue;
     }
-    if (list.some((t) => t.syncedLyrics)) return list;
+    if (list.some((t) => t.syncedLyrics)) return { list, complete: true };
     if (plainFallback.length === 0 && list.length > 0) plainFallback = list;
   }
   if (failures === stages.length) throw new Error('API Error');
-  return plainFallback;
+  return { list: plainFallback, complete: failures === 0 };
 }
 
 /** One lrclib lookup per song, shared by the player and by the prefetch. Failures are not cached. */
@@ -132,8 +154,10 @@ function fetchCandidates(title: string, artist: string): Promise<LrclibTrack[]> 
   const running = lyricsInflight.get(key);
   if (running) return running;
   const p = lookupLrclib(title, artist)
-    .then((list) => {
-      lyricsCache.set(key, list);
+    .then(({ list, complete }) => {
+      // An answer that might be missing something because a search failed is shown, but not remembered:
+      // the next play asks again instead of keeping a false "nothing found".
+      if (complete) lyricsCache.set(key, list);
       return list;
     })
     .finally(() => lyricsInflight.delete(key));
