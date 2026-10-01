@@ -23,6 +23,20 @@ This plan was written by Gemini; what is actually decided and built differs from
 - Not planned: NetEase/QQ/Kugou (barely helps Danish), scraped/paid third-party "lyrics API" resellers.
 - Beware when measuring: several "missing" Danish test songs were wrong titles/artists of mine, not real gaps. Test with real titles from the library.
 
+## 0b. Parked ideas (not planned — pick up when bored)
+
+**Spotify lyrics via an `sp_dc` cookie.** Spotify's synced lyrics are Musixmatch's, served under Spotify's own licence. Projects such as [akashrchandran/spotify-lyrics-api](https://github.com/akashrchandran/spotify-lyrics-api) (PHP, Docker/Vercel) and [lyricstify/api](https://github.com/lyricstify/api) (NestJS) call Spotify's internal lyrics endpoint with the `sp_dc` session cookie of a logged-in Spotify account and return LRC/JSON. The first one's README says it is "probably against Spotify TOS. Use at your own risks."
+
+What it would take for NOIR:
+1. A **separate (free) Spotify account**, never the main one: the cookie is a login session, and Spotify can ban an account for this. Cookie expires and has to be renewed.
+2. **Spotify track id** for each song. NOIR plays via YouTube, so title + artist has to be resolved to an id, e.g. with Spotify's official Search API (free, needs a developer app key) or Paxsenix' `/spotify/search`.
+3. A small proxy that holds the cookie (a browser can't call it, and the cookie must never ship in the web app). Cloudflare Worker or local, same shape as the Musixmatch Worker we tried and removed (see git history, commit `dbeca8f7`), with the cookie as a secret (`.dev.vars`, git-ignored).
+4. It breaks whenever Spotify changes their internal calls, and one shared cookie across many users gets flagged. Personal use only.
+
+Also open: Paxsenix' `/spotify/lyrics` endpoint (id or URL in, lyrics out, no auth). Its stats page (`/api/stats`) showed it barely used on 2026-10-01; not tested by us. It would remove the cookie, but it is the same grey area behind someone else's server, and the owner already shut his Musixmatch endpoint for traffic.
+
+**Own lyrics.** Make it easy to paste an `.lrc` (or auto-time a plain text) for the few songs nobody has, using the existing `CustomLyricsModal`; optionally publish to LRCLIB (`POST /api/publish`) so gaps close for everyone. This is the low-risk way to cover what the sources miss.
+
 ---
 
 ## 1. Executive Summary
