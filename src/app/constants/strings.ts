@@ -160,7 +160,7 @@ export const strings = {
     historyToday: 'Today',
     historyYesterday: 'Yesterday',
     historyEmpty: 'Nothing played yet',
-    historyEmptyHint: 'Everything you listen to lands here, day by day.',
+    historyEmptyHint: 'Songs land here once you have heard 20 seconds, day by day.',
     historyMore: 'Show earlier',
     historyLastPlayed: 'Last played',
     historyTopWeek: 'Most played this week',

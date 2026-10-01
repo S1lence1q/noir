@@ -6,6 +6,7 @@ import { normalizeName } from '../../../services/musicGraph/normalize';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { NoirSongRow } from './NoirSongRow';
 import { NoirHistoryHero } from './NoirHistoryHero';
+import { NoirHistoryEmpty } from './NoirHistoryEmpty';
 
 type NoirHistoryViewProps = {
   favorites: SearchResult[];
@@ -162,16 +163,7 @@ export function NoirHistoryView({
     );
   }
 
-  if (events.length === 0) {
-    return (
-      <div className="px-1 pt-6">
-        <p className="text-[15px] font-medium text-[color:var(--noir-text-secondary)]">{strings.library.historyEmpty}</p>
-        <p className="mt-1.5 text-[13px] leading-[1.45] text-[color:var(--noir-text-tertiary)]">
-          {strings.library.historyEmptyHint}
-        </p>
-      </div>
-    );
-  }
+  if (events.length === 0) return <NoirHistoryEmpty />;
 
   return (
     <div className="noir-history flex flex-col pb-6">

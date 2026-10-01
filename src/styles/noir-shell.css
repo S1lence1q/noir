@@ -5740,6 +5740,31 @@ button.noir-now-playing-source:hover {
   color: var(--noir-text-secondary);
 }
 
+/* Empty History: same frame as the hero, a hollow halftone disc on the right. */
+.noir-history-hero--empty {
+  margin-bottom: 0;
+}
+.noir-history-empty-disc {
+  position: absolute;
+  top: 50%;
+  right: 7%;
+  z-index: -1;
+  height: 84%;
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  opacity: 0.55;
+}
+.noir-history-hero--empty .noir-history-hero-title {
+  white-space: normal;
+  font-size: 26px;
+}
+.noir-history-empty-hint {
+  max-width: 28ch;
+  white-space: normal;
+  line-height: 1.4;
+  color: var(--noir-text-tertiary);
+}
+
 /* Library › History: day headings with a quiet play count. */
 .noir-history-day + .noir-history-day {
   margin-top: 28px;
