@@ -279,7 +279,7 @@ export function NoirNowPlayingView({
   return (
     <div className={`noir-now-playing${sidePanelOpen ? '' : ' is-side-collapsed'}`}>
       <motion.div
-        className={`noir-now-playing-atmosphere${atmosphere === 'grain' ? ' is-grain' : ''}`}
+        className={`noir-now-playing-atmosphere is-bleed${atmosphere === 'grain' ? ' is-grain' : ''}`}
         aria-hidden
         initial={{ opacity: 0 }}
         animate={{ opacity: isPresent ? 1 : 0 }}

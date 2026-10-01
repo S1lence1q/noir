@@ -1534,7 +1534,7 @@
 
 /* Grain carries on into the sidebar: the field reaches under it and fades in from its outer edge, so
    the sidebar gets a trace of colour and the seam to the canvas is a slope, not a line. */
-.noir-now-playing-atmosphere.is-grain {
+.noir-now-playing-atmosphere.is-bleed {
   --np-sidebar-w: 248px;
   left: calc(var(--np-sidebar-w) * -1);
   --np-grain-mask: linear-gradient(
@@ -1548,7 +1548,7 @@
 }
 
 @media (max-width: 1023px) {
-  .noir-now-playing-atmosphere.is-grain {
+  .noir-now-playing-atmosphere.is-bleed {
     --np-sidebar-w: 72px;
   }
 }
@@ -1570,7 +1570,7 @@
 }
 
 /* So the field can show through, and the sidebar's own content stays above it. */
-.noir-shell:has(.noir-now-playing-atmosphere.is-grain) .elva-shell-sidebar {
+.noir-shell:has(.noir-now-playing-atmosphere.is-bleed) .elva-shell-sidebar {
   background-color: transparent;
   border-right-color: transparent;
   z-index: 30;
