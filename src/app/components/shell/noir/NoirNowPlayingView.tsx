@@ -292,17 +292,16 @@ export function NoirNowPlayingView({
         <AnimatePresence mode="sync" initial={false}>
           {atmosphere === 'grain' ? (
             grainUrl ? (
-              <motion.div
+              <motion.img
                 key={grainUrl}
-                className="noir-now-playing-atmosphere-grain-wrap"
+                src={grainUrl}
+                alt=""
+                className="noir-now-playing-atmosphere-grain"
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                animate={{ opacity: 0.42 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: reduced ? 0.2 : 0.9, ease: sheetEase }}
-              >
-                <img src={grainUrl} alt="" className="noir-now-playing-atmosphere-grain" />
-                <img src={grainUrl} alt="" className="noir-now-playing-atmosphere-grain is-echo" />
-              </motion.div>
+              />
             ) : null
           ) : hasRealArtwork(song.artworkUrl) ? (
             <motion.img
