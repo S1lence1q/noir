@@ -714,6 +714,8 @@
   align-items: center;
   margin-bottom: 16px;
   min-height: 28px;
+  /* Align with the nav icon column (nav items carry px-3). */
+  padding-left: 12px;
 }
 
 .noir-sidebar-wordmark {
@@ -5369,6 +5371,7 @@ button.noir-now-playing-source:hover {
   }
   .noir-sidebar .noir-sidebar-brand-row {
     justify-content: center;
+    padding-left: 0;
   }
   .noir-sidebar .noir-sidebar-playlists-head {
     justify-content: center;
