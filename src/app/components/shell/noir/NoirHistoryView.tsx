@@ -5,6 +5,7 @@ import { getListeningEvents, type ListeningEvent } from '../../../services/liste
 import { normalizeName } from '../../../services/musicGraph/normalize';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { NoirSongRow } from './NoirSongRow';
+import { NoirHistoryStrip, type HistoryStripDay } from './NoirHistoryStrip';
 
 type NoirHistoryViewProps = {
   favorites: SearchResult[];
@@ -21,6 +22,32 @@ const PAGE = 120;
 const SKELETON_ROWS = 6;
 
 const trackKey = (title: string, artist: string) => `${normalizeName(artist)}::${normalizeName(title)}`;
+
+const STRIP_DAYS = 30;
+const dateKey = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+/** Plays per day for the strip, counted like the list: a song straight after itself is one. */
+function stripDays(events: ListeningEvent[], now = new Date()): HistoryStripDay[] {
+  const counts = new Map<string, number>();
+  let previous = '';
+  for (const e of events) {
+    const key = dateKey(new Date(e.startedAt));
+    const listen = `${key}|${trackKey(e.title, e.artist)}`;
+    if (listen === previous) continue;
+    previous = listen;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return Array.from({ length: STRIP_DAYS }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (STRIP_DAYS - 1 - i));
+    const key = dateKey(d);
+    return {
+      key,
+      label: d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }),
+      plays: counts.get(key) ?? 0,
+    };
+  });
+}
 
 function dayLabel(ts: number, now = new Date()): string {
   const d = new Date(ts);
@@ -78,7 +105,7 @@ export function NoirHistoryView({
 
   const days = useMemo(() => {
     if (!events) return [];
-    const out: { label: string; tracks: SearchResult[]; keys: string[] }[] = [];
+    const out: { key: string; label: string; tracks: SearchResult[]; keys: string[] }[] = [];
     const now = new Date();
     let previousKey = '';
     for (const event of events.slice(0, limit)) {
@@ -100,10 +127,18 @@ export function NoirHistoryView({
       if (last && last.label === label) {
         last.tracks.push(track);
         last.keys.push(event.id);
-      } else out.push({ label, tracks: [track], keys: [event.id] });
+      } else out.push({ key: dateKey(new Date(event.startedAt)), label, tracks: [track], keys: [event.id] });
     }
     return out;
   }, [events, limit, known]);
+
+  // Oldest-first, repeats counted like the list. Chronological order matters for the dedup.
+  const strip = useMemo(
+    () => (events ? stripDays([...events].sort((a, b) => a.startedAt - b.startedAt)) : []),
+    [events]
+  );
+  const scrollToDay = (key: string) =>
+    document.querySelector<HTMLElement>(`[data-day="${key}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   // The day as a queue, each song once (a day can hold the same song twice; the queue can't).
   const playFromDay = (tracks: SearchResult[], index: number) => {
@@ -116,6 +151,7 @@ export function NoirHistoryView({
   if (events === null) {
     return (
       <div className="flex flex-col gap-3 pt-1" aria-hidden>
+        <span className="noir-skeleton noir-history-strip-skeleton" />
         <span className="noir-skeleton-box !h-4 w-24" />
         {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
           <div key={i} className="flex items-center gap-3 px-3 py-2">
@@ -143,8 +179,9 @@ export function NoirHistoryView({
 
   return (
     <div className="noir-history flex flex-col pb-6">
+      <NoirHistoryStrip days={strip} onPick={scrollToDay} />
       {days.map((day) => (
-        <section key={day.label} className="noir-history-day">
+        <section key={day.label} data-day={day.key} className="noir-history-day">
           <h3 className="noir-history-day-label">
             {day.label}
             <span>{strings.library.historyPlays(day.tracks.length)}</span>
