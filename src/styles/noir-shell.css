@@ -1556,7 +1556,8 @@
 }
 
 /* Behind the sidebar the dither is blurred into a plain colour wash, so no checker sits under the
-   labels or shows up in the active row's highlight. It lets go over the last stretch to the canvas. */
+   labels or shows up in the active row's highlight. Full width: a fade-out here would bring the checker
+   back under the right end of the active row. */
 .noir-shell:has(.noir-now-playing-atmosphere.is-grain) .elva-shell-sidebar::before {
   content: '';
   position: absolute;
@@ -1565,8 +1566,6 @@
   pointer-events: none;
   -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
-  mask-image: linear-gradient(to right, black 0, black 70%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, black 0, black 70%, transparent 100%);
 }
 
 .noir-now-playing-atmosphere-img {
@@ -1818,11 +1817,11 @@ button.noir-now-playing-source:hover {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: rgba(0, 0, 0, 0.42);
+  background: rgba(0, 0, 0, 0.46);
   -webkit-backdrop-filter: blur(9px);
   backdrop-filter: blur(9px);
-  mask-image: linear-gradient(to right, transparent 0, black 140px);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, black 140px);
+  mask-image: linear-gradient(to right, transparent 0, black 44px);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 44px);
 }
 
 /* Fixed-width content: the rail animates its width, the list inside never reflows mid-slide. */
