@@ -329,9 +329,12 @@ export function NoirUserPlaylistPage({
       <div className="noir-add-panel-rail">
         <AnimatePresence initial={false}>
           {panelOpen && (
-            <PlaylistAddPanel
+            <NoirAddSongsPanel
               key="add-panel"
-              playlist={playlist}
+              target={{
+                has: (track) => playlistHasTrack(playlist, track),
+                add: (track) => addTrackToPlaylist(playlist.id, track),
+              }}
               favorites={favorites}
               listRef={listRef}
               delay={justCreated ? 0.24 : 0}
@@ -424,7 +427,15 @@ function PlaylistTrackItem({
   );
 }
 
-type PanelSource = 'favorites' | 'recents';
+export type AddPanelSource = 'favorites' | 'recents';
+type PanelSource = AddPanelSource;
+
+/** What the add panel fills: a user playlist, or Favorites. */
+export type AddPanelTarget = {
+  has: (track: SearchResult) => boolean;
+  /** Returns false when nothing was added. */
+  add: (track: SearchResult) => boolean;
+};
 
 const ADD_PANEL_SPRING = { type: 'spring' as const, stiffness: 380, damping: 32, mass: 0.85 };
 const ADD_PANEL_STAGGER = {
@@ -442,21 +453,25 @@ const ADD_PANEL_ITEM = {
   },
 };
 
-function PlaylistAddPanel({
-  playlist,
+export function NoirAddSongsPanel({
+  target,
   favorites,
+  sources = ['favorites', 'recents'],
   listRef,
   delay,
   onClose,
 }: {
-  playlist: UserPlaylist;
+  target: AddPanelTarget;
   favorites: SearchResult[];
-  listRef: RefObject<HTMLUListElement | null>;
+  sources?: PanelSource[];
+  listRef?: RefObject<HTMLElement | null>;
   delay: number;
   onClose: () => void;
 }) {
   const reduced = prefersReducedMotion();
-  const [source, setSource] = useState<PanelSource>(favorites.length > 0 ? 'favorites' : 'recents');
+  const [source, setSource] = useState<PanelSource>(
+    sources.includes('favorites') && favorites.length > 0 ? 'favorites' : 'recents'
+  );
   const [recents] = useState<SearchResult[]>(() => readJsonStorage<SearchResult[]>(ELVA_STORAGE_KEYS.recentlyPlayed, []));
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -489,8 +504,8 @@ function PlaylistAddPanel({
   const list = showingSearch ? results : source === 'favorites' ? favorites : recents;
 
   const add = (track: SearchResult, coverEl: HTMLElement | null) => {
-    if (!addTrackToPlaylist(playlist.id, track)) return;
-    flyCover(coverEl, listRef.current);
+    if (!target.add(track)) return;
+    flyCover(coverEl, listRef?.current ?? null);
   };
 
   return (
@@ -550,9 +565,9 @@ function PlaylistAddPanel({
           )}
         </motion.label>
 
-        {!showingSearch && (
+        {!showingSearch && sources.length > 1 && (
           <motion.div className="mt-3 flex gap-1 px-1" role="tablist" variants={reduced ? undefined : ADD_PANEL_ITEM}>
-            {(['favorites', 'recents'] as PanelSource[]).map((id) => (
+            {sources.map((id) => (
               <button
                 key={id}
                 type="button"
@@ -595,7 +610,7 @@ function PlaylistAddPanel({
                 <AddRow
                   key={track.id}
                   track={track}
-                  added={playlistHasTrack(playlist, track)}
+                  added={target.has(track)}
                   index={i}
                   reduced={reduced}
                   onAdd={add}

@@ -7,12 +7,13 @@ import { NoirSongRow } from './NoirSongRow';
 import { NoirGraphicAccent } from './NoirGraphicAccent';
 import { NoirPlaylistCover } from './NoirPlaylistCover';
 import { NoirFavoritesCover } from './NoirFavoritesCover';
-import { NoirUserPlaylistPage } from './NoirUserPlaylistPage';
+import { NoirAddSongsPanel, NoirUserPlaylistPage } from './NoirUserPlaylistPage';
 import { NoirStatsView } from './NoirStatsView';
 import { NoirHistoryView } from './NoirHistoryView';
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import {
   formatFavoritedAt,
+  isTrackFavorite,
   sortFavorites,
   type FavoritesSort,
 } from '../../../utils/favoriteUtils';
@@ -64,6 +65,7 @@ export function NoirLibraryView({
 }: NoirLibraryViewProps) {
   const [section, setSection] = useState<LibrarySection>(focus?.section ?? 'playlists');
   const [favoritesSort, setFavoritesSort] = useState<FavoritesSort>('recent');
+  const [addPanelOpen, setAddPanelOpen] = useState(false);
   const playlists = usePlaylists();
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(
     focus?.playlistId ?? null
@@ -79,6 +81,12 @@ export function NoirLibraryView({
     setSection(focus.section);
     setSelectedPlaylistId(focus.playlistId ?? null);
   }, [focus?.requestId]);
+
+  // Like a new playlist: an empty Favorites opens with the picker; leaving closes it.
+  useEffect(() => {
+    setAddPanelOpen(section === 'favorites' && favorites.length === 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [section]);
 
   useEffect(() => {
     onSectionChange?.(section);
@@ -151,6 +159,8 @@ export function NoirLibraryView({
               exit={{ opacity: 0, transition: { duration: 0 } }}
               transition={{ duration: 0.18 }}
             >
+              <div className="noir-playlist-layout">
+              <div className="min-w-0">
               <button type="button" onClick={backToRoot} className="noir-back-link elva-focus-ring">
                 <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
                 {strings.playlist.back}
@@ -162,8 +172,9 @@ export function NoirLibraryView({
                   <p className="mt-2 text-[13px] text-[color:var(--noir-text-secondary)]">
                     {strings.playlist.songCount(favorites.length)}
                   </p>
-                  {favorites.length > 0 && (
-                    <div className="mt-5 flex items-center gap-2">
+                  <div className="mt-5 flex items-center gap-2">
+                    {favorites.length > 0 && (
+                      <>
                       <button
                         type="button"
                         onClick={() => onPlayPlaylist(sortedFavorites, strings.home.favorites)}
@@ -184,8 +195,19 @@ export function NoirLibraryView({
                       >
                         <Shuffle className="h-[18px] w-[18px]" strokeWidth={1.75} />
                       </button>
-                    </div>
-                  )}
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setAddPanelOpen((open) => !open)}
+                      className={`noir-button-secondary elva-focus-ring ${favorites.length > 0 ? 'ml-1' : ''}`}
+                      data-active={addPanelOpen ? 'true' : 'false'}
+                      aria-expanded={addPanelOpen}
+                    >
+                      <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
+                      {strings.playlist.addSongs}
+                    </button>
+                  </div>
                 </div>
               </header>
               {favorites.length > 0 ? (
@@ -231,6 +253,29 @@ export function NoirLibraryView({
                   </p>
                 </div>
               )}
+              </div>
+              <div className="noir-add-panel-rail">
+                <AnimatePresence initial={false}>
+                  {addPanelOpen && (
+                    <NoirAddSongsPanel
+                      key="add-panel"
+                      target={{
+                        has: (track) => isTrackFavorite(favorites, track),
+                        add: (track) => {
+                          if (isTrackFavorite(favorites, track)) return false;
+                          onToggleFavorite(track);
+                          return true;
+                        },
+                      }}
+                      favorites={favorites}
+                      sources={['recents']}
+                      delay={0}
+                      onClose={() => setAddPanelOpen(false)}
+                    />
+                  )}
+                </AnimatePresence>
+              </div>
+              </div>
             </motion.div>
           )}
 
