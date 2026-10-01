@@ -43,7 +43,8 @@
 /* Compact playback chrome — Spotify-inspired 3-zone stack */
 .noir-compact {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(280px, 2fr) minmax(120px, 1fr);
+  /* Equal side columns keep the transport dead-centre on the bar (and under the toast). */
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 2fr) minmax(0, 1fr);
   align-items: center;
   gap: 16px;
   height: 96px;
@@ -4176,7 +4177,7 @@ button.noir-now-playing-source:hover {
   display: grid;
   justify-items: center;
   position: fixed;
-  left: 50%;
+  left: calc(var(--noir-sidebar-w) + (100vw - var(--noir-sidebar-w)) / 2);
   bottom: calc(var(--noir-bar-h, 0px) + 16px);
   z-index: 9999;
   transform: translateX(-50%);
@@ -4294,12 +4295,12 @@ button.noir-now-playing-source:hover {
 .noir-queue-end-prompt {
   position: fixed;
   bottom: calc(var(--noir-bar-h, 0px) + 16px);
-  left: 50%;
+  left: calc(var(--noir-sidebar-w) + (100vw - var(--noir-sidebar-w)) / 2);
   z-index: 60;
   display: flex;
   align-items: center;
   gap: 6px;
-  width: min(460px, calc(100vw - 32px));
+  width: min(460px, calc(100vw - var(--noir-sidebar-w) - 32px));
   padding: 8px 8px 8px 16px;
   overflow: hidden;
   border-radius: var(--noir-radius-md);
@@ -5331,8 +5332,13 @@ button.noir-now-playing-source:hover {
 
 /* ── Responsive shell ─────────────────────────────────────────────────────────
    ≥ 1024: full sidebar. 640–1023: icon rail (labels hidden, covers stay). < 640: bottom tab bar. */
+:root {
+  /* Width of the sidebar column; floating surfaces centre on the content area to its right. */
+  --noir-sidebar-w: 248px;
+}
+
 .noir-sidebar {
-  width: 248px;
+  width: var(--noir-sidebar-w);
   padding-inline: 12px;
   transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -5343,8 +5349,11 @@ button.noir-now-playing-source:hover {
 }
 
 @media (max-width: 1023px) {
+  :root {
+    --noir-sidebar-w: 72px;
+  }
   .noir-sidebar {
-    width: 72px;
+    width: var(--noir-sidebar-w);
     padding-inline: 10px;
   }
   .noir-sidebar .noir-nav-label,
@@ -5369,6 +5378,9 @@ button.noir-now-playing-source:hover {
 }
 
 @media (max-width: 639px) {
+  :root {
+    --noir-sidebar-w: 0px;
+  }
   .noir-sidebar {
     display: none;
   }
