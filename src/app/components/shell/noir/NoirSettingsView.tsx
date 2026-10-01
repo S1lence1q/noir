@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ChevronRight, Globe, Info, Keyboard, Volume1, Volume2, VolumeX, Waves, Palette } from 'lucide-react';
-import { readAtmosphereMode, setAtmosphereMode, type AtmosphereMode } from '../../../utils/atmosphere';
+import { setGraphicsTheme, useGraphicsTheme, type GraphicsTheme } from '../../../utils/graphicsTheme';
 import { readLyricsTimingControls, setLyricsTimingControls } from '../../../utils/lyricsTiming';
 import { readExtraLyricsSource, setExtraLyricsSource } from '../../../utils/lyricsSources';
 import * as Slider from '@radix-ui/react-slider';
@@ -132,7 +132,7 @@ export function NoirSettingsView() {
     () => localStorage.getItem('elva_profile_country') || 'dk'
   );
   const [autoplay, setAutoplay] = useState<AutoplayPreference>(() => readAutoplayPreference());
-  const [atmosphere, setAtmosphere] = useState<AtmosphereMode>(readAtmosphereMode);
+  const graphics = useGraphicsTheme();
   const [lyricsTiming, setLyricsTiming] = useState(readLyricsTimingControls);
   const [extraLyrics, setExtraLyrics] = useState(readExtraLyricsSource);
 
@@ -322,22 +322,19 @@ export function NoirSettingsView() {
       </SettingsCard>
 
       <SettingsCard title="Appearance" icon={Palette}>
-        <SettingsRow label="Now Playing background" description="From the cover: a soft glow, or its colours as grain">
-          <div className="noir-segmented" role="radiogroup" aria-label="Now Playing background">
-            {(['glow', 'grain'] as AtmosphereMode[]).map((mode) => (
+        <SettingsRow label="Graphics" description="Grain: the cover's colours as dither. Heat: soft colour and glow">
+          <div className="noir-segmented" role="radiogroup" aria-label="Graphics">
+            {(['heat', 'grain'] as GraphicsTheme[]).map((theme) => (
               <button
-                key={mode}
+                key={theme}
                 type="button"
                 role="radio"
-                aria-checked={atmosphere === mode}
-                data-active={atmosphere === mode ? 'true' : 'false'}
+                aria-checked={graphics === theme}
+                data-active={graphics === theme ? 'true' : 'false'}
                 className="noir-segmented-item elva-focus-ring"
-                onClick={() => {
-                  setAtmosphere(mode);
-                  setAtmosphereMode(mode);
-                }}
+                onClick={() => setGraphicsTheme(theme)}
               >
-                {mode === 'glow' ? 'Glow' : 'Grain'}
+                {theme === 'heat' ? 'Heat' : 'Grain'}
               </button>
             ))}
           </div>

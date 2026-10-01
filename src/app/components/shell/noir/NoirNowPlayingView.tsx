@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { ATMOSPHERE_EVENT, readAtmosphereMode, type AtmosphereMode } from '../../../utils/atmosphere';
+import { useGraphicsTheme } from '../../../utils/graphicsTheme';
 import { AnimatePresence, motion, Reorder, useIsPresent } from 'motion/react';
 import { Compass, Heart, Plus, Radio, Shuffle, X } from 'lucide-react';
 import { SearchResult } from '../../../types';
@@ -155,15 +155,8 @@ export function NoirNowPlayingView({
 }: NoirNowPlayingViewProps) {
   const reduced = prefersReducedMotion();
   const stacked = useStackedLayout();
-  const [atmosphere, setAtmosphere] = useState(readAtmosphereMode);
-  useEffect(() => {
-    const onChange = (e: Event) => {
-      const mode = (e as CustomEvent<{ mode?: AtmosphereMode }>).detail?.mode;
-      if (mode) setAtmosphere(mode);
-    };
-    window.addEventListener(ATMOSPHERE_EVENT, onChange);
-    return () => window.removeEventListener(ATMOSPHERE_EVENT, onChange);
-  }, []);
+  // Graphics theme: grain = dither atmosphere, heat = the soft glow.
+  const atmosphere = useGraphicsTheme() === 'grain' ? 'grain' : 'glow';
   const grainUrl = useGrainField(hasRealArtwork(song.artworkUrl) ? song.artworkUrl : undefined, atmosphere === 'grain');
   /** While cover flies home, keep layoutId mounted but fade everything else so title/queue don't ghost. */
   const isPresent = useIsPresent();

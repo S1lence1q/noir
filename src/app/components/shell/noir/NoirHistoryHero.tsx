@@ -3,6 +3,7 @@ import { Play } from 'lucide-react';
 import type { SearchResult } from '../../../types';
 import { strings } from '../../../constants/strings';
 import { COLOR_WORLDS, renderGrainField, worldForCollection } from '../../../utils/ditherCover';
+import { useGraphicsTheme } from '../../../utils/graphicsTheme';
 import { NoirHistoryHeat } from './NoirHistoryHeat';
 import { heroField, heroInk, heroWorld } from './NoirHomeHero';
 
@@ -24,7 +25,7 @@ export function NoirHistoryHero({
   plays: number;
   onPlay: () => void;
 }) {
-  const art = readHistoryArt();
+  const art = useGraphicsTheme();
   const heatWorld = heroWorld(track);
   const [grain, setGrain] = useState<string | null>(null);
   const world = COLOR_WORLDS[worldForCollection(`${track.artist}:${track.title}`)];
@@ -74,18 +75,4 @@ export function NoirHistoryHero({
       </div>
     </section>
   );
-}
-
-/** Which graphic History wears. `?historyArt=heat|grain` is remembered; a Settings choice can take over later. */
-export type HistoryArt = 'grain' | 'heat';
-const HISTORY_ART_KEY = 'noir_history_art';
-
-function readHistoryArt(): HistoryArt {
-  try {
-    const param = new URLSearchParams(window.location.search).get('historyArt');
-    if (param === 'grain' || param === 'heat') localStorage.setItem(HISTORY_ART_KEY, param);
-    return localStorage.getItem(HISTORY_ART_KEY) === 'heat' ? 'heat' : 'grain';
-  } catch {
-    return 'grain';
-  }
 }
