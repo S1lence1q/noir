@@ -5,6 +5,23 @@
 
 ---
 
+## 0. Status & decisions (2026-10-01) — read this first
+
+This plan was written by Gemini; what is actually decided and built differs from it in places.
+
+**Built (phase 1 + part of 2):** title cleaning that keeps real parentheses, artist variants ("Kim Larsen & Kjukken" → "Kim Larsen"), widening lrclib search, retry on lrclib outages, strict sync tolerance (3 s) with an opt-in offset guess and nudge controls (Settings → Lyrics timing controls).
+
+**Measured:** big English songs ≈ 100 % synced on lrclib. Newer Danish music (D1ma, Wicky, Gilli, Branco, Specktors, Rasmus Seebach…) mostly missing. NetEase barely helps for Danish, so it is not planned.
+
+**Decisions:**
+- NOIR is a hobby project; real users may never come. A release is a maybe, later.
+- Several sources, each song uses whichever has it: **lrclib first, then others only if lrclib has no usable synced version.** Not all at once (cost, and it keeps load on unofficial sources low).
+- **Musixmatch is an experiment, and it is uncertain.** It has the Danish coverage, but there is no free official synced-lyrics API: the only way is the unofficial token that Musixmatch's own desktop app uses, via a small proxy (browsers can't call it directly). That is against their terms, can stop working without warning, and funnelling every listener through one proxy IP is exactly what gets blocked. If it works, good; if it is blocked, lrclib still works as before and nothing is lost. If NOIR ever ships to many users, talk to Musixmatch about a real licence instead of relying on this.
+- Spotify-side tools (e.g. Spicetify) reportedly use Musixmatch through Spotify's own token and agreement, which NOIR does not have, so that is not a precedent for us.
+- Sources sit behind one adapter interface (`src/app/services/lyrics/`), so Musixmatch can be added or removed without touching the rest.
+
+---
+
 ## 1. Executive Summary
 
 NOIR currently retrieves lyrics exclusively via the public [LRCLIB](https://lrclib.net) API (`/api/search`) in [`src/app/hooks/useLyrics.ts`](file:///Users/applemacbook/AntiGravity%20Shit/Elva.nosync/Elva-redesign/src/app/hooks/useLyrics.ts). While LRCLIB provides open, rate-limit-free, and community-curated `.lrc` files, the application suffers from three key limitations:

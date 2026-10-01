@@ -1,16 +1,10 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { parseLrc, loadCustomLyrics } from '../utils/lyricsUtils';
 import { useLyricsTimingControls } from '../utils/lyricsTiming';
-import { cleanSongTitle, lyricsTitleVariants, lyricsArtistVariants } from '../utils/stringUtils';
+import { cleanSongTitle } from '../utils/stringUtils';
+import { lookupLyrics, type LyricsTrack } from '../services/lyrics';
 import type { LyricLine } from '../types';
 import type { PlaybackSongData } from '../types/playback';
-
-type LrclibTrack = {
-  syncedLyrics?: string | null;
-  plainLyrics?: string | null;
-  duration?: number;
-  artistName?: string;
-};
 
 /**
  * Synced lyrics are only shown as synced if the lrclib version is within this many seconds of what's
@@ -26,7 +20,7 @@ const OFFSET_GUESS_MAX_S = 25;
 
 type Pick = { lines: LyricLine[]; synced: boolean; guessedOffset: number };
 
-function toPlainLines(track: LrclibTrack): LyricLine[] {
+function toPlainLines(track: LyricsTrack): LyricLine[] {
   const source = track.plainLyrics || (track.syncedLyrics ?? '').replace(/^\[[^\]]*\]\s*/gm, '');
   return source
     .split('\n')
@@ -36,7 +30,7 @@ function toPlainLines(track: LrclibTrack): LyricLine[] {
 }
 
 /** Whether the choice of lyrics (synced or not, which version) depends on the track length at all. */
-function needsDuration(candidates: LrclibTrack[]): boolean {
+function needsDuration(candidates: LyricsTrack[]): boolean {
   return candidates.some((t) => t.syncedLyrics && t.duration != null);
 }
 
@@ -45,7 +39,7 @@ function needsDuration(candidates: LrclibTrack[]): boolean {
  * Pick the one whose length matches the playing track; if none is close, show plain text rather
  * than confidently wrong timing (unless the listener opted into a guessed shift).
  */
-function pickLyrics(candidates: LrclibTrack[], duration: number, allowOffsetGuess: boolean): Pick {
+function pickLyrics(candidates: LyricsTrack[], duration: number, allowOffsetGuess: boolean): Pick {
   if (candidates.length === 0) return { lines: [], synced: false, guessedOffset: 0 };
   const synced = candidates.filter((t) => t.syncedLyrics);
   if (synced.length > 0) {
@@ -68,92 +62,20 @@ function pickLyrics(candidates: LrclibTrack[], duration: number, allowOffsetGues
     : { lines: [], synced: false, guessedOffset: 0 };
 }
 
-const lyricsCache = new Map<string, LrclibTrack[]>();
-const lyricsInflight = new Map<string, Promise<LrclibTrack[]>>();
+const lyricsCache = new Map<string, LyricsTrack[]>();
+const lyricsInflight = new Map<string, Promise<LyricsTrack[]>>();
 
 const lyricsKey = (title: string, artist: string) => `${cleanSongTitle(title, artist)}::${artist}`.toLowerCase();
 const isLookupable = (artist: string) => artist !== 'Unknown Artist' && artist !== 'Web Stream';
 
-const RETRY_DELAYS_MS = [500, 1200];
-
-/**
- * lrclib answers 503 or a non-list body now and then. That is not "no lyrics": retry a couple of times,
- * and let a persistent failure throw so it is never mistaken for an empty result.
- */
-async function searchLrclib(params: Record<string, string>): Promise<LrclibTrack[]> {
-  let lastError: unknown;
-  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
-    if (attempt > 0) await new Promise((r) => setTimeout(r, RETRY_DELAYS_MS[attempt - 1]));
-    try {
-      const res = await fetch(`https://lrclib.net/api/search?${new URLSearchParams(params)}`);
-      if (!res.ok) throw new Error('API Error');
-      const data = await res.json();
-      if (!Array.isArray(data)) throw new Error('Unexpected response');
-      return data;
-    } catch (err) {
-      lastError = err;
-    }
-  }
-  throw lastError;
-}
-
-const normName = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
-function artistMatches(found: string | undefined, wanted: string): boolean {
-  const a = normName(found ?? '');
-  const b = normName(wanted);
-  return a.length > 0 && b.length > 0 && (a.includes(b) || b.includes(a));
-}
-
-/**
- * Widening search: exact fields first, then free text, then title alone checked against the artist.
- * The first stage that has synced lyrics wins; if none does, the first stage with plain text is used.
- */
-export type LookupResult = {
-  list: LrclibTrack[];
-  /** False when some searches failed outright, so an empty answer may just be an outage. */
-  complete: boolean;
-};
-
-export async function lookupLrclib(title: string, artist: string): Promise<LookupResult> {
-  const artists = isLookupable(artist) ? lyricsArtistVariants(artist) : [];
-  const primary = artists[0] ?? '';
-  const titles = lyricsTitleVariants(title, artist);
-  if (titles.length === 0) return { list: [], complete: true };
-  const stages: Array<() => Promise<LrclibTrack[]>> = [];
-  for (const t of titles) {
-    for (const a of artists) stages.push(() => searchLrclib({ track_name: t, artist_name: a }));
-  }
-  for (const t of titles) stages.push(() => searchLrclib({ q: `${t} ${primary}`.trim() }));
-  if (artists.length > 0) {
-    stages.push(async () =>
-      (await searchLrclib({ q: titles[0] })).filter((t) => artists.some((a) => artistMatches(t.artistName, a)))
-    );
-  }
-  let plainFallback: LrclibTrack[] = [];
-  let failures = 0;
-  for (const stage of stages) {
-    let list: LrclibTrack[];
-    try {
-      list = await stage();
-    } catch {
-      failures++;
-      continue;
-    }
-    if (list.some((t) => t.syncedLyrics)) return { list, complete: true };
-    if (plainFallback.length === 0 && list.length > 0) plainFallback = list;
-  }
-  if (failures === stages.length) throw new Error('API Error');
-  return { list: plainFallback, complete: failures === 0 };
-}
-
-/** One lrclib lookup per song, shared by the player and by the prefetch. Failures are not cached. */
-function fetchCandidates(title: string, artist: string): Promise<LrclibTrack[]> {
+/** One lyrics lookup per song, shared by the player and by the prefetch. Failures are not cached. */
+function fetchCandidates(title: string, artist: string): Promise<LyricsTrack[]> {
   const key = lyricsKey(title, artist);
   const hit = lyricsCache.get(key);
   if (hit) return Promise.resolve(hit);
   const running = lyricsInflight.get(key);
   if (running) return running;
-  const p = lookupLrclib(title, artist)
+  const p = lookupLyrics(title, artist)
     .then(({ list, complete }) => {
       // An answer that might be missing something because a search failed is shown, but not remembered:
       // the next play asks again instead of keeping a false "nothing found".
@@ -201,7 +123,7 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
   const [isLyricsSynced, setIsLyricsSynced] = useState(false);
   const [isLyricsModalOpen, setIsLyricsModalOpen] = useState(false);
   const [lyricsVersion, setLyricsVersion] = useState(0);
-  const [candidates, setCandidates] = useState<LrclibTrack[] | null>(null);
+  const [candidates, setCandidates] = useState<LyricsTrack[] | null>(null);
   // Seconds the timing is shifted by: guessed from the length difference, or set by the listener.
   const timingControls = useLyricsTimingControls();
   const [guessedOffset, setGuessedOffset] = useState(0);
