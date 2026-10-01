@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { NoirStateNotice } from './NoirStateNotice';
 import { AnimatePresence, motion } from 'motion/react';
 import { Compass, Play, Plus, Search } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
@@ -39,6 +40,7 @@ export type NoirHomeViewProps = {
   setSearchQuery: (query: string) => void;
   lastSearchedQuery?: string;
   isSearching: boolean;
+  searchFailed?: boolean;
   searchResults: SearchResult[];
   recentArtists: VerifiedArtist[];
   recentlyPlayed: SearchResult[];
@@ -68,6 +70,7 @@ export function NoirHomeView({
   setSearchQuery,
   lastSearchedQuery,
   isSearching,
+  searchFailed = false,
   searchResults,
   recentArtists: _recentArtists,
   recentlyPlayed,
@@ -710,7 +713,17 @@ export function NoirHomeView({
             </motion.div>
           )}
 
-          {panelPhase === 'no-results' && (
+          {panelPhase === 'no-results' && searchFailed && (
+            <motion.div key="failed" className="noir-content">
+              <NoirStateNotice
+                title={strings.searchFailed.title}
+                description={strings.searchFailed.description}
+                onRetry={() => handleSearch(lastSearchedQuery)}
+              />
+            </motion.div>
+          )}
+
+          {panelPhase === 'no-results' && !searchFailed && (
             <motion.div key="empty" className="noir-content py-20">
               <p className="text-[color:var(--noir-text-secondary)]">No results for &ldquo;{lastSearchedQuery}&rdquo;</p>
               <button

@@ -2040,6 +2040,11 @@ export default function App() {
               setSearchQuery={searchLogic.setSearchQuery}
               lastSearchedQuery={searchLogic.lastSearchedQuery}
               isSearching={searchLogic.isSearching}
+              searchFailed={searchLogic.searchFailed}
+              artistLoadFailed={searchLogic.artistLoadFailed}
+              onRetryArtist={() => {
+                if (selectedArtist) void searchLogic.handleViewArtistProfile(selectedArtist);
+              }}
               searchResults={searchLogic.searchResults}
               recentArtists={searchLogic.recentArtists}
               recentlyPlayed={recentlyPlayed}

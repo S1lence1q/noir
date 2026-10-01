@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { NoirStateNotice } from './NoirStateNotice';
 import { AnimatePresence, motion } from 'motion/react';
 import { Play, Radio, Shuffle } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
@@ -27,6 +28,9 @@ export type NoirArtistViewProps = {
   artist: VerifiedArtist;
   tracks: SearchResult[];
   isLoading: boolean;
+  /** The profile fetch failed outright (not just empty). */
+  loadFailed?: boolean;
+  onRetry?: () => void;
   favorites?: SearchResult[];
   onSelectSong: (track: SearchResult) => void;
   onAddToQueue: (track: SearchResult) => void;
@@ -103,6 +107,8 @@ export function NoirArtistView({
   artist,
   tracks,
   isLoading,
+  loadFailed = false,
+  onRetry,
   favorites = [],
   onSelectSong,
   onAddToQueue,
@@ -469,6 +475,13 @@ export function NoirArtistView({
             </>
           ) : isLoading ? (
             <PopularSkeleton />
+          ) : loadFailed ? (
+            <NoirStateNotice
+              compact
+              title={strings.artistFailed.title}
+              description={strings.artistFailed.description}
+              onRetry={onRetry}
+            />
           ) : (
             <p className="px-1 py-8 text-[14px] text-[color:var(--noir-text-secondary)]">{strings.artist.empty}</p>
           )}

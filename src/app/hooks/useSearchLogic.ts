@@ -151,6 +151,8 @@ export function useSearchLogic({
   const [lastSearchedQuery, setLastSearchedQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchFailed, setSearchFailed] = useState(false);
+  const [artistLoadFailed, setArtistLoadFailed] = useState(false);
   const [selectedArtist, setSelectedArtist] = useState<VerifiedArtist | null>(null);
   const [verifiedArtist, setVerifiedArtist] = useState<VerifiedArtist | null>(null);
   const [isVerifyingArtist, setIsVerifyingArtist] = useState(false);
@@ -498,10 +500,7 @@ export function useSearchLogic({
     } catch (error) {
       console.error('Failed to load artist profile:', error);
       if (generation === profileGenRef.current && !cached?.tracks.length) {
-        noirToast({
-          text: strings.toast.couldNotLoadArtist,
-          description: strings.toast.couldNotFetchArtist(displayArtist.name),
-        });
+        setArtistLoadFailed(true);
         setArtistTracks([]);
       }
     } finally {
@@ -577,6 +576,7 @@ export function useSearchLogic({
     }
 
     const generation = ++profileGenRef.current;
+    setArtistLoadFailed(false);
     const artistClean: VerifiedArtist = {
       ...artist,
       name: cleanedName,
@@ -661,6 +661,7 @@ export function useSearchLogic({
 
   const handlePickArtistCandidate = async (candidate: ArtistIdentity) => {
     const generation = ++profileGenRef.current;
+    setArtistLoadFailed(false);
     const picked: ArtistIdentity = { ...candidate, confidence: 'high', candidates: undefined };
     void setCachedIdentity(picked);
     setArtistCandidates(null);
@@ -738,6 +739,7 @@ export function useSearchLogic({
 
     const cached = getCachedSearch(query);
     if (cached) {
+      setSearchFailed(false);
       setSelectedArtist(null);
       setArtistTracks([]);
       setArtistCandidates(null);
@@ -763,7 +765,19 @@ export function useSearchLogic({
     setArtistCandidates(null);
 
     setIsSearching(true);
-    const results = await executeSearchAPI(query);
+    setSearchFailed(false);
+    let results: SearchResult[];
+    try {
+      results = await executeSearchAPI(query, 8, { throwOnFail: true });
+    } catch {
+      // Every source failed: say so, instead of passing it off as "No results".
+      setIsSearching(false);
+      setSearchResults([]);
+      setVerifiedArtist(null);
+      setLastSearchedQuery(query);
+      setSearchFailed(true);
+      return;
+    }
     setIsSearching(false);
 
     if (results.length > 0) {
@@ -827,6 +841,8 @@ export function useSearchLogic({
     setSearchResults,
     isSearching,
     setIsSearching,
+    searchFailed,
+    artistLoadFailed,
     selectedArtist,
     setSelectedArtist,
     verifiedArtist,

@@ -293,6 +293,18 @@ export const strings = {
     noPlaylistsOverviewDesc: 'Go to the Playlists tab to create collections.',
     goToPlaylists: 'Go to Playlists',
   },
+  offline: {
+    title: 'You’re offline',
+    description: 'Reconnect and try again. What you’ve already saved still works.',
+  },
+  searchFailed: {
+    title: 'Search didn’t go through',
+    description: 'The search service didn’t answer. Try again in a moment.',
+  },
+  artistFailed: {
+    title: 'Couldn’t load this artist',
+    description: 'The page didn’t finish loading. Try again.',
+  },
   discover: {
     trendingUnavailable: 'Trending unavailable',
     trendingDesc: 'Charts could not load right now. Check your connection and try again.',

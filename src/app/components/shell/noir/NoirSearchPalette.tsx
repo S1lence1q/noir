@@ -13,6 +13,7 @@ import {
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
+import { useOnline } from '../../../hooks/useOnline';
 import { noirToast } from './NoirToast';
 import { NoirMark } from './NoirMark';
 
@@ -82,6 +83,8 @@ export function NoirSearchPalette({
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchFailed, setSearchFailed] = useState(false);
+  const online = useOnline();
   const [focusedIndex, setFocusedIndex] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestIdRef = useRef(0);
@@ -103,6 +106,7 @@ export function NoirSearchPalette({
     setQuery('');
     setResults([]);
     setIsSearching(false);
+    setSearchFailed(false);
     setFocusedIndex(0);
     // Focus in the same commit that mounts the input, so keys typed right after ⌘K land in it.
     inputRef.current?.focus();
@@ -154,9 +158,16 @@ export function NoirSearchPalette({
 
     setIsSearching(true);
     const req = ++requestIdRef.current;
-    const next = await executeSearchAPI(q);
-    if (req !== requestIdRef.current) return;
-    setResults(next);
+    setSearchFailed(false);
+    try {
+      const next = await executeSearchAPI(q, 8, { throwOnFail: true });
+      if (req !== requestIdRef.current) return;
+      setResults(next);
+    } catch {
+      if (req !== requestIdRef.current) return;
+      setResults([]);
+      setSearchFailed(true);
+    }
     setIsSearching(false);
   };
 
@@ -292,7 +303,20 @@ export function NoirSearchPalette({
                 results.length === 0 &&
                 !artistCard &&
                 query.trim() && (
-                  <p className="noir-search-palette-empty">No results for “{query.trim()}”</p>
+                  searchFailed ? (
+                    <div className="noir-search-palette-empty">
+                      <p>{online ? strings.searchFailed.title : strings.offline.title}</p>
+                      <button
+                        type="button"
+                        onClick={() => void runSearch(query)}
+                        className="noir-link mt-2 elva-focus-ring"
+                      >
+                        {strings.discover.retry}
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="noir-search-palette-empty">No results for “{query.trim()}”</p>
+                  )
                 )}
 
               {showArtistRow && artistCard && (

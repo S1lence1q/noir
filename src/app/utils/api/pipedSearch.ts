@@ -91,7 +91,11 @@ export const fetchPaginatedPipedSearch = async (
   return collected;
 };
 
-const executeRawSearchAPI = async (query: string, limit: number = 8): Promise<SearchResult[]> => {
+const executeRawSearchAPI = async (
+  query: string,
+  limit: number = 8,
+  throwOnFail = false
+): Promise<SearchResult[]> => {
   if (!query.trim()) return [];
 
   try {
@@ -159,13 +163,19 @@ const executeRawSearchAPI = async (query: string, limit: number = 8): Promise<Se
     if (mapped.length > 0) return mapped.slice(0, limit);
   } catch (proxyErr) {
     console.error('All Piped/Invidious searches failed:', proxyErr);
+    // Callers that can show an error state want to tell "nothing found" from "couldn't ask".
+    if (throwOnFail) throw proxyErr;
   }
 
   return [];
 };
 
-export const executeSearchAPI = async (query: string, limit: number = 8): Promise<SearchResult[]> => {
-  const rawResults = await executeRawSearchAPI(query, limit * 4);
+export const executeSearchAPI = async (
+  query: string,
+  limit: number = 8,
+  options?: { throwOnFail?: boolean }
+): Promise<SearchResult[]> => {
+  const rawResults = await executeRawSearchAPI(query, limit * 4, options?.throwOnFail);
   const ranked = rankAndSortSearchResults(rawResults, query);
   return ranked
     .filter((r) => !isLikelyNonMusicStream(r.title, undefined, query))

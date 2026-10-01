@@ -55,6 +55,9 @@ interface LandingPageProps {
   setSearchQuery: (query: string) => void;
   lastSearchedQuery: string;
   isSearching: boolean;
+  searchFailed?: boolean;
+  artistLoadFailed?: boolean;
+  onRetryArtist?: () => void;
   searchResults: SearchResult[];
   recentArtists: VerifiedArtist[];
   recentlyPlayed: SearchResult[];
@@ -138,6 +141,9 @@ export function LandingPage({
   setSearchQuery,
   lastSearchedQuery,
   isSearching,
+  searchFailed,
+  artistLoadFailed,
+  onRetryArtist,
   searchResults,
   recentArtists,
   recentlyPlayed,
@@ -341,6 +347,8 @@ export function LandingPage({
                 artist={selectedArtist}
                 tracks={artistTracks}
                 isLoading={isLoadingArtist}
+                loadFailed={artistLoadFailed}
+                onRetry={onRetryArtist}
                 favorites={favorites}
                 onSelectSong={handleSelectSong}
                 onAddToQueue={handleAddToQueue}
@@ -437,6 +445,7 @@ export function LandingPage({
                   setSearchQuery={setSearchQuery}
                   lastSearchedQuery={lastSearchedQuery}
                   isSearching={isSearching}
+                  searchFailed={searchFailed}
                   searchResults={searchResults}
                   recentArtists={recentArtists}
                   recentlyPlayed={recentlyPlayed}

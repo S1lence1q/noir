@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { NoirStateNotice } from './NoirStateNotice';
 import { motion } from 'motion/react';
-import { ArrowRight, ChevronRight, Play, RefreshCw } from 'lucide-react';
+import { ArrowRight, ChevronRight, Play } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import { Playlist } from '../../PlaylistDetailsView';
 import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
@@ -207,14 +208,11 @@ export function NoirDiscoverView({
 
   if (chartsEmpty && !hasPersonal && feedReady) {
     return (
-      <div className="py-16">
-        <p className="text-[15px] text-[color:var(--noir-text-primary)]">{strings.discover.trendingUnavailable}</p>
-        <p className="mt-2 text-[14px] text-[color:var(--noir-text-secondary)]">{strings.discover.trendingDesc}</p>
-        <button type="button" onClick={() => void loadCharts()} className="noir-button-secondary mt-5 elva-focus-ring">
-          <RefreshCw className="h-3.5 w-3.5" />
-          {strings.discover.retry}
-        </button>
-      </div>
+      <NoirStateNotice
+        title={strings.discover.trendingUnavailable}
+        description={strings.discover.trendingDesc}
+        onRetry={() => void loadCharts()}
+      />
     );
   }
 
