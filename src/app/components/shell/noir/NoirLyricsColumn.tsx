@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { LyricLine } from '../../../types';
 import { prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
+import { useLyricsTimingControls } from '../../../utils/lyricsTiming';
 
 export type NoirLyricsColumnProps = {
   lyrics: LyricLine[];
@@ -11,6 +12,10 @@ export type NoirLyricsColumnProps = {
   /** Paused playback holds the breathing dots mid-breath. */
   isPlaying?: boolean;
   onSeek?: (time: number) => void;
+  /** Current timing shift in seconds, and handlers. The controls only show if the listener turned them on in Settings. */
+  offset?: number;
+  onNudge?: (deltaSeconds: number) => void;
+  onResetOffset?: () => void;
 };
 
 const SKELETON_WIDTHS = [72, 54, 81, 46, 66, 58];
@@ -29,8 +34,23 @@ export function NoirLyricsColumn({
   currentIndex,
   isPlaying = true,
   onSeek = seekViaShell,
+  offset = 0,
+  onNudge,
+  onResetOffset,
 }: NoirLyricsColumnProps) {
   const reduced = prefersReducedMotion();
+  const timingControls = useLyricsTimingControls();
+  const showTiming = timingControls && isSynced && lyrics.length > 0 && !!onNudge;
+  // The timing row is only there while the pointer is moving over the lyrics (or a control has focus):
+  // listening shouldn't carry controls that are only needed until the timing is right.
+  const [timingAwake, setTimingAwake] = useState(false);
+  const timingTimerRef = useRef<number | undefined>(undefined);
+  const wakeTiming = useCallback(() => {
+    setTimingAwake(true);
+    window.clearTimeout(timingTimerRef.current);
+    timingTimerRef.current = window.setTimeout(() => setTimingAwake(false), 2200);
+  }, []);
+  useEffect(() => () => window.clearTimeout(timingTimerRef.current), []);
   // A long intro gets the same breathing dots as a mid-song gap, so the column isn't dead before line one.
   const hasIntro = isSynced && lyrics.length > 0 && lyrics[0].time > 4;
   const activeRef = useRef<HTMLButtonElement | null>(null);
@@ -53,10 +73,32 @@ export function NoirLyricsColumn({
     return () => clearTimeout(t);
   }, [isLoading]);
 
+  // Back to the top only when the text itself changes (a new song), not when a timing nudge shifts the times.
+  const textKey = `${lyrics.length}:${lyrics[0]?.text}`;
+  // Plain lyrics start level with the top of the cover. The cover block is centred and its height varies
+  // (a long title wraps), so the distance is measured rather than guessed. Null until measured: CSS fallback.
+  const [plainTop, setPlainTop] = useState<number | null>(null);
+  useEffect(() => {
+    const scroller = scrollRef.current;
+    const art = scroller?.closest('.noir-now-playing-stage-row')?.querySelector('.noir-now-playing-art-slot');
+    if (!scroller || !art) return;
+    const measure = () => {
+      const gap = art.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+      // Each plain line carries its own ~14px of padding and leading above the glyphs: take it off so the
+      // text, not the line box, sits level with the cover.
+      setPlainTop(Math.max(0, Math.round(gap) - 14));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(art);
+    ro.observe(scroller);
+    return () => ro.disconnect();
+  }, []);
+
   useEffect(() => {
     initialScrollRef.current = true;
     scrollRef.current?.scrollTo({ top: 0 });
-  }, [lyrics]);
+  }, [textKey]);
 
   useEffect(() => {
     const container = scrollRef.current;
@@ -70,7 +112,12 @@ export function NoirLyricsColumn({
   }, [currentIndex, isSynced, reduced]);
 
   return (
-    <div className="noir-lyrics flex h-full min-h-0 flex-col" data-paused={isPlaying ? undefined : 'true'}>
+    <div
+      className="noir-lyrics flex h-full min-h-0 flex-col"
+      data-paused={isPlaying ? undefined : 'true'}
+      onPointerMove={showTiming ? wakeTiming : undefined}
+      onPointerDown={showTiming ? wakeTiming : undefined}
+    >
       <div ref={scrollRef} className="noir-lyrics-scroll relative min-h-0 flex-1 overflow-y-auto scrollbar-none px-2 pb-8">
         {isLoading || showSkeleton ? (
           showSkeleton ? (
@@ -85,7 +132,7 @@ export function NoirLyricsColumn({
           // No "not found" message on purpose: the stage simply steps away when a song has no lyrics.
           null
         ) : isSynced ? (
-          <div key={`${lyrics.length}:${lyrics[0]?.text}`} className="noir-lyrics-enter flex flex-col gap-0 pt-[min(24vh,220px)]">
+          <div key={textKey} className="noir-lyrics-enter flex flex-col gap-0 pt-[min(24vh,220px)]">
             {hasIntro && (
               <div className={`noir-lyrics-gap${currentIndex < 0 ? ' is-active' : ' is-past'}`} aria-hidden>
                 <i /><i /><i />
@@ -127,7 +174,12 @@ export function NoirLyricsColumn({
             <div className="h-[min(40vh,360px)] shrink-0" aria-hidden />
           </div>
         ) : (
-          <div key={`${lyrics.length}:${lyrics[0]?.text}`} className="noir-lyrics-enter flex flex-col gap-1 pt-1">
+          // Level with the cover's top; room below so the last line can scroll clear of the bottom fade.
+          <div
+            key={textKey}
+            className="noir-lyrics-enter flex flex-col gap-1 pb-[min(20vh,180px)]"
+            style={{ paddingTop: plainTop ?? 'min(12vh, 110px)' }}
+          >
             {lyrics.map((line, idx) => (
               <p key={idx} className="noir-lyrics-plain">
                 {line.text}
@@ -136,6 +188,32 @@ export function NoirLyricsColumn({
           </div>
         )}
       </div>
+      {showTiming && (
+        <div
+          className="noir-lyrics-timing"
+          data-awake={timingAwake ? 'true' : undefined}
+          role="group"
+          aria-label="Lyrics timing"
+          onFocus={wakeTiming}
+        >
+          <button type="button" className="elva-focus-ring" onClick={() => onNudge?.(-0.5)} aria-label="Lyrics 0.5 seconds earlier">
+            −
+          </button>
+          <button
+            type="button"
+            className="noir-lyrics-timing-value elva-focus-ring"
+            onClick={onResetOffset}
+            aria-label="Reset lyrics timing"
+            title="Reset"
+          >
+            {offset > 0 ? '+' : ''}
+            {offset.toFixed(1)}s
+          </button>
+          <button type="button" className="elva-focus-ring" onClick={() => onNudge?.(0.5)} aria-label="Lyrics 0.5 seconds later">
+            +
+          </button>
+        </div>
+      )}
     </div>
   );
 }

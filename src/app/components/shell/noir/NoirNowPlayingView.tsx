@@ -50,6 +50,9 @@ type NoirNowPlayingViewProps = {
   isLoadingLyrics?: boolean;
   isLyricsSynced?: boolean;
   currentLyricIndex?: number;
+  lyricsOffset?: number;
+  onNudgeLyrics?: (deltaSeconds: number) => void;
+  onResetLyricsOffset?: () => void;
   sidePanelOpen?: boolean;
 };
 
@@ -145,6 +148,9 @@ export function NoirNowPlayingView({
   isLoadingLyrics = false,
   isLyricsSynced = false,
   currentLyricIndex = -1,
+  lyricsOffset = 0,
+  onNudgeLyrics,
+  onResetLyricsOffset,
   sidePanelOpen = true,
 }: NoirNowPlayingViewProps) {
   const reduced = prefersReducedMotion();
@@ -507,6 +513,9 @@ export function NoirNowPlayingView({
                     isSynced={isLyricsSynced}
                     currentIndex={currentLyricIndex}
                     isPlaying={playback.isPlaying}
+                    offset={lyricsOffset}
+                    onNudge={onNudgeLyrics}
+                    onResetOffset={onResetLyricsOffset}
                   />
                 </div>
               </motion.div>

@@ -1,13 +1,30 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { parseLrc, loadCustomLyrics } from '../utils/lyricsUtils';
-import { cleanSongTitle } from '../utils/stringUtils';
+import { useLyricsTimingControls } from '../utils/lyricsTiming';
+import { cleanSongTitle, lyricsTitleVariants, lyricsArtistVariants } from '../utils/stringUtils';
 import type { LyricLine } from '../types';
 import type { PlaybackSongData } from '../types/playback';
 
-type LrclibTrack = { syncedLyrics?: string | null; plainLyrics?: string | null; duration?: number };
+type LrclibTrack = {
+  syncedLyrics?: string | null;
+  plainLyrics?: string | null;
+  duration?: number;
+  artistName?: string;
+};
 
-/** Synced timing only counts if the lrclib version is within this many seconds of what's playing. */
-const SYNC_TOLERANCE_S = 5;
+/**
+ * Synced lyrics are only shown as synced if the lrclib version is within this many seconds of what's
+ * playing. Otherwise plain text: lines that are visibly late or early are worse than none.
+ */
+const SYNC_TOLERANCE_S = 3;
+/**
+ * Opt-in only (Settings → lyrics timing controls): a track up to this many seconds longer than the
+ * lrclib version is often the same recording with a video intro, so keep the timing and shift it by
+ * the difference. It is a guess, which the listener can then nudge.
+ */
+const OFFSET_GUESS_MAX_S = 25;
+
+type Pick = { lines: LyricLine[]; synced: boolean; guessedOffset: number };
 
 function toPlainLines(track: LrclibTrack): LyricLine[] {
   const source = track.plainLyrics || (track.syncedLyrics ?? '').replace(/^\[[^\]]*\]\s*/gm, '');
@@ -25,31 +42,87 @@ function needsDuration(candidates: LrclibTrack[]): boolean {
 
 /**
  * lrclib often returns several versions (remaster, live, radio edit) with different intros.
- * Pick the one whose length matches the playing track; if none is close, show plain text
- * rather than confidently wrong timing.
+ * Pick the one whose length matches the playing track; if none is close, show plain text rather
+ * than confidently wrong timing (unless the listener opted into a guessed shift).
  */
-function pickLyrics(candidates: LrclibTrack[], duration: number): { lines: LyricLine[]; synced: boolean } {
-  if (candidates.length === 0) return { lines: [], synced: false };
+function pickLyrics(candidates: LrclibTrack[], duration: number, allowOffsetGuess: boolean): Pick {
+  if (candidates.length === 0) return { lines: [], synced: false, guessedOffset: 0 };
   const synced = candidates.filter((t) => t.syncedLyrics);
   if (synced.length > 0) {
-    if (duration <= 0) return { lines: parseLrc(synced[0].syncedLyrics!), synced: true };
+    if (duration <= 0) return { lines: parseLrc(synced[0].syncedLyrics!), synced: true, guessedOffset: 0 };
     const best = [...synced].sort(
       (a, b) => Math.abs((a.duration ?? 0) - duration) - Math.abs((b.duration ?? 0) - duration)
     )[0];
-    if (best.duration == null || Math.abs(best.duration - duration) <= SYNC_TOLERANCE_S) {
-      return { lines: parseLrc(best.syncedLyrics!), synced: true };
+    const lines = parseLrc(best.syncedLyrics!);
+    if (best.duration == null) return { lines, synced: true, guessedOffset: 0 };
+    const delta = duration - best.duration;
+    if (Math.abs(delta) <= SYNC_TOLERANCE_S) return { lines, synced: true, guessedOffset: 0 };
+    if (allowOffsetGuess && delta > 0 && delta <= OFFSET_GUESS_MAX_S) {
+      return { lines, synced: true, guessedOffset: Math.round(delta * 10) / 10 };
     }
-    return { lines: toPlainLines(best), synced: false };
+    return { lines: toPlainLines(best), synced: false, guessedOffset: 0 };
   }
   const plain = candidates.find((t) => t.plainLyrics);
-  return plain ? { lines: toPlainLines(plain), synced: false } : { lines: [], synced: false };
+  return plain
+    ? { lines: toPlainLines(plain), synced: false, guessedOffset: 0 }
+    : { lines: [], synced: false, guessedOffset: 0 };
 }
 
 const lyricsCache = new Map<string, LrclibTrack[]>();
 const lyricsInflight = new Map<string, Promise<LrclibTrack[]>>();
 
-const lyricsKey = (title: string, artist: string) => `${cleanSongTitle(title)}::${artist}`.toLowerCase();
+const lyricsKey = (title: string, artist: string) => `${cleanSongTitle(title, artist)}::${artist}`.toLowerCase();
 const isLookupable = (artist: string) => artist !== 'Unknown Artist' && artist !== 'Web Stream';
+
+async function searchLrclib(params: Record<string, string>): Promise<LrclibTrack[]> {
+  const res = await fetch(`https://lrclib.net/api/search?${new URLSearchParams(params)}`);
+  if (!res.ok) throw new Error('API Error');
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+}
+
+const normName = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+function artistMatches(found: string | undefined, wanted: string): boolean {
+  const a = normName(found ?? '');
+  const b = normName(wanted);
+  return a.length > 0 && b.length > 0 && (a.includes(b) || b.includes(a));
+}
+
+/**
+ * Widening search: exact fields first, then free text, then title alone checked against the artist.
+ * The first stage that has synced lyrics wins; if none does, the first stage with plain text is used.
+ */
+async function lookupLrclib(title: string, artist: string): Promise<LrclibTrack[]> {
+  const artists = isLookupable(artist) ? lyricsArtistVariants(artist) : [];
+  const primary = artists[0] ?? '';
+  const titles = lyricsTitleVariants(title, artist);
+  if (titles.length === 0) return [];
+  const stages: Array<() => Promise<LrclibTrack[]>> = [];
+  for (const t of titles) {
+    for (const a of artists) stages.push(() => searchLrclib({ track_name: t, artist_name: a }));
+  }
+  for (const t of titles) stages.push(() => searchLrclib({ q: `${t} ${primary}`.trim() }));
+  if (artists.length > 0) {
+    stages.push(async () =>
+      (await searchLrclib({ q: titles[0] })).filter((t) => artists.some((a) => artistMatches(t.artistName, a)))
+    );
+  }
+  let plainFallback: LrclibTrack[] = [];
+  let failures = 0;
+  for (const stage of stages) {
+    let list: LrclibTrack[];
+    try {
+      list = await stage();
+    } catch {
+      failures++;
+      continue;
+    }
+    if (list.some((t) => t.syncedLyrics)) return list;
+    if (plainFallback.length === 0 && list.length > 0) plainFallback = list;
+  }
+  if (failures === stages.length) throw new Error('API Error');
+  return plainFallback;
+}
 
 /** One lrclib lookup per song, shared by the player and by the prefetch. Failures are not cached. */
 function fetchCandidates(title: string, artist: string): Promise<LrclibTrack[]> {
@@ -58,14 +131,8 @@ function fetchCandidates(title: string, artist: string): Promise<LrclibTrack[]> 
   if (hit) return Promise.resolve(hit);
   const running = lyricsInflight.get(key);
   if (running) return running;
-  const query = encodeURIComponent(`${cleanSongTitle(title)} ${isLookupable(artist) ? artist : ''}`.trim());
-  const p = fetch(`https://lrclib.net/api/search?q=${query}`)
-    .then((res) => {
-      if (!res.ok) throw new Error('API Error');
-      return res.json();
-    })
-    .then((data) => {
-      const list: LrclibTrack[] = Array.isArray(data) ? data : [];
+  const p = lookupLrclib(title, artist)
+    .then((list) => {
       lyricsCache.set(key, list);
       return list;
     })
@@ -80,6 +147,28 @@ export function prefetchLyrics(title: string, artist: string) {
   fetchCandidates(title, artist).catch(() => {});
 }
 
+const OFFSET_STORAGE_PREFIX = 'noir_lyrics_offset_';
+
+function readStoredOffset(key: string): number | null {
+  try {
+    const raw = localStorage.getItem(OFFSET_STORAGE_PREFIX + key);
+    if (raw == null) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredOffset(key: string, value: number | null) {
+  try {
+    if (value == null) localStorage.removeItem(OFFSET_STORAGE_PREFIX + key);
+    else localStorage.setItem(OFFSET_STORAGE_PREFIX + key, String(value));
+  } catch {
+    /* storage unavailable: the offset just lasts for this session */
+  }
+}
+
 export function useLyrics(songData: PlaybackSongData, currentTime: number, duration = 0) {
   const [showLyrics, setShowLyrics] = useState(false);
   const [lyrics, setLyrics] = useState<LyricLine[]>([]);
@@ -89,6 +178,13 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
   const [isLyricsModalOpen, setIsLyricsModalOpen] = useState(false);
   const [lyricsVersion, setLyricsVersion] = useState(0);
   const [candidates, setCandidates] = useState<LrclibTrack[] | null>(null);
+  // Seconds the timing is shifted by: guessed from the length difference, or set by the listener.
+  const timingControls = useLyricsTimingControls();
+  const [guessedOffset, setGuessedOffset] = useState(0);
+  const [userOffset, setUserOffset] = useState<number | null>(null);
+  const [isCustomLyrics, setIsCustomLyrics] = useState(false);
+  // The offset belongs to this upload of the song (a video's intro), so it is keyed by video when known.
+  const offsetKey = songData.videoId || lyricsKey(songData.title, songData.artist);
   // Right after a song change the player can still report the previous song's time for a moment.
   // Ignore it until playback is back near the start (or a short grace period passes, e.g. restore mid-song).
   const awaitingStartRef = useRef(true);
@@ -111,6 +207,34 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
     return () => window.clearTimeout(grace);
   }, [songData.title, songData.artist, songData.videoId]);
 
+  useEffect(() => {
+    setUserOffset(readStoredOffset(offsetKey));
+  }, [offsetKey]);
+
+  const lyricsOffset = isCustomLyrics ? 0 : (userOffset ?? guessedOffset);
+  const shiftedLyrics = useMemo(
+    () => (lyricsOffset === 0 ? lyrics : lyrics.map((l) => ({ ...l, time: l.time + lyricsOffset }))),
+    [lyrics, lyricsOffset]
+  );
+
+  // Rapid taps must each count: read the latest value from a ref, not from the last render.
+  const offsetRef = useRef(lyricsOffset);
+  offsetRef.current = lyricsOffset;
+  const nudgeLyricsOffset = useCallback(
+    (delta: number) => {
+      const next = Math.round((offsetRef.current + delta) * 10) / 10;
+      offsetRef.current = next;
+      setUserOffset(next);
+      writeStoredOffset(offsetKey, next);
+    },
+    [offsetKey]
+  );
+
+  const resetLyricsOffset = useCallback(() => {
+    setUserOffset(null);
+    writeStoredOffset(offsetKey, null);
+  }, [offsetKey]);
+
   // Choose among lrclib versions once the track length is known (re-picks if it arrives late).
   const rounded = Math.round(duration);
   const roundedDuration = rounded === staleDurationRef.current ? 0 : rounded;
@@ -128,29 +252,30 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
     // corrected a moment later — the visible flip. Stay in "loading" until the length is known,
     // unless the answer doesn't depend on it (nothing found, or nothing to compare against).
     if (roundedDuration <= 0 && !durationWaitOver && needsDuration(candidates)) return;
-    const { lines, synced } = pickLyrics(candidates, roundedDuration);
+    const { lines, synced, guessedOffset: guess } = pickLyrics(candidates, roundedDuration, timingControls);
     setLyrics(lines);
+    setGuessedOffset(guess);
     setIsLyricsSynced(synced);
     // Loading ends here, in the same render that has the lines — never a frame of "loaded, but empty".
     setIsLoadingLyrics(false);
-  }, [candidates, roundedDuration, durationWaitOver]);
+  }, [candidates, roundedDuration, durationWaitOver, timingControls]);
 
   useEffect(() => {
-    if (lyrics.length === 0 || !isLyricsSynced) return;
+    if (shiftedLyrics.length === 0 || !isLyricsSynced) return;
     if (awaitingStartRef.current) {
       if (currentTime > 2) return;
       awaitingStartRef.current = false;
     }
     let activeIndex = -1;
-    for (let i = 0; i < lyrics.length; i++) {
-      if (currentTime >= lyrics[i].time - 0.5) {
+    for (let i = 0; i < shiftedLyrics.length; i++) {
+      if (currentTime >= shiftedLyrics[i].time - 0.5) {
         activeIndex = i;
       } else {
         break;
       }
     }
     setCurrentLyricIndex(activeIndex);
-  }, [currentTime, lyrics, isLyricsSynced]);
+  }, [currentTime, shiftedLyrics, isLyricsSynced]);
 
   useEffect(() => {
     if (!songData.title) return;
@@ -161,6 +286,7 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
       // so the stage and the cover change once, cleanly.
       const known = lyricsCache.get(lyricsKey(songData.title, songData.artist));
       if (known && !loadCustomLyrics(songData.videoId, songData.title, songData.artist)) {
+        setIsCustomLyrics(false);
         // Known answer: no network. The candidates effect picks the lines (once the length is known, if
         // that matters) and ends loading; the stage holds its state meanwhile.
         setIsLoadingLyrics(true);
@@ -179,6 +305,7 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
       // the skeleton / empty state while the new text loads.
 
       const custom = loadCustomLyrics(songData.videoId, songData.title, songData.artist);
+      setIsCustomLyrics(!!custom);
       if (custom) {
         if (isMounted) {
           setLyrics(custom.lyrics);
@@ -220,12 +347,17 @@ export function useLyrics(songData: PlaybackSongData, currentTime: number, durat
   return {
     showLyrics,
     setShowLyrics,
-    lyrics,
+    lyrics: shiftedLyrics,
     isLoadingLyrics,
     currentLyricIndex,
     isLyricsSynced,
     isLyricsModalOpen,
     setIsLyricsModalOpen,
     handleLyricsReload,
+    lyricsOffset,
+    /** True while the shift is our guess from the length difference (not yet confirmed by the listener). */
+    isOffsetGuess: !isCustomLyrics && userOffset == null && guessedOffset !== 0,
+    nudgeLyricsOffset,
+    resetLyricsOffset,
   };
 }

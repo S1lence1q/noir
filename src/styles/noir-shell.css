@@ -1875,6 +1875,47 @@ button.noir-now-playing-source:hover {
   padding-right: 1.5rem;
 }
 
+.noir-lyrics-timing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 0 2px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.noir-lyrics-timing[data-awake],
+.noir-lyrics-timing:focus-within {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.noir-lyrics-timing button {
+  min-width: 30px;
+  height: 28px;
+  padding: 0 8px;
+  border: none;
+  border-radius: var(--noir-radius-sm);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: color 0.25s ease, background 0.25s ease;
+}
+
+.noir-lyrics-timing button:hover {
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.noir-lyrics-timing-value {
+  min-width: 56px;
+}
+
 .noir-lyrics-line {
   display: block;
   width: 100%;

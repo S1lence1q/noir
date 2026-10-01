@@ -300,6 +300,9 @@ export default function App() {
     isLoadingLyrics,
     currentLyricIndex,
     isLyricsSynced,
+    lyricsOffset,
+    nudgeLyricsOffset,
+    resetLyricsOffset,
   } = useLyrics(songData ?? EMPTY_LYRICS_SONG, shellPlayback.currentTime, shellPlayback.duration);
 
   /**
@@ -2001,6 +2004,9 @@ export default function App() {
                   isLoadingLyrics={isLoadingLyrics}
                   isLyricsSynced={isLyricsSynced}
                   currentLyricIndex={currentLyricIndex}
+                  lyricsOffset={lyricsOffset}
+                  onNudgeLyrics={nudgeLyricsOffset}
+                  onResetLyricsOffset={resetLyricsOffset}
                   sidePanelOpen={sidePanelOpen}
                 />
               ) : undefined

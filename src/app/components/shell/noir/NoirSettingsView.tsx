@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ChevronRight, Globe, Info, Keyboard, Volume1, Volume2, VolumeX, Waves, Palette } from 'lucide-react';
 import { readAtmosphereMode, setAtmosphereMode, type AtmosphereMode } from '../../../utils/atmosphere';
+import { readLyricsTimingControls, setLyricsTimingControls } from '../../../utils/lyricsTiming';
 import * as Slider from '@radix-ui/react-slider';
 import { STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { showMiniHUD } from '../../../utils/hudUtils';
@@ -131,6 +132,7 @@ export function NoirSettingsView() {
   );
   const [autoplay, setAutoplay] = useState<AutoplayPreference>(() => readAutoplayPreference());
   const [atmosphere, setAtmosphere] = useState<AtmosphereMode>(readAtmosphereMode);
+  const [lyricsTiming, setLyricsTiming] = useState(readLyricsTimingControls);
 
   const gapless = crossfade === 0;
 
@@ -283,6 +285,21 @@ export function NoirSettingsView() {
               ▾
             </span>
           </div>
+        </SettingsRow>
+
+        <div className="noir-settings-divider" />
+
+        <SettingsRow
+          label="Lyrics timing controls"
+          description="Show buttons to nudge lyrics earlier or later when they are slightly off"
+        >
+          <NoirSwitch
+            checked={lyricsTiming}
+            onChange={(on) => {
+              setLyricsTiming(on);
+              setLyricsTimingControls(on);
+            }}
+          />
         </SettingsRow>
       </SettingsCard>
 
