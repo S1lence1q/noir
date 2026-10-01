@@ -1,10 +1,5 @@
-/**
- * Whether the extra (experimental) lyrics source may be asked. On by default; the listener can switch it off
- * in Settings. It only exists at all when the build has VITE_LYRICS_PROXY_URL.
- */
+/** Whether the extra lyrics source (Apple Music, third party) may be asked. On by default; switch off in Settings. */
 const KEY = 'noir_lyrics_extra_source';
-
-export const EXTRA_LYRICS_SOURCE_AVAILABLE = Boolean(import.meta.env?.VITE_LYRICS_PROXY_URL);
 
 export function readExtraLyricsSource(): boolean {
   try {

@@ -13,12 +13,15 @@ This plan was written by Gemini; what is actually decided and built differs from
 
 **Measured:** big English songs ≈ 100 % synced on lrclib. Newer Danish music (D1ma, Wicky, Gilli, Branco, Specktors, Rasmus Seebach…) mostly missing. NetEase barely helps for Danish, so it is not planned.
 
-**Decisions:**
+**Decisions / what happened:**
 - NOIR is a hobby project; real users may never come. A release is a maybe, later.
-- Several sources, each song uses whichever has it: **lrclib first, then others only if lrclib has no usable synced version.** Not all at once (cost, and it keeps load on unofficial sources low).
-- **Musixmatch is an experiment, and it is uncertain.** It has the Danish coverage, but there is no free official synced-lyrics API: the only way is the unofficial token that Musixmatch's own desktop app uses, via a small proxy (browsers can't call it directly). That is against their terms, can stop working without warning, and funnelling every listener through one proxy IP is exactly what gets blocked. If it works, good; if it is blocked, lrclib still works as before and nothing is lost. If NOIR ever ships to many users, talk to Musixmatch about a real licence instead of relying on this.
-- Spotify-side tools (e.g. Spicetify) reportedly use Musixmatch through Spotify's own token and agreement, which NOIR does not have, so that is not a precedent for us.
-- Sources sit behind one adapter interface (`src/app/services/lyrics/`), so Musixmatch can be added or removed without touching the rest.
+- Several sources, each song uses whichever has it, in order: **lrclib, then Apple Music** (only asked when lrclib has nothing synced, at most 3 lookups per song). Sources sit behind one interface in `src/app/services/lyrics/`.
+- **Musixmatch directly — tried, abandoned (2026-10-01).** No free official synced API. A proxy using the unofficial desktop-app access (and an anonymous token) got a canned wrong answer (two different songs returned the identical result), i.e. it is filtered. Getting past that would mean imitating their client more closely, which we did not do. Spicetify avoids it by making each user paste their own token — not workable for us.
+- **Paxsenix `/musixmatch/lyrics` — closed by its owner** ("massive amount of traffic"). His `/apple-music/lyrics` is open ("no restrictions, feel free to use it"), so that is what we use. Please keep the load light (it is why Apple Music is second in line and capped); he takes donations/contact: https://t.me/fractureds.
+- **Apple Music source:** iTunes Search (Apple's official public API) finds the track id, Paxsenix returns TTML-derived JSON (`type` None / Line / Syllable, times in ms) which is converted to LRC. Both services allow CORS, so **no proxy, account or token is needed.** Third party, can change or disappear; lrclib keeps working without it. Switch off in Settings → Extra lyrics source.
+- Spotify-cookie projects (`sp_dc`, e.g. akashrchandran/spotify-lyrics-api) were considered: they work by using a Spotify account session, say themselves they are probably against Spotify's terms, and risk the account. Not chosen.
+- Not planned: NetEase/QQ/Kugou (barely helps Danish), scraped/paid third-party "lyrics API" resellers.
+- Beware when measuring: several "missing" Danish test songs were wrong titles/artists of mine, not real gaps. Test with real titles from the library.
 
 ---
 

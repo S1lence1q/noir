@@ -1,11 +1,11 @@
 import { lrclibProvider } from './lrclib';
-import { musixmatchProvider } from './musixmatch';
+import { appleMusicProvider } from './appleMusic';
 import type { LookupResult, LyricsProvider } from './types';
 
 export type { LyricsTrack, LookupResult, LyricsProvider } from './types';
 
 /** In order of preference. Later sources are only asked when the earlier ones have nothing synced. */
-const PROVIDERS: LyricsProvider[] = [lrclibProvider, ...(musixmatchProvider ? [musixmatchProvider] : [])];
+const PROVIDERS: LyricsProvider[] = [lrclibProvider, appleMusicProvider];
 
 /**
  * Ask the sources one at a time and stop at the first that has synced lyrics. If none does, keep the

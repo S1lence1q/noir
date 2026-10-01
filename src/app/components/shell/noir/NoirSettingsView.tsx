@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { ChevronRight, Globe, Info, Keyboard, Volume1, Volume2, VolumeX, Waves, Palette } from 'lucide-react';
 import { readAtmosphereMode, setAtmosphereMode, type AtmosphereMode } from '../../../utils/atmosphere';
 import { readLyricsTimingControls, setLyricsTimingControls } from '../../../utils/lyricsTiming';
-import { EXTRA_LYRICS_SOURCE_AVAILABLE, readExtraLyricsSource, setExtraLyricsSource } from '../../../utils/lyricsSources';
+import { readExtraLyricsSource, setExtraLyricsSource } from '../../../utils/lyricsSources';
 import * as Slider from '@radix-ui/react-slider';
 import { STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { showMiniHUD } from '../../../utils/hudUtils';
@@ -304,24 +304,20 @@ export function NoirSettingsView() {
           />
         </SettingsRow>
 
-        {EXTRA_LYRICS_SOURCE_AVAILABLE && (
-          <>
-            <div className="noir-settings-divider" />
+        <div className="noir-settings-divider" />
 
-            <SettingsRow
-              label="Extra lyrics source"
-              description="Experimental. Looks for synced lyrics elsewhere when the main source has none. May stop working at any time"
-            >
-              <NoirSwitch
-                checked={extraLyrics}
-                onChange={(on) => {
-                  setExtraLyrics(on);
-                  setExtraLyricsSource(on);
-                }}
-              />
-            </SettingsRow>
-          </>
-        )}
+        <SettingsRow
+          label="Extra lyrics source"
+          description="Looks for synced lyrics on Apple Music when the main source has none. Third party: may stop working"
+        >
+          <NoirSwitch
+            checked={extraLyrics}
+            onChange={(on) => {
+              setExtraLyrics(on);
+              setExtraLyricsSource(on);
+            }}
+          />
+        </SettingsRow>
       </SettingsCard>
 
       <SettingsCard title="Appearance" icon={Palette}>

@@ -115,7 +115,7 @@ Principle: motion explains cause → effect (where did it go, what changed). One
 
 ### Open (noted 2026-10-01)
 - [ ] 🔴 Artist profile for **Mas** shows the wrong artist (a different act with a similar name). Find out why identity resolution picks it (search ranking in `utils/api/artistHelpers.ts`, `ArtistIdentity`) and fix it.
-- [ ] 🟡 Lyrics coverage: lrclib has few/no synced lyrics for newer Danish artists (D1ma's new songs, Wicky, Gilli, Branco, Specktors, Rasmus Seebach...). Decision pending on a second source (Musixmatch via a small proxy) — see `LYRICS_ENHANCEMENT_PLAN.md`; measured 2026-10-01: big English songs ~100 % synced, new Danish mostly none.
+- [ ] 🟡 Lyrics coverage: lrclib has few/no synced lyrics for newer Danish artists (D1ma's new songs, Wicky, Gilli, Branco, Specktors, Rasmus Seebach...). Second source added: Apple Music (via iTunes Search + Paxsenix) — see `LYRICS_ENHANCEMENT_PLAN.md` §0. Re-measure with real titles from the library (D1ma's new songs, Wicky...) and note what is still missing.
 
 ### Later
 - [x] T22 quiet tooltips: one `NoirTooltipHost` (portal, 400 ms hover / instant keyboard focus, never touch, 40 ch). Every shell `title=` (34) moved to `data-tip` — no more native grey bubbles. Search ★ + File carry the ticket copy (`strings.tips`, no Apple Music mention). Sidebar rail items tip to the right only while labels are hidden (`data-tip-rail`).
