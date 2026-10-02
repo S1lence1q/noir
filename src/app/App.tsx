@@ -614,7 +614,6 @@ export default function App() {
     const isLocal = !!(result.audioUrl?.startsWith('blob:') || result.id?.startsWith('local_'));
     const latestId = latestSelectedSongIdRef.current;
     const queuedMatch = queueRef.current.find((item) => item.id === result.id);
-    const hadCachedVideoId = !!(result.videoId || resolvedVideoIdsRef.current[result.id] || queuedMatch?.videoId);
     let finalVideoId = isLocal
       ? ''
       : (result.videoId || resolvedVideoIdsRef.current[result.id] || queuedMatch?.videoId || '');
@@ -962,27 +961,6 @@ export default function App() {
   const handleStartRadioFromPlayer = () => {
     const seed = songDataAsSearchResult();
     if (seed) void handleStartRadio(seed);
-  };
-
-  const handleAppendRadio = async (seed: SearchResult) => {
-    try {
-      const exclude = queue
-        .map((item) => getPlaybackSongKey(item) || `${item.artist}::${item.title}`)
-        .filter(Boolean) as string[];
-      const radioTracks = await buildAutoplayTracks(seed, exclude);
-      if (radioTracks.length === 0) {
-        noirToast({ text: strings.radio.empty });
-        return;
-      }
-      radioTracks.forEach((track) => handleAddToQueue(track, { silent: true }));
-      noirToast({
-        text: strings.nextUp.addedMany(radioTracks.length),
-        cover: radioTracks[0]?.thumbnail || seed.thumbnail,
-      });
-    } catch (error) {
-      console.warn('[radio] Autoplay append failed', error);
-      noirToast({ text: strings.radio.failed });
-    }
   };
 
   const handleQueueEndKeepPlaying = () => {
