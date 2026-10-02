@@ -165,8 +165,3 @@ export async function fetchAppleMusicChart(
   }
 }
 
-export function prefetchAppleCharts() {
-  const savedCountry = localStorage.getItem('noir_profile_country') || 'dk';
-  void fetchAppleMusicChart(savedCountry);
-  void fetchAppleMusicChart('us');
-}

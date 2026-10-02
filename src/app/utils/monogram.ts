@@ -25,22 +25,8 @@ export function initialOf(name: string) {
 
 const cache = new Map<string, string>();
 
-export function monogramKey(letter: string, ink: string, px: number) {
+function monogramKey(letter: string, ink: string, px: number) {
   return `${letter}|${ink}|${px}`;
-}
-
-export function getCachedMonogram(letter: string, ink: string, px: number) {
-  return cache.get(monogramKey(letter, ink, px));
-}
-
-/** Waits for the brand weight so the first render isn't drawn in a fallback face. */
-export async function loadMonogram(letter: string, ink: string, px: number): Promise<string> {
-  try {
-    await document.fonts?.load('800 100px Outfit');
-  } catch {
-    /* draw with what we have */
-  }
-  return renderMonogram(letter, ink, px);
 }
 
 export function renderMonogram(letter: string, ink: string, px: number): string {

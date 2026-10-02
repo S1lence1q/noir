@@ -9,11 +9,9 @@ import { HEAT_RAMPS } from '../../../utils/heatFigure';
  * figures on blue, plate wave). Fills its parent; the parent owns the text.
  */
 
-export const HEAT_FIELD = '#2350DC';
-
 /** Horizontal span of the day nodes, as fractions of the width (labels are placed with it). */
-export const HEAT_WEEK_X0 = 0.47;
-export const HEAT_WEEK_X1 = 0.92;
+const HEAT_WEEK_X0 = 0.47;
+const HEAT_WEEK_X1 = 0.92;
 export const heatWeekNodeX = (i: number, n: number) =>
   HEAT_WEEK_X0 + ((HEAT_WEEK_X1 - HEAT_WEEK_X0) * i) / Math.max(1, n - 1);
 

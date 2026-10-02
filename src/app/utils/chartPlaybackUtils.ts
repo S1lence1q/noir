@@ -3,7 +3,7 @@ import { executeSearchAPI, fetchVideoDetails } from './apiUtils';
 import { getPrimaryArtist } from './stringUtils';
 
 /** Normalize for loose title comparison (Danish æ/ø/å, punctuation). */
-export function normalizeForTitleMatch(value: string): string {
+function normalizeForTitleMatch(value: string): string {
   return value
     .toLowerCase()
     .normalize('NFD')
@@ -14,7 +14,7 @@ export function normalizeForTitleMatch(value: string): string {
 }
 
 /** True when the YouTube result title clearly refers to the expected chart track. */
-export function titleMatchesExpected(videoTitle: string, expectedTitle: string): boolean {
+function titleMatchesExpected(videoTitle: string, expectedTitle: string): boolean {
   const expected = normalizeForTitleMatch(expectedTitle);
   const video = normalizeForTitleMatch(videoTitle);
   if (!expected || !video) return false;
@@ -32,7 +32,7 @@ export function titleMatchesExpected(videoTitle: string, expectedTitle: string):
   return matched >= Math.max(1, Math.ceil(words.length * 0.75));
 }
 
-export function artistMatchesExpected(videoArtist: string, expectedArtist: string): boolean {
+function artistMatchesExpected(videoArtist: string, expectedArtist: string): boolean {
   const video = normalizeForTitleMatch(videoArtist);
   if (!video) return false;
 
@@ -47,7 +47,7 @@ export function artistMatchesExpected(videoArtist: string, expectedArtist: strin
   return featured.some((n) => video.includes(n));
 }
 
-export function buildChartResolveQuery(expected: Pick<SearchResult, 'title' | 'artist'>): string {
+function buildChartResolveQuery(expected: Pick<SearchResult, 'title' | 'artist'>): string {
   const title = expected.title.trim();
   const names = expected.artist
     .split(/\s*(?:,|&| x )\s*/i)
@@ -77,7 +77,7 @@ function isUndesiredStreamTitle(cTitle: string): boolean {
   return false;
 }
 
-export function scoreChartCandidate(
+function scoreChartCandidate(
   c: SearchResult,
   expected: Pick<SearchResult, 'title' | 'artist'>
 ): number {
@@ -110,7 +110,7 @@ export function scoreChartCandidate(
 }
 
 /** Safe to play without a slow metadata round-trip (Topic / official audio). */
-export function isConfidentChartMatch(
+function isConfidentChartMatch(
   candidate: SearchResult,
   expected: Pick<SearchResult, 'title' | 'artist'>
 ): boolean {
@@ -124,21 +124,13 @@ export function isConfidentChartMatch(
   return uploaderMatchesArtist(candidate.artist, expected.artist) || cArtist.includes('topic');
 }
 
-export function rankYouTubeCandidatesForTrack(
+function rankYouTubeCandidatesForTrack(
   candidates: SearchResult[],
   expected: Pick<SearchResult, 'title' | 'artist'>
 ): SearchResult[] {
   return [...candidates]
     .filter((c) => c.videoId?.length === 11 && titleMatchesExpected(c.title, expected.title))
     .sort((a, b) => scoreChartCandidate(b, expected) - scoreChartCandidate(a, expected));
-}
-
-export function pickBestYouTubeMatchForTrack(
-  candidates: SearchResult[],
-  expected: Pick<SearchResult, 'title' | 'artist'>
-): SearchResult | null {
-  const ranked = rankYouTubeCandidatesForTrack(candidates, expected);
-  return ranked[0] ?? null;
 }
 
 export type ResolvedYouTubePlayback = {

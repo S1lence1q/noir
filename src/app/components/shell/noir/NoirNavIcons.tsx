@@ -5,10 +5,10 @@ type NavIconProps = SVGProps<SVGSVGElement> & {
   strokeWidth?: number;
 };
 
-export const NAV_ICON_SETS = ['stage', 'signal', 'glyph', 'pulse'] as const;
+const NAV_ICON_SETS = ['stage', 'signal', 'glyph', 'pulse'] as const;
 export type NavIconSet = (typeof NAV_ICON_SETS)[number];
 
-export const NAV_ICON_SET_LABELS: Record<NavIconSet, string> = {
+const NAV_ICON_SET_LABELS: Record<NavIconSet, string> = {
   stage: '1 · Stage / radar / shelves',
   signal: '2 · Portal / burst / spines',
   glyph: '3 · Frame / orbit / discs',

@@ -33,7 +33,7 @@ export function heroWorld(track: SearchResult): ColorWorld {
 }
 
 /** The object's colour: a partner from the palette, so the banner is two colours, one shape. */
-export const heroMark = PARTNER_INK;
+const heroMark = PARTNER_INK;
 
 /** The field colour matches the creature's own ramp, so the image sits seamlessly on the card. */
 export const heroField = (world: ColorWorld) => HEAT_RAMPS[world][0][1];

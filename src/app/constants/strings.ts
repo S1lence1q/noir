@@ -1,10 +1,3 @@
-/** Central UI copy — English for now; swap for i18n later */
-export const DEFAULT_PROFILE_NAME = 'Music Lover';
-
-export function hasCustomProfileName(name: string): boolean {
-  return name.trim().toLowerCase() !== DEFAULT_PROFILE_NAME.toLowerCase();
-}
-
 export const strings = {
   songMenu: {
     playNext: 'Play next',

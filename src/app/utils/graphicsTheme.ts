@@ -12,7 +12,7 @@ const LEGACY_KEY = 'noir_atmosphere';
 const EVENT = 'noir-graphics-change';
 
 /** `?graphics=grain|heat` still works (and is remembered) for quick A/B links. */
-export function readGraphicsTheme(): GraphicsTheme {
+function readGraphicsTheme(): GraphicsTheme {
   try {
     const param = new URLSearchParams(window.location.search).get('graphics');
     if (param === 'grain' || param === 'heat') localStorage.setItem(KEY, param);

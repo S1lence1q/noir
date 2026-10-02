@@ -1,5 +1,5 @@
 import type { GraphArtist, GraphTrack } from './index';
-import { cleanName, normalizeName } from './normalize';
+import { cleanName } from './normalize';
 
 const LASTFM_ENDPOINT = 'https://ws.audioscrobbler.com/2.0/';
 const LASTFM_API_KEY = import.meta.env.VITE_LASTFM_API_KEY?.trim();
@@ -246,6 +246,3 @@ export async function getLastFmTrackImage(title: string, artist: string): Promis
   return imageFromLastFm(track.album?.image) || imageFromLastFm(track.image);
 }
 
-export function lastFmCacheName(value: string) {
-  return normalizeName(value);
-}

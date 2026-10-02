@@ -8,7 +8,7 @@ import { strings } from '../../../constants/strings';
 import { DiscoverReleaseCard, loadAlbumAsPlaylistTracks } from '../../../services/discover/discoverFeed';
 import { SearchResult } from '../../../types';
 
-export function formatReleaseDate(iso: string) {
+function formatReleaseDate(iso: string) {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });

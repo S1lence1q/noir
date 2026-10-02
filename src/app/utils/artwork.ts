@@ -6,7 +6,7 @@ export function hasRealArtwork(url?: string | null): boolean {
 }
 
 /** YouTube thumbs are never artist portraits (Discover/NP often pass track art). */
-export function isLikelyAlbumOrTrackArtwork(url?: string | null): boolean {
+function isLikelyAlbumOrTrackArtwork(url?: string | null): boolean {
   if (!url?.trim()) return false;
   const u = url.toLowerCase();
   return u.includes('ytimg.com') || u.includes('youtube.com/vi/');

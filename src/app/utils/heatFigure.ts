@@ -30,7 +30,7 @@ function ramp(world: ColorWorld) {
 }
 
 /** Limbs for a track count: 0 songs = egg, then one limb per ~3 songs, up to six. */
-export function heatFigureLimbs(trackCount: number) {
+function heatFigureLimbs(trackCount: number) {
   return trackCount <= 0 ? 0 : Math.min(6, 1 + Math.floor((trackCount - 1) / 3));
 }
 

@@ -35,7 +35,7 @@ function artistMatches(found: string | undefined, wanted: string): boolean {
  * Widening search: exact fields first, then free text, then title alone checked against the artist.
  * The first stage that has synced lyrics wins; if none does, the first stage with plain text is used.
  */
-export async function lookupLrclib(title: string, artist: string): Promise<LookupResult> {
+async function lookupLrclib(title: string, artist: string): Promise<LookupResult> {
   const artists = artist ? lyricsArtistVariants(artist) : [];
   const primary = artists[0] ?? '';
   const titles = lyricsTitleVariants(title, artist);

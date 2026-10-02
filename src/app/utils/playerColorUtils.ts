@@ -1,5 +1,5 @@
 // Helper to convert HSL to RGB
-export function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
   h /= 360;
   let r, g, b;
 
@@ -26,7 +26,7 @@ export function hslToRgb(h: number, s: number, l: number): [number, number, numb
 }
 
 // Helper to convert RGB to HSL
-export function rgbToHsl(r: number, g: number, b: number) {
+function rgbToHsl(r: number, g: number, b: number) {
   r /= 255;
   g /= 255;
   b /= 255;

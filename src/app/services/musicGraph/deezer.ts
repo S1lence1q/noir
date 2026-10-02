@@ -259,7 +259,7 @@ export async function getDeezerNewReleases(artist: string, days: number): Promis
     }));
 }
 
-export const DEEZER_GENRE_NAMES: Record<number, string> = {
+const DEEZER_GENRE_NAMES: Record<number, string> = {
   132: 'Pop',
   116: 'Hip-Hop',
   152: 'Rock',

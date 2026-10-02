@@ -56,16 +56,16 @@ export function formatHourLabel(hour: number): string {
   return `${twelve} ${suffix}`;
 }
 
-export function monthLabel(year: number, month: number): string {
+function monthLabel(year: number, month: number): string {
   return new Date(year, month, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
 }
 
-export function previousCalendarMonth(now = new Date()): { year: number; month: number } {
+function previousCalendarMonth(now = new Date()): { year: number; month: number } {
   const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   return { year: d.getFullYear(), month: d.getMonth() };
 }
 
-export function eventsInCalendarMonth(
+function eventsInCalendarMonth(
   events: ReadonlyArray<ListeningEvent>,
   year: number,
   month: number
@@ -91,7 +91,7 @@ export function buildListeningClock(
   return { hours, peakHour, peakCount };
 }
 
-export function buildMonthStats(
+function buildMonthStats(
   events: ReadonlyArray<ListeningEvent>,
   year: number,
   month: number

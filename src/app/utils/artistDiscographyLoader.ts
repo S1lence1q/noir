@@ -67,18 +67,6 @@ export type DiscographyPeek = {
   channelId?: string;
 };
 
-/** Tracks already cached for this artist (sync). Supports identity key or bare name. */
-export const peekCachedDiscography = (
-  identityOrName: string,
-  options?: { allowStale?: boolean; artistName?: string }
-): SearchResult[] | null => {
-  const entry = getDiscographyCache(identityOrName, {
-    allowStale: options?.allowStale ?? false,
-    artistName: options?.artistName,
-  });
-  return entry?.tracks?.length ? entry.tracks : null;
-};
-
 export const peekCachedDiscographyEntry = (
   identityOrName: string,
   options?: { allowStale?: boolean; artistName?: string }

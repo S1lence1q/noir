@@ -2,7 +2,7 @@ import sprayAsterisk from '../../../../assets/noir/brand-spray-asterisk.png';
 import plateWave from '../../../../assets/noir/brand-plate-wave.jpeg';
 import halftoneCloud from '../../../../assets/noir/empty-halftone-cloud.jpeg';
 
-export const noirGraphics = {
+const noirGraphics = {
   sprayAsterisk,
   plateWave,
   halftoneCloud,

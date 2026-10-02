@@ -133,18 +133,3 @@ export const setDiscographyCache = (
   }
 };
 
-export const invalidateDiscographyCache = (identityOrName: string) => {
-  try {
-    const keys = [storageKey(identityOrName), storageKey(`name:${identityOrName.trim().toLowerCase()}`)];
-    keys.forEach((key) => localStorage.removeItem(key));
-    saveIndex(getIndex().filter((k) => !keys.includes(k)));
-  } catch {}
-};
-
-export const clearAllDiscographyCache = () => {
-  try {
-    const idx = getIndex();
-    idx.forEach((key) => localStorage.removeItem(key));
-    localStorage.removeItem(CACHE_INDEX_KEY);
-  } catch {}
-};

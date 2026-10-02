@@ -82,7 +82,7 @@ export function readShellTab(): ShellTab {
   return 'search';
 }
 
-export function writeShellTab(tab: ShellTab): void {
+function writeShellTab(tab: ShellTab): void {
   try {
     sessionStorage.setItem(SHELL_TAB_KEY, tab);
   } catch {
@@ -136,7 +136,7 @@ export function writePlaybackSession(session: Omit<PlaybackSession, 'savedAt'>):
   } satisfies PlaybackSession);
 }
 
-export function clearPlaybackSession(): void {
+function clearPlaybackSession(): void {
   try {
     sessionStorage.removeItem(PLAYBACK_SESSION_KEY);
   } catch {

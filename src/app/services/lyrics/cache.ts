@@ -22,7 +22,7 @@ const hasSynced = (list: LyricsTrack[]) => list.some((x) => x.syncedLyrics);
  * What is worth keeping: a few synced versions of different lengths (the player picks by length), without
  * the duplicate plain text; or, with no synced version, one plain text.
  */
-export function compactLyrics(list: LyricsTrack[]): LyricsTrack[] {
+function compactLyrics(list: LyricsTrack[]): LyricsTrack[] {
   const synced: LyricsTrack[] = [];
   const lengths = new Set<number>();
   for (const track of list) {

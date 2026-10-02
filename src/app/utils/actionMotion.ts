@@ -35,7 +35,7 @@ function recentArt(): HTMLElement | null {
 }
 
 /** Fly a ghost of `from` into `to`, arcing up, shrinking to `endSize`. Resolves when it lands. */
-export function flyGhost(from: HTMLElement, to: DOMRect, endSize = 20, duration = 560): Promise<void> {
+function flyGhost(from: HTMLElement, to: DOMRect, endSize = 20, duration = 560): Promise<void> {
   const a = from.getBoundingClientRect();
   const ghost = from.cloneNode(true) as HTMLElement;
   Object.assign(ghost.style, {

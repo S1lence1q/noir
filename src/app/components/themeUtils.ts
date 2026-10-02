@@ -1,13 +1,5 @@
 export type AccentColor = 'emerald' | 'sand' | 'wine' | 'navy';
 
-/** Swatch colors for settings picker — matches --noir-theme-accent per theme */
-export const ACCENT_SWATCH: Record<AccentColor, { core: string; glow: string }> = {
-  emerald: { core: '#5dbe9a', glow: 'rgba(93, 190, 154, 0.4)' },
-  sand: { core: '#d9b67a', glow: 'rgba(217, 182, 122, 0.4)' },
-  wine: { core: '#c97b8f', glow: 'rgba(201, 123, 143, 0.4)' },
-  navy: { core: '#7ba3d4', glow: 'rgba(123, 163, 212, 0.4)' },
-};
-
 export interface ThemeColors {
   name: string;
   text: string;

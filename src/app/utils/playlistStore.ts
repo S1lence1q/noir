@@ -58,7 +58,7 @@ function sameTrack(a: SearchResult, b: SearchResult) {
   return ka !== null && ka === getPlaybackSongKey(b);
 }
 
-export function nextPlaylistName(existing: UserPlaylist[] = readPlaylists()): string {
+function nextPlaylistName(existing: UserPlaylist[] = readPlaylists()): string {
   const taken = new Set(existing.map((p) => p.name));
   let n = existing.length + 1;
   while (taken.has(`Playlist #${n}`)) n += 1;
