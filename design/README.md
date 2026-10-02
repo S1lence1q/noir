@@ -10,7 +10,7 @@ Creative and architectural context for turning design direction into a coherent 
 
 - A pixel-perfect spec copied from Figma
 - A complete design system (that emerges as we build)
-- A replacement for the existing technical docs (`elva_system_memories.md`, etc.)
+- A replacement for `PROJECT_STATE.md`, which holds the technical state and working rules
 
 ## Workflow
 
