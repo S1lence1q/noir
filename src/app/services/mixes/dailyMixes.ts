@@ -13,6 +13,7 @@ import {
 } from '../musicGraph';
 import { normalizeName } from '../musicGraph/normalize';
 import { graphTrackToSearchResult } from '../discover/discoverFeed';
+import { resolveMixCover } from '../../components/shell/noir/NoirMixCover';
 import { hasRealArtwork, youtubeThumb } from '../../utils/artwork';
 import { genreTitle } from '../../utils/genreName';
 
@@ -22,7 +23,7 @@ const YOUR_SHARE = 0.4;
 const MIN_SHOW = 1;
 const MAX_MIXES = 6;
 // v4: genre names now "Lo-Fi", "R&B"… (cached mixes carry their name).
-const CACHE_PREFIX = 'noir_daily_mixes_v4:';
+const CACHE_PREFIX = 'noir_daily_mixes_v5:';
 
 const SKIP_TAGS = new Set([
   'seen live',
@@ -342,11 +343,25 @@ async function buildDailyMixes(
     })
   );
 
-  const clusters = new Map<string, TasteArtist[]>();
+  // Tags that end up with the same symbol are one mix: "danish" and "denmark" are both the Danish
+  // cross, and two mixes that look identical read as a mistake. Unknown tags keep their own bucket.
+  const clusterKey = (tag: string) => {
+    const { symbol } = resolveMixCover(tag);
+    return symbol === 'sibling' ? `tag:${tag}` : `symbol:${symbol}`;
+  };
+  const grouped = new Map<string, { entries: TasteArtist[]; tags: Map<string, number> }>();
   for (const row of tagged) {
-    const list = clusters.get(row.tag) ?? [];
-    list.push(row.entry);
-    clusters.set(row.tag, list);
+    const key = clusterKey(row.tag);
+    const group = grouped.get(key) ?? { entries: [], tags: new Map<string, number>() };
+    group.entries.push(row.entry);
+    group.tags.set(row.tag, (group.tags.get(row.tag) ?? 0) + 1);
+    grouped.set(key, group);
+  }
+  // The mix is named after its most common tag.
+  const clusters = new Map<string, TasteArtist[]>();
+  for (const group of grouped.values()) {
+    const tag = [...group.tags.entries()].sort((a, b) => b[1] - a[1])[0][0];
+    clusters.set(tag, group.entries);
   }
 
   const ranked = [...clusters.entries()]

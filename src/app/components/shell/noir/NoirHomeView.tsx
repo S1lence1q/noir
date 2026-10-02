@@ -1,7 +1,16 @@
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { NoirStateNotice } from './NoirStateNotice';
 import { ReleaseCard, openRelease, playRelease } from './NoirReleaseCard';
-import { DiscoverReleaseCard, RELEASE_DAYS, loadDiscoverFeed, loadLatestReleases } from '../../../services/discover/discoverFeed';
+import { NoirTrackCard } from './NoirTrackCard';
+import {
+  BecauseRow,
+  DiscoverReleaseCard,
+  RELEASE_DAYS,
+  dailyBecauseIndex,
+  loadBecauseRows,
+  loadDiscoverFeed,
+  loadLatestReleases,
+} from '../../../services/discover/discoverFeed';
 import { AnimatePresence, motion } from 'motion/react';
 import { Compass, Play, Plus, Search } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
@@ -31,7 +40,7 @@ import { NoirGrainField } from './NoirGrainField';
 import { useGraphicsTheme } from '../../../utils/graphicsTheme';
 
 type Daypart = 'lateNight' | 'morning' | 'afternoon' | 'evening';
-type HomeSection = 'artists' | 'releases' | 'recents' | 'mixes' | 'library';
+type HomeSection = 'artists' | 'releases' | 'because' | 'recents' | 'mixes' | 'library';
 
 function daypartAt(hour: number): Daypart {
   if (hour < 5) return 'lateNight';
@@ -40,20 +49,36 @@ function daypartAt(hour: number): Daypart {
   return 'evening';
 }
 
-/** Jump back in always leads (it is the most used); the rest follows the hour. */
+/** Jump back in always leads (it is the most used); the rest follows the hour. The two cover shelves (because, releases) never sit side by side. */
 const SECTION_ORDER: Record<Daypart, HomeSection[]> = {
-  morning: ['recents', 'mixes', 'releases', 'artists', 'library'],
-  afternoon: ['recents', 'artists', 'releases', 'mixes', 'library'],
-  evening: ['recents', 'library', 'releases', 'artists', 'mixes'],
-  lateNight: ['recents', 'library', 'mixes', 'releases', 'artists'],
+  morning: ['recents', 'mixes', 'because', 'artists', 'releases', 'library'],
+  afternoon: ['recents', 'artists', 'because', 'mixes', 'releases', 'library'],
+  evening: ['recents', 'library', 'because', 'artists', 'releases', 'mixes'],
+  lateNight: ['recents', 'library', 'because', 'mixes', 'releases', 'artists'],
 };
 
 /** Section title with one quiet line of data on the right. */
-function SectionHead({ title, meta }: { title: string; meta?: string | null }) {
+function SectionHead({
+  title,
+  meta,
+  onMeta,
+}: {
+  title: string;
+  meta?: string | null;
+  onMeta?: () => void;
+}) {
   return (
     <div className="noir-section-row">
       <h2 className="noir-section-heading px-1">{title}</h2>
-      {meta ? <p className="noir-section-meta">{meta}</p> : null}
+      {meta ? (
+        onMeta ? (
+          <button type="button" onClick={onMeta} className="noir-section-meta noir-section-meta-link noir-focus-ring">
+            {meta}
+          </button>
+        ) : (
+          <p className="noir-section-meta">{meta}</p>
+        )
+      ) : null}
     </div>
   );
 }
@@ -122,6 +147,7 @@ export function NoirHomeView({
   const [releases, setReleases] = useState<DiscoverReleaseCard[] | null>(null);
   /** True when nothing is new and the shelf shows each artist's latest instead. */
   const [releasesFallback, setReleasesFallback] = useState(false);
+  const [because, setBecause] = useState<BecauseRow | null>(null);
   // Fixed when Home opens, so the page never reshuffles under you at an hour change.
   const daypart = useMemo(() => daypartAt(new Date().getHours()), []);
   const greeting = strings.greeting[daypart];
@@ -160,6 +186,9 @@ export function NoirHomeView({
 
         const top = topArtists(events, 30).slice(0, 12);
         if (!cancelled) setArtistSlots(top.length);
+        void loadBecauseRows(events)
+          .then((rows) => !cancelled && rows.length > 0 && setBecause(rows[dailyBecauseIndex(rows.length)]))
+          .catch(() => undefined);
         void (async () => {
           try {
             const feed = await loadDiscoverFeed(events);
@@ -530,10 +559,26 @@ export function NoirHomeView({
       </section>
     ) : null;
 
+  const becauseBlock = because ? (
+    <section>
+      <SectionHead
+        title={strings.discover.because(because.seed)}
+        meta={onOpenDiscover ? strings.home.meta.moreInDiscover : null}
+        onMeta={onOpenDiscover}
+      />
+      <NoirHomeShelf>
+        {because.tracks.map((track, i) => (
+          <NoirTrackCard key={track.id} track={track} index={i} reduced={reduced} onPlay={() => handleSelectSong(track)} />
+        ))}
+      </NoirHomeShelf>
+    </section>
+  ) : null;
+
   const sectionOrder = SECTION_ORDER[daypart];
   const blocks: Record<HomeSection, ReactNode> = {
     artists: artistsBlock,
     releases: releasesBlock,
+    because: becauseBlock,
     recents: recentsBlock,
     mixes: mixesBlock,
     library: libraryBlock,

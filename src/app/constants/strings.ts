@@ -132,6 +132,7 @@ export const strings = {
       releases: (days: number) => `Last ${days} days`,
       plays: (n: number) => (n === 1 ? '1 play this week' : `${n} plays this week`),
       latestEach: 'One from each',
+      moreInDiscover: 'More in Discover',
       mixesToday: 'Made today',
       mixesCharts: 'From the charts',
       library: (songs: number, lists: number) =>
@@ -331,6 +332,8 @@ export const strings = {
     playChart: 'Play chart',
     songs: (n: number) => `${n} songs`,
     newReleases: 'New from artists you play',
+    newFromSimilar: 'New from artists like yours',
+    because: (seed: string) => `Because you play ${seed}`,
     artistsLike: 'Artists you might like',
     browseTag: (tag: string) => tag,
     emptyTasteDesc: 'Play a few songs you love — Discover fills in from there.',

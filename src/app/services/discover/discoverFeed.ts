@@ -7,6 +7,7 @@ import {
   getArtistTags,
   getNewReleases,
   getArtistAlbums,
+  getArtistRadio,
   getSimilarArtists,
   getTagTopTracks,
   getTrackImage,
@@ -15,6 +16,7 @@ import {
   type GraphTrack,
 } from '../musicGraph';
 import { normalizeName } from '../musicGraph/normalize';
+import { resolveMixCover } from '../../components/shell/noir/NoirMixCover';
 import { genreTitle } from '../../utils/genreName';
 
 const MIN_SHELF = 3;
@@ -38,7 +40,10 @@ export type DiscoverTagShelf = {
 };
 
 export type DiscoverFeed = {
+  /** From artists you play: Home owns this one. */
   newReleases: DiscoverReleaseCard[];
+  /** From artists like the ones you play: Discover's version. */
+  newFromSimilar: DiscoverReleaseCard[];
   artistsLike: DiscoverArtistCard[];
   tags: DiscoverTagShelf[];
 };
@@ -248,7 +253,7 @@ async function buildDiscoverFeed(events: ReadonlyArray<ListeningEvent>): Promise
   const seedNames = taste.map((entry) => entry.artist);
 
   if (seedNames.length === 0) {
-    return { newReleases: [], artistsLike: [], tags: [] };
+    return { newReleases: [], newFromSimilar: [], artistsLike: [], tags: [] };
   }
 
   const known = playedArtistKeys(events);
@@ -263,10 +268,23 @@ async function buildDiscoverFeed(events: ReadonlyArray<ListeningEvent>): Promise
     collectTopTags(seedNames.slice(0, 5)),
   ]);
 
-  const tags = await buildTagShelves(topTags);
+  // "danish" and "denmark" are one genre: keep the first of each look-alike pair.
+  const seenSymbols = new Set<string>();
+  const distinctTags = topTags.filter((tag) => {
+    const { symbol } = resolveMixCover(tag);
+    if (symbol === 'sibling') return true;
+    if (seenSymbols.has(symbol)) return false;
+    seenSymbols.add(symbol);
+    return true;
+  });
+  const [tags, newFromSimilar] = await Promise.all([
+    buildTagShelves(distinctTags),
+    buildNewReleases(artistsLike.map((card) => card.name)),
+  ]);
 
   return {
     newReleases: newReleases.length >= MIN_SHELF ? newReleases : [],
+    newFromSimilar: newFromSimilar.length >= MIN_SHELF ? newFromSimilar : [],
     artistsLike: artistsLike.length >= MIN_SHELF ? artistsLike : [],
     tags,
   };
@@ -321,4 +339,55 @@ async function buildLatestReleases(artists: string[]): Promise<DiscoverReleaseCa
     .filter((card) => (seen.has(card.id) ? false : (seen.add(card.id), true)))
     .sort((a, b) => b.releaseDate.localeCompare(a.releaseDate))
     .slice(0, 10);
+}
+
+export type BecauseRow = {
+  id: string;
+  seed: string;
+  tracks: SearchResult[];
+};
+
+const becauseMemo = new Map<string, { at: number; rows: Promise<BecauseRow[]> }>();
+
+/** "Because you play X": similar songs by other artists, one row per top artist. */
+export function loadBecauseRows(events: ReadonlyArray<ListeningEvent>): Promise<BecauseRow[]> {
+  // "Kim Larsen" and "Kim Larsen & Kjukken" are one seed.
+  const seeds: string[] = [];
+  for (const { artist } of topArtists(events, 30)) {
+    const name = normalizeName(artist);
+    if (seeds.some((kept) => name.startsWith(normalizeName(kept)))) continue;
+    seeds.push(artist);
+    if (seeds.length === 5) break;
+  }
+  const key = seeds.join('|');
+  const hit = becauseMemo.get(key);
+  if (hit && Date.now() - hit.at < FEED_TTL_MS) return hit.rows;
+  const rows = buildBecauseRows(seeds);
+  becauseMemo.set(key, { at: Date.now(), rows });
+  rows.catch(() => becauseMemo.delete(key));
+  return rows;
+}
+
+async function buildBecauseRows(seeds: string[]): Promise<BecauseRow[]> {
+  const rows = await Promise.all(
+    seeds.map(async (seed) => {
+      const radio = await getArtistRadio(seed);
+      const seedKey = normalizeName(seed);
+      const seen = new Set<string>();
+      const tracks = radio
+        .filter((track) => track.image && normalizeName(track.artist) !== seedKey)
+        .map((track) => graphTrackToSearchResult(track, `because:${normalizeName(seed)}`))
+        .filter((track) => (seen.has(track.id) ? false : (seen.add(track.id), true)))
+        .slice(0, 12);
+      return tracks.length >= MIN_SHELF ? { id: `because:${seedKey}`, seed, tracks } : null;
+    })
+  );
+  return rows.filter((row): row is BecauseRow => row !== null);
+}
+
+/** Which row Home shows today: one per day, stepping through your top artists. */
+export function dailyBecauseIndex(count: number, now = new Date()): number {
+  if (count <= 0) return 0;
+  const day = Math.floor((now.getTime() - now.getTimezoneOffset() * 60000) / 86400000);
+  return day % count;
 }

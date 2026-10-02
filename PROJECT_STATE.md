@@ -152,3 +152,5 @@ src/
 4. **Motion Tokens:** Strictly use `MOTION.tap`, `panel`, or `scene` from `motionPresets.ts` wrapped with `withReducedMotion()`.
 5. **No Visual Noise / AI Slop:** Follow Opus's visual language: clean black surfaces, white-alpha tints, grain/dither materials only where they represent data. No arbitrary pill badges, fake listener counts, or decorative gradients.
 6. **Communication:** Communicate with the user in Danish; keep all in-app UI copy in English.
+
+**Home vs Discover (decided 2026-10-02):** Home = built from you (your history, your artists: Jump back in, your artists, latest from your artists, your mixes, library, plus one "Because you play X" row picked daily). Discover = built from the world (charts, genres, artists like yours, new from artists like yours, the other "Because you play" rows). Familiarity does not decide it; what the content is built from does. Discover no longer repeats "New from artists you play". `loadBecauseRows` / `dailyBecauseIndex` in `discoverFeed.ts`; `NoirTrackCard` is the shared song card. Mixes and Discover genres merge tags that share a symbol ("danish" + "denmark"); daily mix cache key bumped to v5.

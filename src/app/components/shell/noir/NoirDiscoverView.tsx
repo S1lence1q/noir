@@ -9,6 +9,7 @@ import { NoirMixCover } from './NoirMixCover';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirHomeShelf } from './NoirHomeShelf';
 import { ReleaseCard, openRelease, playRelease } from './NoirReleaseCard';
+import { NoirTrackCard } from './NoirTrackCard';
 import { COLOR_WORLDS, worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
@@ -18,6 +19,9 @@ import {
   DiscoverArtistCard,
   DiscoverFeed,
   DiscoverReleaseCard,
+  BecauseRow,
+  dailyBecauseIndex,
+  loadBecauseRows,
   loadDiscoverFeed,
 } from '../../../services/discover/discoverFeed';
 import { getPrimaryArtist } from '../../../utils/stringUtils';
@@ -116,11 +120,20 @@ export function NoirDiscoverView({
     setChartsLoading(false);
   }, [activeCountry, localHits.length, globalHits.length]);
 
+  const [becauseRows, setBecauseRows] = useState<BecauseRow[]>([]);
+
   const loadFeed = useCallback(async () => {
     try {
       const events = await getListeningEvents();
+      void loadBecauseRows(events)
+        .then((rows) => {
+          // Home already shows today's pick; Discover has the rest.
+          const homeIndex = dailyBecauseIndex(rows.length);
+          setBecauseRows(rows.filter((_, i) => i !== homeIndex).slice(0, 3));
+        })
+        .catch(() => undefined);
       if (topArtists(events, 30).length === 0) {
-        setFeed({ newReleases: [], artistsLike: [], tags: [] });
+        setFeed({ newReleases: [], newFromSimilar: [], artistsLike: [], tags: [] });
         setFeedLoading(false);
         setFeedReady(true);
         return;
@@ -128,7 +141,7 @@ export function NoirDiscoverView({
       setFeedLoading(true);
       setFeed(await loadDiscoverFeed(events));
     } catch {
-      setFeed({ newReleases: [], artistsLike: [], tags: [] });
+      setFeed({ newReleases: [], newFromSimilar: [], artistsLike: [], tags: [] });
     } finally {
       setFeedLoading(false);
       setFeedReady(true);
@@ -158,7 +171,10 @@ export function NoirDiscoverView({
   const personalReady = feedReady && feed;
   const hasPersonal =
     !!personalReady &&
-    (feed.newReleases.length > 0 || feed.artistsLike.length > 0 || feed.tags.length > 0);
+    (feed.newReleases.length > 0 ||
+      feed.newFromSimilar.length > 0 ||
+      feed.artistsLike.length > 0 ||
+      feed.tags.length > 0);
   const coldStart = feedReady && !hasPersonal && !feedLoading;
 
   const chartArtists = useMemo(() => {
@@ -362,11 +378,11 @@ export function NoirDiscoverView({
         </section>
       )}
 
-      {feed && feed.newReleases.length > 0 && (
+      {feed && feed.newFromSimilar.length > 0 && (
         <section>
-          <h3 className="noir-section-heading px-1">{strings.discover.newReleases}</h3>
+          <h3 className="noir-section-heading px-1">{strings.discover.newFromSimilar}</h3>
           <NoirHomeShelf>
-            {feed.newReleases.map((release, i) => (
+            {feed.newFromSimilar.map((release, i) => (
               <ReleaseCard
                 key={release.id}
                 release={release}
@@ -379,6 +395,17 @@ export function NoirDiscoverView({
           </NoirHomeShelf>
         </section>
       )}
+
+      {becauseRows.map((row) => (
+        <section key={row.id}>
+          <h3 className="noir-section-heading px-1">{strings.discover.because(row.seed)}</h3>
+          <NoirHomeShelf>
+            {row.tracks.map((track, i) => (
+              <NoirTrackCard key={track.id} track={track} index={i} reduced={reduced} onPlay={() => onSelectSong(track)} />
+            ))}
+          </NoirHomeShelf>
+        </section>
+      ))}
 
       {exploreArtists.length > 0 && (
         <section>

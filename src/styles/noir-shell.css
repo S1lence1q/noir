@@ -484,6 +484,15 @@
   gap: 16px;
 }
 
+.noir-section-meta-link {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.noir-section-meta-link:hover {
+  color: var(--noir-text-primary);
+}
+
 .noir-section-meta {
   margin: var(--noir-section-gap) 4px 16px 0;
   font-size: 13px;
