@@ -40,12 +40,12 @@ function daypartAt(hour: number): Daypart {
   return 'evening';
 }
 
-/** What leads Home follows the hour: fresh mixes to start the day, what you know once it winds down. */
+/** Jump back in always leads (it is the most used); the rest follows the hour. */
 const SECTION_ORDER: Record<Daypart, HomeSection[]> = {
-  morning: ['mixes', 'releases', 'artists', 'recents', 'library'],
-  afternoon: ['artists', 'releases', 'recents', 'mixes', 'library'],
-  evening: ['recents', 'releases', 'library', 'artists', 'mixes'],
-  lateNight: ['recents', 'library', 'releases', 'mixes', 'artists'],
+  morning: ['recents', 'mixes', 'releases', 'artists', 'library'],
+  afternoon: ['recents', 'artists', 'releases', 'mixes', 'library'],
+  evening: ['recents', 'library', 'releases', 'artists', 'mixes'],
+  lateNight: ['recents', 'library', 'mixes', 'releases', 'artists'],
 };
 
 /** Section title with one quiet line of data on the right. */
