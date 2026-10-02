@@ -784,9 +784,12 @@ export function usePlaybackCore({
   const checkCrossfade = useCallback(async (current: number, dur: number) => {
     // While a manual pick is loading, the old song's clock is still near its end but songDataRef
     // already names the new song: advancing now would skip the song the listener just picked.
-    if (isTransitioningRef.current || isCrossfadingRef.current || advanceInFlightRef.current || dur <= 0 || queueRef.current.length < 2) {
+    if (isTransitioningRef.current || isCrossfadingRef.current || advanceInFlightRef.current || queueRef.current.length < 2) {
       return;
     }
+    // A YouTube player that has not loaded its video yet can answer undefined for both clocks; with
+    // undefined the comparisons below are all false and the crossfade would start at once.
+    if (!Number.isFinite(current) || !Number.isFinite(dur) || dur <= 0) return;
 
     const saved = localStorage.getItem('noir_crossfade_duration');
     const crossfadeWindow = saved !== null ? parseFloat(saved) : 3.0;
@@ -1147,8 +1150,8 @@ export function usePlaybackCore({
 
         if (activeIsYT && activeYT?.getCurrentTime) {
           try {
-            current = activeYT.getCurrentTime();
-            dur = activeYT.getDuration();
+            current = Number(activeYT.getCurrentTime()) || 0;
+            dur = Number(activeYT.getDuration()) || 0;
           } catch {}
         } else if (activeAudio) {
           current = activeAudio.currentTime;
