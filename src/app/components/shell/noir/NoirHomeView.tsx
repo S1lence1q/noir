@@ -414,7 +414,7 @@ export function NoirHomeView({
     )}
   
     {displayMixes.length > 0 && (
-      <section>
+      <section className="noir-home-fan-section">
         <SectionHead
           title={mixes.length > 0 ? strings.home.yourMixes : strings.home.startHere}
           meta={mixes.length > 0 ? strings.home.meta.mixesToday : strings.home.meta.mixesCharts}

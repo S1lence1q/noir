@@ -3128,7 +3128,7 @@ button.noir-now-playing-source:hover {
   padding: 12px;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1180px) {
   .noir-playlist-layout {
     grid-template-columns: minmax(0, 1fr);
     column-gap: 0;
@@ -6257,6 +6257,45 @@ button.noir-now-playing-source:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Too narrow to fan without cards covering each other's names: fall back to a plain shelf. */
+.noir-home-fan-section {
+  container-type: inline-size;
+}
+
+@container (max-width: 700px) {
+  .noir-home-fan {
+    display: flex;
+    gap: 14px;
+    height: auto;
+    padding: 14px 0 8px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .noir-home-fan::-webkit-scrollbar {
+    display: none;
+  }
+
+  .noir-home-fan-card {
+    position: static;
+    flex: none;
+    transform: none;
+    scroll-snap-align: start;
+    animation: none;
+  }
+
+  .noir-home-fan-card:hover ~ .noir-home-fan-card .noir-home-fan-face,
+  .noir-home-fan-card:has(~ .noir-home-fan-card:hover) .noir-home-fan-face {
+    translate: none;
+  }
+
+  .noir-home-fan-card:hover .noir-home-fan-face,
+  .noir-home-fan-card:focus-visible .noir-home-fan-face {
+    transform: translateY(-6px);
+  }
 }
 
 @keyframes noir-fan-deal {
