@@ -2016,10 +2016,6 @@ export default function App() {
             <ErrorBoundary>
               <LandingPage
               nowPlayingOpen={nowPlayingOpen}
-              isIntroActive={isIntroActive}
-              scrollProgress={scrollProgress}
-              scrollContainerRef={scrollContainerRef}
-              onScroll={handleScroll}
               activeTab={activeTab}
               setActiveTab={setActiveTab}
               selectedArtist={selectedArtist}
@@ -2029,18 +2025,7 @@ export default function App() {
               libraryFocus={libraryFocus}
               onLibraryPlaylistOpenChange={setLibraryOpenPlaylistId}
               onLibrarySectionChange={syncLibrarySection}
-              accentColor={accentColor}
               theme={theme}
-              hasSeenTour={hasSeenTour}
-              tourType={tourType}
-              startTour={startTour}
-              isFirstVisit={isFirstVisit}
-              hasSelectedArtistOnce={hasSelectedArtistOnce.current}
-              searchQuery={searchLogic.searchQuery}
-              setSearchQuery={searchLogic.setSearchQuery}
-              lastSearchedQuery={searchLogic.lastSearchedQuery}
-              isSearching={searchLogic.isSearching}
-              searchFailed={searchLogic.searchFailed}
               artistLoadFailed={searchLogic.artistLoadFailed}
               onRetryArtist={() => {
                 if (selectedArtist) void searchLogic.handleViewArtistProfile(selectedArtist);
@@ -2048,13 +2033,10 @@ export default function App() {
               searchResults={searchLogic.searchResults}
               recentArtists={searchLogic.recentArtists}
               recentlyPlayed={recentlyPlayed}
-              verifiedArtist={verifiedArtist}
-              focusedResultIndex={focusedResultIndex}
               loadingSongId={loadingSongId}
               activeSongKey={songData ? getPlaybackSongKey(songData) : null}
               activeTrack={songData ? { id: songData.id || '', title: songData.title, artist: songData.artist, thumbnail: songData.artworkUrl, videoId: songData.videoId || '', channelId: songData.channelId, audioUrl: songData.audioUrl } : null}
               isPlaying={isMiniPlaying}
-              artistColors={selectedArtist ? ACCENT_THEMES[accentColor] : null}
               artistTracks={artistTracks}
               isLoadingArtist={isLoadingArtist}
               favorites={favorites}
@@ -2069,33 +2051,7 @@ export default function App() {
               artistCandidates={searchLogic.artistCandidates}
               setArtistCandidates={searchLogic.setArtistCandidates}
               handleViewArtistByName={openArtistByName}
-              handleUrlSubmit={searchLogic.handleUrlSubmit}
-              handleFileSelect={handleFileSelect}
-              handleSearch={searchLogic.handleSearch}
               setArtistTracks={searchLogic.setArtistTracks}
-              onAccentColorChange={setAccentColor}
-              textureStyle={textureStyle}
-              onTextureStyleChange={setTextureStyle}
-              backgroundStyle={backgroundStyle}
-              onBackgroundStyleChange={setBackgroundStyle}
-              zenMode={zenMode}
-              onZenModeChange={setZenMode}
-              showVolumeSlider={showVolumeSlider}
-              onShowVolumeSliderChange={setShowVolumeSlider}
-              enable3DTilt={enable3DTilt}
-              onEnable3DTiltChange={setEnable3DTilt}
-              showSettingsButton={showSettingsButton}
-              onShowSettingsButtonChange={setShowSettingsButton}
-              enableCustomLyrics={enableCustomLyrics}
-              onEnableCustomLyricsChange={setEnableCustomLyrics}
-              peekProgressStyle={peekProgressStyle}
-              onPeekProgressStyleChange={setPeekProgressStyle}
-              showVisualizer={showVisualizer}
-              onShowVisualizerChange={setShowVisualizer}
-              navMode={navMode}
-              onNavModeChange={handleSetNavMode}
-              navPosition={navPosition}
-              onNavPositionChange={setNavPosition}
             />
             </ErrorBoundary>
 

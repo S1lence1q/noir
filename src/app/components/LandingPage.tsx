@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { VerifiedArtist, SearchResult } from '../types';
 import { Playlist } from './PlaylistDetailsView';
-import { AccentColor } from './themeUtils';
 import { NoirDiscoverView } from './shell/noir/NoirDiscoverView';
 import { PlaylistDetailsView } from './PlaylistDetailsView';
 import { NoirDetailOverlay } from './shell/noir/NoirDetailOverlay';
@@ -22,10 +21,6 @@ const TAB_PAGE_VARIANTS = {
 };
 
 interface LandingPageProps {
-  isIntroActive: boolean;
-  scrollProgress: number;
-  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
-  onScroll?: () => void;
   selectedArtist: VerifiedArtist | null;
   setSelectedArtist: React.Dispatch<React.SetStateAction<VerifiedArtist | null>>;
   selectedPlaylist: Playlist | null;
@@ -39,30 +34,16 @@ interface LandingPageProps {
   };
   onLibraryPlaylistOpenChange?: (playlistId: string | null) => void;
   onLibrarySectionChange?: (section: 'favorites' | 'playlists' | 'stats') => void;
-  accentColor: AccentColor;
   theme: any;
-  hasSeenTour: boolean;
-  tourType: 'landing' | 'player' | null;
-  startTour: () => void;
-  isFirstVisit: boolean;
-  hasSelectedArtistOnce: boolean;
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  lastSearchedQuery: string;
-  isSearching: boolean;
-  searchFailed?: boolean;
   artistLoadFailed?: boolean;
   onRetryArtist?: () => void;
   searchResults: SearchResult[];
   recentArtists: VerifiedArtist[];
   recentlyPlayed: SearchResult[];
-  verifiedArtist: VerifiedArtist | null;
-  focusedResultIndex: number;
   loadingSongId: string | null;
   activeSongKey?: string | null;
   activeTrack?: SearchResult | null;
   isPlaying?: boolean;
-  artistColors: any;
   artistTracks: SearchResult[];
   isLoadingArtist: boolean;
   favorites: SearchResult[];
@@ -77,45 +58,12 @@ interface LandingPageProps {
   artistCandidates?: import('../services/artistIdentity').ArtistIdentity[] | null;
   setArtistCandidates?: (candidates: import('../services/artistIdentity').ArtistIdentity[] | null) => void;
   handleViewArtistByName: (name: string, channelId?: string, thumbnail?: string) => void;
-  handleUrlSubmit: (url: string) => void;
-  handleFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleSearch: (overrideQuery?: string) => void;
   setArtistTracks: (tracks: SearchResult[]) => void;
-
-  onAccentColorChange?: (color: AccentColor) => void;
-  textureStyle: 'paper' | 'dots' | 'none';
-  onTextureStyleChange?: (style: 'paper' | 'dots' | 'none') => void;
-  backgroundStyle: 'default' | 'particles' | 'liquid' | 'mesh';
-  onBackgroundStyleChange?: (style: 'default' | 'particles' | 'liquid' | 'mesh') => void;
-  zenMode: boolean;
-  onZenModeChange?: (zen: boolean) => void;
-  showVolumeSlider: boolean;
-  onShowVolumeSliderChange?: (show: boolean) => void;
-  enable3DTilt: boolean;
-  onEnable3DTiltChange?: (enable: boolean) => void;
-  showSettingsButton: boolean;
-  onShowSettingsButtonChange?: (show: boolean) => void;
-  enableCustomLyrics: boolean;
-  onEnableCustomLyricsChange: (enable: boolean) => void;
-  peekProgressStyle: 'none' | 'line' | 'border';
-  onPeekProgressStyleChange: (style: 'none' | 'line' | 'border') => void;
-  showVisualizer: boolean;
-  onShowVisualizerChange: (show: boolean) => void;
-
   activeTab: 'search' | 'discover' | 'myhub' | 'settings';
   setActiveTab: (tab: 'search' | 'discover' | 'myhub' | 'settings') => void;
-
-  navMode: 'tabs' | 'scroll';
-  onNavModeChange: (mode: 'tabs' | 'scroll') => void;
-  navPosition: 'bottom' | 'top' | 'right';
-  onNavPositionChange: (pos: 'bottom' | 'top' | 'right') => void;
 }
 
 export function LandingPage({
-  isIntroActive,
-  scrollProgress,
-  scrollContainerRef,
-  onScroll,
   selectedArtist,
   setSelectedArtist,
   selectedPlaylist,
@@ -124,30 +72,16 @@ export function LandingPage({
   libraryFocus,
   onLibraryPlaylistOpenChange,
   onLibrarySectionChange,
-  accentColor,
   theme,
-  hasSeenTour,
-  tourType,
-  startTour,
-  isFirstVisit,
-  hasSelectedArtistOnce,
-  searchQuery,
-  setSearchQuery,
-  lastSearchedQuery,
-  isSearching,
-  searchFailed,
   artistLoadFailed,
   onRetryArtist,
   searchResults,
   recentArtists,
   recentlyPlayed,
-  verifiedArtist,
-  focusedResultIndex,
   loadingSongId,
   activeSongKey = null,
   activeTrack = null,
   isPlaying = false,
-  artistColors,
   artistTracks,
   isLoadingArtist,
   favorites,
@@ -162,35 +96,9 @@ export function LandingPage({
   artistCandidates = null,
   setArtistCandidates,
   handleViewArtistByName,
-  handleUrlSubmit,
-  handleFileSelect,
-  handleSearch,
   setArtistTracks,
-  onAccentColorChange,
-  textureStyle,
-  onTextureStyleChange,
-  backgroundStyle,
-  onBackgroundStyleChange,
-  zenMode,
-  onZenModeChange,
-  showVolumeSlider,
-  onShowVolumeSliderChange,
-  enable3DTilt,
-  onEnable3DTiltChange,
-  showSettingsButton,
-  onShowSettingsButtonChange,
-  enableCustomLyrics,
-  onEnableCustomLyricsChange,
-  peekProgressStyle,
-  onPeekProgressStyleChange,
-  showVisualizer,
-  onShowVisualizerChange,
   activeTab,
   setActiveTab,
-  navMode,
-  onNavModeChange,
-  navPosition,
-  onNavPositionChange,
 }: LandingPageProps) {
   const hasDetailOverlay = selectedArtist !== null || selectedPlaylist !== null;
   // A tab change made while something covers the page (an artist/mix overlay, or Now Playing)
