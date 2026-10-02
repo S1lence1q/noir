@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ChevronRight, Globe, Info, Volume1, Volume2, VolumeX, Waves, Palette } from 'lucide-react';
+import { ChevronRight, Volume1, Volume2, VolumeX, Waves } from 'lucide-react';
 import { setGraphicsTheme, useGraphicsTheme, type GraphicsTheme } from '../../../utils/graphicsTheme';
 import { readLyricsTimingControls, setLyricsTimingControls } from '../../../utils/lyricsTiming';
 import { readExtraLyricsSource, setExtraLyricsSource } from '../../../utils/lyricsSources';
@@ -23,21 +23,10 @@ function readAutoplayPreference(): AutoplayPreference {
   return value === 'on' || value === 'off' ? value : 'ask';
 }
 
-function SettingsCard({
-  title,
-  icon: Icon,
-  children,
-}: {
-  title: string;
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-  children: React.ReactNode;
-}) {
+function SettingsCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="noir-settings-card">
-      <header className="noir-settings-card-header">
-        <Icon className="h-4 w-4 text-[color:var(--noir-text-tertiary)]" strokeWidth={1.75} />
-        <h3 className="text-[13px] font-semibold text-[color:var(--noir-text-primary)]">{title}</h3>
-      </header>
+      <h3 className="noir-settings-heading">{title}</h3>
       <div className="noir-settings-card-body">{children}</div>
     </section>
   );
@@ -256,7 +245,7 @@ export function NoirSettingsView() {
   const t = strings.settings;
   return (
     <div className="noir-settle-group noir-settings pb-10">
-      <SettingsCard title={t.playback} icon={Volume2}>
+      <SettingsCard title={t.playback}>
         <SettingsRow label={t.volume}>
           <div className="noir-settings-slider-wrap">
             <button
@@ -374,13 +363,13 @@ export function NoirSettingsView() {
       </SettingsCard>
 
       <div className="noir-settings-side">
-        <SettingsCard title={t.appearance} icon={Palette}>
+        <SettingsCard title={t.appearance}>
           <SettingsRow label={t.graphics} description={t.graphicsDesc} stacked>
             <GraphicsChoice value={graphics} track={previewTrack} />
           </SettingsRow>
         </SettingsCard>
 
-        <SettingsCard title={t.library} icon={Globe}>
+        <SettingsCard title={t.library}>
           <SettingsRow label={t.chartsRegion} description={t.chartsRegionDesc}>
             <div className="noir-settings-select-wrap noir-settings-select-wrap--inline">
               <select
@@ -408,7 +397,7 @@ export function NoirSettingsView() {
           <ActionLink label={t.clearCache} onClick={handleClearCache} />
         </SettingsCard>
 
-        <SettingsCard title={t.about} icon={Info}>
+        <SettingsCard title={t.about}>
           <div className="noir-settings-about-brand">
             <span className="text-[12px] font-bold tracking-[0.34em] text-[color:var(--noir-text-primary)]">NOIR</span>
             <span className="text-[13px] tabular-nums text-[color:var(--noir-text-tertiary)]">v{APP_VERSION}</span>
