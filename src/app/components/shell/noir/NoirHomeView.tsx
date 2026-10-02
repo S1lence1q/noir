@@ -11,7 +11,7 @@ import { ThemeColors } from '../../themeUtils';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import { NoirDitherCover } from './NoirDitherCover';
-import { NoirMixCover, NoirMixCoverGallery, assignMixWorlds } from './NoirMixCover';
+import { NoirMixCover, NoirMixCoverGallery, assignMixWorlds, inkOn } from './NoirMixCover';
 import { NoirPlaylistCover } from './NoirPlaylistCover';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirPlayPauseIcon } from './NoirPlayPauseIcon';
@@ -25,7 +25,7 @@ import { isTasteEmpty } from '../../../services/listening/seedTaste';
 import { getArtistImage } from '../../../services/musicGraph';
 import { DailyMix, loadDailyMixes } from '../../../services/mixes/dailyMixes';
 import { buildStarterMixes, startersActiveToday } from '../../../services/mixes/starterMixes';
-import { worldForCollection, type ColorWorld } from '../../../utils/ditherCover';
+import { COLOR_WORLDS, worldForCollection, type ColorWorld } from '../../../utils/ditherCover';
 import { NoirHomeHero, heroField, heroInk, heroWorld } from './NoirHomeHero';
 import { NoirGrainField } from './NoirGrainField';
 import { useGraphicsTheme } from '../../../utils/graphicsTheme';
@@ -364,11 +364,11 @@ export function NoirHomeView({
     {mixesLoading && displayMixes.length === 0 && (
       <section aria-hidden>
         <div className="noir-skeleton mb-4 mt-[var(--noir-section-gap)] h-5 w-36 rounded px-1" />
-        <div className="noir-home-tiles">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="noir-skeleton h-16 rounded-[var(--noir-radius-md)]" />
+        <NoirHomeShelf>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="noir-skeleton noir-home-poster" style={{ height: 224 }} />
           ))}
-        </div>
+        </NoirHomeShelf>
       </section>
     )}
   
@@ -391,7 +391,7 @@ export function NoirHomeView({
           meta={mixes.length > 0 ? strings.home.meta.mixesToday : strings.home.meta.mixesCharts}
         />
         {/* Same quiet tiles as Jump back in and Library: the symbol is small, the hero is the one big picture. */}
-        <div className="noir-home-tiles">
+        <NoirHomeShelf>
           {displayMixes.map((mix, i) => (
             <motion.div
               key={mix.id}
@@ -404,34 +404,35 @@ export function NoirHomeView({
                   openMix(mix, mixWorlds[i]);
                 }
               }}
-              className="noir-home-tile group noir-focus-ring"
+              className="noir-home-poster group noir-focus-ring"
+              style={{ background: COLOR_WORLDS[mixWorlds[i]].field, color: inkOn(mixWorlds[i]) }}
               initial={reduced ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.08 + i * 0.03 }}
+              transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.08 + i * 0.04 }}
             >
-              <span className="noir-home-tile-art">
-                <NoirMixCover tag={mix.tag} world={mixWorlds[i]} size={64} radius={0} />
+              <span className="relative block">
+                <NoirMixCover tag={mix.tag} world={mixWorlds[i]} size={152} radius={0} />
+                {onPlayPlaylist && (
+                  <button
+                    type="button"
+                    className="noir-home-poster-play noir-focus-ring"
+                    aria-label={`${strings.home.playMix}: ${mix.name}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playMix(mix);
+                    }}
+                  >
+                    <Play className="ml-0.5 h-4 w-4 fill-current" />
+                  </button>
+                )}
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="noir-song-title block truncate">{mix.name}</span>
-                <span className="noir-song-meta block truncate">{mix.subtitle}</span>
+              <span className="noir-home-poster-text">
+                <span className="noir-home-poster-name">{mix.name}</span>
+                <span className="noir-home-poster-meta">{mix.subtitle}</span>
               </span>
-              {onPlayPlaylist && (
-                <button
-                  type="button"
-                  className="noir-home-tile-play noir-focus-ring"
-                  aria-label={`${strings.home.playMix}: ${mix.name}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    playMix(mix);
-                  }}
-                >
-                  <Play className="ml-0.5 h-4 w-4 fill-current" />
-                </button>
-              )}
             </motion.div>
           ))}
-        </div>
+        </NoirHomeShelf>
       </section>
     )}
     </>
