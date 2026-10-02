@@ -1,8 +1,7 @@
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { NoirStateNotice } from './NoirStateNotice';
 import { ReleaseCard, openRelease, playRelease } from './NoirReleaseCard';
 import { NoirTrackCard } from './NoirTrackCard';
-import { NoirMixVariants } from './NoirMixVariants';
 import {
   BecauseRow,
   DiscoverReleaseCard,
@@ -421,9 +420,9 @@ export function NoirHomeView({
           meta={mixes.length > 0 ? strings.home.meta.mixesToday : strings.home.meta.mixesCharts}
         />
         {/* Same quiet tiles as Jump back in and Library: the symbol is small, the hero is the one big picture. */}
-        <NoirHomeShelf>
+        <div className="noir-home-fan" style={{ '--n': displayMixes.length } as CSSProperties}>
           {displayMixes.map((mix, i) => (
-            <motion.div
+            <div
               key={mix.id}
               role="button"
               tabIndex={0}
@@ -434,11 +433,12 @@ export function NoirHomeView({
                   openMix(mix, mixWorlds[i]);
                 }
               }}
-              className="noir-home-poster group noir-focus-ring"
-              style={{ background: COLOR_WORLDS[mixWorlds[i]].field, color: inkOn(mixWorlds[i]) }}
-              initial={reduced ? false : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.08 + i * 0.04 }}
+              className="noir-home-poster noir-home-fan-card group noir-focus-ring"
+              style={{
+                '--i': i,
+                background: COLOR_WORLDS[mixWorlds[i]].field,
+                color: inkOn(mixWorlds[i]),
+              } as CSSProperties}
             >
               <span className="relative block">
                 <NoirMixCover tag={mix.tag} world={mixWorlds[i]} size={152} radius={0} />
@@ -460,9 +460,9 @@ export function NoirHomeView({
                 <span className="noir-home-poster-name">{mix.name}</span>
                 <span className="noir-home-poster-meta">{mix.subtitle}</span>
               </span>
-            </motion.div>
+            </div>
           ))}
-        </NoirHomeShelf>
+        </div>
       </section>
     )}
     </>
@@ -588,15 +588,6 @@ export function NoirHomeView({
   return (
     <div className="relative h-full min-h-0 overflow-y-auto scrollbar-none">
       <div className="h-[60px] shrink-0" />
-
-      {typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('mixes') && displayMixes.length > 0 && (
-        <NoirMixVariants
-          mixes={displayMixes}
-          worlds={mixWorlds}
-          onOpen={(mix, world) => openMix(mix, world)}
-          onPlay={(mix) => playMix(mix)}
-        />
-      )}
 
       {/* Dev check of every mix symbol: open Home with ?covers */}
       {typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('covers') && (
