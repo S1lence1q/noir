@@ -84,6 +84,8 @@ export function NoirHomeView({
   const [needsColdStart, setNeedsColdStart] = useState<boolean | null>(null);
   /** From real plays — not “artists you opened once”. */
   const [playedArtists, setPlayedArtists] = useState<VerifiedArtist[]>([]);
+  /** How many portraits are coming, known before the photos are: keeps the row's height from jumping. */
+  const [artistSlots, setArtistSlots] = useState(0);
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 5) return strings.greeting.lateNight;
@@ -125,6 +127,7 @@ export function NoirHomeView({
         if (!cancelled) setNeedsColdStart(isTasteEmpty(events));
 
         const top = topArtists(events, 30).slice(0, 12);
+        if (!cancelled) setArtistSlots(top.length);
         const cards = await Promise.all(
           top.map(async (entry) => {
             const image = await getArtistImage(entry.artist);
@@ -140,6 +143,7 @@ export function NoirHomeView({
         if (!cancelled) {
           setNeedsColdStart(false);
           setPlayedArtists([]);
+          setArtistSlots(0);
         }
       }
     })();
@@ -358,6 +362,20 @@ export function NoirHomeView({
             </div>
           )}
 
+          {playedArtists.length < 2 && artistSlots >= 2 && (
+            <section aria-hidden>
+              <h2 className="noir-section-heading px-1">{strings.home.artists}</h2>
+              <NoirHomeShelf>
+                {Array.from({ length: Math.min(artistSlots, 8) }).map((_, i) => (
+                  <div key={i} className="noir-home-artist">
+                    <span className="noir-home-artist-art noir-skeleton" />
+                    <span className="noir-skeleton mx-auto mt-3 block h-3 w-16 rounded" />
+                  </div>
+                ))}
+              </NoirHomeShelf>
+            </section>
+          )}
+
           {playedArtists.length >= 2 && (
             <section>
               <h2 className="noir-section-heading px-1">{strings.home.artists}</h2>
@@ -397,7 +415,6 @@ export function NoirHomeView({
                     <motion.button
                       key={track.id}
                       type="button"
-                      layout={!reduced}
                       onClick={() => playFromHome(track)}
                       className="noir-home-tile group noir-focus-ring"
                       data-playing={playing ? 'true' : 'false'}
