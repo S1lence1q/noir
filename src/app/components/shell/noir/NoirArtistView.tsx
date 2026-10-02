@@ -421,12 +421,12 @@ export function NoirArtistView({
         // Exact-shape skeleton of Popular + Latest release; both reveal together.
         <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_240px]" aria-busy="true" aria-label={strings.artist.loading}>
           <section className="min-w-0">
-            <h2 className="noir-section-title mb-4 px-1">{strings.artist.popular}</h2>
+            <h2 className="noir-section-title mb-4">{strings.artist.popular}</h2>
             <PopularSkeleton />
           </section>
           <section className="hidden min-w-0 lg:block">
-            <h2 className="noir-section-title mb-4 px-1">{strings.artist.latestRelease}</h2>
-            <div className="px-1">
+            <h2 className="noir-section-title mb-4">{strings.artist.latestRelease}</h2>
+            <div>
               <span className="noir-skeleton-box block aspect-square w-full max-w-[232px]" />
               <span className="noir-skeleton-box mt-3 block h-3 w-[60%]" />
               <span className="noir-skeleton-box mt-2 block h-2.5 w-[35%]" />
@@ -441,7 +441,7 @@ export function NoirArtistView({
           transition={MOTION.panel}
         >
         <section className="min-w-0 flex flex-col">
-          <h2 className="noir-section-title mb-4 px-1">{strings.artist.popular}</h2>
+          <h2 className="noir-section-title mb-4">{strings.artist.popular}</h2>
           {unique.length > 0 ? (
             <>
               <div className="flex flex-col gap-0.5">
@@ -483,12 +483,12 @@ export function NoirArtistView({
               onRetry={onRetry}
             />
           ) : (
-            <p className="px-1 py-8 text-[14px] text-[color:var(--noir-text-secondary)]">{strings.artist.empty}</p>
+            <p className="py-8 text-[14px] text-[color:var(--noir-text-secondary)]">{strings.artist.empty}</p>
           )}
         </section>
         {latestRelease && (
           <section className="flex min-w-0 flex-col">
-            <h2 className="noir-section-title mb-4 px-1">{strings.artist.latestRelease}</h2>
+            <h2 className="noir-section-title mb-4">{strings.artist.latestRelease}</h2>
             <motion.div
               role="button"
               tabIndex={0}
@@ -541,7 +541,7 @@ export function NoirArtistView({
 
       {revealed && albums.length > 0 && (
         <section className="mt-12">
-          <div className="mb-4 flex flex-wrap items-baseline gap-x-8 gap-y-2 px-1">
+          <div className="mb-4 flex flex-wrap items-baseline gap-x-8 gap-y-2">
             <h2 className="noir-section-title">{strings.artist.discography}</h2>
             {showFilterTabs && (
               <div className="flex items-center gap-5" role="tablist" aria-label={strings.artist.discography}>
@@ -634,7 +634,7 @@ export function NoirArtistView({
 
       {revealed && similarArtists.length >= 3 && (
         <section className="mt-12">
-          <h2 className="noir-section-title mb-4 px-1">{strings.artist.fansAlsoLike}</h2>
+          <h2 className="noir-section-title mb-4">{strings.artist.fansAlsoLike}</h2>
           <NoirHomeShelf>
             {similarArtists.map((sim) => {
               const simWorld = worldForCollection(`artist:${sim.name.toLowerCase()}`);
@@ -694,7 +694,7 @@ export function NoirArtistView({
           animate={{ opacity: 1, y: 0 }}
           transition={MOTION.panel}
         >
-          <h2 className="noir-section-title mb-4 px-1">{strings.artist.aboutArtist(artist.name)}</h2>
+          <h2 className="noir-section-title mb-4">{strings.artist.aboutArtist(artist.name)}</h2>
           {/* Text only: the hero already carries the portrait (one graphic beat per screen). */}
           <div className="noir-artist-about">
             <div className="min-w-0">

@@ -225,7 +225,7 @@ export function NoirDiscoverView({
   return (
     <div className="noir-settle-group flex flex-col pb-6">
       {coldStart && (
-        <p className="mb-8 max-w-lg px-1 text-[14px] text-[color:var(--noir-text-secondary)]">
+        <p className="mb-8 max-w-lg text-[14px] text-[color:var(--noir-text-secondary)]">
           {strings.discover.emptyTasteDesc}
         </p>
       )}
@@ -289,7 +289,7 @@ export function NoirDiscoverView({
           </motion.section>
         )}
         <section className="noir-discover-top-charts">
-          <h3 className="noir-section-heading !mt-0 px-1">{strings.discover.charts}</h3>
+          <h3 className="noir-section-heading !mt-0">{strings.discover.charts}</h3>
           <div className="noir-discover-chart-stack">
             {chartSlots.map(({ key, playlist }) =>
               playlist ? (
@@ -311,7 +311,7 @@ export function NoirDiscoverView({
       {movingNow.length > 0 && (
         <div className="noir-discover-front">
           <section>
-            <h3 className="noir-section-heading !mt-0 px-1">{strings.discover.movingNow}</h3>
+            <h3 className="noir-section-heading !mt-0">{strings.discover.movingNow}</h3>
             <ol className="noir-rank-list">
               {movingNow.map((track, i) => (
                 <motion.li
@@ -354,7 +354,7 @@ export function NoirDiscoverView({
       {/* Genres: compact rows with their symbol — navigation shouldn't shout louder than the music. */}
       {tagShelves.length > 0 && (
         <section>
-          <h3 className="noir-section-heading px-1">{strings.discover.genres}</h3>
+          <h3 className="noir-section-heading">{strings.discover.genres}</h3>
           <div className="noir-genre-list">
             {tagShelves.map((shelf, i) => (
               <motion.button
@@ -380,7 +380,7 @@ export function NoirDiscoverView({
 
       {feed && feed.newFromSimilar.length > 0 && (
         <section>
-          <h3 className="noir-section-heading px-1">{strings.discover.newFromSimilar}</h3>
+          <h3 className="noir-section-heading">{strings.discover.newFromSimilar}</h3>
           <NoirHomeShelf>
             {feed.newFromSimilar.map((release, i) => (
               <ReleaseCard
@@ -398,7 +398,7 @@ export function NoirDiscoverView({
 
       {becauseRows.map((row) => (
         <section key={row.id}>
-          <h3 className="noir-section-heading px-1">{strings.discover.because(row.seed)}</h3>
+          <h3 className="noir-section-heading">{strings.discover.because(row.seed)}</h3>
           <NoirHomeShelf>
             {row.tracks.map((track, i) => (
               <NoirTrackCard key={track.id} track={track} index={i} reduced={reduced} onPlay={() => onSelectSong(track)} />
@@ -409,7 +409,7 @@ export function NoirDiscoverView({
 
       {exploreArtists.length > 0 && (
         <section>
-          <h3 className="noir-section-heading px-1">
+          <h3 className="noir-section-heading">
             {feed?.artistsLike?.length ? strings.discover.artistsLike : strings.discover.chartArtists}
           </h3>
           <NoirHomeShelf>

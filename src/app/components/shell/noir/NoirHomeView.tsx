@@ -69,7 +69,7 @@ function SectionHead({
 }) {
   return (
     <div className="noir-section-row">
-      <h2 className="noir-section-heading px-1">{title}</h2>
+      <h2 className="noir-section-heading">{title}</h2>
       {meta ? (
         onMeta ? (
           <button type="button" onClick={onMeta} className="noir-section-meta noir-section-meta-link noir-focus-ring">
@@ -298,7 +298,7 @@ export function NoirHomeView({
     <>
     {playedArtists.length < 2 && artistSlots >= 2 && (
       <section aria-hidden>
-        <h2 className="noir-section-heading px-1">{strings.home.artists}</h2>
+        <h2 className="noir-section-heading">{strings.home.artists}</h2>
         <NoirHomeShelf>
           {Array.from({ length: Math.min(artistSlots, 12) }).map((_, i) => (
             <div key={i} className="noir-home-artist">
@@ -403,7 +403,7 @@ export function NoirHomeView({
   
     {mixesFailed && displayMixes.length === 0 && (
       <section>
-        <h2 className="noir-section-heading px-1">{strings.home.yourMixes}</h2>
+        <h2 className="noir-section-heading">{strings.home.yourMixes}</h2>
         <NoirStateNotice
           compact
           title={strings.mixesFailed.title}
