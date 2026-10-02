@@ -2035,6 +2035,7 @@ button.noir-now-playing-source:hover {
   flex-direction: column;
   gap: 40px;
   max-width: 720px;
+  margin-inline: auto;
 }
 .noir-settings-side {
   display: contents;
