@@ -15,7 +15,7 @@ export function ArtistAvatar({ name, fallbackThumbnail }: { name: string; fallba
     let active = true;
     const fetchRealImg = async () => {
       try {
-        const cached = localStorage.getItem(`elva_artist_img_${name.toLowerCase()}`);
+        const cached = localStorage.getItem(`noir_artist_img_${name.toLowerCase()}`);
         if (cached) {
           if (active) setImgUrl(cached);
           return;
@@ -24,7 +24,7 @@ export function ArtistAvatar({ name, fallbackThumbnail }: { name: string; fallba
         const url = await getArtistImage(name);
         if (url && active) {
           setImgUrl(url);
-          localStorage.setItem(`elva_artist_img_${name.toLowerCase()}`, url);
+          localStorage.setItem(`noir_artist_img_${name.toLowerCase()}`, url);
           window.dispatchEvent(new CustomEvent('noir-artist-image-loaded', { detail: { name, url } }));
         }
       } catch {

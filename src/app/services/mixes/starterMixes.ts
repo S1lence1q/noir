@@ -22,7 +22,7 @@ function genreName(genre: string): string {
 
 function home(): string {
   try {
-    return localStorage.getItem('elva_profile_country') || 'dk';
+    return localStorage.getItem('noir_profile_country') || 'dk';
   } catch {
     return 'dk';
   }

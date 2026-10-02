@@ -1,10 +1,10 @@
-/** Central localStorage keys for NOIR (values keep their old elva_ prefix so saved data survives) — single place to find and migrate persisted data. */
+/** Central localStorage keys for NOIR. Data saved under the old elva_ names is moved over by migrateStorage.ts. */
 export const NOIR_STORAGE_KEYS = {
-  favorites: 'elva_favorites',
-  playlists: 'elva_playlists',
-  recentlyPlayed: 'elva_recently_played',
-  playerVolume: 'elva_player_volume',
-  crossfadeDuration: 'elva_crossfade_duration',
+  favorites: 'noir_favorites',
+  playlists: 'noir_playlists',
+  recentlyPlayed: 'noir_recently_played',
+  playerVolume: 'noir_player_volume',
+  crossfadeDuration: 'noir_crossfade_duration',
 } as const;
 
 export function readJsonStorage<T>(key: string, fallback: T): T {

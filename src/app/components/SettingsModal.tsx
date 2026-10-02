@@ -89,7 +89,7 @@ export function SettingsModal({
   onNavPositionChange,
 }: SettingsModalProps) {
   const [localVolume, setLocalVolume] = useState(() => {
-    const saved = localStorage.getItem('elva_player_volume');
+    const saved = localStorage.getItem('noir_player_volume');
     return saved !== null ? parseInt(saved, 10) : 70;
   });
 
@@ -100,17 +100,17 @@ export function SettingsModal({
       onVolumeChange(val);
     } else {
       setLocalVolume(val);
-      localStorage.setItem('elva_player_volume', String(val));
+      localStorage.setItem('noir_player_volume', String(val));
       window.dispatchEvent(new CustomEvent('noir-set-volume', { detail: { volume: val } }));
     }
   };
 
   const toggleMute = () => {
     if (displayVolume > 0) {
-      localStorage.setItem('elva_pre_mute_volume', String(displayVolume));
+      localStorage.setItem('noir_pre_mute_volume', String(displayVolume));
       handleVolumeChangeInternal(0);
     } else {
-      const saved = localStorage.getItem('elva_pre_mute_volume');
+      const saved = localStorage.getItem('noir_pre_mute_volume');
       const restoreVol = saved ? parseInt(saved, 10) : 70;
       handleVolumeChangeInternal(restoreVol > 0 ? restoreVol : 70);
     }

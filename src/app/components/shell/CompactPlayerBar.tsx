@@ -101,7 +101,7 @@ export function CompactPlayerBar({
     if (!pending) setRayKey((k) => k + 1);
   }, [songKey, pending]);
   const [volume, setVolume] = useState(() => {
-    const saved = localStorage.getItem('elva_player_volume');
+    const saved = localStorage.getItem('noir_player_volume');
     return saved !== null ? parseInt(saved, 10) : 70;
   });
   const preMuteRef = useRef(volume > 0 ? volume : 70);
@@ -204,7 +204,7 @@ export function CompactPlayerBar({
     flashVolumeValue();
     setVolume(clamped);
     if (clamped > 0) preMuteRef.current = clamped;
-    localStorage.setItem('elva_player_volume', String(clamped));
+    localStorage.setItem('noir_player_volume', String(clamped));
     window.dispatchEvent(new CustomEvent('noir-set-volume', { detail: { volume: clamped } }));
   };
 

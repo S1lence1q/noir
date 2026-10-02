@@ -3,10 +3,10 @@ import { SearchResult } from '../types';
 const FRESH_TTL_MS = 48 * 60 * 60 * 1000; // 48h fresh
 const STALE_TTL_MS = 14 * 24 * 60 * 60 * 1000; // keep stale up to 14d for SWR
 const MAX_CACHED_ARTISTS = 200;
-const CACHE_KEY_PREFIX = 'elva_discography_v3_';
-const CACHE_INDEX_KEY = 'elva_discography_index_v3';
+const CACHE_KEY_PREFIX = 'noir_discography_v3_';
+const CACHE_INDEX_KEY = 'noir_discography_index_v3';
 /** Legacy name-only keys from v2 — still readable for migration. */
-const LEGACY_PREFIX = 'elva_discography_v2_';
+const LEGACY_PREFIX = 'noir_discography_v2_';
 
 export type DiscographyChannelType = 'topic' | 'vevo' | 'official' | 'provided';
 

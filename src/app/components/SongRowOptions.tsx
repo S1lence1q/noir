@@ -36,7 +36,7 @@ const LegacySongRowOptions: React.FC<SongRowOptionsProps> = ({
 
   const loadPlaylists = () => {
     try {
-      const stored = localStorage.getItem('elva_playlists');
+      const stored = localStorage.getItem('noir_playlists');
       if (stored) {
         setPlaylists(JSON.parse(stored));
       }
@@ -119,7 +119,7 @@ const LegacySongRowOptions: React.FC<SongRowOptionsProps> = ({
 
   const handleAddTrackToPlaylist = (playlistId: string, playlistName: string) => {
     try {
-      const stored = localStorage.getItem('elva_playlists');
+      const stored = localStorage.getItem('noir_playlists');
       const currentPlaylists = stored ? JSON.parse(stored) : [];
       const updated = currentPlaylists.map((p: any) => {
         if (p.id === playlistId) {
@@ -135,7 +135,7 @@ const LegacySongRowOptions: React.FC<SongRowOptionsProps> = ({
         return p;
       });
 
-      localStorage.setItem('elva_playlists', JSON.stringify(updated));
+      localStorage.setItem('noir_playlists', JSON.stringify(updated));
       showMiniHUD(`Added to ${playlistName}`);
       window.dispatchEvent(new CustomEvent('noir-playlists-updated'));
     } catch (e) {

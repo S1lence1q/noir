@@ -28,11 +28,11 @@ export function usePlaybackCore({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState<number>(() => {
-    const saved = localStorage.getItem('elva_player_volume');
+    const saved = localStorage.getItem('noir_player_volume');
     return saved !== null ? parseInt(saved, 10) : 70;
   });
   const [preMuteVolume, setPreMuteVolume] = useState<number>(() => {
-    const saved = localStorage.getItem('elva_player_premute_volume');
+    const saved = localStorage.getItem('noir_player_premute_volume');
     return saved !== null ? parseInt(saved, 10) : 70;
   });
   const [activeEngine, setActiveEngine] = useState<'A' | 'B'>('A');
@@ -133,7 +133,7 @@ export function usePlaybackCore({
     if (!isPlayingRef.current || isCrossfadingRef.current || advanceInFlightRef.current) return;
     if (!(dur > 0) || !Number.isFinite(dur) || !Number.isFinite(current)) return;
 
-    const saved = localStorage.getItem('elva_crossfade_duration');
+    const saved = localStorage.getItem('noir_crossfade_duration');
     const crossfadeWindow = saved !== null ? parseFloat(saved) : 3.0;
     const canCrossfade = crossfadeWindow > 0 && queueLengthRef.current >= 2;
     const lead = canCrossfade ? crossfadeWindow : 0.25;
@@ -788,7 +788,7 @@ export function usePlaybackCore({
       return;
     }
 
-    const saved = localStorage.getItem('elva_crossfade_duration');
+    const saved = localStorage.getItem('noir_crossfade_duration');
     const crossfadeWindow = saved !== null ? parseFloat(saved) : 3.0;
 
     if (crossfadeWindow <= 0) return;
@@ -946,9 +946,9 @@ export function usePlaybackCore({
 
   // Sync volume to localStorage
   useEffect(() => {
-    localStorage.setItem('elva_player_volume', String(volume));
+    localStorage.setItem('noir_player_volume', String(volume));
     if (volume > 0) {
-      localStorage.setItem('elva_player_premute_volume', String(volume));
+      localStorage.setItem('noir_player_premute_volume', String(volume));
     }
   }, [volume]);
 
@@ -1366,7 +1366,7 @@ export function usePlaybackCore({
       if (volumeRef.current > 0) {
         handleVolumeChange(0);
       } else {
-        const saved = parseInt(localStorage.getItem('elva_player_premute_volume') || '70', 10);
+        const saved = parseInt(localStorage.getItem('noir_player_premute_volume') || '70', 10);
         handleVolumeChange(Number.isFinite(saved) && saved > 0 ? saved : 70);
       }
     };

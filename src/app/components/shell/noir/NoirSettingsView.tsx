@@ -11,8 +11,8 @@ import { strings } from '../../../constants/strings';
 import type { AutoplayPreference } from '../../../hooks/useQueueEndPrompt';
 
 const APP_VERSION = '1.0.0';
-const GAPLESS_STASH_KEY = 'elva_crossfade_before_gapless';
-const AUTOPLAY_STORAGE_KEY = 'elva_autoplay';
+const GAPLESS_STASH_KEY = 'noir_crossfade_before_gapless';
+const AUTOPLAY_STORAGE_KEY = 'noir_autoplay';
 
 function readAutoplayPreference(): AutoplayPreference {
   const value = localStorage.getItem(AUTOPLAY_STORAGE_KEY);
@@ -105,10 +105,10 @@ function clearCachedData() {
     const key = localStorage.key(i);
     if (!key) continue;
     if (
-      key.startsWith('elva_apple_chart_') ||
-      key.startsWith('elva_discography_v2_') ||
-      key === 'elva_discography_index_v2' ||
-      key.startsWith('elva_artist_img_')
+      key.startsWith('noir_apple_chart_') ||
+      key.startsWith('noir_discography_v2_') ||
+      key === 'noir_discography_index_v2' ||
+      key.startsWith('noir_artist_img_')
     ) {
       keysToRemove.push(key);
     }
@@ -119,17 +119,17 @@ function clearCachedData() {
 
 export function NoirSettingsView() {
   const [volume, setVolume] = useState<number>(() => {
-    const saved = localStorage.getItem('elva_player_volume');
+    const saved = localStorage.getItem('noir_player_volume');
     return saved !== null ? parseInt(saved, 10) : 70;
   });
 
   const [crossfade, setCrossfade] = useState<number>(() => {
-    const saved = localStorage.getItem('elva_crossfade_duration');
+    const saved = localStorage.getItem('noir_crossfade_duration');
     return saved !== null ? parseFloat(saved) : 3.0;
   });
 
   const [country, setCountry] = useState(
-    () => localStorage.getItem('elva_profile_country') || 'dk'
+    () => localStorage.getItem('noir_profile_country') || 'dk'
   );
   const [autoplay, setAutoplay] = useState<AutoplayPreference>(() => readAutoplayPreference());
   const graphics = useGraphicsTheme();
@@ -145,13 +145,13 @@ export function NoirSettingsView() {
 
   const onVolumeChange = (val: number) => {
     setVolume(val);
-    localStorage.setItem('elva_player_volume', String(val));
+    localStorage.setItem('noir_player_volume', String(val));
     window.dispatchEvent(new CustomEvent('noir-set-volume', { detail: { volume: val } }));
   };
 
   const handleCrossfadeChange = (val: number) => {
     setCrossfade(val);
-    localStorage.setItem('elva_crossfade_duration', String(val));
+    localStorage.setItem('noir_crossfade_duration', String(val));
     if (val > 0) {
       localStorage.setItem(GAPLESS_STASH_KEY, String(val));
     }
@@ -172,10 +172,10 @@ export function NoirSettingsView() {
 
   const toggleMute = () => {
     if (volume > 0) {
-      localStorage.setItem('elva_pre_mute_volume', String(volume));
+      localStorage.setItem('noir_pre_mute_volume', String(volume));
       onVolumeChange(0);
     } else {
-      const saved = localStorage.getItem('elva_pre_mute_volume');
+      const saved = localStorage.getItem('noir_pre_mute_volume');
       const restoreVol = saved ? parseInt(saved, 10) : 70;
       onVolumeChange(restoreVol > 0 ? restoreVol : 70);
     }
@@ -183,12 +183,12 @@ export function NoirSettingsView() {
 
   const handleCountryChange = (code: string) => {
     setCountry(code);
-    localStorage.setItem('elva_profile_country', code);
+    localStorage.setItem('noir_profile_country', code);
     window.dispatchEvent(new CustomEvent('noir-profile-updated'));
   };
 
   const handleClearHistory = () => {
-    localStorage.setItem('elva_recently_played', '[]');
+    localStorage.setItem('noir_recently_played', '[]');
     window.dispatchEvent(new CustomEvent('noir-recently-played-cleared'));
     void clearListeningEvents().catch((error) => {
       console.warn('Failed to clear listening events:', error);

@@ -36,7 +36,7 @@ export type NoirDiscoverViewProps = {
 
 function readCacheSync(country: string): SearchResult[] {
   try {
-    const raw = localStorage.getItem(`elva_apple_chart_${country}_v2`);
+    const raw = localStorage.getItem(`noir_apple_chart_${country}_v2`);
     if (raw) {
       const entry = JSON.parse(raw);
       if (entry?.tracks?.length) return entry.tracks;
@@ -59,7 +59,7 @@ export function NoirDiscoverView({
   onViewArtist,
 }: NoirDiscoverViewProps) {
   const [activeCountry, setActiveCountry] = useState(
-    () => localStorage.getItem('elva_profile_country') || 'dk'
+    () => localStorage.getItem('noir_profile_country') || 'dk'
   );
   const [localHits, setLocalHits] = useState<SearchResult[]>(() => readCacheSync(activeCountry));
   const [globalHits, setGlobalHits] = useState<SearchResult[]>(() => readCacheSync('us'));
@@ -95,7 +95,7 @@ export function NoirDiscoverView({
 
   useEffect(() => {
     const handleProfileUpdate = () => {
-      setActiveCountry(localStorage.getItem('elva_profile_country') || 'dk');
+      setActiveCountry(localStorage.getItem('noir_profile_country') || 'dk');
     };
     window.addEventListener('noir-profile-updated', handleProfileUpdate);
     return () => window.removeEventListener('noir-profile-updated', handleProfileUpdate);

@@ -1,8 +1,8 @@
 import type { SearchResult } from '../types';
 
-const SHELL_TAB_KEY = 'elva_shell_tab';
-const SHELL_UI_KEY = 'elva_shell_ui_v1';
-const PLAYBACK_SESSION_KEY = 'elva_playback_session_v1';
+const SHELL_TAB_KEY = 'noir_shell_tab';
+const SHELL_UI_KEY = 'noir_shell_ui_v1';
+const PLAYBACK_SESSION_KEY = 'noir_playback_session_v1';
 const MAX_AGE_MS = 12 * 60 * 60 * 1000;
 
 export type ShellTab = 'search' | 'discover' | 'myhub' | 'settings';

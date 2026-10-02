@@ -104,10 +104,10 @@ export default function App() {
   // Settings is now a tab in the shell, not a modal
 
   const [navMode, setNavMode] = useState<'tabs' | 'scroll'>(() => {
-    return (localStorage.getItem('elva_nav_mode') as 'tabs' | 'scroll') || 'tabs';
+    return (localStorage.getItem('noir_nav_mode') as 'tabs' | 'scroll') || 'tabs';
   });
   const [navPosition, setNavPosition] = useState<'bottom' | 'top' | 'right'>(() => {
-    return (localStorage.getItem('elva_nav_position') as 'bottom' | 'top' | 'right') || 'bottom';
+    return (localStorage.getItem('noir_nav_position') as 'bottom' | 'top' | 'right') || 'bottom';
   });
 
   const handleSetNavMode = (mode: 'tabs' | 'scroll') => {
@@ -215,7 +215,7 @@ export default function App() {
 
   const [favorites, setFavorites] = useState<SearchResult[]>(() => {
     try {
-      const stored = localStorage.getItem('elva_favorites');
+      const stored = localStorage.getItem('noir_favorites');
       return stored ? ensureFavoritedAt(JSON.parse(stored)) : [];
     } catch {
       return [];
@@ -225,12 +225,12 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const stored = localStorage.getItem('elva_favorites');
+      const stored = localStorage.getItem('noir_favorites');
       const current: SearchResult[] = stored ? JSON.parse(stored) : [];
       const hydrated = ensureFavoritedAt(await hydrateLocalTracks(current));
       if (cancelled) return;
       setFavorites(hydrated);
-      localStorage.setItem('elva_favorites', JSON.stringify(hydrated));
+      localStorage.setItem('noir_favorites', JSON.stringify(hydrated));
     })().catch(() => {
       // Keep the persisted favorite entries if local media storage is unavailable.
     });
@@ -240,7 +240,7 @@ export default function App() {
   }, []);
 
   const [isIntroActive, setIsIntroActive] = useState(() => {
-    const hasSeenIntro = sessionStorage.getItem('elva_intro_seen');
+    const hasSeenIntro = sessionStorage.getItem('noir_intro_seen');
     return !hasSeenIntro;
   });
 
@@ -263,7 +263,7 @@ export default function App() {
 
   const [resolvedVideoIds, setResolvedVideoIds] = useState<Record<string, string>>(() => {
     try {
-      const stored = localStorage.getItem('elva_resolved_video_ids');
+      const stored = localStorage.getItem('noir_resolved_video_ids');
       return stored ? JSON.parse(stored) : {};
     } catch {
       return {};
@@ -332,14 +332,14 @@ export default function App() {
 
   const [sidePanelOpen, setSidePanelOpen] = useState(() => {
     try {
-      return localStorage.getItem('elva_np_side_panel') !== '0';
+      return localStorage.getItem('noir_np_side_panel') !== '0';
     } catch {
       return true;
     }
   });
   useEffect(() => {
     try {
-      localStorage.setItem('elva_np_side_panel', sidePanelOpen ? '1' : '0');
+      localStorage.setItem('noir_np_side_panel', sidePanelOpen ? '1' : '0');
     } catch {}
   }, [sidePanelOpen]);
 
@@ -456,93 +456,93 @@ export default function App() {
 
   // Lifted Settings States
   const [accentColor, setAccentColor] = useState<AccentColor>(() => {
-    return (localStorage.getItem('elva_accent_color') as AccentColor) || 'emerald';
+    return (localStorage.getItem('noir_accent_color') as AccentColor) || 'emerald';
   });
 
   const [textureStyle, setTextureStyle] = useState<'paper' | 'dots' | 'none'>(() => {
-    return (localStorage.getItem('elva_texture_style') as 'paper' | 'dots' | 'none') || 'paper';
+    return (localStorage.getItem('noir_texture_style') as 'paper' | 'dots' | 'none') || 'paper';
   });
 
   const [backgroundStyle, setBackgroundStyle] = useState<'default' | 'particles' | 'liquid' | 'mesh'>(() => {
-    return (localStorage.getItem('elva_bg_style') as 'default' | 'particles' | 'liquid' | 'mesh') || 'mesh';
+    return (localStorage.getItem('noir_bg_style') as 'default' | 'particles' | 'liquid' | 'mesh') || 'mesh';
   });
 
   const [zenMode, setZenMode] = useState(() => {
-    return localStorage.getItem('elva_zen_mode') === 'true';
+    return localStorage.getItem('noir_zen_mode') === 'true';
   });
 
   const [showVolumeSlider, setShowVolumeSlider] = useState(() => {
-    return localStorage.getItem('elva_volume_slider') === 'true';
+    return localStorage.getItem('noir_volume_slider') === 'true';
   });
 
   const [enable3DTilt, setEnable3DTilt] = useState(() => {
-    return localStorage.getItem('elva_3d_tilt') !== 'false';
+    return localStorage.getItem('noir_3d_tilt') !== 'false';
   });
 
   const [showSettingsButton, setShowSettingsButton] = useState(() => {
-    return localStorage.getItem('elva_show_settings_btn') === 'true';
+    return localStorage.getItem('noir_show_settings_btn') === 'true';
   });
 
   const [enableCustomLyrics, setEnableCustomLyrics] = useState(() => {
-    return localStorage.getItem('elva_enable_custom_lyrics') === 'true';
+    return localStorage.getItem('noir_enable_custom_lyrics') === 'true';
   });
 
   const [showVisualizer, setShowVisualizer] = useState(() => {
-    return localStorage.getItem('elva_show_visualizer') === 'true';
+    return localStorage.getItem('noir_show_visualizer') === 'true';
   });
 
   const [peekProgressStyle, setPeekProgressStyle] = useState<'none' | 'line' | 'border'>(() => {
-    return (localStorage.getItem('elva_peek_progress_style') as 'none' | 'line' | 'border') || 'border';
+    return (localStorage.getItem('noir_peek_progress_style') as 'none' | 'line' | 'border') || 'border';
   });
 
 
   // Sync settings to localStorage on change
   useEffect(() => {
-    localStorage.setItem('elva_accent_color', accentColor);
+    localStorage.setItem('noir_accent_color', accentColor);
   }, [accentColor]);
 
   useEffect(() => {
-    localStorage.setItem('elva_texture_style', textureStyle);
+    localStorage.setItem('noir_texture_style', textureStyle);
   }, [textureStyle]);
 
   useEffect(() => {
-    localStorage.setItem('elva_bg_style', backgroundStyle);
+    localStorage.setItem('noir_bg_style', backgroundStyle);
   }, [backgroundStyle]);
 
   useEffect(() => {
-    localStorage.setItem('elva_zen_mode', zenMode ? 'true' : 'false');
+    localStorage.setItem('noir_zen_mode', zenMode ? 'true' : 'false');
   }, [zenMode]);
 
   useEffect(() => {
-    localStorage.setItem('elva_volume_slider', showVolumeSlider ? 'true' : 'false');
+    localStorage.setItem('noir_volume_slider', showVolumeSlider ? 'true' : 'false');
   }, [showVolumeSlider]);
 
   useEffect(() => {
-    localStorage.setItem('elva_3d_tilt', enable3DTilt ? 'true' : 'false');
+    localStorage.setItem('noir_3d_tilt', enable3DTilt ? 'true' : 'false');
   }, [enable3DTilt]);
 
   useEffect(() => {
-    localStorage.setItem('elva_show_settings_btn', showSettingsButton ? 'true' : 'false');
+    localStorage.setItem('noir_show_settings_btn', showSettingsButton ? 'true' : 'false');
   }, [showSettingsButton]);
 
   useEffect(() => {
-    localStorage.setItem('elva_enable_custom_lyrics', enableCustomLyrics ? 'true' : 'false');
+    localStorage.setItem('noir_enable_custom_lyrics', enableCustomLyrics ? 'true' : 'false');
   }, [enableCustomLyrics]);
 
   useEffect(() => {
-    localStorage.setItem('elva_show_visualizer', showVisualizer ? 'true' : 'false');
+    localStorage.setItem('noir_show_visualizer', showVisualizer ? 'true' : 'false');
   }, [showVisualizer]);
 
   useEffect(() => {
-    localStorage.setItem('elva_peek_progress_style', peekProgressStyle);
+    localStorage.setItem('noir_peek_progress_style', peekProgressStyle);
   }, [peekProgressStyle]);
 
   useEffect(() => {
-    localStorage.setItem('elva_nav_mode', navMode);
+    localStorage.setItem('noir_nav_mode', navMode);
   }, [navMode]);
 
   useEffect(() => {
-    localStorage.setItem('elva_nav_position', navPosition);
+    localStorage.setItem('noir_nav_position', navPosition);
   }, [navPosition]);
 
 
@@ -551,7 +551,7 @@ export default function App() {
   const [tourStep, setTourStep] = useState(0);
   const [tourTransitioning, setTourTransitioning] = useState(false);
   const tourBusyRef = useRef(false);
-  const [hasSeenTour, setHasSeenTour] = useState(() => localStorage.getItem('elva_tour_completed') === 'true');
+  const [hasSeenTour, setHasSeenTour] = useState(() => localStorage.getItem('noir_tour_completed') === 'true');
   const [showShortcutMap, setShowShortcutMap] = useState(false);
   const [searchPaletteOpen, setSearchPaletteOpen] = useState(false);
 
@@ -562,9 +562,9 @@ export default function App() {
   }, []);
   const [recentlyPlayed, setRecentlyPlayed] = useState<SearchResult[]>(() => {
     try {
-      const stored = localStorage.getItem('elva_recently_played');
+      const stored = localStorage.getItem('noir_recently_played');
       const list: SearchResult[] = stored ? JSON.parse(stored) : [];
-      const resolvedRaw = localStorage.getItem('elva_resolved_video_ids');
+      const resolvedRaw = localStorage.getItem('noir_resolved_video_ids');
       const resolved: Record<string, string> = resolvedRaw ? JSON.parse(resolvedRaw) : {};
       return dedupeRecentlyPlayed(list.map((item) => ({
         ...item,
@@ -585,7 +585,7 @@ export default function App() {
   useEffect(() => {
     setRecentlyPlayed((current) => {
       const cleaned = dedupeRecentlyPlayed(current);
-      localStorage.setItem('elva_recently_played', JSON.stringify(cleaned));
+      localStorage.setItem('noir_recently_played', JSON.stringify(cleaned));
       return cleaned;
     });
   }, []);
@@ -593,13 +593,13 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const stored = localStorage.getItem('elva_recently_played');
+      const stored = localStorage.getItem('noir_recently_played');
       const current: SearchResult[] = stored ? JSON.parse(stored) : [];
       const hydrated = await hydrateLocalTracks(current);
       if (cancelled) return;
       const cleaned = dedupeRecentlyPlayed(hydrated);
       setRecentlyPlayed(cleaned);
-      localStorage.setItem('elva_recently_played', JSON.stringify(cleaned));
+      localStorage.setItem('noir_recently_played', JSON.stringify(cleaned));
     })().catch(() => {
       // Keep the in-memory history if local media storage is unavailable.
     });
@@ -608,7 +608,7 @@ export default function App() {
     };
   }, []);
 
-  const [isFirstVisit, setIsFirstVisit] = useState(() => !sessionStorage.getItem('elva_intro_seen'));
+  const [isFirstVisit, setIsFirstVisit] = useState(() => !sessionStorage.getItem('noir_intro_seen'));
   const hasSelectedArtistOnce = useRef(false);
   const latestSelectedSongIdRef = useRef<string | null>(null);
 
@@ -662,17 +662,17 @@ export default function App() {
         updated = [{ ...song, favoritedAt: Date.now() }, ...prev];
         noirToast({ text: strings.songMenu.addedToFavorites, cover: song.thumbnail });
       }
-      localStorage.setItem('elva_favorites', JSON.stringify(updated));
+      localStorage.setItem('noir_favorites', JSON.stringify(updated));
       return updated;
     });
   };
 
   const saveRecentlyPlayed = (song: SearchResult) => {
     try {
-      const stored = localStorage.getItem('elva_recently_played');
+      const stored = localStorage.getItem('noir_recently_played');
       let list: SearchResult[] = stored ? JSON.parse(stored) : [];
       list = dedupeRecentlyPlayed([song, ...list]);
-      localStorage.setItem('elva_recently_played', JSON.stringify(list));
+      localStorage.setItem('noir_recently_played', JSON.stringify(list));
       setRecentlyPlayed(list);
     } catch (e) {
       console.warn('Failed to save recently played track:', e);
@@ -693,7 +693,7 @@ export default function App() {
   const persistResolvedVideoId = (trackId: string, videoId: string, thumbnail?: string) => {
     setResolvedVideoIds((prev) => {
       const next = { ...prev, [trackId]: videoId };
-      localStorage.setItem('elva_resolved_video_ids', JSON.stringify(next));
+      localStorage.setItem('noir_resolved_video_ids', JSON.stringify(next));
       return next;
     });
     patchTrackInLists(trackId, {
@@ -813,7 +813,7 @@ export default function App() {
         return;
       }
 
-      const saved = localStorage.getItem('elva_crossfade_duration');
+      const saved = localStorage.getItem('noir_crossfade_duration');
       const crossfadeWindow = saved !== null ? parseFloat(saved) : 3.0;
       setColorTransitionDuration(crossfadeWindow);
       if (colorTransitionTimeoutRef.current) {
@@ -914,7 +914,7 @@ export default function App() {
     playTrackInContext(queueTrack);
 
     if (isCrossfade) {
-      const saved = localStorage.getItem('elva_crossfade_duration');
+      const saved = localStorage.getItem('noir_crossfade_duration');
       const crossfadeWindow = saved !== null ? parseFloat(saved) : 3.0;
       setColorTransitionDuration(crossfadeWindow);
 
@@ -1333,7 +1333,7 @@ export default function App() {
       const customEvent = e as CustomEvent;
       const targetTab = customEvent.detail?.tab;
       if (targetTab) {
-        sessionStorage.setItem('elva_hub_active_tab', targetTab);
+        sessionStorage.setItem('noir_hub_active_tab', targetTab);
       }
       setAppState('landing');
       searchLogic.setSelectedArtist(null);
@@ -1358,8 +1358,8 @@ export default function App() {
   useEffect(() => {
     const handleResetTour = () => {
       setHasSeenTour(false);
-      localStorage.removeItem('elva_tour_completed');
-      localStorage.removeItem('elva_player_tour_completed');
+      localStorage.removeItem('noir_tour_completed');
+      localStorage.removeItem('noir_player_tour_completed');
     };
 
     window.addEventListener('noir-reset-tour', handleResetTour);
@@ -1532,8 +1532,8 @@ export default function App() {
   };
 
   const startTour = () => {
-    localStorage.removeItem('elva_tour_completed');
-    localStorage.removeItem('elva_player_tour_completed');
+    localStorage.removeItem('noir_tour_completed');
+    localStorage.removeItem('noir_player_tour_completed');
     setHasSeenTour(false);
     setAppState('landing');
     setTourTransitioning(false);
@@ -1551,8 +1551,8 @@ export default function App() {
   };
 
   const dismissTour = () => {
-    localStorage.setItem('elva_tour_completed', 'true');
-    localStorage.setItem('elva_player_tour_completed', 'true');
+    localStorage.setItem('noir_tour_completed', 'true');
+    localStorage.setItem('noir_player_tour_completed', 'true');
     setHasSeenTour(true);
   };
 
@@ -1576,7 +1576,7 @@ export default function App() {
       setTourType(null);
       setTourStep(0);
       setTourTransitioning(false);
-      localStorage.setItem('elva_tour_completed', 'true');
+      localStorage.setItem('noir_tour_completed', 'true');
       setHasSeenTour(true);
       noirToast({
         text: strings.tour.completed,
@@ -1608,7 +1608,7 @@ export default function App() {
 
   const handleTourSkip = () => {
     if (tourBusyRef.current) return;
-    localStorage.setItem('elva_tour_completed', 'true');
+    localStorage.setItem('noir_tour_completed', 'true');
     setHasSeenTour(true);
     setTourType(null);
     setTourStep(0);
@@ -1619,13 +1619,13 @@ export default function App() {
 
   // Intro sequence logic
   useEffect(() => {
-    const hasSeenIntro = sessionStorage.getItem('elva_intro_seen');
+    const hasSeenIntro = sessionStorage.getItem('noir_intro_seen');
     if (hasSeenIntro) {
       setIsIntroActive(false);
       setIsFirstVisit(false);
       setAppState('landing');
     } else {
-      sessionStorage.setItem('elva_intro_seen', 'true');
+      sessionStorage.setItem('noir_intro_seen', 'true');
       setIsIntroActive(true);
       setIsFirstVisit(true);
       setAppState('landing');

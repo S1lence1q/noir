@@ -69,7 +69,7 @@ function alternate<T>(...lists: T[][]): T[] {
 function chartStores(): string[] {
   let home = 'dk';
   try {
-    home = localStorage.getItem('elva_profile_country') || 'dk';
+    home = localStorage.getItem('noir_profile_country') || 'dk';
   } catch {
     /* private mode */
   }

@@ -241,7 +241,7 @@ export function MusicPlayer({
 
   const handleAddToPlaylist = (playlistId: string) => {
     try {
-      const stored = localStorage.getItem('elva_playlists');
+      const stored = localStorage.getItem('noir_playlists');
       const plist: any[] = stored ? JSON.parse(stored) : [];
       const playlist = plist.find(p => p.id === playlistId);
       
@@ -260,7 +260,7 @@ export function MusicPlayer({
         }
         
         playlist.tracks.push(currentTrack);
-        localStorage.setItem('elva_playlists', JSON.stringify(plist));
+        localStorage.setItem('noir_playlists', JSON.stringify(plist));
         
         window.dispatchEvent(new Event('noir-playlists-updated'));
         showMiniHUD(`Added to ${playlist.name}`, 'success');
@@ -322,11 +322,11 @@ export function MusicPlayer({
   }, [zenMode]);
 
   useEffect(() => {
-    const hasSeenHint = localStorage.getItem('elva_settings_hint_seen');
+    const hasSeenHint = localStorage.getItem('noir_settings_hint_seen');
     if (!hasSeenHint) {
       setTimeout(() => {
         setShowSettingsHint(true);
-        localStorage.setItem('elva_settings_hint_seen', 'true');
+        localStorage.setItem('noir_settings_hint_seen', 'true');
         setTimeout(() => setShowSettingsHint(false), 3000);
       }, 2000);
     }

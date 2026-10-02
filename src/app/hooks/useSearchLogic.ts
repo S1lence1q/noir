@@ -161,7 +161,7 @@ export function useSearchLogic({
   const [artistCandidates, setArtistCandidates] = useState<ArtistIdentity[] | null>(null);
   const [recentArtists, setRecentArtists] = useState<VerifiedArtist[]>(() => {
     try {
-      const saved = localStorage.getItem('elva_recent_artists');
+      const saved = localStorage.getItem('noir_recent_artists');
       if (saved) return JSON.parse(saved);
     } catch {}
     return SHORTCUT_ARTISTS;
@@ -184,7 +184,7 @@ export function useSearchLogic({
       const badHash = 'bda3b1eafdfb279826a590c67a3a629c';
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key.startsWith('elva_artist_img_')) {
+        if (key && key.startsWith('noir_artist_img_')) {
           const val = localStorage.getItem(key);
           if (val && val.includes(badHash)) {
             localStorage.removeItem(key);
@@ -230,7 +230,7 @@ export function useSearchLogic({
         const queryVal = candidate.name.trim();
 
         if (handPicked) {
-          localStorage.setItem(`elva_artist_img_${queryVal.toLowerCase()}`, handPicked);
+          localStorage.setItem(`noir_artist_img_${queryVal.toLowerCase()}`, handPicked);
         } else {
           try {
             const identity = await resolveArtistIdentity({
@@ -366,7 +366,7 @@ export function useSearchLogic({
       const filtered = prev.filter((a) => a.name.toLowerCase() !== displayArtist.name.toLowerCase());
       const updated = [displayArtist, ...filtered].slice(0, 4);
       try {
-        localStorage.setItem('elva_recent_artists', JSON.stringify(updated));
+        localStorage.setItem('noir_recent_artists', JSON.stringify(updated));
       } catch {}
       return updated;
     });
@@ -379,7 +379,7 @@ export function useSearchLogic({
         !isPlaceholderOrEmpty(portraitForCache)
       ) {
         localStorage.setItem(
-          `elva_artist_img_${displayArtist.name.toLowerCase()}`,
+          `noir_artist_img_${displayArtist.name.toLowerCase()}`,
           portraitForCache
         );
       }
@@ -567,7 +567,7 @@ export function useSearchLogic({
       if (better && better !== selectedArtist?.thumbnail) {
         setSelectedArtist((prev) => (prev ? { ...prev, thumbnail: better } : prev));
         try {
-          localStorage.setItem(`elva_artist_img_${cleanedName.toLowerCase()}`, better);
+          localStorage.setItem(`noir_artist_img_${cleanedName.toLowerCase()}`, better);
         } catch {
           /* optional */
         }

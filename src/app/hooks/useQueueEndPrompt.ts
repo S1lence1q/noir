@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 export type AutoplayPreference = 'ask' | 'on' | 'off';
 
-const AUTOPLAY_STORAGE_KEY = 'elva_autoplay';
+const AUTOPLAY_STORAGE_KEY = 'noir_autoplay';
 
 function readAutoplayPreference(): AutoplayPreference {
   const value = localStorage.getItem(AUTOPLAY_STORAGE_KEY);

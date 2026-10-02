@@ -8,7 +8,7 @@ export function usePlayStats(songData: PlaybackSongData, isPlaying: boolean): vo
 
     const playTimer = setTimeout(() => {
       try {
-        const stored = localStorage.getItem('elva_play_counts');
+        const stored = localStorage.getItem('noir_play_counts');
         const counts: Record<string, { title: string; artist: string; count: number; lastPlayed: number }> = stored
           ? JSON.parse(stored)
           : {};
@@ -24,9 +24,9 @@ export function usePlayStats(songData: PlaybackSongData, isPlaying: boolean): vo
         }
         counts[trackId].count += 1;
         counts[trackId].lastPlayed = Date.now();
-        localStorage.setItem('elva_play_counts', JSON.stringify(counts));
+        localStorage.setItem('noir_play_counts', JSON.stringify(counts));
 
-        const storedWeekly = localStorage.getItem('elva_weekly_time');
+        const storedWeekly = localStorage.getItem('noir_weekly_time');
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const currentDayName = days[new Date().getDay()];
 
@@ -48,7 +48,7 @@ export function usePlayStats(songData: PlaybackSongData, isPlaying: boolean): vo
         } else {
           stats.push({ day: currentDayName, min: 3 });
         }
-        localStorage.setItem('elva_weekly_time', JSON.stringify(stats));
+        localStorage.setItem('noir_weekly_time', JSON.stringify(stats));
 
         window.dispatchEvent(new Event('noir-stats-updated'));
       } catch (e) {

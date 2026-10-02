@@ -24,10 +24,10 @@ export function parseLrc(lrcText: string): LyricLine[] {
 
 export function getCustomLyricsKey(videoId: string | undefined, title: string, artist: string): string {
   if (videoId && videoId.trim() !== '') {
-    return `elva_custom_lyrics_${videoId.trim()}`;
+    return `noir_custom_lyrics_${videoId.trim()}`;
   }
   const slug = `${title}_${artist}`.toLowerCase().replace(/[^a-z0-9]/g, '_');
-  return `elva_custom_lyrics_${slug}`;
+  return `noir_custom_lyrics_${slug}`;
 }
 
 export interface CustomLyricsData {

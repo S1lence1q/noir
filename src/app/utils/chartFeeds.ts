@@ -38,7 +38,7 @@ function resolveChartUrl(storefront: ChartStorefront): string {
 }
 
 function getCacheKey(storefront: string): string {
-  return `elva_apple_chart_${storefront}_v2`;
+  return `noir_apple_chart_${storefront}_v2`;
 }
 
 function readChartCache(storefront: ChartStorefront, allowStale = false): SearchResult[] | null {
@@ -166,7 +166,7 @@ export async function fetchAppleMusicChart(
 }
 
 export function prefetchAppleCharts() {
-  const savedCountry = localStorage.getItem('elva_profile_country') || 'dk';
+  const savedCountry = localStorage.getItem('noir_profile_country') || 'dk';
   void fetchAppleMusicChart(savedCountry);
   void fetchAppleMusicChart('us');
 }
