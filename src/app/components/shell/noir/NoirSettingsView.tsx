@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
-import { ChevronRight, Volume1, Volume2, VolumeX, Waves } from 'lucide-react';
+import { ChevronRight, Waves } from 'lucide-react';
 import { setGraphicsTheme, useGraphicsTheme, type GraphicsTheme } from '../../../utils/graphicsTheme';
 import { readLyricsTimingControls, setLyricsTimingControls } from '../../../utils/lyricsTiming';
-import { readExtraLyricsSource, setExtraLyricsSource } from '../../../utils/lyricsSources';
 import * as Slider from '@radix-ui/react-slider';
 import { readProfileCountry, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { showMiniHUD } from '../../../utils/hudUtils';
@@ -92,16 +91,49 @@ function ActionLink({
   );
 }
 
-const PREVIEW_FALLBACK: SearchResult = { id: 'noir-preview', title: '', artist: 'NOIR', thumbnail: '', videoId: '' };
+/** No history (or cleared): a painted stand-in cover, so Grain has colour to dither instead of a flat field. */
+function standInCover(): string {
+  try {
+    const c = document.createElement('canvas');
+    c.width = c.height = 200;
+    const g = c.getContext('2d');
+    if (!g) return '';
+    g.fillStyle = '#10243a';
+    g.fillRect(0, 0, 200, 200);
+    const blobs: [number, number, number, string][] = [
+      [60, 70, 90, '#e8744a'],
+      [150, 120, 80, '#f2c27a'],
+      [110, 175, 70, '#3c8fb5'],
+    ];
+    for (const [x, y, r, col] of blobs) {
+      const grad = g.createRadialGradient(x, y, 0, x, y, r);
+      grad.addColorStop(0, col);
+      grad.addColorStop(1, 'rgba(16,36,58,0)');
+      g.fillStyle = grad;
+      g.fillRect(0, 0, 200, 200);
+    }
+    return c.toDataURL('image/jpeg', 0.8);
+  } catch {
+    return '';
+  }
+}
+
+const PREVIEW_FALLBACK = (): SearchResult => ({
+  id: 'noir-preview',
+  title: '',
+  artist: 'NOIR',
+  thumbnail: standInCover(),
+  videoId: '',
+});
 
 /** A song you played, so the previews show your own covers. Read once when Settings opens. */
 function readPreviewTrack(): SearchResult {
   try {
     const list = JSON.parse(localStorage.getItem('noir_recently_played') || '[]');
     const hit = Array.isArray(list) ? list.find((t: SearchResult) => t?.thumbnail) : null;
-    return hit ?? PREVIEW_FALLBACK;
+    return hit ?? PREVIEW_FALLBACK();
   } catch {
-    return PREVIEW_FALLBACK;
+    return PREVIEW_FALLBACK();
   }
 }
 
@@ -160,11 +192,6 @@ function clearCachedData() {
 }
 
 export function NoirSettingsView() {
-  const [volume, setVolume] = useState<number>(() => {
-    const saved = localStorage.getItem('noir_player_volume');
-    return saved !== null ? parseInt(saved, 10) : 70;
-  });
-
   const [crossfade, setCrossfade] = useState<number>(() => {
     const saved = localStorage.getItem('noir_crossfade_duration');
     return saved !== null ? parseFloat(saved) : 3.0;
@@ -175,7 +202,6 @@ export function NoirSettingsView() {
   const [autoplay, setAutoplay] = useState<AutoplayPreference>(() => readAutoplayPreference());
   const graphics = useGraphicsTheme();
   const [lyricsTiming, setLyricsTiming] = useState(readLyricsTimingControls);
-  const [extraLyrics, setExtraLyrics] = useState(readExtraLyricsSource);
 
   const gapless = crossfade === 0;
 
@@ -183,12 +209,6 @@ export function NoirSettingsView() {
     () => STOREFRONT_COUNTRIES.find((c) => c.code === country) ?? STOREFRONT_COUNTRIES[0],
     [country]
   );
-
-  const onVolumeChange = (val: number) => {
-    setVolume(val);
-    localStorage.setItem('noir_player_volume', String(val));
-    window.dispatchEvent(new CustomEvent('noir-set-volume', { detail: { volume: val } }));
-  };
 
   const handleCrossfadeChange = (val: number) => {
     setCrossfade(val);
@@ -211,24 +231,16 @@ export function NoirSettingsView() {
     handleCrossfadeChange(restore > 0 ? restore : 3);
   };
 
-  const toggleMute = () => {
-    if (volume > 0) {
-      localStorage.setItem('noir_pre_mute_volume', String(volume));
-      onVolumeChange(0);
-    } else {
-      const saved = localStorage.getItem('noir_pre_mute_volume');
-      const restoreVol = saved ? parseInt(saved, 10) : 70;
-      onVolumeChange(restoreVol > 0 ? restoreVol : 70);
-    }
-  };
-
   const handleCountryChange = (code: string) => {
     setCountry(code);
     localStorage.setItem('noir_profile_country', code);
     window.dispatchEvent(new CustomEvent('noir-profile-updated'));
   };
 
+  const [confirmingClear, setConfirmingClear] = useState(false);
+
   const handleClearHistory = () => {
+    setConfirmingClear(false);
     localStorage.setItem('noir_recently_played', '[]');
     window.dispatchEvent(new CustomEvent('noir-recently-played-cleared'));
     void clearListeningEvents().catch((error) => {
@@ -246,41 +258,6 @@ export function NoirSettingsView() {
   return (
     <div className="noir-settle-group noir-settings pb-10">
       <SettingsCard title={t.playback}>
-        <SettingsRow label={t.volume}>
-          <div className="noir-settings-slider-wrap">
-            <button
-              type="button"
-              onClick={toggleMute}
-              className="text-[color:var(--noir-text-tertiary)] hover:text-white transition-colors shrink-0"
-              aria-label={volume === 0 ? t.unmute : t.mute}
-              data-tip={volume === 0 ? t.unmute : t.mute}
-            >
-              {volume === 0 ? (
-                <VolumeX className="h-4 w-4" />
-              ) : volume < 50 ? (
-                <Volume1 className="h-4 w-4" />
-              ) : (
-                <Volume2 className="h-4 w-4" />
-              )}
-            </button>
-            <Slider.Root
-              value={[volume]}
-              max={100}
-              step={1}
-              onValueChange={(val) => onVolumeChange(val[0])}
-              className="noir-settings-slider"
-            >
-              <Slider.Track className="noir-settings-slider-track">
-                <Slider.Range className="noir-settings-slider-range" />
-              </Slider.Track>
-              <Slider.Thumb className="noir-settings-slider-thumb" />
-            </Slider.Root>
-            <span className="noir-settings-slider-value">{volume}</span>
-          </div>
-        </SettingsRow>
-
-        <div className="noir-settings-divider" />
-
         <SettingsRow label={t.crossfade} description={t.crossfadeDesc}>
           <div className={`noir-settings-slider-wrap ${gapless ? 'opacity-40 pointer-events-none' : ''}`}>
             <Waves className="h-4 w-4 shrink-0 text-[color:var(--noir-text-tertiary)]" strokeWidth={1.75} />
@@ -349,17 +326,6 @@ export function NoirSettingsView() {
           />
         </SettingsRow>
 
-        <div className="noir-settings-divider" />
-
-        <SettingsRow label={t.extraLyrics} description={t.extraLyricsDesc}>
-          <NoirSwitch
-            checked={extraLyrics}
-            onChange={(on) => {
-              setExtraLyrics(on);
-              setExtraLyricsSource(on);
-            }}
-          />
-        </SettingsRow>
       </SettingsCard>
 
       <div className="noir-settings-side">
@@ -392,7 +358,23 @@ export function NoirSettingsView() {
 
           <div className="noir-settings-divider" />
 
-          <ActionLink label={t.clearHistory} onClick={handleClearHistory} destructive />
+          {confirmingClear ? (
+            <div className="noir-settings-confirm" role="alertdialog" aria-label={t.clearHistoryAsk}>
+              <span className="noir-settings-confirm-text">{t.clearHistoryAsk}</span>
+              <button type="button" className="noir-settings-confirm-btn noir-focus-ring" onClick={() => setConfirmingClear(false)}>
+                {t.cancel}
+              </button>
+              <button
+                type="button"
+                className="noir-settings-confirm-btn noir-settings-confirm-btn--destructive noir-focus-ring"
+                onClick={handleClearHistory}
+              >
+                {t.clearHistoryConfirm}
+              </button>
+            </div>
+          ) : (
+            <ActionLink label={t.clearHistory} onClick={() => setConfirmingClear(true)} destructive />
+          )}
           <div className="noir-settings-divider" />
           <ActionLink label={t.clearCache} onClick={handleClearCache} />
         </SettingsCard>

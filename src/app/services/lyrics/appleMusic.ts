@@ -1,5 +1,4 @@
 import { lyricsTitleVariants, lyricsArtistVariants } from '../../utils/stringUtils';
-import { readExtraLyricsSource } from '../../utils/lyricsSources';
 import type { LyricsProvider, LyricsTrack } from './types';
 
 /**
@@ -94,7 +93,7 @@ export const appleMusicProvider: LyricsProvider = {
   name: 'apple-music',
   async lookup(title, artist) {
     // No artist to check the match against: too easy to return the wrong song.
-    if (!readExtraLyricsSource() || !artist) return { list: [], complete: true };
+    if (!artist) return { list: [], complete: true };
 
     let songs = await findSongs(title, artist, 'dk');
     if (songs.length === 0) songs = await findSongs(title, artist, 'us');

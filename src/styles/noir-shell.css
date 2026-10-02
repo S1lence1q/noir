@@ -2041,6 +2041,37 @@ button.noir-now-playing-source:hover {
   display: contents;
 }
 
+.noir-settings-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+.noir-settings-confirm-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--noir-text-primary);
+}
+.noir-settings-confirm-btn {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--noir-text-secondary);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.noir-settings-confirm-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--noir-text-primary);
+}
+.noir-settings-confirm-btn--destructive {
+  color: rgb(248, 113, 113);
+}
+
 .noir-settings-select-wrap--inline {
   width: 168px;
 }
