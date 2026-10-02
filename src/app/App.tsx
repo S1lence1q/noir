@@ -1,15 +1,14 @@
 import { useState, useEffect, useRef, useCallback, type Dispatch, type SetStateAction } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
-import { MusicPlayer } from './components/MusicPlayer';
+import { PlaybackEngine } from './components/PlaybackEngine';
 import { AccentColor, ACCENT_THEMES } from './components/themeUtils';
 
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { FluidBackground } from './components/FluidBackground';
 import { showMiniHUD } from './utils/hudUtils';
-import { SearchResult, VerifiedArtist } from './types';
+import { SearchResult } from './types';
 import { getDynamicFallbackColors, extractColorsFromImage } from './utils/playerColorUtils';
-import { executeSearchAPI, executeChannelUploadsAPI } from './utils/apiUtils';
 import { resolveYouTubeForChartTrack } from './utils/chartPlaybackUtils';
 import { isLikelyMusicVideoStream } from './utils/apiUtils';
 import { prefetchChartTracks } from './utils/chartPrefetch';
@@ -1463,26 +1462,6 @@ export default function App() {
     window.dispatchEvent(new CustomEvent('noir-artwork-spin', { detail: { queue: finalQueue } }));
   };
 
-  const handleQueueFileSelect = async (file: File) => {
-    const meta = await parseLocalMetadata(file);
-    const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
-    const audioUrl = URL.createObjectURL(file);
-    const fileResult: SearchResult = {
-      id: localId,
-      title: meta.title,
-      artist: meta.artist,
-      thumbnail: meta.artworkUrl,
-      audioUrl,
-      videoId: ''
-    };
-    await Promise.allSettled([
-      saveLocalTrack(localId, file),
-      saveLocalTrack(audioUrl, file),
-    ]);
-    setQueue(prevQueue => [...prevQueue, fileResult]);
-    showMiniHUD('Added file to queue', 'success');
-  };
-
   const theme = ACCENT_THEMES[accentColor];
 
   return (
@@ -1775,41 +1754,15 @@ export default function App() {
           </AppShell>
 
       {songData && (
-        <div
-          aria-hidden
-          className="pointer-events-none invisible absolute inset-0 z-0 overflow-hidden"
-        >
-          <ErrorBoundary>
-            <MusicPlayer
-              songData={songData}
-              queue={queue}
-              appState="landing"
-              accentColor={accentColor}
-              songColors={songColors}
-              onRemoveFromQueue={handleRemoveFromQueue}
-              onClearQueue={handleClearQueue}
-              onShuffleQueue={handleShuffleQueue}
-              onSelectFromQueue={handleSelectFromQueue}
-              onAddToQueue={handleAddToQueue}
-              onPlayNext={handlePlayNext}
-              onPlayPlaylist={handlePlayPlaylist}
-              onReorderQueue={handleReorderQueue}
-              onQueueFileSelect={handleQueueFileSelect}
-              onSelectSong={handleSelectSong}
-              favorites={favorites}
-              onToggleFavorite={handleToggleFavorite}
-              onSearch={executeSearchAPI}
-              onFetchChannelUploads={executeChannelUploadsAPI}
-              onViewArtist={openArtistByName}
-              onPlayingStateChange={setIsMiniPlaying}
-              onShellPlaybackState={setShellPlayback}
-              onFileSelect={(file) => {
-                void playLocalFile(file);
-              }}
-              onUrlSubmit={searchLogic.handleUrlSubmit}
-            />
-          </ErrorBoundary>
-        </div>
+        <ErrorBoundary>
+          <PlaybackEngine
+            songData={songData}
+            queue={queue}
+            onSelectFromQueue={handleSelectFromQueue}
+            onPlayingStateChange={setIsMiniPlaying}
+            onShellPlaybackState={setShellPlayback}
+          />
+        </ErrorBoundary>
       )}
 
       <NoirSongMenuHost
