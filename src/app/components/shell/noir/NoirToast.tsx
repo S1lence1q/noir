@@ -121,7 +121,7 @@ export function NoirToastHost() {
             {toast.action && (
               <motion.button
                 type="button"
-                className="noir-toast-action elva-focus-ring"
+                className="noir-toast-action noir-focus-ring"
                 initial={reduced ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.24, delay: 0.2 }}

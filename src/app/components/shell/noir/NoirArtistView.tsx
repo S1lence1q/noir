@@ -380,7 +380,7 @@ export function NoirArtistView({
               type="button"
               disabled={unique.length === 0}
               onClick={onPlayAll}
-              className="noir-artist-play elva-focus-ring"
+              className="noir-artist-play noir-focus-ring"
               style={{ background: palette.mark, color: palette.field }}
               aria-label={strings.artist.play}
               whileTap={{ scale: 0.94 }}
@@ -392,7 +392,7 @@ export function NoirArtistView({
               type="button"
               disabled={unique.length === 0}
               onClick={shuffleAll}
-              className="noir-artist-icon elva-focus-ring"
+              className="noir-artist-icon noir-focus-ring"
               aria-label={strings.artist.shuffle}
               data-tip={strings.artist.shuffle}
             >
@@ -406,7 +406,7 @@ export function NoirArtistView({
                   const seed = unique[0]?.track;
                   if (seed) onStartRadio(seed);
                 }}
-                className="noir-artist-icon elva-focus-ring"
+                className="noir-artist-icon noir-focus-ring"
                 aria-label={strings.artist.startRadio}
                 data-tip={strings.artist.startRadio}
               >
@@ -468,7 +468,7 @@ export function NoirArtistView({
                 </AnimatePresence>
               </div>
               {unique.length > POPULAR_COUNT && (
-                <button type="button" onClick={() => setShowAll((v) => !v)} className="noir-link mt-3 px-3 elva-focus-ring">
+                <button type="button" onClick={() => setShowAll((v) => !v)} className="noir-link mt-3 px-3 noir-focus-ring">
                   {showAll ? strings.artist.showLess : strings.artist.showAll(unique.length)}
                 </button>
               )}
@@ -499,7 +499,7 @@ export function NoirArtistView({
                   onSelectAlbum?.(latestRelease);
                 }
               }}
-              className="noir-artist-latest group elva-focus-ring"
+              className="noir-artist-latest group noir-focus-ring"
               initial={reduced ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.36, ease: EASE_PREMIUM }}
@@ -515,7 +515,7 @@ export function NoirArtistView({
                 {onPlayAlbum && (
                   <motion.button
                     type="button"
-                    className="noir-discover-release-play noir-play-round !h-11 !w-11 elva-focus-ring"
+                    className="noir-discover-release-play noir-play-round !h-11 !w-11 noir-focus-ring"
                     aria-label={`${strings.artist.playAlbum}: ${latestRelease.title}`}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -559,7 +559,7 @@ export function NoirArtistView({
                     aria-selected={discogFilter === id}
                     onClick={() => setDiscogFilter(id)}
                     data-active={discogFilter === id}
-                    className="noir-filter-tab elva-focus-ring cursor-pointer"
+                    className="noir-filter-tab noir-focus-ring cursor-pointer"
                   >
                     {label}
                     {discogFilter === id && (
@@ -587,7 +587,7 @@ export function NoirArtistView({
                     onSelectAlbum?.(album);
                   }
                 }}
-                className="noir-collection-card noir-home-shelf-card group elva-focus-ring cursor-pointer"
+                className="noir-collection-card noir-home-shelf-card group noir-focus-ring cursor-pointer"
                 initial={reduced ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: i * 0.025 }}
@@ -602,7 +602,7 @@ export function NoirArtistView({
                   {onPlayAlbum && (
                     <motion.button
                       type="button"
-                      className="noir-discover-release-play noir-play-round !h-10 !w-10 elva-focus-ring"
+                      className="noir-discover-release-play noir-play-round !h-10 !w-10 noir-focus-ring"
                       aria-label={`${strings.artist.playAlbum}: ${album.title}`}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -658,7 +658,7 @@ export function NoirArtistView({
                       name: sim.name,
                     })
                   }
-                  className="noir-home-artist group elva-focus-ring"
+                  className="noir-home-artist group noir-focus-ring"
                 >
                   <span className="noir-home-artist-art">
                     {sim.image ? (
@@ -708,7 +708,7 @@ export function NoirArtistView({
                 <button
                   type="button"
                   onClick={() => setBioExpanded((prev) => !prev)}
-                  className="noir-link mt-3 elva-focus-ring"
+                  className="noir-link mt-3 noir-focus-ring"
                 >
                   {bioExpanded ? strings.artist.readLess : strings.artist.readMore}
                 </button>

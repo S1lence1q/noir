@@ -269,7 +269,7 @@ export function NoirSearchPalette({
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="noir-search-palette-file elva-focus-ring"
+                    className="noir-search-palette-file noir-focus-ring"
                     aria-label="Upload audio"
                     data-tip={strings.tips.uploadFile}
                   >
@@ -287,7 +287,7 @@ export function NoirSearchPalette({
               <button
                 type="button"
                 onClick={onClose}
-                className="noir-search-palette-close elva-focus-ring"
+                className="noir-search-palette-close noir-focus-ring"
                 aria-label="Close"
               >
                 <X className="h-4 w-4" strokeWidth={1.75} />
@@ -309,7 +309,7 @@ export function NoirSearchPalette({
                       <button
                         type="button"
                         onClick={() => void runSearch(query)}
-                        className="noir-link mt-2 elva-focus-ring"
+                        className="noir-link mt-2 noir-focus-ring"
                       >
                         {strings.discover.retry}
                       </button>

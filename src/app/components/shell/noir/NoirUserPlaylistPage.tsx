@@ -164,7 +164,7 @@ export function NoirUserPlaylistPage({
   return (
     <div className="noir-playlist-layout">
       <div className="min-w-0 pb-6">
-        <button type="button" onClick={onBack} className="noir-back-link elva-focus-ring">
+        <button type="button" onClick={onBack} className="noir-back-link noir-focus-ring">
           <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
           {strings.playlist.back}
         </button>
@@ -204,7 +204,7 @@ export function NoirUserPlaylistPage({
                   <button
                     type="button"
                     onClick={() => setEditing(true)}
-                    className="noir-collection-title text-left elva-focus-ring"
+                    className="noir-collection-title text-left noir-focus-ring"
                     data-tip={strings.playlist.renameHint}
                   >
                     {playlist.name}
@@ -221,7 +221,7 @@ export function NoirUserPlaylistPage({
                 type="button"
                 disabled={!hasTracks}
                 onClick={() => onPlayPlaylist(orderedTracks, playlist.name)}
-                className="noir-play-round elva-focus-ring"
+                className="noir-play-round noir-focus-ring"
                 aria-label={strings.playlist.play}
                 whileTap={{ scale: 0.94 }}
                 transition={MOTION.tap}
@@ -232,7 +232,7 @@ export function NoirUserPlaylistPage({
                 type="button"
                 disabled={!hasTracks}
                 onClick={() => onPlayPlaylist(shuffled(orderedTracks), playlist.name)}
-                className="noir-icon-button elva-focus-ring"
+                className="noir-icon-button noir-focus-ring"
                 aria-label={strings.playlist.shuffle}
                 data-tip={strings.playlist.shuffle}
               >
@@ -241,7 +241,7 @@ export function NoirUserPlaylistPage({
               <button
                 type="button"
                 onClick={() => setPanelOpen((open) => !open)}
-                className="noir-button-secondary ml-1 elva-focus-ring"
+                className="noir-button-secondary ml-1 noir-focus-ring"
                 data-active={panelOpen ? 'true' : 'false'}
                 aria-expanded={panelOpen}
               >
@@ -252,7 +252,7 @@ export function NoirUserPlaylistPage({
                 <button
                   type="button"
                   onClick={() => setMenuOpen((open) => !open)}
-                  className="noir-icon-button elva-focus-ring"
+                  className="noir-icon-button noir-focus-ring"
                   aria-label={strings.playlist.more}
                   aria-expanded={menuOpen}
                 >
@@ -536,7 +536,7 @@ export function NoirAddSongsPanel({
           <button
             type="button"
             onClick={onClose}
-            className="noir-icon-button !h-8 !w-8 elva-focus-ring"
+            className="noir-icon-button !h-8 !w-8 noir-focus-ring"
             aria-label={strings.playlist.close}
             data-tip={strings.playlist.close}
           >
@@ -575,7 +575,7 @@ export function NoirAddSongsPanel({
                 aria-selected={source === id}
                 data-active={source === id ? 'true' : 'false'}
                 onClick={() => setSource(id)}
-                className="noir-nav-item h-8 px-3 text-[12px] font-medium elva-focus-ring"
+                className="noir-nav-item h-8 px-3 text-[12px] font-medium noir-focus-ring"
               >
                 {id === 'favorites' ? strings.playlist.tabFavorites : strings.playlist.tabRecents}
               </button>
@@ -659,7 +659,7 @@ function AddRow({
         type="button"
         disabled={added}
         onClick={() => onAdd(track, coverRef.current)}
-        className="noir-add-icon elva-focus-ring"
+        className="noir-add-icon noir-focus-ring"
         data-added={added ? 'true' : 'false'}
         aria-label={added ? strings.playlist.added : strings.playlist.add}
         data-tip={added ? strings.playlist.added : strings.playlist.add}

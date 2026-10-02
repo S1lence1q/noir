@@ -262,7 +262,7 @@ export function MusicPlayer({
         playlist.tracks.push(currentTrack);
         localStorage.setItem('elva_playlists', JSON.stringify(plist));
         
-        window.dispatchEvent(new Event('elva-playlists-updated'));
+        window.dispatchEvent(new Event('noir-playlists-updated'));
         showMiniHUD(`Added to ${playlist.name}`, 'success');
       }
     } catch (e) {
@@ -423,7 +423,7 @@ export function MusicPlayer({
 
   return (
     <div 
-      id="elva-player-root"
+      id="noir-player-root"
       className={`size-full relative overflow-hidden bg-transparent flex items-center justify-center transition-all bg-transition ${isUserIdle && zenMode ? 'cursor-none' : ''}`}
       style={{
         '--theme-primary': dominantColors.primary,
@@ -473,7 +473,7 @@ export function MusicPlayer({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.4 }}
-          onClick={() => window.dispatchEvent(new Event('elva-show-shortcuts'))}
+          onClick={() => window.dispatchEvent(new Event('noir-show-shortcuts'))}
           className="p-2 hover:bg-white/8 rounded-xl transition-all cursor-pointer text-white/35 hover:text-white/65 hover:scale-105 active:scale-95 duration-200 outline-none focus:outline-none focus:ring-0"
           title="Keyboard Shortcuts (?)"
           aria-label="Keyboard Shortcuts"

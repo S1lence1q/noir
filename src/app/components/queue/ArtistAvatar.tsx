@@ -25,7 +25,7 @@ export function ArtistAvatar({ name, fallbackThumbnail }: { name: string; fallba
         if (url && active) {
           setImgUrl(url);
           localStorage.setItem(`elva_artist_img_${name.toLowerCase()}`, url);
-          window.dispatchEvent(new CustomEvent('elva-artist-image-loaded', { detail: { name, url } }));
+          window.dispatchEvent(new CustomEvent('noir-artist-image-loaded', { detail: { name, url } }));
         }
       } catch {
         // silent fallback

@@ -146,7 +146,7 @@ export function NoirSettingsView() {
   const onVolumeChange = (val: number) => {
     setVolume(val);
     localStorage.setItem('elva_player_volume', String(val));
-    window.dispatchEvent(new CustomEvent('elva-set-volume', { detail: { volume: val } }));
+    window.dispatchEvent(new CustomEvent('noir-set-volume', { detail: { volume: val } }));
   };
 
   const handleCrossfadeChange = (val: number) => {
@@ -184,12 +184,12 @@ export function NoirSettingsView() {
   const handleCountryChange = (code: string) => {
     setCountry(code);
     localStorage.setItem('elva_profile_country', code);
-    window.dispatchEvent(new CustomEvent('elva-profile-updated'));
+    window.dispatchEvent(new CustomEvent('noir-profile-updated'));
   };
 
   const handleClearHistory = () => {
     localStorage.setItem('elva_recently_played', '[]');
-    window.dispatchEvent(new CustomEvent('elva-recently-played-cleared'));
+    window.dispatchEvent(new CustomEvent('noir-recently-played-cleared'));
     void clearListeningEvents().catch((error) => {
       console.warn('Failed to clear listening events:', error);
     });
@@ -331,7 +331,7 @@ export function NoirSettingsView() {
                 role="radio"
                 aria-checked={graphics === theme}
                 data-active={graphics === theme ? 'true' : 'false'}
-                className="noir-segmented-item elva-focus-ring"
+                className="noir-segmented-item noir-focus-ring"
                 onClick={() => setGraphicsTheme(theme)}
               >
                 {theme === 'heat' ? 'Heat' : 'Grain'}
@@ -390,7 +390,7 @@ export function NoirSettingsView() {
         <ActionLink
           label="Reset onboarding"
           onClick={() => {
-            window.dispatchEvent(new CustomEvent('elva-reset-tour'));
+            window.dispatchEvent(new CustomEvent('noir-reset-tour'));
             showMiniHUD('Onboarding reset');
           }}
         />

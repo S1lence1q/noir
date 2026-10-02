@@ -23,7 +23,7 @@ const SKELETON_DELAY_MS = 120;
 const SKELETON_MIN_MS = 650;
 
 function seekViaShell(time: number) {
-  window.dispatchEvent(new CustomEvent('elva-seek', { detail: { time } }));
+  window.dispatchEvent(new CustomEvent('noir-seek', { detail: { time } }));
 }
 
 /** Lyrics list for the Now Playing side panel (queue header owns the title). */
@@ -150,7 +150,7 @@ export function NoirLyricsColumn({
                     key={`${line.time}-${idx}`}
                     type="button"
                     ref={active ? activeRef : null}
-                    className={`noir-lyrics-gap elva-focus-ring${state}`}
+                    className={`noir-lyrics-gap noir-focus-ring${state}`}
                     onClick={() => onSeek(line.time)}
                     aria-label={strings.lyrics.instrumental}
                   >
@@ -163,7 +163,7 @@ export function NoirLyricsColumn({
                   key={`${line.time}-${idx}`}
                   type="button"
                   ref={active ? activeRef : null}
-                  className={`noir-lyrics-line elva-focus-ring${state}`}
+                  className={`noir-lyrics-line noir-focus-ring${state}`}
                   style={{ '--d': Math.min(distance, 5) } as CSSProperties}
                   onClick={() => onSeek(line.time)}
                 >
@@ -196,12 +196,12 @@ export function NoirLyricsColumn({
           aria-label="Lyrics timing"
           onFocus={wakeTiming}
         >
-          <button type="button" className="elva-focus-ring" onClick={() => onNudge?.(-0.5)} aria-label="Lyrics 0.5 seconds earlier">
+          <button type="button" className="noir-focus-ring" onClick={() => onNudge?.(-0.5)} aria-label="Lyrics 0.5 seconds earlier">
             −
           </button>
           <button
             type="button"
-            className="noir-lyrics-timing-value elva-focus-ring"
+            className="noir-lyrics-timing-value noir-focus-ring"
             onClick={onResetOffset}
             aria-label="Reset lyrics timing"
             data-tip="Reset timing"
@@ -209,7 +209,7 @@ export function NoirLyricsColumn({
             {offset > 0 ? '+' : ''}
             {offset.toFixed(1)}s
           </button>
-          <button type="button" className="elva-focus-ring" onClick={() => onNudge?.(0.5)} aria-label="Lyrics 0.5 seconds later">
+          <button type="button" className="noir-focus-ring" onClick={() => onNudge?.(0.5)} aria-label="Lyrics 0.5 seconds later">
             +
           </button>
         </div>

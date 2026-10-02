@@ -166,7 +166,7 @@ export function NoirReplayStory({ cards, month, monthDays, artistImage, trackIma
       exit={{ opacity: 0 }}
       transition={withReducedMotion(MOTION.panel)}
     >
-      <button type="button" className="noir-replay-close elva-focus-ring" onClick={onClose} aria-label={strings.stats.closeReplay}>
+      <button type="button" className="noir-replay-close noir-focus-ring" onClick={onClose} aria-label={strings.stats.closeReplay}>
         <X className="h-5 w-5" strokeWidth={1.75} />
       </button>
 

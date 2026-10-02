@@ -702,7 +702,7 @@ export function usePlaybackCore({
         activeAudio.volume = targetVol / 100;
       }
 
-      window.dispatchEvent(new CustomEvent('elva-volume-change', { detail: { volume: newVol } }));
+      window.dispatchEvent(new CustomEvent('noir-volume-change', { detail: { volume: newVol } }));
     },
     [faderRefA, faderRefB]
   );
@@ -1371,24 +1371,24 @@ export function usePlaybackCore({
       }
     };
 
-    window.addEventListener('elva-seek-by', handleSeekByEvent);
-    window.addEventListener('elva-volume-by', handleVolumeByEvent);
-    window.addEventListener('elva-toggle-mute', handleToggleMuteEvent);
-    window.addEventListener('elva-toggle-play', handleTogglePlayEvent);
-    window.addEventListener('elva-play-next', handleNextSongEvent);
-    window.addEventListener('elva-play-prev', handlePrevSongEvent);
-    window.addEventListener('elva-seek', handleSeekEvent);
-    window.addEventListener('elva-set-volume', handleSetVolumeEvent);
+    window.addEventListener('noir-seek-by', handleSeekByEvent);
+    window.addEventListener('noir-volume-by', handleVolumeByEvent);
+    window.addEventListener('noir-toggle-mute', handleToggleMuteEvent);
+    window.addEventListener('noir-toggle-play', handleTogglePlayEvent);
+    window.addEventListener('noir-play-next', handleNextSongEvent);
+    window.addEventListener('noir-play-prev', handlePrevSongEvent);
+    window.addEventListener('noir-seek', handleSeekEvent);
+    window.addEventListener('noir-set-volume', handleSetVolumeEvent);
 
     return () => {
-      window.removeEventListener('elva-seek-by', handleSeekByEvent);
-      window.removeEventListener('elva-volume-by', handleVolumeByEvent);
-      window.removeEventListener('elva-toggle-mute', handleToggleMuteEvent);
-      window.removeEventListener('elva-toggle-play', handleTogglePlayEvent);
-      window.removeEventListener('elva-play-next', handleNextSongEvent);
-      window.removeEventListener('elva-play-prev', handlePrevSongEvent);
-      window.removeEventListener('elva-seek', handleSeekEvent);
-      window.removeEventListener('elva-set-volume', handleSetVolumeEvent);
+      window.removeEventListener('noir-seek-by', handleSeekByEvent);
+      window.removeEventListener('noir-volume-by', handleVolumeByEvent);
+      window.removeEventListener('noir-toggle-mute', handleToggleMuteEvent);
+      window.removeEventListener('noir-toggle-play', handleTogglePlayEvent);
+      window.removeEventListener('noir-play-next', handleNextSongEvent);
+      window.removeEventListener('noir-play-prev', handlePrevSongEvent);
+      window.removeEventListener('noir-seek', handleSeekEvent);
+      window.removeEventListener('noir-set-volume', handleSetVolumeEvent);
     };
   }, [togglePlayPause, handleNextSong, handlePreviousSong, seekToAbsoluteTime, handleVolumeChange]);
 

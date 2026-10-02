@@ -21,7 +21,7 @@ export function NoirStateNotice({ title, description, onRetry, compact }: NoirSt
         {online ? description : strings.offline.description}
       </p>
       {onRetry && (
-        <button type="button" onClick={onRetry} className="noir-button-secondary mt-5 elva-focus-ring">
+        <button type="button" onClick={onRetry} className="noir-button-secondary mt-5 noir-focus-ring">
           <RefreshCw className="h-3.5 w-3.5" />
           {strings.discover.retry}
         </button>

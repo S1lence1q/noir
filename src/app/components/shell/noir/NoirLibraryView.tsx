@@ -115,7 +115,7 @@ export function NoirLibraryView({
           {/* Phone: the sidebar is a tab bar without Settings, so Library carries the way there. */}
           <button
             type="button"
-            className="noir-phone-only noir-icon-button absolute right-0 top-0 elva-focus-ring"
+            className="noir-phone-only noir-icon-button absolute right-0 top-0 noir-focus-ring"
             onClick={() => window.dispatchEvent(new Event('noir-open-settings'))}
             aria-label="Settings"
           >
@@ -139,7 +139,7 @@ export function NoirLibraryView({
                 openPlaylist(null);
               }}
               data-active={isActive ? 'true' : 'false'}
-              className="noir-nav-item flex h-9 items-center gap-2 px-3 text-[13px] font-medium elva-focus-ring"
+              className="noir-nav-item flex h-9 items-center gap-2 px-3 text-[13px] font-medium noir-focus-ring"
             >
               <Icon className="h-4 w-4" strokeWidth={isActive ? 2.25 : 1.75} />
               {label}
@@ -161,7 +161,7 @@ export function NoirLibraryView({
             >
               <div className="noir-playlist-layout">
               <div className="min-w-0">
-              <button type="button" onClick={backToRoot} className="noir-back-link elva-focus-ring">
+              <button type="button" onClick={backToRoot} className="noir-back-link noir-focus-ring">
                 <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
                 {strings.playlist.back}
               </button>
@@ -178,7 +178,7 @@ export function NoirLibraryView({
                       <button
                         type="button"
                         onClick={() => onPlayPlaylist(sortedFavorites, strings.home.favorites)}
-                        className="noir-play-round elva-focus-ring"
+                        className="noir-play-round noir-focus-ring"
                         aria-label={strings.playlist.play}
                       >
                         <Play className="ml-0.5 h-5 w-5 fill-current" />
@@ -189,7 +189,7 @@ export function NoirLibraryView({
                           const shuffled = [...sortedFavorites].sort(() => Math.random() - 0.5);
                           onPlayPlaylist(shuffled, strings.home.favorites);
                         }}
-                        className="noir-icon-button elva-focus-ring"
+                        className="noir-icon-button noir-focus-ring"
                         aria-label={strings.playlist.shuffle}
                         data-tip={strings.playlist.shuffle}
                       >
@@ -200,7 +200,7 @@ export function NoirLibraryView({
                     <button
                       type="button"
                       onClick={() => setAddPanelOpen((open) => !open)}
-                      className={`noir-button-secondary elva-focus-ring ${favorites.length > 0 ? 'ml-1' : ''}`}
+                      className={`noir-button-secondary noir-focus-ring ${favorites.length > 0 ? 'ml-1' : ''}`}
                       data-active={addPanelOpen ? 'true' : 'false'}
                       aria-expanded={addPanelOpen}
                     >
@@ -218,7 +218,7 @@ export function NoirLibraryView({
                       <select
                         value={favoritesSort}
                         onChange={(e) => setFavoritesSort(e.target.value as FavoritesSort)}
-                        className="noir-favorites-sort-select elva-focus-ring"
+                        className="noir-favorites-sort-select noir-focus-ring"
                         aria-label={strings.library.favoritesSortLabel}
                       >
                         <option value="recent">{strings.library.favoritesSortRecent}</option>
@@ -297,7 +297,7 @@ export function NoirLibraryView({
                 <button
                   type="button"
                   onClick={() => setSection('favorites')}
-                  className="noir-collection-card elva-focus-ring"
+                  className="noir-collection-card noir-focus-ring"
                 >
                   <NoirFavoritesCover size={168} className="!h-auto !w-full aspect-square" />
                   <span className="min-w-0">
@@ -310,7 +310,7 @@ export function NoirLibraryView({
                 <button
                   type="button"
                   onClick={() => openPlaylist(createPlaylist().id)}
-                  className="noir-collection-card elva-focus-ring"
+                  className="noir-collection-card noir-focus-ring"
                 >
                   <span className="noir-collection-card-new">
                     <Plus className="h-6 w-6" strokeWidth={1.5} />
@@ -322,7 +322,7 @@ export function NoirLibraryView({
                     key={playlist.id}
                     type="button"
                     onClick={() => openPlaylist(playlist.id)}
-                    className="noir-collection-card elva-focus-ring"
+                    className="noir-collection-card noir-focus-ring"
                   >
                     <NoirPlaylistCover
                       playlistId={playlist.id}

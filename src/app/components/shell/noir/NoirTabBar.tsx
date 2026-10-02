@@ -27,7 +27,7 @@ export function NoirTabBar({ activeTab, onTabChange, detailOverlayOpen = false }
           <button
             key={id}
             type="button"
-            className="noir-tabbar-item elva-focus-ring"
+            className="noir-tabbar-item noir-focus-ring"
             data-active={active ? 'true' : 'false'}
             aria-current={active ? 'page' : undefined}
             onClick={() => onTabChange(id)}
@@ -39,9 +39,9 @@ export function NoirTabBar({ activeTab, onTabChange, detailOverlayOpen = false }
       })}
       <button
         type="button"
-        className="noir-tabbar-item elva-focus-ring"
+        className="noir-tabbar-item noir-focus-ring"
         data-active="false"
-        onClick={() => window.dispatchEvent(new Event('elva-open-search-palette'))}
+        onClick={() => window.dispatchEvent(new Event('noir-open-search-palette'))}
       >
         <NoirSearchGlyph size={20} />
         <span>{strings.search.navLabel}</span>
@@ -52,7 +52,7 @@ export function NoirTabBar({ activeTab, onTabChange, detailOverlayOpen = false }
           <button
             key={id}
             type="button"
-            className="noir-tabbar-item elva-focus-ring"
+            className="noir-tabbar-item noir-focus-ring"
             data-active={active ? 'true' : 'false'}
             aria-current={active ? 'page' : undefined}
             onClick={() => onTabChange(id)}

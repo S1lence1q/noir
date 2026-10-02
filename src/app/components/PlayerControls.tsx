@@ -205,7 +205,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
                           onClick={() => {
                             setShowPlaylistMenu(false);
                             sessionStorage.setItem('elva_hub_active_tab', 'playlists');
-                            window.dispatchEvent(new CustomEvent('elva-scroll-to-hub'));
+                            window.dispatchEvent(new CustomEvent('noir-scroll-to-hub'));
                           }}
                           className="w-full text-center text-xs font-semibold text-white/40 hover:text-white bg-white/[0.02] hover:bg-white/[0.08] border border-white/5 hover:border-white/10 rounded-xl px-2.5 py-3 transition-all duration-300 cursor-pointer select-none leading-relaxed flex flex-col items-center justify-center gap-1 active:scale-[0.98] mt-1"
                         >

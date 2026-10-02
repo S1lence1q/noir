@@ -57,7 +57,7 @@ export function QueueUpNext({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between select-none">
-        <h3 className="elva-section-label tracking-[0.3em]">{strings.queue.upNext}</h3>
+        <h3 className="noir-section-label tracking-[0.3em]">{strings.queue.upNext}</h3>
         {items.length > 0 && (
           <div className="flex items-center gap-3">
             {onShuffleQueue && (
@@ -106,8 +106,8 @@ export function QueueUpNext({
                 <p className="text-sm font-semibold text-white/35 leading-tight">{strings.queue.emptyTitle}</p>
                 <button
                   type="button"
-                  onClick={() => window.dispatchEvent(new CustomEvent('elva-queue-focus-search'))}
-                  className="text-xs text-white/30 hover:text-white/60 transition-colors mt-0.5 cursor-pointer elva-focus-ring rounded-sm text-left"
+                  onClick={() => window.dispatchEvent(new CustomEvent('noir-queue-focus-search'))}
+                  className="text-xs text-white/30 hover:text-white/60 transition-colors mt-0.5 cursor-pointer noir-focus-ring rounded-sm text-left"
                 >
                   {emptyHint} →
                 </button>

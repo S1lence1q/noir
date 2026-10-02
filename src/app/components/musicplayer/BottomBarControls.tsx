@@ -185,7 +185,7 @@ export function BottomBarControls({
               }`}
               style={
                 showQueue && !focusSearchInQueue
-                  ? { backgroundColor: 'var(--elva-accent)' }
+                  ? { backgroundColor: 'var(--noir-theme-accent)' }
                   : undefined
               }
             >

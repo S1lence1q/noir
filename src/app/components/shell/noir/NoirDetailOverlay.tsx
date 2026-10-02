@@ -37,7 +37,7 @@ export function NoirDetailOverlay({ children, onClose, title }: NoirDetailOverla
         <button
           type="button"
           onClick={onClose}
-          className="group flex h-10 items-center gap-2 rounded-full pl-3 pr-4 text-[14px] font-medium text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white elva-focus-ring"
+          className="group flex h-10 items-center gap-2 rounded-full pl-3 pr-4 text-[14px] font-medium text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white noir-focus-ring"
           aria-label="Back"
         >
           <ArrowLeft

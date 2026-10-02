@@ -30,7 +30,7 @@ export function NoirArtistDisambiguation({
             key={`${candidate.deezerId ?? candidate.canonicalName}-${candidate.mbid ?? ''}`}
             type="button"
             onClick={() => onPick(candidate)}
-            className="noir-track-row flex w-full items-center gap-4 px-3 py-3 text-left elva-focus-ring"
+            className="noir-track-row flex w-full items-center gap-4 px-3 py-3 text-left noir-focus-ring"
           >
             {candidate.image ? (
               <img

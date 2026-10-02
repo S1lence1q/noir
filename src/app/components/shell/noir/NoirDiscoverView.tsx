@@ -97,8 +97,8 @@ export function NoirDiscoverView({
     const handleProfileUpdate = () => {
       setActiveCountry(localStorage.getItem('elva_profile_country') || 'dk');
     };
-    window.addEventListener('elva-profile-updated', handleProfileUpdate);
-    return () => window.removeEventListener('elva-profile-updated', handleProfileUpdate);
+    window.addEventListener('noir-profile-updated', handleProfileUpdate);
+    return () => window.removeEventListener('noir-profile-updated', handleProfileUpdate);
   }, []);
 
   const loadCharts = useCallback(async () => {
@@ -256,7 +256,7 @@ export function NoirDiscoverView({
           >
             <button
               type="button"
-              className="noir-discover-spotlight-cover elva-focus-ring"
+              className="noir-discover-spotlight-cover noir-focus-ring"
               onClick={() => onPlayPlaylist(spotlightPool, strings.discover.onTheCharts, 0)}
               aria-label={`${strings.discover.playSpotlight}: ${spotlightTrack.title}`}
             >
@@ -277,7 +277,7 @@ export function NoirDiscoverView({
               <div className="mt-5 flex flex-wrap gap-2">
                 <button
                   type="button"
-                  className="noir-button-primary elva-focus-ring"
+                  className="noir-button-primary noir-focus-ring"
                   onClick={() => onPlayPlaylist(spotlightPool, strings.discover.onTheCharts, 0)}
                 >
                   <Play className="h-3.5 w-3.5 fill-current" />
@@ -286,7 +286,7 @@ export function NoirDiscoverView({
                 {localHits.length > 0 && (
                   <button
                     type="button"
-                    className="noir-button-secondary elva-focus-ring"
+                    className="noir-button-secondary noir-focus-ring"
                     onClick={() => onSelectPlaylist(localPlaylist)}
                   >
                     {strings.discover.openWorld}
@@ -330,7 +330,7 @@ export function NoirDiscoverView({
                 >
                   <button
                     type="button"
-                    className="noir-rank-row group elva-focus-ring"
+                    className="noir-rank-row group noir-focus-ring"
                     onClick={() =>
                       onPlayPlaylist(
                         localHits.length > 0 ? localHits : globalHits,
@@ -368,7 +368,7 @@ export function NoirDiscoverView({
               <motion.button
                 key={shelf.id}
                 type="button"
-                className="noir-genre-row group elva-focus-ring"
+                className="noir-genre-row group noir-focus-ring"
                 onClick={() => openTagShelf(shelf.title, shelf.tracks, shelf.id)}
                 initial={reduced ? false : { opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -451,7 +451,7 @@ function ReleaseCard({
           onOpen();
         }
       }}
-      className="noir-collection-card noir-home-shelf-card group elva-focus-ring"
+      className="noir-collection-card noir-home-shelf-card group noir-focus-ring"
       initial={reduced ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: index * 0.03 }}
@@ -465,7 +465,7 @@ function ReleaseCard({
         />
         <motion.button
           type="button"
-          className="noir-discover-release-play noir-play-round !h-10 !w-10 elva-focus-ring"
+          className="noir-discover-release-play noir-play-round !h-10 !w-10 noir-focus-ring"
           aria-label={`${strings.discover.playRelease}: ${release.title}`}
           onClick={(e) => {
             e.stopPropagation();
@@ -502,7 +502,7 @@ function ArtistCard({
     <motion.button
       type="button"
       onClick={onOpen}
-      className="noir-home-artist group elva-focus-ring"
+      className="noir-home-artist group noir-focus-ring"
       initial={reduced ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.06 + index * 0.03 }}
@@ -531,7 +531,7 @@ function ChartRow({ playlist, onOpen, onPlay }: { playlist: Playlist; onOpen: ()
       onKeyDown={(e) => {
         if (e.key === 'Enter') onOpen();
       }}
-      className="noir-chart-row group elva-focus-ring"
+      className="noir-chart-row group noir-focus-ring"
     >
       <NoirMixCover tag={playlist.id} size={72} radius={10} />
       <span className="min-w-0 flex-1">
@@ -546,7 +546,7 @@ function ChartRow({ playlist, onOpen, onPlay }: { playlist: Playlist; onOpen: ()
           e.stopPropagation();
           onPlay();
         }}
-        className="noir-play-round !h-10 !w-10 shrink-0 elva-focus-ring"
+        className="noir-play-round !h-10 !w-10 shrink-0 noir-focus-ring"
         aria-label={`${strings.discover.playChart}: ${playlist.name}`}
       >
         <Play className="ml-0.5 h-4 w-4 fill-current" />

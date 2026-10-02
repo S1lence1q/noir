@@ -178,8 +178,8 @@ export const PlaylistDetailsView: React.FC<PlaylistDetailsViewProps> = ({
       <div className="flex flex-col gap-6 mt-6 pb-24 w-full max-w-4xl mx-auto">
         <div className="w-full flex flex-col relative">
           <div className="flex items-center justify-between pb-3 shrink-0 z-10 relative">
-            <span className="elva-section-label">Tracks in Chart</span>
-            <span className="elva-label-xs text-white/30 font-medium bg-white/[0.05] px-2.5 py-0.5 rounded-md normal-case tracking-wider">
+            <span className="noir-section-label">Tracks in Chart</span>
+            <span className="noir-label-xs text-white/30 font-medium bg-white/[0.05] px-2.5 py-0.5 rounded-md normal-case tracking-wider">
               Updated Daily
             </span>
           </div>

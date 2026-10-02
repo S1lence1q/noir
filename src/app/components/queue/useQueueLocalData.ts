@@ -24,10 +24,10 @@ export function useQueueLocalData(searchQuery: string, viewMode: 'session' | 'li
 
   useEffect(() => {
     const handlePlaylistsUpdated = () => loadLocalStorageItems();
-    window.addEventListener('elva-playlists-updated', handlePlaylistsUpdated);
+    window.addEventListener('noir-playlists-updated', handlePlaylistsUpdated);
     window.addEventListener('storage', handlePlaylistsUpdated);
     return () => {
-      window.removeEventListener('elva-playlists-updated', handlePlaylistsUpdated);
+      window.removeEventListener('noir-playlists-updated', handlePlaylistsUpdated);
       window.removeEventListener('storage', handlePlaylistsUpdated);
     };
   }, []);

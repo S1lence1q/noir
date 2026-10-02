@@ -200,7 +200,7 @@ export function NoirHistoryView({
       {events.length > limit && (
         <button
           type="button"
-          className="noir-button-secondary mx-auto mt-6 elva-focus-ring"
+          className="noir-button-secondary mx-auto mt-6 noir-focus-ring"
           onClick={() => setLimit((n) => n + PAGE)}
         >
           {strings.library.historyMore}

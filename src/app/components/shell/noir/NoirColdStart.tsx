@@ -245,7 +245,7 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
       {onBrowseDiscover && (
         <button
           type="button"
-          className="noir-cold-start-skip elva-focus-ring"
+          className="noir-cold-start-skip noir-focus-ring"
           disabled={seeding}
           onClick={onBrowseDiscover}
         >
@@ -289,7 +289,7 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
           {query ? (
             <button
               type="button"
-              className="noir-cold-start-clear elva-focus-ring"
+              className="noir-cold-start-clear noir-focus-ring"
               aria-label="Clear search"
               onClick={() => {
                 setQuery('');
@@ -337,7 +337,7 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
                 type="button"
                 disabled={seeding || locked}
                 onClick={() => toggle(artist)}
-                className="noir-cold-start-artist elva-focus-ring"
+                className="noir-cold-start-artist noir-focus-ring"
                 data-selected={selected ? 'true' : 'false'}
                 aria-pressed={selected}
                 whileTap={seeding || locked || reduced ? undefined : { scale: 0.96 }}
@@ -377,7 +377,7 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
       {canShowMore && (
         <button
           type="button"
-          className="noir-button-secondary noir-cold-start-more elva-focus-ring"
+          className="noir-button-secondary noir-cold-start-more noir-focus-ring"
           onClick={() => setRows((n) => n + MORE_ROWS)}
         >
           {strings.home.coldStartMore}
@@ -415,7 +415,7 @@ export function NoirColdStart({ onSeeded, onBrowseDiscover }: NoirColdStartProps
         {error && <p className="noir-cold-start-error">{error}</p>}
         <button
           type="button"
-          className="noir-button-primary elva-focus-ring"
+          className="noir-button-primary noir-focus-ring"
           disabled={picked.length === 0 || seeding}
           onClick={() => void confirm()}
         >

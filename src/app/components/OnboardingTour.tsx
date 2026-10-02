@@ -173,7 +173,7 @@ export function OnboardingTour({
               width: ring.width,
               height: ring.height,
               borderRadius: ring.borderRadius,
-              border: '1.5px solid var(--elva-accent-border)',
+              border: '1.5px solid var(--noir-accent-border)',
               boxShadow: '0 0 0 2000px rgba(5, 5, 5, 0.58)',
             }}
           />
@@ -196,7 +196,7 @@ export function OnboardingTour({
               {/* Header */}
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="text-elva-accent-muted text-[10px] uppercase tracking-[0.16em] font-semibold mb-1">
+                  <p className="text-noir-accent-muted text-[10px] uppercase tracking-[0.16em] font-semibold mb-1">
                     {currentStep + 1} / {tourSteps.length}
                   </p>
                   <h3 className="text-[14px] font-semibold text-white/90 leading-snug">
@@ -226,7 +226,7 @@ export function OnboardingTour({
                       width: i === currentStep ? 18 : 5,
                       background:
                         i === currentStep
-                          ? 'var(--elva-accent)'
+                          ? 'var(--noir-theme-accent)'
                           : 'rgba(255,255,255,0.1)',
                     }}
                   />
@@ -253,10 +253,10 @@ export function OnboardingTour({
                   <button
                     onClick={onNext}
                     className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[12px] font-medium text-white/85 hover:text-white bg-white/[0.07] hover:bg-white/[0.12] border border-white/[0.08] transition-all cursor-pointer"
-                    style={{ boxShadow: '0 0 0 1px var(--elva-accent-border) inset' }}
+                    style={{ boxShadow: '0 0 0 1px var(--noir-accent-border) inset' }}
                   >
                     {currentStep === tourSteps.length - 1 ? 'Done' : 'Next'}
-                    <ChevronRight className="w-3.5 h-3.5 text-elva-accent-muted" />
+                    <ChevronRight className="w-3.5 h-3.5 text-noir-accent-muted" />
                   </button>
                 </div>
               </div>

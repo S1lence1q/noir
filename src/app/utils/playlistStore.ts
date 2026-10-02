@@ -34,7 +34,7 @@ export function decodePlaylistTrack(value: string | null): SearchResult | null {
   }
 }
 
-const UPDATED_EVENT = 'elva-playlists-updated';
+const UPDATED_EVENT = 'noir-playlists-updated';
 
 /** Set by `createPlaylist`; the playlist page consumes it to open with the title in edit mode. */
 let pendingRenameId: string | null = null;

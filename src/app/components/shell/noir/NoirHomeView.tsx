@@ -193,14 +193,14 @@ export function NoirHomeView({
   };
 
   const openSearchPalette = () => {
-    window.dispatchEvent(new Event('elva-open-search-palette'));
+    window.dispatchEvent(new Event('noir-open-search-palette'));
   };
 
   const playFromHome = (track: SearchResult) => {
     setListFrozen(true);
     const key = getPlaybackSongKey(track);
     if (key && key === activeSongKey) {
-      window.dispatchEvent(new Event('elva-toggle-play'));
+      window.dispatchEvent(new Event('noir-toggle-play'));
       return;
     }
     handleSelectSong(track);
@@ -247,7 +247,7 @@ export function NoirHomeView({
                 <button
                   type="button"
                   onClick={() => playFromHome(featuredTrack)}
-                  className="noir-home-day-art elva-focus-ring"
+                  className="noir-home-day-art noir-focus-ring"
                   aria-label={`${strings.home.continue}: ${featuredTrack.title}`}
                 >
                   <AnimatePresence mode="popLayout" initial={false}>
@@ -292,7 +292,7 @@ export function NoirHomeView({
                 <motion.button
                   type="button"
                   onClick={() => playFromHome(featuredTrack)}
-                  className="noir-play-round elva-focus-ring"
+                  className="noir-play-round noir-focus-ring"
                   aria-label={isFeaturedPlaying ? 'Pause' : 'Play'}
                   whileTap={{ scale: 0.94 }}
                   transition={MOTION.tap}
@@ -330,7 +330,7 @@ export function NoirHomeView({
                 <button
                   type="button"
                   onClick={openSearchPalette}
-                  className="inline-flex h-9 items-center gap-2 rounded-[var(--noir-radius-md)] bg-white/[0.1] px-3.5 text-[13px] font-medium text-white transition-colors hover:bg-white/[0.15] elva-focus-ring"
+                  className="inline-flex h-9 items-center gap-2 rounded-[var(--noir-radius-md)] bg-white/[0.1] px-3.5 text-[13px] font-medium text-white transition-colors hover:bg-white/[0.15] noir-focus-ring"
                 >
                   <Search className="h-3.5 w-3.5" strokeWidth={1.9} />
                   Search
@@ -342,7 +342,7 @@ export function NoirHomeView({
                   <button
                     type="button"
                     onClick={onOpenDiscover}
-                    className="inline-flex h-9 items-center gap-2 rounded-[var(--noir-radius-md)] border border-white/10 px-3.5 text-[13px] font-medium text-[color:var(--noir-text-secondary)] transition-colors hover:border-white/20 hover:bg-white/[0.05] hover:text-white elva-focus-ring"
+                    className="inline-flex h-9 items-center gap-2 rounded-[var(--noir-radius-md)] border border-white/10 px-3.5 text-[13px] font-medium text-[color:var(--noir-text-secondary)] transition-colors hover:border-white/20 hover:bg-white/[0.05] hover:text-white noir-focus-ring"
                   >
                     <Compass className="h-3.5 w-3.5" strokeWidth={1.75} />
                     Discover
@@ -364,7 +364,7 @@ export function NoirHomeView({
                       type="button"
                       layout={!reduced}
                       onClick={() => playFromHome(track)}
-                      className="noir-home-tile group elva-focus-ring"
+                      className="noir-home-tile group noir-focus-ring"
                       data-playing={playing ? 'true' : 'false'}
                       initial={reduced ? false : { opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -428,7 +428,7 @@ export function NoirHomeView({
                         openMix(mix, mixWorlds[i]);
                       }
                     }}
-                    className="noir-collection-card noir-home-mix-card group elva-focus-ring"
+                    className="noir-collection-card noir-home-mix-card group noir-focus-ring"
                     initial={reduced ? false : { opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.08 + i * 0.04 }}
@@ -438,7 +438,7 @@ export function NoirHomeView({
                       {onPlayPlaylist && (
                         <motion.button
                           type="button"
-                          className="noir-discover-release-play noir-play-round !h-11 !w-11 elva-focus-ring"
+                          className="noir-discover-release-play noir-play-round !h-11 !w-11 noir-focus-ring"
                           aria-label={`${strings.home.playMix}: ${mix.name}`}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -469,7 +469,7 @@ export function NoirHomeView({
                   <button
                     type="button"
                     onClick={() => window.dispatchEvent(new Event('noir-open-favorites'))}
-                    className="noir-collection-card noir-home-shelf-card elva-focus-ring"
+                    className="noir-collection-card noir-home-shelf-card noir-focus-ring"
                   >
                     <NoirFavoritesCover size={168} />
                     <span className="min-w-0">
@@ -487,7 +487,7 @@ export function NoirHomeView({
                     onClick={() =>
                       window.dispatchEvent(new CustomEvent('noir-open-playlist', { detail: { id: playlist.id } }))
                     }
-                    className="noir-collection-card noir-home-shelf-card elva-focus-ring"
+                    className="noir-collection-card noir-home-shelf-card noir-focus-ring"
                   >
                     <NoirPlaylistCover
                       playlistId={playlist.id}
@@ -507,7 +507,7 @@ export function NoirHomeView({
                   onClick={() =>
                     window.dispatchEvent(new CustomEvent('noir-open-playlist', { detail: { id: createPlaylist().id } }))
                   }
-                  className="noir-collection-card noir-home-shelf-card elva-focus-ring"
+                  className="noir-collection-card noir-home-shelf-card noir-focus-ring"
                 >
                   <span className="noir-collection-card-new !h-[168px] !w-[168px]">
                     <Plus className="h-6 w-6" strokeWidth={1.5} />
@@ -527,7 +527,7 @@ export function NoirHomeView({
                     key={artist.name}
                     type="button"
                     onClick={() => handleViewArtistProfile(artist)}
-                    className="noir-home-artist group elva-focus-ring"
+                    className="noir-home-artist group noir-focus-ring"
                   >
                     <span className="noir-home-artist-art">
                       {artist.thumbnail ? (

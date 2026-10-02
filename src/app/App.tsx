@@ -432,7 +432,7 @@ export default function App() {
     if (seekTo == null || !songData) return;
     restoreSeekRef.current = null;
     const timer = window.setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('elva-seek', { detail: { time: seekTo } }));
+      window.dispatchEvent(new CustomEvent('noir-seek', { detail: { time: seekTo } }));
     }, 900);
     return () => window.clearTimeout(timer);
   }, [songData]);
@@ -557,8 +557,8 @@ export default function App() {
 
   useEffect(() => {
     const handleToggleShortcuts = () => setShowShortcutMap(true);
-    window.addEventListener('elva-show-shortcuts', handleToggleShortcuts);
-    return () => window.removeEventListener('elva-show-shortcuts', handleToggleShortcuts);
+    window.addEventListener('noir-show-shortcuts', handleToggleShortcuts);
+    return () => window.removeEventListener('noir-show-shortcuts', handleToggleShortcuts);
   }, []);
   const [recentlyPlayed, setRecentlyPlayed] = useState<SearchResult[]>(() => {
     try {
@@ -578,8 +578,8 @@ export default function App() {
 
   useEffect(() => {
     const handleRecentlyPlayedCleared = () => setRecentlyPlayed([]);
-    window.addEventListener('elva-recently-played-cleared', handleRecentlyPlayedCleared);
-    return () => window.removeEventListener('elva-recently-played-cleared', handleRecentlyPlayedCleared);
+    window.addEventListener('noir-recently-played-cleared', handleRecentlyPlayedCleared);
+    return () => window.removeEventListener('noir-recently-played-cleared', handleRecentlyPlayedCleared);
   }, []);
 
   useEffect(() => {
@@ -1264,8 +1264,8 @@ export default function App() {
 
   useEffect(() => {
     const open = () => setSearchPaletteOpen(true);
-    window.addEventListener('elva-open-search-palette', open);
-    return () => window.removeEventListener('elva-open-search-palette', open);
+    window.addEventListener('noir-open-search-palette', open);
+    return () => window.removeEventListener('noir-open-search-palette', open);
   }, []);
 
   // Tab changes dismiss detail overlays (playlist/chart/artist)
@@ -1340,8 +1340,8 @@ export default function App() {
       setSelectedPlaylist(null);
       setActiveTab('myhub');
     };
-    window.addEventListener('elva-scroll-to-hub', handleScrollToHub);
-    return () => window.removeEventListener('elva-scroll-to-hub', handleScrollToHub);
+    window.addEventListener('noir-scroll-to-hub', handleScrollToHub);
+    return () => window.removeEventListener('noir-scroll-to-hub', handleScrollToHub);
   }, [searchLogic]);
 
   useEffect(() => {
@@ -1351,8 +1351,8 @@ export default function App() {
       setSelectedPlaylist(null);
       setActiveTab('discover');
     };
-    window.addEventListener('elva-scroll-to-discover', handleScrollToDiscover);
-    return () => window.removeEventListener('elva-scroll-to-discover', handleScrollToDiscover);
+    window.addEventListener('noir-scroll-to-discover', handleScrollToDiscover);
+    return () => window.removeEventListener('noir-scroll-to-discover', handleScrollToDiscover);
   }, [searchLogic]);
 
   useEffect(() => {
@@ -1362,8 +1362,8 @@ export default function App() {
       localStorage.removeItem('elva_player_tour_completed');
     };
 
-    window.addEventListener('elva-reset-tour', handleResetTour);
-    return () => window.removeEventListener('elva-reset-tour', handleResetTour);
+    window.addEventListener('noir-reset-tour', handleResetTour);
+    return () => window.removeEventListener('noir-reset-tour', handleResetTour);
   }, []);
 
   /** Sidebar navigation always lands on the page, never stays under an open artist/mix. */
@@ -1770,7 +1770,7 @@ export default function App() {
     showMiniHUD('Queue shuffled');
 
     // Trigger the controlled slot machine artwork cycling!
-    window.dispatchEvent(new CustomEvent('elva-artwork-spin', { detail: { queue: finalQueue } }));
+    window.dispatchEvent(new CustomEvent('noir-artwork-spin', { detail: { queue: finalQueue } }));
   };
 
   const handleQueueFileSelect = async (file: File) => {

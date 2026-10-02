@@ -140,8 +140,8 @@ export function Queue({
       setSelectedQueuePlaylist(null);
       setTimeout(() => searchInputRef.current?.focus(), 80);
     };
-    window.addEventListener('elva-queue-focus-search', focusSearch);
-    return () => window.removeEventListener('elva-queue-focus-search', focusSearch);
+    window.addEventListener('noir-queue-focus-search', focusSearch);
+    return () => window.removeEventListener('noir-queue-focus-search', focusSearch);
   }, []);
 
   useEffect(() => {
@@ -264,10 +264,10 @@ export function Queue({
     const handlePlaylistsUpdated = () => {
       setSelectedQueuePlaylist((prev) => syncPlaylistFromStorage(prev));
     };
-    window.addEventListener('elva-playlists-updated', handlePlaylistsUpdated);
+    window.addEventListener('noir-playlists-updated', handlePlaylistsUpdated);
     window.addEventListener('storage', handlePlaylistsUpdated);
     return () => {
-      window.removeEventListener('elva-playlists-updated', handlePlaylistsUpdated);
+      window.removeEventListener('noir-playlists-updated', handlePlaylistsUpdated);
       window.removeEventListener('storage', handlePlaylistsUpdated);
     };
   }, []);

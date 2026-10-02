@@ -208,7 +208,7 @@ export function useKeyboardShortcuts({
         setShowShortcutMap(false);
       } else if (e.code === 'Space' && hasActiveSong) {
         e.preventDefault();
-        window.dispatchEvent(new Event('elva-toggle-play'));
+        window.dispatchEvent(new Event('noir-toggle-play'));
       } else if (
         hasActiveSong &&
         (e.key === 'ArrowLeft' || e.key === 'ArrowRight') &&
@@ -220,9 +220,9 @@ export function useKeyboardShortcuts({
         e.preventDefault();
         const forward = e.key === 'ArrowRight';
         if (e.metaKey || e.ctrlKey) {
-          window.dispatchEvent(new Event(forward ? 'elva-play-next' : 'elva-play-prev'));
+          window.dispatchEvent(new Event(forward ? 'noir-play-next' : 'noir-play-prev'));
         } else {
-          window.dispatchEvent(new CustomEvent('elva-seek-by', { detail: { delta: forward ? 5 : -5 } }));
+          window.dispatchEvent(new CustomEvent('noir-seek-by', { detail: { delta: forward ? 5 : -5 } }));
         }
       } else if (
         hasActiveSong &&
@@ -233,11 +233,11 @@ export function useKeyboardShortcuts({
         // Plain ↑/↓ stay page scrolling; with ⌘/Ctrl they set volume.
         e.preventDefault();
         window.dispatchEvent(
-          new CustomEvent('elva-volume-by', { detail: { delta: e.key === 'ArrowUp' ? 5 : -5 } })
+          new CustomEvent('noir-volume-by', { detail: { delta: e.key === 'ArrowUp' ? 5 : -5 } })
         );
       } else if ((e.key === 'm' || e.key === 'M') && !e.metaKey && !e.ctrlKey && !e.altKey && hasActiveSong) {
         e.preventDefault();
-        window.dispatchEvent(new Event('elva-toggle-mute'));
+        window.dispatchEvent(new Event('noir-toggle-mute'));
       } else if ((e.key === 'q' || e.key === 'Q') && !e.metaKey && !e.ctrlKey && !e.altKey && hasActiveSong) {
         e.preventDefault();
         onToggleQueue?.();

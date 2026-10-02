@@ -96,7 +96,7 @@ export function NoirPlaylistView({
     <button
       type="button"
       onClick={() => onPlayPlaylist(playlist.tracks, playlist.name)}
-      className="noir-collection-hero-play elva-focus-ring"
+      className="noir-collection-hero-play noir-focus-ring"
     >
       <Play className="h-3.5 w-3.5 fill-current" />
       {strings.playlist.playAll}

@@ -35,7 +35,7 @@ export function NoirEmptyState({
           <button
             type="button"
             onClick={action.onClick}
-            className="text-[11px] text-white/25 hover:text-white/55 transition-colors mt-1.5 cursor-pointer elva-focus-ring rounded-sm"
+            className="text-[11px] text-white/25 hover:text-white/55 transition-colors mt-1.5 cursor-pointer noir-focus-ring rounded-sm"
           >
             {action.label} →
           </button>
@@ -46,7 +46,7 @@ export function NoirEmptyState({
 
   return (
     <div
-      className={`elva-empty-state-panel py-10 px-6 text-center flex flex-col items-center justify-center select-none ${className}`}
+      className={`noir-empty-state-panel py-10 px-6 text-center flex flex-col items-center justify-center select-none ${className}`}
     >
       {icon && <div className="mb-3 text-white/25">{icon}</div>}
       <p className="text-white/55 text-sm font-medium">{title}</p>
@@ -59,7 +59,7 @@ export function NoirEmptyState({
         <button
           type="button"
           onClick={action.onClick}
-          className="mt-4 px-4 py-2 rounded-full bg-white/[0.08] hover:bg-white/[0.12] text-xs font-semibold text-white/80 hover:text-white transition-colors cursor-pointer elva-focus-ring"
+          className="mt-4 px-4 py-2 rounded-full bg-white/[0.08] hover:bg-white/[0.12] text-xs font-semibold text-white/80 hover:text-white transition-colors cursor-pointer noir-focus-ring"
         >
           {action.label}
         </button>

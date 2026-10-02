@@ -52,11 +52,11 @@ export function AppSidebar({
   ];
 
   return (
-    <aside className="elva-shell-sidebar noir-sidebar relative flex h-full shrink-0 flex-col overflow-hidden select-none py-5">
+    <aside className="noir-shell-sidebar noir-sidebar relative flex h-full shrink-0 flex-col overflow-hidden select-none py-5">
       <div className="noir-sidebar-brand-row">
         <button
           type="button"
-          className="noir-sidebar-wordmark noir-sidebar-wordmark--cycle elva-focus-ring"
+          className="noir-sidebar-wordmark noir-sidebar-wordmark--cycle noir-focus-ring"
           onClick={cycle}
           data-tip={`Nav icons: ${label} — click to compare`}
           aria-label={`Nav icon set ${label}. Click to try the next set.`}
@@ -71,9 +71,9 @@ export function AppSidebar({
         {/* Search is an action, not a place: opens the palette from anywhere. */}
         <button
           type="button"
-          onClick={() => window.dispatchEvent(new Event('elva-open-search-palette'))}
+          onClick={() => window.dispatchEvent(new Event('noir-open-search-palette'))}
           data-active="false"
-          className="noir-nav-item noir-nav-search flex h-11 items-center gap-3 px-3 text-left text-[15px] font-medium elva-focus-ring"
+          className="noir-nav-item noir-nav-search flex h-11 items-center gap-3 px-3 text-left text-[15px] font-medium noir-focus-ring"
           data-tip={`${strings.search.navLabel} · ${SEARCH_KBD_HINT}`}
           data-tip-rail
         >
@@ -96,7 +96,7 @@ export function AppSidebar({
               type="button"
               onClick={() => onTabChange(id)}
               data-active={isActive ? 'true' : isParent ? 'parent' : 'false'}
-              className="noir-nav-item flex h-11 items-center gap-3 px-3 text-left text-[15px] font-medium elva-focus-ring"
+              className="noir-nav-item flex h-11 items-center gap-3 px-3 text-left text-[15px] font-medium noir-focus-ring"
               aria-current={isActive ? 'page' : undefined}
               aria-label={navLabel}
               data-tip={navLabel}
@@ -115,7 +115,7 @@ export function AppSidebar({
           type="button"
           onClick={() => onOpenFavorites?.()}
           data-active={favoritesActive ? 'true' : 'false'}
-          className="noir-nav-item flex h-10 items-center gap-3 px-3 text-left text-[14px] font-medium elva-focus-ring"
+          className="noir-nav-item flex h-10 items-center gap-3 px-3 text-left text-[14px] font-medium noir-focus-ring"
           aria-current={favoritesActive ? 'page' : undefined}
           data-tip="Favorites"
           data-tip-rail
@@ -134,7 +134,7 @@ export function AppSidebar({
           <button
             type="button"
             onClick={() => onOpenPlaylist?.(createPlaylist().id)}
-            className="flex h-6 w-6 items-center justify-center rounded-md text-[color:var(--noir-text-tertiary)] transition-colors hover:bg-white/[0.06] hover:text-white elva-focus-ring"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-[color:var(--noir-text-tertiary)] transition-colors hover:bg-white/[0.06] hover:text-white noir-focus-ring"
             aria-label={strings.playlist.newPlaylist}
             data-tip={strings.playlist.newPlaylist}
           >
@@ -178,7 +178,7 @@ export function AppSidebar({
                     }}
                     data-active={isActive ? 'true' : 'false'}
                     data-drop-target={dragOverPlaylistId === playlist.id ? 'true' : 'false'}
-                    className={`noir-nav-item flex h-10 w-full items-center gap-2.5 px-3 text-left text-[14px] font-medium elva-focus-ring ${
+                    className={`noir-nav-item flex h-10 w-full items-center gap-2.5 px-3 text-left text-[14px] font-medium noir-focus-ring ${
                       dragOverPlaylistId === playlist.id ? 'bg-white/[0.08] text-white' : ''
                     }`}
                     aria-current={isActive ? 'page' : undefined}
@@ -212,7 +212,7 @@ export function AppSidebar({
           type="button"
           onClick={() => onTabChange('settings')}
           data-active={activeTab === 'settings' ? 'true' : 'false'}
-          className="noir-nav-item flex h-11 w-full items-center gap-3 px-3 text-left text-[15px] font-medium elva-focus-ring"
+          className="noir-nav-item flex h-11 w-full items-center gap-3 px-3 text-left text-[15px] font-medium noir-focus-ring"
           data-tip="Settings"
           data-tip-rail
         >

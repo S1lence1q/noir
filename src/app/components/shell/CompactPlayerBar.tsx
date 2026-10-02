@@ -59,7 +59,7 @@ function seekFromClientX(el: HTMLElement, clientX: number, duration: number) {
   const rect = el.getBoundingClientRect();
   const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
   window.dispatchEvent(
-    new CustomEvent('elva-seek', { detail: { time: ratio * duration } })
+    new CustomEvent('noir-seek', { detail: { time: ratio * duration } })
   );
 }
 
@@ -191,9 +191,9 @@ export function CompactPlayerBar({
         flashVolumeValue();
       }
     };
-    window.addEventListener('elva-volume-change', onVolume);
+    window.addEventListener('noir-volume-change', onVolume);
     return () => {
-      window.removeEventListener('elva-volume-change', onVolume);
+      window.removeEventListener('noir-volume-change', onVolume);
       if (volumeValueTimerRef.current) clearTimeout(volumeValueTimerRef.current);
       stopVolumeGame();
     };
@@ -205,7 +205,7 @@ export function CompactPlayerBar({
     setVolume(clamped);
     if (clamped > 0) preMuteRef.current = clamped;
     localStorage.setItem('elva_player_volume', String(clamped));
-    window.dispatchEvent(new CustomEvent('elva-set-volume', { detail: { volume: clamped } }));
+    window.dispatchEvent(new CustomEvent('noir-set-volume', { detail: { volume: clamped } }));
   };
 
   const toggleMute = () => {
@@ -290,7 +290,7 @@ export function CompactPlayerBar({
               key="np-close"
               type="button"
               onClick={onExpand}
-              className="noir-compact-close elva-focus-ring"
+              className="noir-compact-close noir-focus-ring"
               aria-label={strings.compact.closeNowPlaying}
               data-tip={strings.compact.closeNowPlaying}
               initial={{ opacity: 0 }}
@@ -308,7 +308,7 @@ export function CompactPlayerBar({
           <button
             type="button"
             onClick={onExpand}
-            className="noir-compact-now group elva-focus-ring"
+            className="noir-compact-now group noir-focus-ring"
             aria-label={strings.compact.openNowPlaying}
           >
             <motion.span
@@ -425,7 +425,7 @@ export function CompactPlayerBar({
         <div className="noir-compact-transport">
           <button
             type="button"
-            onClick={() => window.dispatchEvent(new Event('elva-play-prev'))}
+            onClick={() => window.dispatchEvent(new Event('noir-play-prev'))}
             className="noir-compact-ctrl"
             aria-label="Previous"
           >
@@ -433,7 +433,7 @@ export function CompactPlayerBar({
           </button>
           <motion.button
             type="button"
-            onClick={() => window.dispatchEvent(new Event('elva-toggle-play'))}
+            onClick={() => window.dispatchEvent(new Event('noir-toggle-play'))}
             className="noir-compact-play"
             aria-label={playback.isPlaying ? 'Pause' : 'Play'}
             whileTap={reduced ? undefined : { scale: 0.9 }}
@@ -443,7 +443,7 @@ export function CompactPlayerBar({
           </motion.button>
           <button
             type="button"
-            onClick={() => window.dispatchEvent(new Event('elva-play-next'))}
+            onClick={() => window.dispatchEvent(new Event('noir-play-next'))}
             className="noir-compact-ctrl"
             aria-label="Next"
           >
@@ -473,7 +473,7 @@ export function CompactPlayerBar({
                   playback.duration,
                   Math.max(0, playback.currentTime + delta)
                 );
-                window.dispatchEvent(new CustomEvent('elva-seek', { detail: { time: next } }));
+                window.dispatchEvent(new CustomEvent('noir-seek', { detail: { time: next } }));
               }
             }}
           >

@@ -48,10 +48,10 @@ export function NoirQueueEndPrompt({ isVisible, secondsLeft, onKeep, onDismiss }
             <p className="noir-queue-end-prompt-title">{strings.nextUp.queueEndsSoon}</p>
             <p className="noir-queue-end-prompt-desc">{strings.nextUp.queueEndsSoonDesc}</p>
           </div>
-          <button type="button" className="noir-toast-action noir-toast-action--quiet elva-focus-ring" onClick={onDismiss}>
+          <button type="button" className="noir-toast-action noir-toast-action--quiet noir-focus-ring" onClick={onDismiss}>
             {strings.nextUp.notNow}
           </button>
-          <button type="button" className="noir-button-primary elva-focus-ring" onClick={onKeep}>
+          <button type="button" className="noir-button-primary noir-focus-ring" onClick={onKeep}>
             {strings.nextUp.keepPlaying}
           </button>
           <span className="noir-queue-end-prompt-time" aria-hidden>

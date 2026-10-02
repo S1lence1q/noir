@@ -50,7 +50,7 @@ export function usePlayStats(songData: PlaybackSongData, isPlaying: boolean): vo
         }
         localStorage.setItem('elva_weekly_time', JSON.stringify(stats));
 
-        window.dispatchEvent(new Event('elva-stats-updated'));
+        window.dispatchEvent(new Event('noir-stats-updated'));
       } catch (e) {
         console.warn('Failed to update stats in localStorage:', e);
       }

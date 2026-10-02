@@ -78,7 +78,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ 
           >
             <header className="noir-shortcuts-head">
               <h2 className="noir-shortcuts-title">Keyboard shortcuts</h2>
-              <button type="button" onClick={onClose} className="noir-search-palette-close elva-focus-ring" aria-label="Close">
+              <button type="button" onClick={onClose} className="noir-search-palette-close noir-focus-ring" aria-label="Close">
                 <X className="h-4 w-4" strokeWidth={1.75} />
               </button>
             </header>

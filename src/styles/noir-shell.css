@@ -35,7 +35,7 @@
   background-color: var(--noir-black);
 }
 
-.elva-shell-sidebar {
+.noir-shell-sidebar {
   background-color: var(--noir-black);
   border-right: 1px solid var(--noir-rule-faint);
 }
@@ -389,7 +389,7 @@
   }
 }
 
-.elva-shell-player {
+.noir-shell-player {
   background: #000;
   border-top: 1px solid var(--noir-rule-faint);
 }
@@ -1559,7 +1559,7 @@
 }
 
 /* So the field can show through, and the sidebar's own content stays above it. */
-.noir-shell:has(.noir-now-playing-atmosphere.is-bleed) .elva-shell-sidebar {
+.noir-shell:has(.noir-now-playing-atmosphere.is-bleed) .noir-shell-sidebar {
   background-color: transparent;
   border-right-color: transparent;
   z-index: 30;
@@ -1568,7 +1568,7 @@
 /* Behind the sidebar the dither is blurred into a plain colour wash, so no checker sits under the
    labels or shows up in the active row's highlight. Full width: a fade-out here would bring the checker
    back under the right end of the active row. */
-.noir-shell:has(.noir-now-playing-atmosphere.is-grain) .elva-shell-sidebar::before {
+.noir-shell:has(.noir-now-playing-atmosphere.is-grain) .noir-shell-sidebar::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -2187,7 +2187,7 @@ button.noir-now-playing-source:hover {
   display: none;
 }
 
-.elva-shell-content {
+.noir-shell-content {
   background-color: var(--noir-black);
 }
 

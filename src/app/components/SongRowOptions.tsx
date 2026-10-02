@@ -137,7 +137,7 @@ const LegacySongRowOptions: React.FC<SongRowOptionsProps> = ({
 
       localStorage.setItem('elva_playlists', JSON.stringify(updated));
       showMiniHUD(`Added to ${playlistName}`);
-      window.dispatchEvent(new CustomEvent('elva-playlists-updated'));
+      window.dispatchEvent(new CustomEvent('noir-playlists-updated'));
     } catch (e) {
       showMiniHUD('Failed to add track', 'error');
     }
@@ -279,7 +279,7 @@ const LegacySongRowOptions: React.FC<SongRowOptionsProps> = ({
         ref={triggerRef}
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className="p-2.5 rounded-xl hover:bg-white/5 text-white/40 hover:text-white transition-all cursor-pointer elva-focus-ring"
+        className="p-2.5 rounded-xl hover:bg-white/5 text-white/40 hover:text-white transition-all cursor-pointer noir-focus-ring"
         title="More options"
         aria-label="More options"
         aria-expanded={isOpen}

@@ -146,8 +146,8 @@ export function ArtworkCard({
       };
     };
 
-    window.addEventListener('elva-artwork-spin', handleArtworkSpin);
-    return () => window.removeEventListener('elva-artwork-spin', handleArtworkSpin);
+    window.addEventListener('noir-artwork-spin', handleArtworkSpin);
+    return () => window.removeEventListener('noir-artwork-spin', handleArtworkSpin);
   }, []);
 
   if (activeArtwork !== currentArtwork) {
@@ -545,7 +545,7 @@ export function ArtworkCard({
       </div>
 
       {isPlaying && !isControlsVisible && peekProgressStyle === 'border' && (() => {
-        const target = document.getElementById('elva-player-root');
+        const target = document.getElementById('noir-player-root');
         if (!target) return null;
         return createPortal(
           <div className="absolute top-0 left-0 right-0 h-[2.5px] z-[100] pointer-events-none bg-white/[0.04]" aria-hidden>

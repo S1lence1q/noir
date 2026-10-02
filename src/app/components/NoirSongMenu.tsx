@@ -101,7 +101,7 @@ export function SongRowOptions({
     <button
       type="button"
       onClick={(event) => openSongMenu(track, event, menuActions)}
-      className="flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white elva-focus-ring"
+      className="flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white noir-focus-ring"
       title={strings.songMenu.moreOptions}
       aria-label={strings.songMenu.moreOptions}
     >

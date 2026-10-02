@@ -425,7 +425,7 @@ export function NoirNowPlayingView({
                       <button
                         type="button"
                         onClick={onOpenArtist}
-                        className="noir-now-playing-artist !mt-0 text-left hover:underline elva-focus-ring rounded-sm"
+                        className="noir-now-playing-artist !mt-0 text-left hover:underline noir-focus-ring rounded-sm"
                         data-tip={strings.songMenu.goToArtist}
                       >
                         {song.artist}
@@ -437,7 +437,7 @@ export function NoirNowPlayingView({
                       <button
                         type="button"
                         onClick={onStartRadio}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white elva-focus-ring"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white noir-focus-ring"
                         aria-label={strings.songMenu.startRadio}
                         data-tip={strings.songMenu.startRadio}
                       >
@@ -448,7 +448,7 @@ export function NoirNowPlayingView({
                       <button
                         type="button"
                         onClick={onToggleFavorite}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white elva-focus-ring"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[color:var(--noir-text-secondary)] hover:bg-white/[0.08] hover:text-white noir-focus-ring"
                         aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                         data-tip={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                       >
@@ -465,7 +465,7 @@ export function NoirNowPlayingView({
                       {onOpenQueueSource ? (
                         <button
                           type="button"
-                          className="noir-now-playing-source elva-focus-ring rounded-sm"
+                          className="noir-now-playing-source noir-focus-ring rounded-sm"
                           onClick={onOpenQueueSource}
                           data-tip={strings.nowPlaying.openSource}
                         >
@@ -564,7 +564,7 @@ export function NoirNowPlayingView({
                 {upNext.length > 0 && onShuffleQueue && (
                   <motion.button
                     type="button"
-                    className="inline-flex items-center gap-1.5 text-[12px] text-[color:var(--noir-text-tertiary)] hover:text-white elva-focus-ring"
+                    className="inline-flex items-center gap-1.5 text-[12px] text-[color:var(--noir-text-tertiary)] hover:text-white noir-focus-ring"
                     onClick={triggerShuffle}
                     whileTap={reduced ? undefined : { scale: 0.96 }}
                     transition={MOTION.tap}
@@ -583,7 +583,7 @@ export function NoirNowPlayingView({
                 {upNext.length > 0 && onClearQueue && (
                   <button
                     type="button"
-                    className="text-[12px] text-[color:var(--noir-text-tertiary)] hover:text-white elva-focus-ring"
+                    className="text-[12px] text-[color:var(--noir-text-tertiary)] hover:text-white noir-focus-ring"
                     onClick={clearQueue}
                   >
                     {strings.nextUp.clear}
@@ -625,7 +625,7 @@ export function NoirNowPlayingView({
                         key={track.id}
                         layout={!reduced}
                         onClick={() => addTracks([track])}
-                        className="group min-w-0 text-left elva-focus-ring"
+                        className="group min-w-0 text-left noir-focus-ring"
                         data-tip={strings.nextUp.addOne(track.title)}
                         initial={{ opacity: 0, y: reduced ? 0 : 6 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -665,7 +665,7 @@ export function NoirNowPlayingView({
                     <>
                       <button
                         type="button"
-                        className="noir-button-primary elva-focus-ring"
+                        className="noir-button-primary noir-focus-ring"
                         onClick={() => addTracks(shuffled(addPool).slice(0, BATCH_SIZE))}
                       >
                         <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
@@ -674,7 +674,7 @@ export function NoirNowPlayingView({
                       {addPool.length > BATCH_SIZE && (
                         <button
                           type="button"
-                          className="noir-button-secondary elva-focus-ring"
+                          className="noir-button-secondary noir-focus-ring"
                           onClick={() => addTracks(shuffled(addPool))}
                         >
                           <Shuffle className="h-3.5 w-3.5" strokeWidth={2} />
@@ -684,7 +684,7 @@ export function NoirNowPlayingView({
                     </>
                   ) : (
                     onOpenDiscover && (
-                      <button type="button" className="noir-button-secondary elva-focus-ring" onClick={onOpenDiscover}>
+                      <button type="button" className="noir-button-secondary noir-focus-ring" onClick={onOpenDiscover}>
                         <Compass className="h-3.5 w-3.5" strokeWidth={1.75} />
                         {strings.nextUp.browseDiscover}
                       </button>
@@ -859,7 +859,7 @@ function QueueTrackItem({
           onClick={() => {
             if (!draggedRef.current) onSelect();
           }}
-          className="flex min-w-0 flex-1 items-center gap-3 text-left elva-focus-ring"
+          className="flex min-w-0 flex-1 items-center gap-3 text-left noir-focus-ring"
         >
           <span className={`noir-queue-index${index === 0 ? ' is-next' : ''}`} aria-hidden="true">
             {index + 1}

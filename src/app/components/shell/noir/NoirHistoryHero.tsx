@@ -42,7 +42,7 @@ export function NoirHistoryHero({
         <p className="noir-history-hero-artist">{meta}</p>
         <button
           type="button"
-          className="noir-play-round mt-5 elva-focus-ring"
+          className="noir-play-round mt-5 noir-focus-ring"
           onClick={onPlay}
           aria-label={strings.library.historyPlayAgain}
           data-tip={strings.library.historyPlayAgain}
