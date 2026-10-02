@@ -28,6 +28,28 @@ import { NoirHomeHero, heroField, heroInk, heroWorld } from './NoirHomeHero';
 import { NoirGrainField } from './NoirGrainField';
 import { useGraphicsTheme } from '../../../utils/graphicsTheme';
 
+/** Portrait size by play rank: the artists you play most are the biggest. */
+function wallSize(rank: number): number {
+  if (rank === 0) return 132;
+  if (rank < 3) return 108;
+  if (rank < 6) return 88;
+  return 72;
+}
+
+/** Ranks in a mountain order (biggest in the middle, falling off to both sides). */
+function mountain(ranks: number[]): number[] {
+  const order: number[] = [];
+  ranks.forEach((rank, i) => (i % 2 === 0 ? order.push(rank) : order.unshift(rank)));
+  return order;
+}
+
+/** One row up to six artists, two balanced rows beyond that (ranks 0,2,4… and 1,3,5…). */
+function wallRows(count: number): number[][] {
+  const ranks = Array.from({ length: count }, (_, i) => i);
+  if (count <= 6) return [mountain(ranks)];
+  return [mountain(ranks.filter((r) => r % 2 === 0)), mountain(ranks.filter((r) => r % 2 === 1))];
+}
+
 export type NoirHomeViewProps = {
   recentArtists: VerifiedArtist[];
   recentlyPlayed: SearchResult[];
@@ -183,6 +205,7 @@ export function NoirHomeView({
     setStarterActive(true);
     setMixReloadKey((n) => n + 1);
   };
+  const pickMix = displayMixes[0] ?? null;
   const mixWorlds = useMemo(() => assignMixWorlds(displayMixes.map((m) => m.tag)), [displayMixes]);
 
   const openMix = (mix: DailyMix, world: ColorWorld = mix.world) => {
@@ -229,6 +252,7 @@ export function NoirHomeView({
 
       {featuredTrack ? (
         <div className="noir-content shrink-0 pt-4">
+          <div className="noir-home-top">
           {/* Your day: the line grows from midnight to now and swells in the hours you listened.
               The field follows the time of day. Copy sits on the flat left, never on the form. */}
           <motion.section
@@ -312,6 +336,50 @@ export function NoirHomeView({
               </div>
             </div>
           </motion.section>
+          {pickMix ? (
+            <motion.div
+              role="button"
+              tabIndex={0}
+              onClick={() => openMix(pickMix, mixWorlds[0])}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  openMix(pickMix, mixWorlds[0]);
+                }
+              }}
+              className="noir-collection-card noir-home-pick group noir-focus-ring"
+              initial={reduced ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.42, ease: EASE_PREMIUM, delay: 0.06 }}
+            >
+              <span className="noir-home-pick-art relative block">
+                <NoirMixCover tag={pickMix.tag} world={mixWorlds[0]} size={232} />
+                {onPlayPlaylist && (
+                  <motion.button
+                    type="button"
+                    className="noir-discover-release-play noir-play-round !h-11 !w-11 noir-focus-ring"
+                    aria-label={`${strings.home.playMix}: ${pickMix.name}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playMix(pickMix);
+                    }}
+                    whileTap={{ scale: 0.94 }}
+                    transition={MOTION.tap}
+                  >
+                    <Play className="ml-0.5 h-4 w-4 fill-current" />
+                  </motion.button>
+                )}
+              </span>
+              <span className="min-w-0">
+                <span className="noir-home-day-label block">{strings.home.madeForYou}</span>
+                <span className="noir-song-title mt-0.5 block truncate">{pickMix.name}</span>
+                <span className="noir-song-meta block truncate">{pickMix.subtitle}</span>
+              </span>
+            </motion.div>
+          ) : mixesLoading ? (
+            <div className="noir-home-pick noir-skeleton" aria-hidden />
+          ) : null}
+          </div>
         </div>
       ) : null}
 
@@ -365,46 +433,64 @@ export function NoirHomeView({
           {playedArtists.length < 2 && artistSlots >= 2 && (
             <section aria-hidden>
               <h2 className="noir-section-heading px-1">{strings.home.artists}</h2>
-              <NoirHomeShelf>
-                {Array.from({ length: Math.min(artistSlots, 8) }).map((_, i) => (
-                  <div key={i} className="noir-home-artist">
-                    <span className="noir-home-artist-art noir-skeleton" />
-                    <span className="noir-skeleton mx-auto mt-3 block h-3 w-16 rounded" />
+              <div className="noir-home-wall">
+                {wallRows(Math.min(artistSlots, 12)).map((row, r) => (
+                  <div key={r} className="noir-home-wall-row">
+                    {row.map((rank) => (
+                      <div key={rank} className="noir-home-wall-item" style={{ width: wallSize(rank) + 16 }}>
+                        <span
+                          className="noir-home-wall-art noir-skeleton"
+                          style={{ width: wallSize(rank), height: wallSize(rank) }}
+                        />
+                        <span className="noir-skeleton mt-2 block h-3 w-12 rounded" />
+                      </div>
+                    ))}
                   </div>
                 ))}
-              </NoirHomeShelf>
+              </div>
             </section>
           )}
 
           {playedArtists.length >= 2 && (
             <section>
               <h2 className="noir-section-heading px-1">{strings.home.artists}</h2>
-              <NoirHomeShelf>
-                {playedArtists.map((artist) => (
-                  <button
-                    key={artist.name}
-                    type="button"
-                    onClick={() => handleViewArtistProfile(artist)}
-                    className="noir-home-artist group noir-focus-ring"
-                  >
-                    <span className="noir-home-artist-art">
-                      {artist.thumbnail ? (
-                        <img src={artist.thumbnail} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <NoirDitherCover
-                          world={worldForCollection(artist.name)}
-                          seed={artist.name}
-                          size={92}
-                          radius={999}
-                        />
-                      )}
-                    </span>
-                    <span className="noir-song-title mt-3 block truncate text-center">{artist.name}</span>
-                  </button>
+              {/* Most played in the middle and biggest: size is the data. */}
+              <div className="noir-home-wall">
+                {wallRows(playedArtists.length).map((row, r) => (
+                  <div key={r} className="noir-home-wall-row">
+                    {row.map((rank) => {
+                  const artist = playedArtists[rank];
+                  const size = wallSize(rank);
+                  return (
+                    <button
+                      key={artist.name}
+                      type="button"
+                      onClick={() => handleViewArtistProfile(artist)}
+                      className="noir-home-wall-item group noir-focus-ring"
+                      style={{ width: size + 16 }}
+                    >
+                      <span className="noir-home-wall-art" style={{ width: size, height: size }}>
+                        {artist.thumbnail ? (
+                          <img src={artist.thumbnail} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <NoirDitherCover
+                            world={worldForCollection(artist.name)}
+                            seed={artist.name}
+                            size={size}
+                            radius={999}
+                          />
+                        )}
+                      </span>
+                      <span className="noir-song-meta mt-2 block w-full truncate text-center">{artist.name}</span>
+                    </button>
+                  );
+                })}
+                  </div>
                 ))}
-              </NoirHomeShelf>
+              </div>
             </section>
           )}
+
           {listRecents.length > 0 && (
             <section>
               <h2 className="noir-section-heading !mt-2 px-1">{strings.home.jumpBackIn}</h2>
@@ -473,14 +559,16 @@ export function NoirHomeView({
             </section>
           )}
 
-          {displayMixes.length > 0 && (
+          {displayMixes.length > 1 && (
             <section>
               <h2 className="noir-section-heading px-1">
                 {mixes.length > 0 ? strings.home.yourMixes : strings.home.startHere}
               </h2>
               {/* One quiet row of equal covers; the big mosaic made Home a wall of colour. */}
               <NoirHomeShelf>
-                {displayMixes.map((mix, i) => (
+                {displayMixes.slice(1).map((mix, idx) => {
+                  const i = idx + 1;
+                  return (
                   <motion.div
                     key={mix.id}
                     role="button"
@@ -520,7 +608,8 @@ export function NoirHomeView({
                       <span className="noir-song-meta mt-0.5 block truncate">{mix.subtitle}</span>
                     </span>
                   </motion.div>
-                ))}
+                  );
+                })}
               </NoirHomeShelf>
             </section>
           )}

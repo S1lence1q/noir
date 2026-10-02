@@ -126,6 +126,7 @@ export const strings = {
     nowPlaying: 'Now playing',
     jumpBackIn: 'Jump back in',
     yourMixes: 'Your mixes',
+    madeForYou: 'Made for you',
     startHere: 'Start here',
     yourLibrary: 'Your library',
     favorites: 'Favorites',
