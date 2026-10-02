@@ -127,13 +127,13 @@ src/
 
 ## 6. Active Backlog & Next Roadmap Items
 
-*Done since last update:* T22 quiet tooltips (`NoirTooltipHost`, 800 ms delay). Graphics theme: one Settings choice, **Heat / Grain** (`utils/graphicsTheme.ts`), read by Now Playing, History hero and Home hero. Library › History has a "Most played this week" hero and an empty state; both follow the theme (`NoirGrainField` is the shared grain panel, levelled for dark/pale/grey covers).
+*Done since last update:* T22 quiet tooltips. Graphics theme (Heat / Grain, `utils/graphicsTheme.ts`) on Now Playing, History hero and Home hero. Playback fix: picking a song near the end of the current one no longer skips it (manual-load guard in `usePlaybackCore.ts`; found by reading code, not reproduced with real audio). Toast and queue-end card centre on the content area (`--noir-sidebar-w`); compact bar side columns equal. Favorites has "Add songs" (`NoirAddSongsPanel`, shared with playlists). Offline / search error / artist error states via `NoirStateNotice` + `useOnline`; `executeSearchAPI(q, n, { throwOnFail })` separates a failed search from "No results". Six-states audit: `design/STATES_AUDIT.md`.
 
-**In progress (next session picks up here):**
-1. **Playback bug (reported, rare, not reproduced):** Favorites › "Add 10", then click the *first* song in the queue → it skips the clicked song and plays the next one. Suspects: `handleSelectFromQueue` / `handleSelectSong(…, isCrossfade)` in `App.tsx`, the dual-engine crossfade in `hooks/usePlaybackCore.ts` (`isCrossfadingRef`, end-watch, `ENDED` handling), and the 400 ms `fadeVolume(0)` before `onSelectFromQueue` in `MusicPlayer.tsx`. Crossfade is also a Settings option and may be unstable. Audio fades already exist (fade in 800 ms, fade out 400 ms on select, equal-power crossfade between engines A/B): no new fade work needed unless pause/skip turn out to be abrupt.
-2. Alignment audit of the shell (measure edges/gaps with JS on every screen). Includes the toast: `.noir-toast-host` is centred on the whole window (`left: 50%`), but the player controls are centred on the content area (sidebar excluded), so the toast sits left of them. Centre it on the content area.
-3. The six mandatory states (empty, loading, partial, error, offline, done) per screen: Discover, Artist, Search, Home, Library.
-4. Favorites: songs can be added from inside it, like the other playlists.
+**Next (pick up here):**
+1. Check by hand: the Artist error state (needs an uncached artist + real failure) and Home-search error (same logic as the ⌘K palette, which was tested).
+2. Home mix failure is still silent (deliberately skipped; see STATES_AUDIT.md).
+3. Narrow windows (~1024 px): Favorites/playlist pages get cramped when the Add songs panel is open (title truncates, row text collapses).
+4. Alignment audit not yet measured on Search, Artist, Stats.
 
 **Later (ideas worth keeping, not scheduled):**
 - **Graphics theme everywhere:** Stats week hero and Artist hero still only have the Heat look; give them a Grain version so the Settings choice means something on every screen.
