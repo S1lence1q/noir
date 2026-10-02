@@ -56,8 +56,6 @@ interface MusicPlayerProps {
   onBackToHome?: () => void;
   onSearch?: (query: string) => Promise<SearchResult[]>;
   onFetchChannelUploads?: (channelId: string, limit?: number) => Promise<SearchResult[]>;
-  tourType?: 'landing' | 'player' | null;
-  currentStep?: number;
   accentColor?: AccentColor;
   onAccentColorChange?: (color: AccentColor) => void;
   textureStyle?: 'paper' | 'dots' | 'none';
@@ -131,8 +129,6 @@ export function MusicPlayer({
   onBackToHome, 
   onSearch,
   onFetchChannelUploads,
-  tourType,
-  currentStep,
   accentColor = 'emerald',
   onAccentColorChange,
   textureStyle = 'paper',
@@ -616,8 +612,6 @@ export function MusicPlayer({
             duration={duration}
             isPlaying={isPlaying}
             waveformData={waveformData}
-            tourType={tourType}
-            currentStep={currentStep}
             handleSliderChange={handleSliderChange}
             handlePreviousSong={handlePreviousSong}
             handleNextSong={handleNextSong}

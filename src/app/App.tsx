@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useLayoutEffect, useCallback, type Dispatc
 import { motion, AnimatePresence } from 'motion/react';
 
 import { MusicPlayer } from './components/MusicPlayer';
-import { OnboardingTour } from './components/OnboardingTour';
 import { AccentColor, ACCENT_THEMES } from './components/themeUtils';
 
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
@@ -238,11 +237,6 @@ export default function App() {
       cancelled = true;
     };
   }, []);
-
-  const [isIntroActive, setIsIntroActive] = useState(() => {
-    const hasSeenIntro = sessionStorage.getItem('noir_intro_seen');
-    return !hasSeenIntro;
-  });
 
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
   const [libraryFocus, setLibraryFocus] = useState<{
@@ -546,12 +540,6 @@ export default function App() {
   }, [navPosition]);
 
 
-  // Onboarding Tour State
-  const [tourType, setTourType] = useState<'landing' | 'player' | null>(null);
-  const [tourStep, setTourStep] = useState(0);
-  const [tourTransitioning, setTourTransitioning] = useState(false);
-  const tourBusyRef = useRef(false);
-  const [hasSeenTour, setHasSeenTour] = useState(() => localStorage.getItem('noir_tour_completed') === 'true');
   const [showShortcutMap, setShowShortcutMap] = useState(false);
   const [searchPaletteOpen, setSearchPaletteOpen] = useState(false);
 
@@ -608,7 +596,6 @@ export default function App() {
     };
   }, []);
 
-  const [isFirstVisit, setIsFirstVisit] = useState(() => !sessionStorage.getItem('noir_intro_seen'));
   const hasSelectedArtistOnce = useRef(false);
   const latestSelectedSongIdRef = useRef<string | null>(null);
 
@@ -1237,10 +1224,7 @@ export default function App() {
     handleSelectSong,
     handleAddToQueue,
     appState,
-    songData,
-    tourType,
-    tourStep,
-    setTourStep
+    songData
   });
   setArtistTracksRef.current = searchLogic.setArtistTracks;
 
@@ -1354,17 +1338,6 @@ export default function App() {
     window.addEventListener('noir-scroll-to-discover', handleScrollToDiscover);
     return () => window.removeEventListener('noir-scroll-to-discover', handleScrollToDiscover);
   }, [searchLogic]);
-
-  useEffect(() => {
-    const handleResetTour = () => {
-      setHasSeenTour(false);
-      localStorage.removeItem('noir_tour_completed');
-      localStorage.removeItem('noir_player_tour_completed');
-    };
-
-    window.addEventListener('noir-reset-tour', handleResetTour);
-    return () => window.removeEventListener('noir-reset-tour', handleResetTour);
-  }, []);
 
   /** Sidebar navigation always lands on the page, never stays under an open artist/mix. */
   const closeDetailOverlays = () => {
@@ -1524,117 +1497,6 @@ export default function App() {
       window.removeEventListener('noir-open-settings', onOpenSettings);
       window.removeEventListener('noir-open-playlist', onOpenPlaylist);
     };
-  }, []);
-
-  const scrollToLandingSection = (index: number) => {
-    const tab = index === 0 ? 'search' : index === 1 ? 'discover' : 'myhub';
-    setActiveTab(tab);
-  };
-
-  const startTour = () => {
-    localStorage.removeItem('noir_tour_completed');
-    localStorage.removeItem('noir_player_tour_completed');
-    setHasSeenTour(false);
-    setAppState('landing');
-    setTourTransitioning(false);
-    tourBusyRef.current = false;
-    scrollToLandingSection(0);
-    setTourType('landing');
-    setTourStep(0);
-  };
-
-  const tourScrollToSection = async (index: number) => {
-    const tab = index === 0 ? 'search' : index === 1 ? 'discover' : 'myhub';
-    setActiveTab(tab);
-    const waitTime = navMode === 'scroll' ? 850 : 300;
-    await new Promise((resolve) => setTimeout(resolve, waitTime));
-  };
-
-  const dismissTour = () => {
-    localStorage.setItem('noir_tour_completed', 'true');
-    localStorage.setItem('noir_player_tour_completed', 'true');
-    setHasSeenTour(true);
-  };
-
-  const handleTourNext = async () => {
-    if (tourBusyRef.current) return;
-    tourBusyRef.current = true;
-
-    if (tourStep === 0) {
-      setTourTransitioning(true);
-      await tourScrollToSection(1);
-      setTourStep(1);
-      setTourTransitioning(false);
-    } else if (tourStep === 1) {
-      setTourTransitioning(true);
-      await tourScrollToSection(2);
-      setTourStep(2);
-      setTourTransitioning(false);
-    } else if (tourStep === 2) {
-      setTourTransitioning(true);
-      await tourScrollToSection(0);
-      setTourType(null);
-      setTourStep(0);
-      setTourTransitioning(false);
-      localStorage.setItem('noir_tour_completed', 'true');
-      setHasSeenTour(true);
-      noirToast({
-        text: strings.tour.completed,
-        description: strings.tour.completedDesc,
-      });
-    }
-
-    tourBusyRef.current = false;
-  };
-
-  const handleTourBack = async () => {
-    if (tourBusyRef.current) return;
-    tourBusyRef.current = true;
-
-    if (tourStep === 1) {
-      setTourTransitioning(true);
-      await tourScrollToSection(0);
-      setTourStep(0);
-      setTourTransitioning(false);
-    } else if (tourStep === 2) {
-      setTourTransitioning(true);
-      await tourScrollToSection(1);
-      setTourStep(1);
-      setTourTransitioning(false);
-    }
-
-    tourBusyRef.current = false;
-  };
-
-  const handleTourSkip = () => {
-    if (tourBusyRef.current) return;
-    localStorage.setItem('noir_tour_completed', 'true');
-    setHasSeenTour(true);
-    setTourType(null);
-    setTourStep(0);
-    setTourTransitioning(false);
-    tourBusyRef.current = false;
-    scrollToLandingSection(0);
-  };
-
-  // Intro sequence logic
-  useEffect(() => {
-    const hasSeenIntro = sessionStorage.getItem('noir_intro_seen');
-    if (hasSeenIntro) {
-      setIsIntroActive(false);
-      setIsFirstVisit(false);
-      setAppState('landing');
-    } else {
-      sessionStorage.setItem('noir_intro_seen', 'true');
-      setIsIntroActive(true);
-      setIsFirstVisit(true);
-      setAppState('landing');
-      const timer = setTimeout(() => {
-        setIsIntroActive(false);
-        setIsFirstVisit(false);
-      }, 3200);
-      return () => clearTimeout(timer);
-    }
   }, []);
 
   // Cleanup color transition timeout on unmount
@@ -2112,8 +1974,6 @@ export default function App() {
               onSearch={executeSearchAPI}
               onFetchChannelUploads={executeChannelUploadsAPI}
               onViewArtist={openArtistByName}
-              tourType={tourType}
-              currentStep={tourStep}
               textureStyle={textureStyle}
               onTextureStyleChange={setTextureStyle}
               backgroundStyle={backgroundStyle}
@@ -2172,16 +2032,6 @@ export default function App() {
         onDismiss={() => queueEndPrompt.resolve('dismiss')}
       />
       <NoirToastHost />
-
-      {/* Onboarding Tour Overlay */}
-      <OnboardingTour
-        tourType={tourType}
-        currentStep={tourStep}
-        isTransitioning={tourTransitioning}
-        onNext={handleTourNext}
-        onBack={handleTourBack}
-        onSkip={handleTourSkip}
-      />
 
       {/* Arc-style search palette (⌘K) */}
       <NoirSearchPalette

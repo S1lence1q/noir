@@ -20,8 +20,6 @@ interface ArtworkCardProps {
   duration: number;
   isPlaying: boolean;
   waveformData: number[];
-  tourType?: 'landing' | 'player' | null;
-  currentStep?: number;
   handleSliderChange: (value: number[]) => void;
   handlePreviousSong: () => void;
   handleNextSong: () => void;
@@ -62,8 +60,6 @@ export function ArtworkCard({
   duration,
   isPlaying,
   waveformData,
-  tourType,
-  currentStep,
   handleSliderChange,
   handlePreviousSong,
   handleNextSong,
@@ -288,7 +284,7 @@ export function ArtworkCard({
     lastVolumeRef.current = volume;
   }, [volume]);
 
-  const isControlsVisible = isArtworkHovered || volumeChangedVisible || !isPlaying || (tourType !== null && currentStep === 1);
+  const isControlsVisible = isArtworkHovered || volumeChangedVisible || !isPlaying;
 
   const progressPct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
 
@@ -493,8 +489,6 @@ export function ArtworkCard({
                   isPlaying={isPlaying}
                   waveformData={waveformData}
                   isArtworkHovered={isArtworkHovered}
-                  tourType={tourType}
-                  currentStep={currentStep}
                   handleSliderChange={handleSliderChange}
                   handlePreviousSong={handlePreviousSong}
                   handleNextSong={handleNextSong}

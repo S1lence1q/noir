@@ -386,14 +386,4 @@ export const strings = {
     evening: 'Good evening',
     lateNight: 'Late night',
   },
-  tour: {
-    searchTitle: 'Search anything',
-    searchDesc: 'Find songs, artists, or paste a YouTube link. You can also upload local audio from the home screen.',
-    discoverTitle: 'Discover',
-    discoverDesc: 'Trending charts and daily picks live here. Scroll down or use the section dots on the right.',
-    navTitle: 'Quick navigation',
-    navDesc: 'Jump between Home, Discover, and My Hub. Favorites, playlists, and your profile live in My Hub.',
-    completed: 'You\'re all set!',
-    completedDesc: 'Search a track or explore Discover to get started.',
-  },
 } as const;

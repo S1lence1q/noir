@@ -386,14 +386,6 @@ export function NoirSettingsView() {
             window.dispatchEvent(new KeyboardEvent('keydown', { key: '?' }));
           }}
         />
-        <div className="noir-settings-divider" />
-        <ActionLink
-          label="Reset onboarding"
-          onClick={() => {
-            window.dispatchEvent(new CustomEvent('noir-reset-tour'));
-            showMiniHUD('Onboarding reset');
-          }}
-        />
       </SettingsCard>
     </div>
   );

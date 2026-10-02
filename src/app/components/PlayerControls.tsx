@@ -18,8 +18,6 @@ interface PlayerControlsProps {
   isPlaying: boolean;
   waveformData: number[];
   isArtworkHovered: boolean;
-  tourType: 'landing' | 'player' | null;
-  currentStep: number | undefined;
   handleSliderChange: (value: number[]) => void;
   handlePreviousSong: () => void;
   handleNextSong: () => void;
@@ -43,8 +41,6 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
   isPlaying,
   waveformData,
   isArtworkHovered,
-  tourType,
-  currentStep,
   handleSliderChange,
   handlePreviousSong,
   handleNextSong,
@@ -89,7 +85,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
 
   const isFavorite = favorites.some(fav => fav.id === (songData.videoId || songData.audioUrl));
   const controlsVisible =
-    isArtworkHovered || !isPlaying || (tourType !== null && currentStep === 1) || showPlaylistMenu;
+    isArtworkHovered || !isPlaying || showPlaylistMenu;
   const progressPct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
 
   return (

@@ -123,9 +123,6 @@ interface SearchLogicOptions {
   handleAddToQueue: (song: SearchResult) => void;
   appState: 'landing' | 'processing' | 'ready';
   songData: any;
-  tourType: 'landing' | 'player' | null;
-  tourStep: number;
-  setTourStep: (step: number) => void;
 }
 
 function isPlaceholderOrEmpty(url?: string) {
@@ -143,9 +140,6 @@ export function useSearchLogic({
   handleAddToQueue,
   appState,
   songData,
-  tourType,
-  tourStep,
-  setTourStep,
 }: SearchLogicOptions) {
   const [searchQuery, setSearchQuery] = useState('');
   const [lastSearchedQuery, setLastSearchedQuery] = useState('');
