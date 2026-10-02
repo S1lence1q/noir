@@ -2029,22 +2029,15 @@ button.noir-now-playing-source:hover {
   gap: 16px;
 }
 
-/* Playback on the left, the rest stacked on the right; one column when the window is narrow. */
+/* One column, in reading order: Playback, Appearance, Library, About. */
 .noir-settings {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 40px;
-  align-items: start;
-}
-.noir-settings-side {
   display: flex;
   flex-direction: column;
   gap: 40px;
+  max-width: 720px;
 }
-@media (max-width: 899px) {
-  .noir-settings {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.noir-settings-side {
+  display: contents;
 }
 
 .noir-settings-select-wrap--inline {
@@ -2056,6 +2049,7 @@ button.noir-now-playing-source:hover {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  max-width: 420px;
 }
 .noir-graphics-tile {
   display: flex;
@@ -2145,7 +2139,7 @@ button.noir-now-playing-source:hover {
   align-items: center;
   gap: 12px;
   /* A real width: a % inside a shrink-wrapped control resolved to ~0 and hid the slider. */
-  width: 200px;
+  width: 260px;
   max-width: 100%;
 }
 
