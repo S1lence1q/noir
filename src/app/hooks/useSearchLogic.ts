@@ -263,7 +263,7 @@ export function useSearchLogic({
           `https://musicbrainz.org/ws/2/artist/?query=artist:${encodeURIComponent(queryVal)}&fmt=json`,
           {
             headers: {
-              'User-Agent': 'ElvaMusicApp/1.0 ( contact@elva.fm )',
+              'User-Agent': 'NoirMusicApp/1.0',
             },
             timeout: 2500,
           }
@@ -512,7 +512,7 @@ export function useSearchLogic({
     // MusicBrainz tags (non-blocking)
     fetchWithTimeout(
       `https://musicbrainz.org/ws/2/artist/?query=artist:${encodeURIComponent(displayArtist.name)}&fmt=json`,
-      { headers: { 'User-Agent': 'ElvaMusicApp/1.0 ( contact@elva.fm )' } },
+      { headers: { 'User-Agent': 'NoirMusicApp/1.0' } },
       2500
     )
       .then(async (mbRes) => {
