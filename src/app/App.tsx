@@ -2096,7 +2096,6 @@ export default function App() {
               onNavModeChange={handleSetNavMode}
               navPosition={navPosition}
               onNavPositionChange={setNavPosition}
-              shellMode
             />
             </ErrorBoundary>
 
