@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { NoirStateNotice } from './NoirStateNotice';
 import { ReleaseCard, openRelease, playRelease } from './NoirReleaseCard';
 import { NoirTrackCard } from './NoirTrackCard';
+import { NoirMixVariants } from './NoirMixVariants';
 import {
   BecauseRow,
   DiscoverReleaseCard,
@@ -587,6 +588,15 @@ export function NoirHomeView({
   return (
     <div className="relative h-full min-h-0 overflow-y-auto scrollbar-none">
       <div className="h-[60px] shrink-0" />
+
+      {typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('mixes') && displayMixes.length > 0 && (
+        <NoirMixVariants
+          mixes={displayMixes}
+          worlds={mixWorlds}
+          onOpen={(mix, world) => openMix(mix, world)}
+          onPlay={(mix) => playMix(mix)}
+        />
+      )}
 
       {/* Dev check of every mix symbol: open Home with ?covers */}
       {typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('covers') && (

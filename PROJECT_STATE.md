@@ -154,3 +154,5 @@ src/
 6. **Communication:** Communicate with the user in Danish; keep all in-app UI copy in English.
 
 **Home vs Discover (decided 2026-10-02):** Home = built from you (your history, your artists: Jump back in, your artists, latest from your artists, your mixes, library, plus one "Because you play X" row picked daily). Discover = built from the world (charts, genres, artists like yours, new from artists like yours, the other "Because you play" rows). Familiarity does not decide it; what the content is built from does. Discover no longer repeats "New from artists you play". `loadBecauseRows` / `dailyBecauseIndex` in `discoverFeed.ts`; `NoirTrackCard` is the shared song card. Mixes and Discover genres merge tags that share a symbol ("danish" + "denmark"); daily mix cache key bumped to v5.
+
+Mix layout compare sheet: open Home with `?mixes` (`NoirMixVariants.tsx`): A posters (live), B banners, C pills, D fan. Dev only; delete once one is chosen.
