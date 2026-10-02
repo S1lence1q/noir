@@ -107,13 +107,15 @@ export default function App() {
   });
   const [nowPlayingOpen, setNowPlayingOpen] = useState(() => !!readShellUiSession()?.nowPlayingOpen);
   const [queueSource, setQueueSource] = useState<string | null>(() => readPlaybackSession()?.queueSource ?? null);
-  const [isMiniPlaying, setIsMiniPlaying] = useState(true);
+  const [isMiniPlaying, setIsMiniPlaying] = useState(() => readPlaybackSession()?.wasPlaying ?? true);
   const [shellPlayback, setShellPlayback] = useState<ShellPlaybackState>({
     currentTime: 0,
     duration: 0,
     isPlaying: true,
   });
   const restoreSeekRef = useRef<number | null>(null);
+  /** Saved session for the first song of this page; the engine cues a paused one instead of playing it. */
+  const restoreRef = useRef<{ paused: boolean; at: number } | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -190,7 +192,8 @@ export default function App() {
   } | null>(() => {
     const session = readPlaybackSession();
     if (!session?.song) return null;
-    restoreSeekRef.current = session.currentTime > 2 ? session.currentTime : null;
+    restoreRef.current = { paused: !session.wasPlaying, at: session.currentTime };
+    restoreSeekRef.current = session.wasPlaying && session.currentTime > 2 ? session.currentTime : null;
     return session.song;
   });
   useListeningRecorder(songData, shellPlayback);
@@ -319,20 +322,35 @@ export default function App() {
     });
   }, [activeTab, nowPlayingOpen, libraryOpenPlaylistId, libraryFocus.section]);
 
-  // Remember now-playing + queue so the compact bar comes back after a reload.
+  // Remember now-playing + queue so the compact bar comes back after a reload. The position moves
+  // every 250 ms, so it is written on a 2 s tick (a debounce on it never fires while a song plays);
+  // the song, queue and play state are written 400 ms after they change, and again when the page hides.
+  const playbackSessionRef = useRef<Parameters<typeof writePlaybackSession>[0] | null>(null);
+  playbackSessionRef.current = songData
+    ? { song: songData, queue, queueSource, currentTime: shellPlayback.currentTime, wasPlaying: isMiniPlaying }
+    : null;
+  const hasSong = !!songData;
+
+  useEffect(() => {
+    if (!hasSong) return;
+    const flush = () => {
+      if (playbackSessionRef.current) writePlaybackSession(playbackSessionRef.current);
+    };
+    const tick = window.setInterval(flush, 2000);
+    window.addEventListener('pagehide', flush);
+    return () => {
+      window.clearInterval(tick);
+      window.removeEventListener('pagehide', flush);
+    };
+  }, [hasSong]);
+
   useEffect(() => {
     if (!songData) return;
     const timer = window.setTimeout(() => {
-      writePlaybackSession({
-        song: songData,
-        queue,
-        queueSource,
-        currentTime: shellPlayback.currentTime,
-        wasPlaying: isMiniPlaying,
-      });
+      if (playbackSessionRef.current) writePlaybackSession(playbackSessionRef.current);
     }, 400);
     return () => window.clearTimeout(timer);
-  }, [songData, queue, queueSource, shellPlayback.currentTime, isMiniPlaying]);
+  }, [songData, queue, queueSource, isMiniPlaying]);
 
   // After restore: seek once the hidden player has loaded.
   useEffect(() => {
@@ -1761,6 +1779,7 @@ export default function App() {
             onSelectFromQueue={handleSelectFromQueue}
             onPlayingStateChange={setIsMiniPlaying}
             onShellPlaybackState={setShellPlayback}
+            restore={restoreRef.current}
           />
         </ErrorBoundary>
       )}

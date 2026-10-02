@@ -15,6 +15,8 @@ interface UsePlaybackCoreOptions {
   queue: PlaybackQueueItem[];
   onSelectFromQueue?: (id: string, isCrossfade?: boolean) => void;
   onPlayingStateChange?: (playing: boolean) => void;
+  /** First song of this page came from a saved session: if paused, cue it at `at` instead of playing. */
+  restore?: { paused: boolean; at: number } | null;
 }
 
 export function usePlaybackCore({
@@ -22,9 +24,12 @@ export function usePlaybackCore({
   queue,
   onSelectFromQueue,
   onPlayingStateChange,
+  restore,
 }: UsePlaybackCoreOptions) {
+  const restoreRef = useRef(restore ?? null);
+
   // 1. Core States
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(!restore?.paused);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState<number>(() => {
@@ -288,6 +293,12 @@ export function usePlaybackCore({
       if (activeFader.current < 0.1) {
         void activeFadeVolume(1, 800);
       }
+    } else if (e.data === window.YT.PlayerState.CUED) {
+      // Restored paused: the progress timer is not running, so read the length once here.
+      try {
+        const dur = e.target.getDuration() || 0;
+        if (dur > 0) setDuration(dur);
+      } catch {}
     } else if (e.data === window.YT.PlayerState.PAUSED) {
       if (!isTransitioningRef.current && !isCrossfadingRef.current && Date.now() > awaitingPlayUntilRef.current) {
         clearEndWatch();
@@ -527,6 +538,35 @@ export function usePlaybackCore({
       }
     }
   }, [initAnalyzer, fadeVolumeA, fadeVolumeB, faderRefA, faderRefB, getOrInitYTPlayer, startYouTubePlayback]);
+
+  /** Load a song without playing it, parked at `at` seconds (restoring a paused session). */
+  const cueSongIntoEngine = useCallback(async (engineId: 'A' | 'B', song: PlaybackSongData, at: number) => {
+    const isEngineA = engineId === 'A';
+    const isYouTubeRef = isEngineA ? isYouTubeRefA : isYouTubeRefB;
+    const audioEl = isEngineA ? audioRefA.current : audioRefB.current;
+    const fader = isEngineA ? faderRefA : faderRefB;
+
+    isYouTubeRef.current = !!song.videoId;
+    fader.current = 0;
+    setCurrentTime(at);
+
+    if (song.videoId) {
+      const ytPlayer = await getOrInitYTPlayer(engineId);
+      if (ytPlayer && typeof ytPlayer.cueVideoById === 'function') {
+        try {
+          ytPlayer.mute?.();
+          ytPlayer.setVolume?.(0);
+          ytPlayer.cueVideoById({ videoId: song.videoId, startSeconds: at });
+        } catch {}
+      }
+    } else if (song.audioUrl && audioEl) {
+      audioEl.src = song.audioUrl;
+      audioEl.volume = 0;
+      audioEl.load();
+      if (at > 0) audioEl.currentTime = at;
+    }
+    isTransitioningRef.current = false;
+  }, [faderRefA, faderRefB, getOrInitYTPlayer]);
 
   const handleNextSong = useCallback(async () => {
     const activeKey = getPlaybackSongKey(songDataRef.current);
@@ -1034,6 +1074,12 @@ export function usePlaybackCore({
     if (songKey && songKey !== lastLoadedSongRef.current) {
       const isFirstLoad = !lastLoadedSongRef.current;
       lastLoadedSongRef.current = songKey;
+      if (isFirstLoad && restoreRef.current?.paused) {
+        const { at } = restoreRef.current;
+        restoreRef.current = null;
+        void cueSongIntoEngine(activeEngine, songData, at);
+        return;
+      }
       awaitingPlayUntilRef.current = Date.now() + 8000;
       setPlaying(true);
       // Kill any running crossfade now, before the 300ms fade-out, so it can't finish mid-load.
@@ -1083,7 +1129,7 @@ export function usePlaybackCore({
         void proceedManualLoad();
       }
     }
-  }, [songData, activeEngine, loadSongIntoEngine, abortActiveCrossfade, clearEndWatch, setPlaying, isPlaying, fadeVolumeA, fadeVolumeB]);
+  }, [songData, activeEngine, loadSongIntoEngine, cueSongIntoEngine, abortActiveCrossfade, clearEndWatch, setPlaying, isPlaying, fadeVolumeA, fadeVolumeB]);
 
   // Media Session API registration
   useEffect(() => {

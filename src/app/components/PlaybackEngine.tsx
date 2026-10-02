@@ -25,6 +25,8 @@ interface PlaybackEngineProps {
   onSelectFromQueue?: (id: string, isCrossfade?: boolean) => void;
   onPlayingStateChange?: (playing: boolean) => void;
   onShellPlaybackState?: (state: { currentTime: number; duration: number; isPlaying: boolean }) => void;
+  /** Set when the first song comes from a saved session. */
+  restore?: { paused: boolean; at: number } | null;
 }
 
 /**
@@ -38,6 +40,7 @@ export function PlaybackEngine({
   onSelectFromQueue,
   onPlayingStateChange,
   onShellPlaybackState,
+  restore,
 }: PlaybackEngineProps) {
   const { isPlaying, currentTime, duration, setDuration, audioRefA, audioRefB, activeEngine } = usePlaybackCore({
     songData,
@@ -51,6 +54,7 @@ export function PlaybackEngine({
     })),
     onSelectFromQueue,
     onPlayingStateChange,
+    restore,
   });
 
   useEffect(() => {
