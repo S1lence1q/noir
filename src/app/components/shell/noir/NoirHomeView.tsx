@@ -419,13 +419,14 @@ export function NoirHomeView({
           title={mixes.length > 0 ? strings.home.yourMixes : strings.home.startHere}
           meta={mixes.length > 0 ? strings.home.meta.mixesToday : strings.home.meta.mixesCharts}
         />
-        {/* Same quiet tiles as Jump back in and Library: the symbol is small, the hero is the one big picture. */}
+        {/* A hand of cards: the card holds still and takes the pointer, only its face moves. */}
         <div className="noir-home-fan" style={{ '--n': displayMixes.length } as CSSProperties}>
           {displayMixes.map((mix, i) => (
             <div
               key={mix.id}
               role="button"
               tabIndex={0}
+              aria-label={mix.name}
               onClick={() => openMix(mix, mixWorlds[i])}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -433,33 +434,33 @@ export function NoirHomeView({
                   openMix(mix, mixWorlds[i]);
                 }
               }}
-              className="noir-home-poster noir-home-fan-card group noir-focus-ring"
-              style={{
-                '--i': i,
-                background: COLOR_WORLDS[mixWorlds[i]].field,
-                color: inkOn(mixWorlds[i]),
-              } as CSSProperties}
+              className="noir-home-fan-card group noir-focus-ring"
+              style={{ '--i': i } as CSSProperties}
             >
-              <span className="relative block">
-                <NoirMixCover tag={mix.tag} world={mixWorlds[i]} size={152} radius={0} />
-                {onPlayPlaylist && (
-                  <button
-                    type="button"
-                    className="noir-home-poster-play noir-focus-ring"
-                    aria-label={`${strings.home.playMix}: ${mix.name}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      playMix(mix);
-                    }}
-                  >
-                    <Play className="ml-0.5 h-4 w-4 fill-current" />
-                  </button>
-                )}
-              </span>
-              <span className="noir-home-poster-text">
-                <span className="noir-home-poster-name">{mix.name}</span>
-                <span className="noir-home-poster-meta">{mix.subtitle}</span>
-              </span>
+              <div
+                className="noir-home-poster noir-home-fan-face"
+                style={{ background: COLOR_WORLDS[mixWorlds[i]].field, color: inkOn(mixWorlds[i]) }}
+              >
+                <span className="relative block">
+                  <NoirMixCover tag={mix.tag} world={mixWorlds[i]} size={152} radius={0} />
+                  {onPlayPlaylist && (
+                    <button
+                      type="button"
+                      className="noir-home-poster-play noir-focus-ring"
+                      aria-label={`${strings.home.playMix}: ${mix.name}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        playMix(mix);
+                      }}
+                    >
+                      <Play className="ml-0.5 h-4 w-4 fill-current" />
+                    </button>
+                  )}
+                </span>
+                <span className="noir-home-poster-text">
+                  <span className="noir-home-poster-name">{mix.name}</span>
+                </span>
+              </div>
             </div>
           ))}
         </div>
