@@ -476,6 +476,21 @@
   color: var(--noir-text-primary);
 }
 
+/* Heading with one quiet data line on the right (Home). */
+.noir-section-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.noir-section-meta {
+  margin: var(--noir-section-gap) 4px 16px 0;
+  font-size: 13px;
+  color: var(--noir-text-tertiary);
+  white-space: nowrap;
+}
+
 /* Column grid for song-list rows only; other .noir-track-row users keep their own flex layout. */
 .noir-song-grid {
   display: grid;

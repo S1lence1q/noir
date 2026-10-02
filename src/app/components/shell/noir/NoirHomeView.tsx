@@ -46,6 +46,16 @@ const SECTION_ORDER: Record<Daypart, HomeSection[]> = {
   lateNight: ['recents', 'library', 'mixes', 'artists'],
 };
 
+/** Section title with one quiet line of data on the right. */
+function SectionHead({ title, meta }: { title: string; meta?: string | null }) {
+  return (
+    <div className="noir-section-row">
+      <h2 className="noir-section-heading px-1">{title}</h2>
+      {meta ? <p className="noir-section-meta">{meta}</p> : null}
+    </div>
+  );
+}
+
 export type NoirHomeViewProps = {
   recentArtists: VerifiedArtist[];
   recentlyPlayed: SearchResult[];
@@ -104,6 +114,8 @@ export function NoirHomeView({
   const [playedArtists, setPlayedArtists] = useState<VerifiedArtist[]>([]);
   /** How many portraits are coming, known before the photos are: keeps the row's height from jumping. */
   const [artistSlots, setArtistSlots] = useState(0);
+  /** Plays in the last 7 days, for the quiet line under Jump back in. */
+  const [weekPlays, setWeekPlays] = useState(0);
   // Fixed when Home opens, so the page never reshuffles under you at an hour change.
   const daypart = useMemo(() => daypartAt(new Date().getHours()), []);
   const greeting = strings.greeting[daypart];
@@ -142,6 +154,8 @@ export function NoirHomeView({
 
         const top = topArtists(events, 30).slice(0, 12);
         if (!cancelled) setArtistSlots(top.length);
+        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        if (!cancelled) setWeekPlays(events.filter((event) => event.source !== 'seed' && event.startedAt >= weekAgo).length);
         const cards = await Promise.all(
           top.map(async (entry) => {
             const image = await getArtistImage(entry.artist);
@@ -248,7 +262,7 @@ export function NoirHomeView({
   
     {playedArtists.length >= 2 && (
       <section>
-        <h2 className="noir-section-heading px-1">{strings.home.artists}</h2>
+        <SectionHead title={strings.home.artists} meta={strings.home.meta.artists} />
         <NoirHomeShelf>
           {playedArtists.map((artist) => (
             <button
@@ -282,7 +296,7 @@ export function NoirHomeView({
     <>
     {listRecents.length > 0 && (
       <section>
-        <h2 className="noir-section-heading px-1">{strings.home.jumpBackIn}</h2>
+        <SectionHead title={strings.home.jumpBackIn} meta={weekPlays > 0 ? strings.home.meta.plays(weekPlays) : null} />
         <div className="noir-home-tiles">
           {listRecents.slice(0, 6).map((track, i) => {
             const playing = isTrackPlaying(track) && isPlaying;
@@ -351,9 +365,10 @@ export function NoirHomeView({
   
     {displayMixes.length > 0 && (
       <section>
-        <h2 className="noir-section-heading px-1">
-          {mixes.length > 0 ? strings.home.yourMixes : strings.home.startHere}
-        </h2>
+        <SectionHead
+          title={mixes.length > 0 ? strings.home.yourMixes : strings.home.startHere}
+          meta={mixes.length > 0 ? strings.home.meta.mixesToday : strings.home.meta.mixesCharts}
+        />
         {/* Same quiet tiles as Jump back in and Library: the symbol is small, the hero is the one big picture. */}
         <div className="noir-home-tiles">
           {displayMixes.map((mix, i) => (
@@ -405,7 +420,7 @@ export function NoirHomeView({
     <>
     {(favorites.length > 0 || playlists.length > 0) && (
       <section>
-        <h2 className="noir-section-heading px-1">{strings.home.yourLibrary}</h2>
+        <SectionHead title={strings.home.yourLibrary} meta={strings.home.meta.library(favorites.length, playlists.length)} />
         {/* Compact rows, same shape as Jump back in: the covers live in Library, not here. */}
         <div className="noir-home-tiles">
           {favorites.length > 0 && (

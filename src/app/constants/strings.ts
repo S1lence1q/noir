@@ -126,6 +126,14 @@ export const strings = {
     nowPlaying: 'Now playing',
     jumpBackIn: 'Jump back in',
     yourMixes: 'Your mixes',
+    meta: {
+      artists: 'Last 30 days',
+      plays: (n: number) => (n === 1 ? '1 play this week' : `${n} plays this week`),
+      mixesToday: 'Made today',
+      mixesCharts: 'From the charts',
+      library: (songs: number, lists: number) =>
+        `${songs === 1 ? '1 song' : `${songs} songs`} · ${lists === 1 ? '1 playlist' : `${lists} playlists`}`,
+    },
     startHere: 'Start here',
     yourLibrary: 'Your library',
     favorites: 'Favorites',
