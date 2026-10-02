@@ -6,6 +6,7 @@ import {
   getArtistImage,
   getArtistTags,
   getNewReleases,
+  getArtistAlbums,
   getSimilarArtists,
   getTagTopTracks,
   getTrackImage,
@@ -17,7 +18,7 @@ import { normalizeName } from '../musicGraph/normalize';
 import { genreTitle } from '../../utils/genreName';
 
 const MIN_SHELF = 3;
-const RELEASE_DAYS = 45;
+export const RELEASE_DAYS = 45;
 
 export type DiscoverReleaseCard = GraphRelease & {
   id: string;
@@ -269,4 +270,55 @@ async function buildDiscoverFeed(events: ReadonlyArray<ListeningEvent>): Promise
     artistsLike: artistsLike.length >= MIN_SHELF ? artistsLike : [],
     tags,
   };
+}
+
+const latestMemo = new Map<string, { at: number; cards: Promise<DiscoverReleaseCard[]> }>();
+
+/**
+ * The most recent release of each of your top artists, whatever its age. Used on Home when nothing
+ * is brand new, so the shelf is never empty for someone who plays older music.
+ */
+export function loadLatestReleases(events: ReadonlyArray<ListeningEvent>): Promise<DiscoverReleaseCard[]> {
+  const artists = topArtists(events, 30)
+    .slice(0, 8)
+    .map((entry) => entry.artist);
+  const key = artists.join('|');
+  const hit = latestMemo.get(key);
+  if (hit && Date.now() - hit.at < FEED_TTL_MS) return hit.cards;
+  const cards = buildLatestReleases(artists);
+  latestMemo.set(key, { at: Date.now(), cards });
+  cards.catch(() => latestMemo.delete(key));
+  return cards;
+}
+
+async function buildLatestReleases(artists: string[]): Promise<DiscoverReleaseCard[]> {
+  const batches = await Promise.all(
+    artists.map(async (artist) => {
+      const albums = await getArtistAlbums(artist, undefined, 12);
+      // Newest first already; skip compilations so it reads as "their latest", not a best-of.
+      const latest = albums.find((a) => a.recordType !== 'compile' && !!a.image);
+      if (!latest) return null;
+      // Same namesake guard as the new-releases shelf.
+      if (
+        normalizeName(latest.artist) === normalizeName(artist) &&
+        strictName(latest.artist) !== strictName(artist)
+      ) {
+        return null;
+      }
+      return {
+        id: `dz:${latest.id}`,
+        title: latest.title,
+        artist: latest.artist,
+        releaseDate: latest.releaseDate || latest.year || '',
+        image: latest.image,
+        deezerId: latest.id,
+      } satisfies DiscoverReleaseCard;
+    })
+  );
+  const seen = new Set<string>();
+  return batches
+    .filter((card): card is DiscoverReleaseCard => card !== null)
+    .filter((card) => (seen.has(card.id) ? false : (seen.add(card.id), true)))
+    .sort((a, b) => b.releaseDate.localeCompare(a.releaseDate))
+    .slice(0, 10);
 }

@@ -126,9 +126,12 @@ export const strings = {
     nowPlaying: 'Now playing',
     jumpBackIn: 'Jump back in',
     yourMixes: 'Your mixes',
+    latestReleases: 'Latest from artists you play',
     meta: {
       artists: 'Last 30 days',
+      releases: (days: number) => `Last ${days} days`,
       plays: (n: number) => (n === 1 ? '1 play this week' : `${n} plays this week`),
+      latestEach: 'One from each',
       mixesToday: 'Made today',
       mixesCharts: 'From the charts',
       library: (songs: number, lists: number) =>

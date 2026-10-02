@@ -1,5 +1,7 @@
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { NoirStateNotice } from './NoirStateNotice';
+import { ReleaseCard, openRelease, playRelease } from './NoirReleaseCard';
+import { DiscoverReleaseCard, RELEASE_DAYS, loadDiscoverFeed, loadLatestReleases } from '../../../services/discover/discoverFeed';
 import { AnimatePresence, motion } from 'motion/react';
 import { Compass, Play, Plus, Search } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
@@ -29,7 +31,7 @@ import { NoirGrainField } from './NoirGrainField';
 import { useGraphicsTheme } from '../../../utils/graphicsTheme';
 
 type Daypart = 'lateNight' | 'morning' | 'afternoon' | 'evening';
-type HomeSection = 'artists' | 'recents' | 'mixes' | 'library';
+type HomeSection = 'artists' | 'releases' | 'recents' | 'mixes' | 'library';
 
 function daypartAt(hour: number): Daypart {
   if (hour < 5) return 'lateNight';
@@ -40,10 +42,10 @@ function daypartAt(hour: number): Daypart {
 
 /** What leads Home follows the hour: fresh mixes to start the day, what you know once it winds down. */
 const SECTION_ORDER: Record<Daypart, HomeSection[]> = {
-  morning: ['mixes', 'artists', 'recents', 'library'],
-  afternoon: ['artists', 'recents', 'mixes', 'library'],
-  evening: ['recents', 'library', 'artists', 'mixes'],
-  lateNight: ['recents', 'library', 'mixes', 'artists'],
+  morning: ['mixes', 'releases', 'artists', 'recents', 'library'],
+  afternoon: ['artists', 'releases', 'recents', 'mixes', 'library'],
+  evening: ['recents', 'releases', 'library', 'artists', 'mixes'],
+  lateNight: ['recents', 'library', 'releases', 'mixes', 'artists'],
 };
 
 /** Section title with one quiet line of data on the right. */
@@ -116,6 +118,10 @@ export function NoirHomeView({
   const [artistSlots, setArtistSlots] = useState(0);
   /** Plays in the last 7 days, for the quiet line under Jump back in. */
   const [weekPlays, setWeekPlays] = useState(0);
+  /** null = still loading; the feed is warmed at startup, so this is usually instant. */
+  const [releases, setReleases] = useState<DiscoverReleaseCard[] | null>(null);
+  /** True when nothing is new and the shelf shows each artist's latest instead. */
+  const [releasesFallback, setReleasesFallback] = useState(false);
   // Fixed when Home opens, so the page never reshuffles under you at an hour change.
   const daypart = useMemo(() => daypartAt(new Date().getHours()), []);
   const greeting = strings.greeting[daypart];
@@ -154,6 +160,21 @@ export function NoirHomeView({
 
         const top = topArtists(events, 30).slice(0, 12);
         if (!cancelled) setArtistSlots(top.length);
+        void (async () => {
+          try {
+            const feed = await loadDiscoverFeed(events);
+            if (feed.newReleases.length > 0) {
+              if (!cancelled) setReleases(feed.newReleases.slice(0, 10));
+              return;
+            }
+            const latest = await loadLatestReleases(events);
+            if (cancelled) return;
+            setReleasesFallback(true);
+            setReleases(latest);
+          } catch {
+            if (!cancelled) setReleases([]);
+          }
+        })();
         const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
         if (!cancelled) setWeekPlays(events.filter((event) => event.source !== 'seed' && event.startedAt >= weekAgo).length);
         const cards = await Promise.all(
@@ -474,9 +495,44 @@ export function NoirHomeView({
     </>
   );
 
+  const releasesBlock =
+    releases && releases.length > 0 ? (
+      <section>
+        <SectionHead
+          title={releasesFallback ? strings.home.latestReleases : strings.discover.newReleases}
+          meta={releasesFallback ? strings.home.meta.latestEach : strings.home.meta.releases(RELEASE_DAYS)}
+        />
+        <NoirHomeShelf>
+          {releases.map((release, i) => (
+            <ReleaseCard
+              key={release.id}
+              release={release}
+              index={i}
+              reduced={reduced}
+              onOpen={() => onSelectPlaylist && void openRelease(release, onSelectPlaylist)}
+              onPlay={() => onPlayPlaylist && void playRelease(release, onPlayPlaylist)}
+            />
+          ))}
+        </NoirHomeShelf>
+      </section>
+    ) : releases === null && artistSlots >= 2 ? (
+      <section aria-hidden>
+        <SectionHead title={strings.discover.newReleases} />
+        <NoirHomeShelf>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="noir-home-shelf-card">
+              <div className="noir-skeleton h-[168px] w-[168px] rounded-[var(--noir-radius-md)]" />
+              <div className="noir-skeleton mt-3 h-3 w-24 rounded" />
+            </div>
+          ))}
+        </NoirHomeShelf>
+      </section>
+    ) : null;
+
   const sectionOrder = SECTION_ORDER[daypart];
   const blocks: Record<HomeSection, ReactNode> = {
     artists: artistsBlock,
+    releases: releasesBlock,
     recents: recentsBlock,
     mixes: mixesBlock,
     library: libraryBlock,
