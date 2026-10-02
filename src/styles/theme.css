@@ -52,19 +52,6 @@
   initial-value: rgba(0, 0, 0, 0);
 }
 
-.bg-transition {
-  transition: --theme-primary 1.5s cubic-bezier(0.16, 1, 0.3, 1),
-              --theme-secondary 1.5s cubic-bezier(0.16, 1, 0.3, 1),
-              --theme-accent 1.5s cubic-bezier(0.16, 1, 0.3, 1),
-              --theme-primary-fade 1.5s cubic-bezier(0.16, 1, 0.3, 1),
-              --theme-secondary-fade 1.5s cubic-bezier(0.16, 1, 0.3, 1),
-              --theme-accent-fade 1.5s cubic-bezier(0.16, 1, 0.3, 1),
-              --theme-primary-shadow 1.5s cubic-bezier(0.16, 1, 0.3, 1),
-              --theme-secondary-shadow 1.5s cubic-bezier(0.16, 1, 0.3, 1),
-              --theme-primary-shadow-idle 1.5s cubic-bezier(0.16, 1, 0.3, 1),
-              --theme-secondary-shadow-idle 1.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
 /* ─── Elva Surface System ──────────────────────────────────────────────────
    Three canonical surface levels to replace scattered near-identical darks.
    surface-0 = app background layer
@@ -95,77 +82,6 @@
   --noir-shadow-chrome: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 40px rgba(0, 0, 0, 0.55);
 }
 
-/* Reusable utility classes */
-.noir-surface-0 { background-color: var(--noir-surface-0); }
-.noir-surface-1 { background-color: var(--noir-surface-1); }
-.noir-surface-2 { background-color: var(--noir-surface-2); }
-
-.noir-border { border-color: var(--noir-border-subtle); }
-.noir-border-default { border-color: var(--noir-border-default); }
-.noir-border-strong { border-color: var(--noir-border-strong); }
-
-/* Glass panels — replaces scattered #0a0b10 / #0c0d14 hex values */
-.noir-glass {
-  background-color: color-mix(in srgb, var(--noir-surface-1) 60%, transparent);
-  border: 1px solid var(--noir-border-subtle);
-  box-shadow: var(--noir-shadow-inset);
-}
-.noir-glass-elevated {
-  background-color: color-mix(in srgb, var(--noir-surface-2) 75%, transparent);
-  border: 1px solid var(--noir-border-default);
-  box-shadow: var(--noir-shadow-panel);
-}
-.noir-glass-chrome {
-  background-color: color-mix(in srgb, var(--noir-surface-1) 65%, transparent);
-  border: 1px solid var(--noir-border-default);
-  box-shadow: var(--noir-shadow-chrome);
-  backdrop-filter: blur(24px);
-}
-.noir-glass-frosted {
-  background-color: color-mix(in srgb, var(--noir-surface-1) 40%, transparent);
-  border: 1px solid var(--noir-border-subtle);
-  backdrop-filter: blur(12px);
-}
-/* Borderless fill for cards on dynamic backgrounds — no blur (avoids light rim artifact) */
-.noir-glass-soft {
-  background-color: rgba(255, 255, 255, 0.04);
-  border: none;
-  outline: none;
-  box-shadow: none;
-}
-.noir-glass-soft:hover {
-  background-color: rgba(255, 255, 255, 0.06);
-}
-/* Dim only — no backdrop-filter (avoids locked glass rect when scrolling nested content) */
-.noir-overlay {
-  background-color: rgba(0, 0, 0, 0.52);
-}
-.noir-chip-active {
-  background-color: var(--noir-surface-0);
-  border: 1px solid var(--noir-border-default);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-}
-.noir-input {
-  background-color: color-mix(in srgb, var(--noir-surface-1) 60%, transparent);
-  border: 1px solid var(--noir-border-subtle);
-  box-shadow: var(--noir-shadow-inset);
-}
-.noir-input:focus-visible {
-  background-color: color-mix(in srgb, var(--noir-surface-2) 85%, transparent);
-  border-color: var(--noir-border-strong);
-  box-shadow: var(--noir-shadow-inset), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 12px 40px rgba(0, 0, 0, 0.55);
-}
-.noir-inset-line::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1.5px;
-  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
-  pointer-events: none;
-}
-
 /* Typography tokens — minimum 11px; section labels 12px for legibility */
 .noir-section-label {
   font-size: 12px;
@@ -180,19 +96,6 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--noir-text-muted);
-}
-.noir-label-sm {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--noir-theme-text-secondary);
-}
-.noir-body-muted {
-  font-size: 13px;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.55);
-  letter-spacing: 0.02em;
 }
 
 /* ─── Accent palettes — muted, tuned for dark mercury UI ───────────────── */
@@ -242,41 +145,9 @@
 .bg-noir-accent-soft { background-color: var(--noir-theme-accent-soft); }
 .bg-noir-accent-softer { background-color: var(--noir-accent-softer); }
 .border-noir-accent { border-color: var(--noir-accent-border); }
-.shadow-noir-accent-glow { box-shadow: 0 0 20px var(--noir-accent-glow); }
-.ring-noir-accent { --tw-ring-color: var(--noir-accent-ring); }
 .hover\:bg-noir-accent-soft:hover { background-color: var(--noir-theme-accent-soft); }
 .hover\:text-noir-accent:hover { color: var(--noir-theme-accent); }
 .hover\:border-noir-accent:hover { border-color: var(--noir-accent-border); }
-
-.noir-empty-state-panel {
-  background-color: rgba(255, 255, 255, 0.03);
-  border-radius: 1rem;
-}
-
-.noir-hub-card {
-  background-color: rgba(255, 255, 255, 0.015);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-.noir-hub-row {
-  background-color: rgba(255, 255, 255, 0.015);
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  border-radius: 1rem;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-.noir-hub-row:hover {
-  background-color: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.06);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-pulse {
-    animation: none !important;
-  }
-}
 
 /* Focus ring for custom icon buttons */
 .noir-focus-ring:focus {
@@ -288,55 +159,6 @@
 }
 
 /* Scroll fade — masks content at top and bottom dynamically */
-.noir-scroll-fade {
-  position: relative;
-}
-.noir-scroll-fade[data-can-scroll-up='true'][data-can-scroll-down='true'] {
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    #000 48px,
-    #000 calc(100% - 48px),
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    #000 48px,
-    #000 calc(100% - 48px),
-    transparent 100%
-  );
-}
-.noir-scroll-fade[data-can-scroll-up='true'][data-can-scroll-down='false'] {
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    #000 48px
-  );
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    #000 48px
-  );
-}
-.noir-scroll-fade[data-can-scroll-up='false'][data-can-scroll-down='true'] {
-  mask-image: linear-gradient(
-    to bottom,
-    #000 0%,
-    #000 calc(100% - 48px),
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    #000 0%,
-    #000 calc(100% - 48px),
-    transparent 100%
-  );
-}
-.noir-scroll-fade[data-can-scroll-up='false'][data-can-scroll-down='false'] {
-  mask-image: none;
-  -webkit-mask-image: none;
-}
 
 :root {
   --font-size: 16px;
@@ -458,21 +280,6 @@
 }
 
 /* Equalizer bars animation for now-playing indicator */
-@keyframes eq-bounce-1 {
-  0%, 100% { height: 3px; }
-  50%       { height: 10px; }
-}
-@keyframes eq-bounce-2 {
-  0%, 100% { height: 8px; }
-  50%       { height: 3px; }
-}
-@keyframes eq-bounce-3 {
-  0%, 100% { height: 5px; }
-  50%       { height: 11px; }
-}
-.eq-bar-1 { animation: eq-bounce-1 1.6s ease-in-out infinite; }
-.eq-bar-2 { animation: eq-bounce-2 1.6s ease-in-out infinite 0.25s; }
-.eq-bar-3 { animation: eq-bounce-3 1.6s ease-in-out infinite 0.5s; }
 
 @layer base {
   * {
@@ -532,23 +339,6 @@
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
-}
-
-@keyframes grain-jitter {
-  0%, 100% { transform: translate(0, 0) scale(1.0); }
-  10% { transform: translate(-0.5%, -1%) scale(1.03) rotate(0.5deg); }
-  20% { transform: translate(1%, 0.5%) scale(0.98) rotate(-0.5deg); }
-  30% { transform: translate(-1.5%, -0.5%) scale(1.01) rotate(1deg); }
-  40% { transform: translate(0.5%, -1.5%) scale(0.97) rotate(-1deg); }
-  50% { transform: translate(-0.5%, 1%) scale(1.04) rotate(0.5deg); }
-  60% { transform: translate(1.5%, 0.5%) scale(0.96) rotate(0deg); }
-  70% { transform: translate(-1.5%, -0.5%) scale(1.02) rotate(-0.5deg); }
-  80% { transform: translate(0.5%, 1%) scale(1.01) rotate(1deg); }
-  90% { transform: translate(-1%, -1.5%) scale(0.99) rotate(-1deg); }
-}
-
-.animate-grain {
-  animation: grain-jitter 0.6s steps(10) infinite;
 }
 
 /* Hide scrollbar completely and seamlessly across all elements */
