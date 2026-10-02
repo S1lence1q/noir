@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { NoirStateNotice } from './NoirStateNotice';
 import { AnimatePresence, motion } from 'motion/react';
 import { Compass, Play, Plus, Search } from 'lucide-react';
@@ -27,6 +27,24 @@ import { worldForCollection, type ColorWorld } from '../../../utils/ditherCover'
 import { NoirHomeHero, heroField, heroInk, heroWorld } from './NoirHomeHero';
 import { NoirGrainField } from './NoirGrainField';
 import { useGraphicsTheme } from '../../../utils/graphicsTheme';
+
+type Daypart = 'lateNight' | 'morning' | 'afternoon' | 'evening';
+type HomeSection = 'artists' | 'recents' | 'mixes' | 'library';
+
+function daypartAt(hour: number): Daypart {
+  if (hour < 5) return 'lateNight';
+  if (hour < 12) return 'morning';
+  if (hour < 18) return 'afternoon';
+  return 'evening';
+}
+
+/** What leads Home follows the hour: fresh mixes to start the day, what you know once it winds down. */
+const SECTION_ORDER: Record<Daypart, HomeSection[]> = {
+  morning: ['mixes', 'artists', 'recents', 'library'],
+  afternoon: ['artists', 'recents', 'mixes', 'library'],
+  evening: ['recents', 'library', 'artists', 'mixes'],
+  lateNight: ['recents', 'library', 'mixes', 'artists'],
+};
 
 export type NoirHomeViewProps = {
   recentArtists: VerifiedArtist[];
@@ -86,13 +104,9 @@ export function NoirHomeView({
   const [playedArtists, setPlayedArtists] = useState<VerifiedArtist[]>([]);
   /** How many portraits are coming, known before the photos are: keeps the row's height from jumping. */
   const [artistSlots, setArtistSlots] = useState(0);
-  const greeting = useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour < 5) return strings.greeting.lateNight;
-    if (hour < 12) return strings.greeting.morning;
-    if (hour < 18) return strings.greeting.afternoon;
-    return strings.greeting.evening;
-  }, []);
+  // Fixed when Home opens, so the page never reshuffles under you at an hour change.
+  const daypart = useMemo(() => daypartAt(new Date().getHours()), []);
+  const greeting = strings.greeting[daypart];
 
   // Keep list order stable while on Home after a play — otherwise the clicked
   // row jumps into the hero and vanishes from the list mid-interaction.
@@ -214,6 +228,243 @@ export function NoirHomeView({
       return;
     }
     handleSelectSong(track);
+  };
+
+  const artistsBlock = (
+    <>
+    {playedArtists.length < 2 && artistSlots >= 2 && (
+      <section aria-hidden>
+        <h2 className="noir-section-heading px-1">{strings.home.artists}</h2>
+        <NoirHomeShelf>
+          {Array.from({ length: Math.min(artistSlots, 12) }).map((_, i) => (
+            <div key={i} className="noir-home-artist">
+              <span className="noir-home-artist-art noir-skeleton" />
+              <span className="noir-skeleton mx-auto mt-3 block h-3 w-16 rounded" />
+            </div>
+          ))}
+        </NoirHomeShelf>
+      </section>
+    )}
+  
+    {playedArtists.length >= 2 && (
+      <section>
+        <h2 className="noir-section-heading px-1">{strings.home.artists}</h2>
+        <NoirHomeShelf>
+          {playedArtists.map((artist) => (
+            <button
+              key={artist.name}
+              type="button"
+              onClick={() => handleViewArtistProfile(artist)}
+              className="noir-home-artist group noir-focus-ring"
+            >
+              <span className="noir-home-artist-art">
+                {artist.thumbnail ? (
+                  <img src={artist.thumbnail} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <NoirDitherCover
+                    world={worldForCollection(artist.name)}
+                    seed={artist.name}
+                    size={92}
+                    radius={999}
+                  />
+                )}
+              </span>
+              <span className="noir-song-title mt-3 block truncate text-center">{artist.name}</span>
+            </button>
+          ))}
+        </NoirHomeShelf>
+      </section>
+    )}
+    </>
+  );
+
+  const recentsBlock = (
+    <>
+    {listRecents.length > 0 && (
+      <section>
+        <h2 className="noir-section-heading px-1">{strings.home.jumpBackIn}</h2>
+        <div className="noir-home-tiles">
+          {listRecents.slice(0, 6).map((track, i) => {
+            const playing = isTrackPlaying(track) && isPlaying;
+            return (
+              <motion.button
+                key={track.id}
+                type="button"
+                onClick={() => playFromHome(track)}
+                className="noir-home-tile group noir-focus-ring"
+                data-playing={playing ? 'true' : 'false'}
+                initial={reduced ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.1 + i * 0.03 }}
+              >
+                <img src={track.thumbnail} alt="" className="noir-home-tile-art" />
+                <span className="min-w-0 flex-1">
+                  <span className="noir-song-title block truncate">{track.title}</span>
+                  <span className="noir-song-meta block truncate">{track.artist}</span>
+                </span>
+                <span className="noir-home-tile-play" aria-hidden>
+                  {playing ? (
+                    <span className="noir-playing-bars">
+                      <span />
+                      <span />
+                      <span />
+                    </span>
+                  ) : loadingSongId === track.id ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border border-black/20 border-t-black" />
+                  ) : (
+                    <Play className="ml-0.5 h-4 w-4 fill-current" />
+                  )}
+                </span>
+              </motion.button>
+            );
+          })}
+        </div>
+      </section>
+    )}
+    </>
+  );
+
+  const mixesBlock = (
+    <>
+    {mixesLoading && displayMixes.length === 0 && (
+      <section aria-hidden>
+        <div className="noir-skeleton mb-4 mt-[var(--noir-section-gap)] h-5 w-36 rounded px-1" />
+        <div className="noir-home-tiles">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="noir-skeleton h-16 rounded-[var(--noir-radius-md)]" />
+          ))}
+        </div>
+      </section>
+    )}
+  
+    {mixesFailed && displayMixes.length === 0 && (
+      <section>
+        <h2 className="noir-section-heading px-1">{strings.home.yourMixes}</h2>
+        <NoirStateNotice
+          compact
+          title={strings.mixesFailed.title}
+          description={strings.mixesFailed.description}
+          onRetry={() => setMixReloadKey((n) => n + 1)}
+        />
+      </section>
+    )}
+  
+    {displayMixes.length > 0 && (
+      <section>
+        <h2 className="noir-section-heading px-1">
+          {mixes.length > 0 ? strings.home.yourMixes : strings.home.startHere}
+        </h2>
+        {/* Same quiet tiles as Jump back in and Library: the symbol is small, the hero is the one big picture. */}
+        <div className="noir-home-tiles">
+          {displayMixes.map((mix, i) => (
+            <motion.div
+              key={mix.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => openMix(mix, mixWorlds[i])}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  openMix(mix, mixWorlds[i]);
+                }
+              }}
+              className="noir-home-tile group noir-focus-ring"
+              initial={reduced ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.08 + i * 0.03 }}
+            >
+              <span className="noir-home-tile-art">
+                <NoirMixCover tag={mix.tag} world={mixWorlds[i]} size={64} radius={0} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="noir-song-title block truncate">{mix.name}</span>
+                <span className="noir-song-meta block truncate">{mix.subtitle}</span>
+              </span>
+              {onPlayPlaylist && (
+                <button
+                  type="button"
+                  className="noir-home-tile-play noir-focus-ring"
+                  aria-label={`${strings.home.playMix}: ${mix.name}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    playMix(mix);
+                  }}
+                >
+                  <Play className="ml-0.5 h-4 w-4 fill-current" />
+                </button>
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </section>
+    )}
+    </>
+  );
+
+  const libraryBlock = (
+    <>
+    {(favorites.length > 0 || playlists.length > 0) && (
+      <section>
+        <h2 className="noir-section-heading px-1">{strings.home.yourLibrary}</h2>
+        {/* Compact rows, same shape as Jump back in: the covers live in Library, not here. */}
+        <div className="noir-home-tiles">
+          {favorites.length > 0 && (
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event('noir-open-favorites'))}
+              className="noir-home-tile noir-focus-ring"
+            >
+              <span className="noir-home-tile-art">
+                <NoirFavoritesCover size={64} radius={0} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="noir-song-title block truncate">{strings.home.favorites}</span>
+                <span className="noir-song-meta block truncate">{strings.playlist.songCount(favorites.length)}</span>
+              </span>
+            </button>
+          )}
+          {playlists.map((playlist) => (
+            <button
+              key={playlist.id}
+              type="button"
+              onClick={() =>
+                window.dispatchEvent(new CustomEvent('noir-open-playlist', { detail: { id: playlist.id } }))
+              }
+              className="noir-home-tile noir-focus-ring"
+            >
+              <span className="noir-home-tile-art">
+                <NoirPlaylistCover playlistId={playlist.id} trackCount={playlist.tracks.length} size={64} radius={0} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="noir-song-title block truncate">{playlist.name}</span>
+                <span className="noir-song-meta block truncate">{strings.playlist.songCount(playlist.tracks.length)}</span>
+              </span>
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              window.dispatchEvent(new CustomEvent('noir-open-playlist', { detail: { id: createPlaylist().id } }))
+            }
+            className="noir-home-tile noir-focus-ring"
+          >
+            <span className="noir-home-tile-art flex items-center justify-center text-[color:var(--noir-text-secondary)]">
+              <Plus className="h-5 w-5" strokeWidth={1.5} />
+            </span>
+            <span className="noir-song-title block truncate">{strings.playlist.newPlaylist}</span>
+          </button>
+        </div>
+      </section>
+    )}
+    </>
+  );
+
+  const sectionOrder = SECTION_ORDER[daypart];
+  const blocks: Record<HomeSection, ReactNode> = {
+    artists: artistsBlock,
+    recents: recentsBlock,
+    mixes: mixesBlock,
+    library: libraryBlock,
   };
 
   return (
@@ -362,218 +613,9 @@ export function NoirHomeView({
             </div>
           )}
 
-          {playedArtists.length < 2 && artistSlots >= 2 && (
-            <section aria-hidden>
-              <h2 className="noir-section-heading px-1">{strings.home.artists}</h2>
-              <NoirHomeShelf>
-                {Array.from({ length: Math.min(artistSlots, 12) }).map((_, i) => (
-                  <div key={i} className="noir-home-artist">
-                    <span className="noir-home-artist-art noir-skeleton" />
-                    <span className="noir-skeleton mx-auto mt-3 block h-3 w-16 rounded" />
-                  </div>
-                ))}
-              </NoirHomeShelf>
-            </section>
-          )}
-
-          {playedArtists.length >= 2 && (
-            <section>
-              <h2 className="noir-section-heading px-1">{strings.home.artists}</h2>
-              <NoirHomeShelf>
-                {playedArtists.map((artist) => (
-                  <button
-                    key={artist.name}
-                    type="button"
-                    onClick={() => handleViewArtistProfile(artist)}
-                    className="noir-home-artist group noir-focus-ring"
-                  >
-                    <span className="noir-home-artist-art">
-                      {artist.thumbnail ? (
-                        <img src={artist.thumbnail} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <NoirDitherCover
-                          world={worldForCollection(artist.name)}
-                          seed={artist.name}
-                          size={92}
-                          radius={999}
-                        />
-                      )}
-                    </span>
-                    <span className="noir-song-title mt-3 block truncate text-center">{artist.name}</span>
-                  </button>
-                ))}
-              </NoirHomeShelf>
-            </section>
-          )}
-
-          {listRecents.length > 0 && (
-            <section>
-              <h2 className="noir-section-heading !mt-2 px-1">{strings.home.jumpBackIn}</h2>
-              <div className="noir-home-tiles">
-                {listRecents.slice(0, 6).map((track, i) => {
-                  const playing = isTrackPlaying(track) && isPlaying;
-                  return (
-                    <motion.button
-                      key={track.id}
-                      type="button"
-                      onClick={() => playFromHome(track)}
-                      className="noir-home-tile group noir-focus-ring"
-                      data-playing={playing ? 'true' : 'false'}
-                      initial={reduced ? false : { opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.1 + i * 0.03 }}
-                    >
-                      <img src={track.thumbnail} alt="" className="noir-home-tile-art" />
-                      <span className="min-w-0 flex-1">
-                        <span className="noir-song-title block truncate">{track.title}</span>
-                        <span className="noir-song-meta block truncate">{track.artist}</span>
-                      </span>
-                      <span className="noir-home-tile-play" aria-hidden>
-                        {playing ? (
-                          <span className="noir-playing-bars">
-                            <span />
-                            <span />
-                            <span />
-                          </span>
-                        ) : loadingSongId === track.id ? (
-                          <span className="h-4 w-4 animate-spin rounded-full border border-black/20 border-t-black" />
-                        ) : (
-                          <Play className="ml-0.5 h-4 w-4 fill-current" />
-                        )}
-                      </span>
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-
-          {mixesLoading && displayMixes.length === 0 && (
-            <section aria-hidden>
-              <div className="noir-skeleton mb-4 mt-[var(--noir-section-gap)] h-5 w-36 rounded px-1" />
-              <div className="noir-home-tiles">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="noir-skeleton h-16 rounded-[var(--noir-radius-md)]" />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {mixesFailed && displayMixes.length === 0 && (
-            <section>
-              <h2 className="noir-section-heading px-1">{strings.home.yourMixes}</h2>
-              <NoirStateNotice
-                compact
-                title={strings.mixesFailed.title}
-                description={strings.mixesFailed.description}
-                onRetry={() => setMixReloadKey((n) => n + 1)}
-              />
-            </section>
-          )}
-
-          {displayMixes.length > 0 && (
-            <section>
-              <h2 className="noir-section-heading px-1">
-                {mixes.length > 0 ? strings.home.yourMixes : strings.home.startHere}
-              </h2>
-              {/* Same quiet tiles as Jump back in and Library: the symbol is small, the hero is the one big picture. */}
-              <div className="noir-home-tiles">
-                {displayMixes.map((mix, i) => (
-                  <motion.div
-                    key={mix.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => openMix(mix, mixWorlds[i])}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        openMix(mix, mixWorlds[i]);
-                      }
-                    }}
-                    className="noir-home-tile group noir-focus-ring"
-                    initial={reduced ? false : { opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.08 + i * 0.03 }}
-                  >
-                    <span className="noir-home-tile-art">
-                      <NoirMixCover tag={mix.tag} world={mixWorlds[i]} size={64} radius={0} />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="noir-song-title block truncate">{mix.name}</span>
-                      <span className="noir-song-meta block truncate">{mix.subtitle}</span>
-                    </span>
-                    {onPlayPlaylist && (
-                      <button
-                        type="button"
-                        className="noir-home-tile-play noir-focus-ring"
-                        aria-label={`${strings.home.playMix}: ${mix.name}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          playMix(mix);
-                        }}
-                      >
-                        <Play className="ml-0.5 h-4 w-4 fill-current" />
-                      </button>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {(favorites.length > 0 || playlists.length > 0) && (
-            <section>
-              <h2 className="noir-section-heading px-1">{strings.home.yourLibrary}</h2>
-              {/* Compact rows, same shape as Jump back in: the covers live in Library, not here. */}
-              <div className="noir-home-tiles">
-                {favorites.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => window.dispatchEvent(new Event('noir-open-favorites'))}
-                    className="noir-home-tile noir-focus-ring"
-                  >
-                    <span className="noir-home-tile-art">
-                      <NoirFavoritesCover size={64} radius={0} />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="noir-song-title block truncate">{strings.home.favorites}</span>
-                      <span className="noir-song-meta block truncate">{strings.playlist.songCount(favorites.length)}</span>
-                    </span>
-                  </button>
-                )}
-                {playlists.map((playlist) => (
-                  <button
-                    key={playlist.id}
-                    type="button"
-                    onClick={() =>
-                      window.dispatchEvent(new CustomEvent('noir-open-playlist', { detail: { id: playlist.id } }))
-                    }
-                    className="noir-home-tile noir-focus-ring"
-                  >
-                    <span className="noir-home-tile-art">
-                      <NoirPlaylistCover playlistId={playlist.id} trackCount={playlist.tracks.length} size={64} radius={0} />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="noir-song-title block truncate">{playlist.name}</span>
-                      <span className="noir-song-meta block truncate">{strings.playlist.songCount(playlist.tracks.length)}</span>
-                    </span>
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() =>
-                    window.dispatchEvent(new CustomEvent('noir-open-playlist', { detail: { id: createPlaylist().id } }))
-                  }
-                  className="noir-home-tile noir-focus-ring"
-                >
-                  <span className="noir-home-tile-art flex items-center justify-center text-[color:var(--noir-text-secondary)]">
-                    <Plus className="h-5 w-5" strokeWidth={1.5} />
-                  </span>
-                  <span className="noir-song-title block truncate">{strings.playlist.newPlaylist}</span>
-                </button>
-              </div>
-            </section>
-          )}
+          {sectionOrder.map((id) => (
+            <Fragment key={id}>{blocks[id]}</Fragment>
+          ))}
         </motion.div>
       </div>
     </div>
