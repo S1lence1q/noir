@@ -3431,13 +3431,13 @@ button.noir-now-playing-source:hover {
 }
 
 .noir-home-mix-card {
-  width: 208px;
+  width: 156px;
   flex-shrink: 0;
   margin: 0;
 }
 
 .noir-home-artist {
-  width: 128px;
+  width: 112px;
   flex-shrink: 0;
   padding: 10px;
   border-radius: var(--noir-radius-lg);
@@ -3450,8 +3450,8 @@ button.noir-now-playing-source:hover {
 
 .noir-home-artist-art {
   display: block;
-  width: 108px;
-  height: 108px;
+  width: 92px;
+  height: 92px;
   overflow: hidden;
   border-radius: 999px;
   background: var(--noir-gray-dark);
@@ -5935,45 +5935,6 @@ button.noir-now-playing-source:hover {
   margin-top: 8px;
   font-size: 13px;
   color: var(--noir-text-secondary);
-}
-
-/* Mosaic (Home mixes, Discover genres): the first tile is large, the rest fill in beside it. */
-.noir-mosaic {
-  display: grid;
-  /* Capped tiles: on a wide screen the mosaic keeps its proportions instead of ballooning. */
-  grid-template-columns: repeat(var(--mosaic-cols, 4), minmax(0, 210px));
-  grid-auto-flow: dense;
-  gap: 20px 16px;
-}
-
-.noir-mosaic[data-layout='feature'] > :first-child {
-  grid-column: span 2;
-  grid-row: span 2;
-}
-
-.noir-mosaic[data-layout='feature'] > :first-child .noir-song-title {
-  font-size: 17px;
-}
-
-.noir-mosaic .noir-collection-card {
-  width: auto;
-}
-
-.noir-mosaic-cover {
-  width: 100% !important;
-  height: auto !important;
-  aspect-ratio: 1;
-}
-
-@media (max-width: 700px) {
-  .noir-mosaic {
-    --mosaic-cols: 2 !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .noir-mosaic[data-layout='feature'] > :first-child {
-    grid-row: auto;
-  }
 }
 
 /* Discover front page: moving-now list beside the charts. */

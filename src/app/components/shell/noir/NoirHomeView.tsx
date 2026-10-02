@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { NoirStateNotice } from './NoirStateNotice';
 import { AnimatePresence, motion } from 'motion/react';
 import { Compass, Play, Plus, Search } from 'lucide-react';
 import { SearchResult, VerifiedArtist } from '../../../types';
@@ -8,7 +9,7 @@ import { ThemeColors } from '../../themeUtils';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
 import { createPlaylist, usePlaylists } from '../../../utils/playlistStore';
 import { NoirDitherCover } from './NoirDitherCover';
-import { NoirMixCover, NoirMixCoverGallery, assignMixWorlds, mosaicLayout } from './NoirMixCover';
+import { NoirMixCover, NoirMixCoverGallery, assignMixWorlds } from './NoirMixCover';
 import { NoirPlaylistCover } from './NoirPlaylistCover';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirPlayPauseIcon } from './NoirPlayPauseIcon';
@@ -68,6 +69,7 @@ export function NoirHomeView({
   const playlists = usePlaylists();
   const [mixes, setMixes] = useState<DailyMix[]>([]);
   const [mixesLoading, setMixesLoading] = useState(true);
+  const [mixesFailed, setMixesFailed] = useState(false);
   const [mixReloadKey, setMixReloadKey] = useState(0);
   /** After first-run picks, chart-based starters fill the row while personal mixes build. */
   const [starterActive, setStarterActive] = useState(startersActiveToday);
@@ -149,6 +151,7 @@ export function NoirHomeView({
   useEffect(() => {
     let cancelled = false;
     setMixesLoading(true);
+    setMixesFailed(false);
     void (async () => {
       try {
         const events = await getListeningEvents();
@@ -158,7 +161,10 @@ export function NoirHomeView({
         if (!cancelled) setMixes(next);
       } catch (error) {
         console.warn('[mixes] Failed to load daily mixes', error);
-        if (!cancelled) setMixes([]);
+        if (!cancelled) {
+          setMixes([]);
+          setMixesFailed(true);
+        }
       } finally {
         if (!cancelled) setMixesLoading(false);
       }
@@ -352,6 +358,35 @@ export function NoirHomeView({
             </div>
           )}
 
+          {playedArtists.length >= 2 && (
+            <section>
+              <h2 className="noir-section-heading px-1">{strings.home.artists}</h2>
+              <NoirHomeShelf>
+                {playedArtists.map((artist) => (
+                  <button
+                    key={artist.name}
+                    type="button"
+                    onClick={() => handleViewArtistProfile(artist)}
+                    className="noir-home-artist group noir-focus-ring"
+                  >
+                    <span className="noir-home-artist-art">
+                      {artist.thumbnail ? (
+                        <img src={artist.thumbnail} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <NoirDitherCover
+                          world={worldForCollection(artist.name)}
+                          seed={artist.name}
+                          size={92}
+                          radius={999}
+                        />
+                      )}
+                    </span>
+                    <span className="noir-song-title mt-3 block truncate text-center">{artist.name}</span>
+                  </button>
+                ))}
+              </NoirHomeShelf>
+            </section>
+          )}
           {listRecents.length > 0 && (
             <section>
               <h2 className="noir-section-heading !mt-2 px-1">{strings.home.jumpBackIn}</h2>
@@ -409,13 +444,25 @@ export function NoirHomeView({
             </section>
           )}
 
+          {mixesFailed && displayMixes.length === 0 && (
+            <section>
+              <h2 className="noir-section-heading px-1">{strings.home.yourMixes}</h2>
+              <NoirStateNotice
+                compact
+                title={strings.mixesFailed.title}
+                description={strings.mixesFailed.description}
+                onRetry={() => setMixReloadKey((n) => n + 1)}
+              />
+            </section>
+          )}
+
           {displayMixes.length > 0 && (
             <section>
               <h2 className="noir-section-heading px-1">
                 {mixes.length > 0 ? strings.home.yourMixes : strings.home.startHere}
               </h2>
-              {/* Mosaic, not a shelf: the first mix (For You) is large, the rest fill in beside it. */}
-              <div className="noir-mosaic" {...(mosaicLayout(displayMixes.length) as object)}>
+              {/* One quiet row of equal covers; the big mosaic made Home a wall of colour. */}
+              <NoirHomeShelf>
                 {displayMixes.map((mix, i) => (
                   <motion.div
                     key={mix.id}
@@ -434,11 +481,11 @@ export function NoirHomeView({
                     transition={{ duration: 0.36, ease: EASE_PREMIUM, delay: 0.08 + i * 0.04 }}
                   >
                     <span className="relative block">
-                      <NoirMixCover tag={mix.tag} world={mixWorlds[i]} size={i === 0 ? 360 : 188} className="noir-mosaic-cover" />
+                      <NoirMixCover tag={mix.tag} world={mixWorlds[i]} size={156} />
                       {onPlayPlaylist && (
                         <motion.button
                           type="button"
-                          className="noir-discover-release-play noir-play-round !h-11 !w-11 noir-focus-ring"
+                          className="noir-discover-release-play noir-play-round !h-10 !w-10 noir-focus-ring"
                           aria-label={`${strings.home.playMix}: ${mix.name}`}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -457,26 +504,27 @@ export function NoirHomeView({
                     </span>
                   </motion.div>
                 ))}
-              </div>
+              </NoirHomeShelf>
             </section>
           )}
 
           {(favorites.length > 0 || playlists.length > 0) && (
             <section>
               <h2 className="noir-section-heading px-1">{strings.home.yourLibrary}</h2>
-              <NoirHomeShelf>
+              {/* Compact rows, same shape as Jump back in: the covers live in Library, not here. */}
+              <div className="noir-home-tiles">
                 {favorites.length > 0 && (
                   <button
                     type="button"
                     onClick={() => window.dispatchEvent(new Event('noir-open-favorites'))}
-                    className="noir-collection-card noir-home-shelf-card noir-focus-ring"
+                    className="noir-home-tile noir-focus-ring"
                   >
-                    <NoirFavoritesCover size={168} />
-                    <span className="min-w-0">
+                    <span className="noir-home-tile-art">
+                      <NoirFavoritesCover size={64} radius={0} />
+                    </span>
+                    <span className="min-w-0 flex-1">
                       <span className="noir-song-title block truncate">{strings.home.favorites}</span>
-                      <span className="noir-song-meta mt-0.5 block truncate">
-                        {strings.playlist.songCount(favorites.length)}
-                      </span>
+                      <span className="noir-song-meta block truncate">{strings.playlist.songCount(favorites.length)}</span>
                     </span>
                   </button>
                 )}
@@ -487,18 +535,14 @@ export function NoirHomeView({
                     onClick={() =>
                       window.dispatchEvent(new CustomEvent('noir-open-playlist', { detail: { id: playlist.id } }))
                     }
-                    className="noir-collection-card noir-home-shelf-card noir-focus-ring"
+                    className="noir-home-tile noir-focus-ring"
                   >
-                    <NoirPlaylistCover
-                      playlistId={playlist.id}
-                      trackCount={playlist.tracks.length}
-                      size={168}
-                    />
-                    <span className="min-w-0">
+                    <span className="noir-home-tile-art">
+                      <NoirPlaylistCover playlistId={playlist.id} trackCount={playlist.tracks.length} size={64} radius={0} />
+                    </span>
+                    <span className="min-w-0 flex-1">
                       <span className="noir-song-title block truncate">{playlist.name}</span>
-                      <span className="noir-song-meta mt-0.5 block truncate">
-                        {strings.playlist.songCount(playlist.tracks.length)}
-                      </span>
+                      <span className="noir-song-meta block truncate">{strings.playlist.songCount(playlist.tracks.length)}</span>
                     </span>
                   </button>
                 ))}
@@ -507,44 +551,14 @@ export function NoirHomeView({
                   onClick={() =>
                     window.dispatchEvent(new CustomEvent('noir-open-playlist', { detail: { id: createPlaylist().id } }))
                   }
-                  className="noir-collection-card noir-home-shelf-card noir-focus-ring"
+                  className="noir-home-tile noir-focus-ring"
                 >
-                  <span className="noir-collection-card-new !h-[168px] !w-[168px]">
-                    <Plus className="h-6 w-6" strokeWidth={1.5} />
+                  <span className="noir-home-tile-art flex items-center justify-center text-[color:var(--noir-text-secondary)]">
+                    <Plus className="h-5 w-5" strokeWidth={1.5} />
                   </span>
                   <span className="noir-song-title block truncate">{strings.playlist.newPlaylist}</span>
                 </button>
-              </NoirHomeShelf>
-            </section>
-          )}
-
-          {playedArtists.length >= 2 && (
-            <section>
-              <h2 className="noir-section-heading px-1">{strings.home.artists}</h2>
-              <NoirHomeShelf>
-                {playedArtists.map((artist) => (
-                  <button
-                    key={artist.name}
-                    type="button"
-                    onClick={() => handleViewArtistProfile(artist)}
-                    className="noir-home-artist group noir-focus-ring"
-                  >
-                    <span className="noir-home-artist-art">
-                      {artist.thumbnail ? (
-                        <img src={artist.thumbnail} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <NoirDitherCover
-                          world={worldForCollection(artist.name)}
-                          seed={artist.name}
-                          size={108}
-                          radius={999}
-                        />
-                      )}
-                    </span>
-                    <span className="noir-song-title mt-3 block truncate text-center">{artist.name}</span>
-                  </button>
-                ))}
-              </NoirHomeShelf>
+              </div>
             </section>
           )}
         </motion.div>

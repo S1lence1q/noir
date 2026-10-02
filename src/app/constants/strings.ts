@@ -301,6 +301,10 @@ export const strings = {
     title: 'Search didn’t go through',
     description: 'The search service didn’t answer. Try again in a moment.',
   },
+  mixesFailed: {
+    title: 'Couldn’t build your mixes',
+    description: 'Something went wrong while making them. Try again.',
+  },
   artistFailed: {
     title: 'Couldn’t load this artist',
     description: 'The page didn’t finish loading. Try again.',

@@ -4,7 +4,7 @@ Read from the code (not every state was triggered in the browser). ✅ exists ·
 
 | Screen | Empty | Loading | Partial | Error | Offline | Done |
 |---|---|---|---|---|---|---|
-| **Home** | ✅ cold start (`NoirColdStart`), "no mixes" guard | ✅ mix skeletons, search spinner | ✅ mixes stream in via `loadDailyMixes(…, partial)` | ✗ mix failure is only `console.warn`: shelf just stays empty | ✗ | ✅ |
+| **Home** | ✅ cold start (`NoirColdStart`), "no mixes" guard | ✅ mix skeletons, search spinner | ✅ mixes stream in via `loadDailyMixes(…, partial)` | ✅ mix failure: "Couldn’t build your mixes" + Retry | ✗ | ✅ |
 | **Home › search** | ✅ "No results for …" + Back to Home | ✅ `SearchLoadingState` | ◐ artist card can appear before songs | ✗ a failed search looks like "No results" | ✗ | ✅ |
 | **Discover** | ✅ taste-empty copy, cold-start charts | ✅ skeletons (charts, spotlight) | ✅ charts without personal feed, and vice versa | ✅ "Trending unavailable" + Retry (only when *nothing* loaded) | ✗ same message as any error, no hint it's the connection | ✅ |
 | **Artist** | ✅ "No songs found for this artist yet." | ✅ exact-shape skeletons | ✅ page reveals latched; discography fills in later | ◐ toast only, page stays on skeleton/empty, no retry | ✗ | ✅ |

@@ -317,21 +317,6 @@ export function NoirMixCover({ tag, size, radius, className = '', world: worldOv
   );
 }
 
-/**
- * Mosaic shape for n tiles without holes. The large tile takes 2×2 cells, so a column count c
- * fits when (n + 3) divides by c and the small tiles can fill the two rows beside it:
- * 5 → 4 cols, 6 → 3, 7 → 5, 9 → 4. Otherwise (and under 5) equal tiles in up to 4 columns.
- */
-export function mosaicLayout(n: number): { 'data-layout': string; style: { ['--mosaic-cols']: number } } {
-  if (n >= 5) {
-    for (const c of [4, 5, 3]) {
-      if ((n + 3) % c === 0 && n - 1 >= 2 * (c - 2)) return { 'data-layout': 'feature', style: { ['--mosaic-cols']: c } };
-    }
-  }
-  const even = n % 3 === 0 && n % 4 !== 0 ? 3 : Math.min(4, Math.max(1, n));
-  return { 'data-layout': 'even', style: { ['--mosaic-cols']: even } };
-}
-
 /** Dev check: every symbol on its field. `?covers` on Home. */
 export function NoirMixCoverGallery() {
   const samples = ['For You', 'dk_hits', 'global_hits', 'Rap', 'Hip-Hop', 'Trap', 'Rock', 'Danish', 'Swedish', 'Norwegian', 'Finnish', 'Lo Fi', 'Dream Pop', 'Pop', 'Electronic', 'Jazz', 'Soul', 'Indie', 'Metal', 'Reggae', 'Classical'];

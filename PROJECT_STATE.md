@@ -131,7 +131,7 @@ src/
 
 **Next (pick up here):**
 1. ~~Check Artist error and Home-search error~~ Done: Artist error verified with a forced failure (title, Retry, no layout jump). The Home inline search panel was unreachable (nothing but its own Retry called `handleSearch`; no input on Home), so it was removed from `NoirHomeView`. Search lives in the ⌘K palette. `SearchSection.tsx` and the old non-shell branch of `LandingPage.tsx` (plus its `shellMode` prop) were removed too. `BrandingHeader`, `ProfileHubView`, `ArtistProfileView` and `DetailOverlay` deleted. The six files in `src/app/components/profilehub/` deleted too (only `ProfileHubView` imported them).
-2. Home mix failure is still silent (deliberately skipped; see STATES_AUDIT.md).
+2. ~~Home mix failure~~ Done with the Home relayout: order is hero → artists → jump back in → mixes (one row of equal 156 px covers, was a big mosaic) → library as compact rows (was a shelf of big covers). Mix failure shows `NoirStateNotice` + Retry (`strings.mixesFailed`). `mosaicLayout` and `.noir-mosaic` removed.
 3. Narrow windows (~1024 px): Favorites/playlist pages get cramped when the Add songs panel is open (title truncates, row text collapses).
 4. Alignment audit not yet measured on Search, Artist, Stats.
 
