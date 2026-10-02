@@ -441,24 +441,14 @@ export function LandingPage({
                 className="h-full"
               >
                 <NoirHomeView
-                  searchQuery={searchQuery}
-                  setSearchQuery={setSearchQuery}
-                  lastSearchedQuery={lastSearchedQuery}
-                  isSearching={isSearching}
-                  searchFailed={searchFailed}
-                  searchResults={searchResults}
                   recentArtists={recentArtists}
                   recentlyPlayed={recentlyPlayed}
                   favorites={favorites}
-                  verifiedArtist={verifiedArtist}
-                  focusedResultIndex={focusedResultIndex}
                   loadingSongId={loadingSongId}
                   activeSongKey={activeSongKey}
                   activeTrack={activeTrack}
                   isPlaying={isPlaying}
                   handleViewArtistProfile={handleViewArtistProfile}
-                  handleUrlSubmit={handleUrlSubmit}
-                  handleSearch={handleSearch}
                   handleSelectSong={handleSelectSong}
                   handleAddToQueue={handleAddToQueue}
                   handlePlayNext={handlePlayNext}
