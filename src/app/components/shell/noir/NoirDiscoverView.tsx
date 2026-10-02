@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { NoirStateNotice } from './NoirStateNotice';
 import { motion } from 'motion/react';
-import { ArrowRight, ChevronRight, Play } from 'lucide-react';
+import { ChevronRight, Play } from 'lucide-react';
 import { SearchResult } from '../../../types';
-import { Playlist } from '../../PlaylistDetailsView';
+import type { Playlist } from '../../../types';
 import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { NoirMixCover } from './NoirMixCover';
 import { NoirArtwork } from './NoirArtwork';
@@ -11,14 +11,13 @@ import { NoirHomeShelf } from './NoirHomeShelf';
 import { ReleaseCard, openRelease, playRelease } from './NoirReleaseCard';
 import { NoirTrackCard } from './NoirTrackCard';
 import { COLOR_WORLDS, worldForCollection } from '../../../utils/ditherCover';
-import { EASE_PREMIUM, MOTION, prefersReducedMotion } from '../../../utils/motionPresets';
+import { EASE_PREMIUM, prefersReducedMotion } from '../../../utils/motionPresets';
 import { strings } from '../../../constants/strings';
 import { getListeningEvents } from '../../../services/listening/eventsStore';
 import { topArtists } from '../../../services/listening/tasteProfile';
 import {
   DiscoverArtistCard,
   DiscoverFeed,
-  DiscoverReleaseCard,
   BecauseRow,
   dailyBecauseIndex,
   loadBecauseRows,

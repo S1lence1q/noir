@@ -1,3 +1,6 @@
+import type { AccentColor } from './components/themeUtils';
+import type { ColorWorld } from './utils/ditherCover';
+
 export interface SearchResult {
   id: string;
   title: string;
@@ -33,4 +36,17 @@ export interface VerifiedArtist {
 export interface LyricLine {
   time: number;
   text: string;
+}
+
+export interface Playlist {
+  id: string;
+  name: string;
+  description: string;
+  tracks: SearchResult[];
+  thumbnail: string;
+  accent: AccentColor;
+  /** Optional dither world (mixes). Falls back to hash of id. */
+  coverWorld?: ColorWorld;
+  /** Albums / releases: what kind of release this is, for the page kicker. */
+  recordType?: 'album' | 'single' | 'ep' | 'compile';
 }

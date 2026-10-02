@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { Play } from 'lucide-react';
-import { Playlist } from '../../PlaylistDetailsView';
+import type { Playlist } from '../../../types';
 import { NoirArtwork } from './NoirArtwork';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION } from '../../../utils/motionPresets';

@@ -27,7 +27,7 @@ import { NoirPlayPauseIcon } from './NoirPlayPauseIcon';
 import { NoirFavoritesCover } from './NoirFavoritesCover';
 import { NoirHomeShelf } from './NoirHomeShelf';
 import { NoirColdStart } from './NoirColdStart';
-import { Playlist } from '../../PlaylistDetailsView';
+import type { Playlist } from '../../../types';
 import { getListeningEvents } from '../../../services/listening/eventsStore';
 import { topArtists } from '../../../services/listening/tasteProfile';
 import { isTasteEmpty } from '../../../services/listening/seedTaste';

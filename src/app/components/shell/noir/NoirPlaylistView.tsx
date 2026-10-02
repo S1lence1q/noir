@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import { Play } from 'lucide-react';
 import { getPlaybackSongKey } from '../../../utils/playbackSongKey';
 import { SearchResult } from '../../../types';
-import { Playlist } from '../../PlaylistDetailsView';
+import type { Playlist } from '../../../types';
 import { NoirRankedSongRow } from './NoirRankedSongRow';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { worldForCollection } from '../../../utils/ditherCover';

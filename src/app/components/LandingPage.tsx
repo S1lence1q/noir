@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { VerifiedArtist, SearchResult } from '../types';
-import { Playlist } from './PlaylistDetailsView';
+import { VerifiedArtist, SearchResult, Playlist } from '../types';
 import { NoirDiscoverView } from './shell/noir/NoirDiscoverView';
-import { PlaylistDetailsView } from './PlaylistDetailsView';
 import { NoirDetailOverlay } from './shell/noir/NoirDetailOverlay';
 import { NoirArtistView } from './shell/noir/NoirArtistView';
 import { NoirPlaylistView } from './shell/noir/NoirPlaylistView';
