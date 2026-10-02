@@ -53,6 +53,7 @@ function readCacheSync(country: string): SearchResult[] {
 
 
 export function NoirDiscoverView({
+  onSelectSong,
   onPlayPlaylist,
   onSelectPlaylist,
   onViewArtist,

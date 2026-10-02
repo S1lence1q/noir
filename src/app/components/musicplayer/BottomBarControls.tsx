@@ -19,9 +19,6 @@ interface BottomBarControlsProps {
   setFocusSearchInQueue: (focus: boolean) => void;
   accentColor: AccentColor;
   queue: QueueItem[];
-  showSettingsButton: boolean;
-  showSettings: boolean;
-  setShowSettings: (show: boolean) => void;
   isUserIdle: boolean;
   zenMode: boolean;
   showLyrics: boolean;
@@ -40,9 +37,6 @@ export function BottomBarControls({
   setFocusSearchInQueue,
   accentColor,
   queue,
-  showSettingsButton,
-  showSettings,
-  setShowSettings,
   isUserIdle,
   zenMode,
   showLyrics,
@@ -322,20 +316,6 @@ export function BottomBarControls({
             {volume}%
           </span>
         </div>
-      )}
-
-      {showSettingsButton && (
-        <button
-          id="settings-button"
-          onClick={(e) => {
-            setShowSettings(!showSettings);
-            e.currentTarget.blur();
-          }}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-black/30 hover:bg-black/45 border border-white/12 hover:border-white/25 transition-all group outline-none focus:outline-none focus:ring-0"
-        >
-          <Settings className="w-4 h-4 text-white/60 group-hover:text-white/85 transition-colors" />
-          <span className="text-sm text-white/85 group-hover:text-white transition-colors">Settings</span>
-        </button>
       )}
     </motion.div>
   );

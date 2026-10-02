@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Queue } from './Queue';
-import { SettingsModal } from './SettingsModal';
 import { LyricsPanel } from './LyricsPanel';
 import { ChevronDown, Keyboard } from 'lucide-react';
 import { AccentColor, ACCENT_THEMES } from './themeUtils';
@@ -57,25 +56,10 @@ interface MusicPlayerProps {
   onSearch?: (query: string) => Promise<SearchResult[]>;
   onFetchChannelUploads?: (channelId: string, limit?: number) => Promise<SearchResult[]>;
   accentColor?: AccentColor;
-  onAccentColorChange?: (color: AccentColor) => void;
-  textureStyle?: 'paper' | 'dots' | 'none';
-  onTextureStyleChange?: (style: 'paper' | 'dots' | 'none') => void;
-  showVisualizer?: boolean;
-  onShowVisualizerChange?: (show: boolean) => void;
-  zenMode?: boolean;
-  onZenModeChange?: (zen: boolean) => void;
-  showVolumeSlider?: boolean;
-  onShowVolumeSliderChange?: (show: boolean) => void;
-  enable3DTilt?: boolean;
-  onEnable3DTiltChange?: (enable: boolean) => void;
-  showSettingsButton?: boolean;
-  onShowSettingsButtonChange?: (show: boolean) => void;
   favorites?: SearchResult[];
   onToggleFavorite?: (song: SearchResult) => void;
   onViewArtist?: (name: string, channelId?: string) => void;
   songColors?: { primary: string; secondary: string; accent: string } | null;
-  enableCustomLyrics?: boolean;
-  onEnableCustomLyricsChange?: (enable: boolean) => void;
   onPlayingStateChange?: (playing: boolean) => void;
   onShellPlaybackState?: (state: {
     currentTime: number;
@@ -83,8 +67,6 @@ interface MusicPlayerProps {
     isPlaying: boolean;
   }) => void;
   appState?: string;
-  peekProgressStyle?: 'none' | 'line' | 'border';
-  onPeekProgressStyleChange?: (style: 'none' | 'line' | 'border') => void;
 }
 
 
@@ -130,34 +112,22 @@ export function MusicPlayer({
   onSearch,
   onFetchChannelUploads,
   accentColor = 'emerald',
-  onAccentColorChange,
-  textureStyle = 'paper',
-  onTextureStyleChange,
-  backgroundStyle = 'mesh',
-  onBackgroundStyleChange,
-  showVisualizer = false,
-  onShowVisualizerChange,
-  zenMode = false,
-  onZenModeChange,
-  showVolumeSlider = false,
-  onShowVolumeSliderChange,
-  enable3DTilt = true,
-  onEnable3DTiltChange,
-  showSettingsButton = false,
-  onShowSettingsButtonChange,
   favorites = [],
   onToggleFavorite,
   onViewArtist,
   songColors,
-  enableCustomLyrics = false,
-  onEnableCustomLyricsChange,
   onPlayingStateChange,
   onShellPlaybackState,
   appState = 'ready',
-  peekProgressStyle = 'border',
-  onPeekProgressStyleChange
 }: MusicPlayerProps) {
   const theme = ACCENT_THEMES[accentColor];
+  // The old settings screen is gone; the hidden legacy player keeps the defaults it used to have.
+  const zenMode = false;
+  const showVolumeSlider = false;
+  const showVisualizer = false;
+  const enable3DTilt = true;
+  const enableCustomLyrics = false;
+  const peekProgressStyle = 'border';
 
   const {
     isPlaying,
@@ -219,7 +189,6 @@ export function MusicPlayer({
   const [focusSearchInQueue, setFocusSearchInQueue] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [queueInitialArtist, setQueueInitialArtist] = useState<{ name: string; channelId?: string } | null>(null);
-  const isMac = typeof window !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
 
   const handleArtworkViewArtist = (name: string, channelId?: string) => {
     setQueueInitialArtist({ name, channelId });
@@ -266,13 +235,9 @@ export function MusicPlayer({
     }
   };
 
-  const [showSettings, setShowSettings] = useState(false);
-  const [showSettingsHint, setShowSettingsHint] = useState(false);
-
   // Auto-close overlays when player is backgrounded to prevent visual leaks
   useEffect(() => {
     if (appState !== 'ready') {
-      setShowSettings(false);
       setShowQueue(false);
     }
   }, [appState]);
@@ -317,17 +282,6 @@ export function MusicPlayer({
     };
   }, [zenMode]);
 
-  useEffect(() => {
-    const hasSeenHint = localStorage.getItem('noir_settings_hint_seen');
-    if (!hasSeenHint) {
-      setTimeout(() => {
-        setShowSettingsHint(true);
-        localStorage.setItem('noir_settings_hint_seen', 'true');
-        setTimeout(() => setShowSettingsHint(false), 3000);
-      }, 2000);
-    }
-  }, []);
-
   // Keyboard controls
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -346,11 +300,6 @@ export function MusicPlayer({
       }
 
       if (e.key === 'Escape') {
-        if (showSettings) {
-          e.preventDefault();
-          setShowSettings(false);
-          return;
-        }
         if (showQueue) {
           e.preventDefault();
           setShowQueue(false);
@@ -409,8 +358,6 @@ export function MusicPlayer({
     handleVolumeChange,
     setPreMuteVolume,
     setShowLyrics,
-    setShowSettings,
-    showSettings,
     showQueue,
     showLyrics,
     onBackToHome,
@@ -434,23 +381,6 @@ export function MusicPlayer({
         '--theme-secondary-shadow-idle': dominantColors.secondary.replace('0.5', '0.15'),
       } as React.CSSProperties}
     >
-      {/* Settings hint - only shown once */}
-      <AnimatePresence>
-        {showSettingsHint && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="absolute top-8 right-8 z-50 px-4 py-2 rounded-full bg-black/50 border border-white/10"
-          >
-            <p className="text-xs text-white/50">
-              Press <span className="text-white/70">{isMac ? '⌘,' : 'Ctrl+,'}</span> for settings
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Top bar */}
       <div className={`absolute top-8 left-8 z-20 transition-all duration-700 flex items-center gap-1.5 ${isUserIdle && zenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <motion.button
@@ -480,38 +410,6 @@ export function MusicPlayer({
 
       {/* Dedicated Overlay Container */}
       <div className="absolute inset-0 pointer-events-none z-50">
-        {/* Settings modal */}
-        <AnimatePresence>
-          {showSettings && (
-            <div className="pointer-events-auto">
-              <SettingsModal
-                onClose={() => setShowSettings(false)}
-                backgroundStyle={backgroundStyle}
-                onBackgroundStyleChange={onBackgroundStyleChange}
-                accentColor={accentColor}
-                onAccentColorChange={onAccentColorChange}
-                zenMode={zenMode}
-                onZenModeChange={onZenModeChange}
-                showVolumeSlider={showVolumeSlider}
-                onShowVolumeSliderChange={onShowVolumeSliderChange}
-                enable3DTilt={enable3DTilt}
-                onEnable3DTiltChange={onEnable3DTiltChange}
-                showSettingsButton={showSettingsButton}
-                onShowSettingsButtonChange={onShowSettingsButtonChange}
-                textureStyle={textureStyle}
-                onTextureStyleChange={onTextureStyleChange}
-                enableCustomLyrics={enableCustomLyrics}
-                onEnableCustomLyricsChange={onEnableCustomLyricsChange}
-                showVisualizer={showVisualizer}
-                onShowVisualizerChange={onShowVisualizerChange}
-                volume={volume}
-                onVolumeChange={handleVolumeChange}
-                peekProgressStyle={peekProgressStyle}
-                onPeekProgressStyleChange={onPeekProgressStyleChange}
-              />
-            </div>
-          )}
-        </AnimatePresence>
 
         {/* Queue component */}
         <AnimatePresence>
@@ -685,9 +583,6 @@ export function MusicPlayer({
           setFocusSearchInQueue={setFocusSearchInQueue}
           accentColor={accentColor}
           queue={queue}
-          showSettingsButton={showSettingsButton}
-          showSettings={showSettings}
-          setShowSettings={setShowSettings}
           isUserIdle={isUserIdle}
           zenMode={zenMode}
           showLyrics={showLyrics}

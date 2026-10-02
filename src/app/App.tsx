@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useLayoutEffect, useCallback, type Dispatch, type SetStateAction } from 'react';
+import { useState, useEffect, useRef, useCallback, type Dispatch, type SetStateAction } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 import { MusicPlayer } from './components/MusicPlayer';
@@ -102,37 +102,6 @@ export default function App() {
   const [appState, setAppState] = useState<AppState>('landing');
   // Settings is now a tab in the shell, not a modal
 
-  const [navMode, setNavMode] = useState<'tabs' | 'scroll'>(() => {
-    return (localStorage.getItem('noir_nav_mode') as 'tabs' | 'scroll') || 'tabs';
-  });
-  const [navPosition, setNavPosition] = useState<'bottom' | 'top' | 'right'>(() => {
-    return (localStorage.getItem('noir_nav_position') as 'bottom' | 'top' | 'right') || 'bottom';
-  });
-
-  const handleSetNavMode = (mode: 'tabs' | 'scroll') => {
-    if (mode === 'scroll') {
-      isAutoScrollingRef.current = true;
-      if (autoScrollTimeoutRef.current) clearTimeout(autoScrollTimeoutRef.current);
-      
-      setNavMode(mode);
-      
-      setTimeout(() => {
-        const container = scrollContainerRef.current;
-        if (container) {
-          const index = activeTab === 'search' ? 0 : activeTab === 'discover' ? 1 : 2;
-          const height = container.clientHeight || window.innerHeight;
-          container.scrollTop = index * height;
-        }
-        isAutoScrollingRef.current = false;
-      }, 50);
-    } else {
-      setNavMode(mode);
-      if (navPosition === 'right') {
-        setNavPosition('bottom');
-      }
-    }
-  };
-
   const [activeTab, setActiveTabState] = useState<ShellTab>(() => {
     const ui = readShellUiSession();
     return ui?.activeTab ?? readShellTab();
@@ -147,70 +116,16 @@ export default function App() {
   });
   const restoreSeekRef = useRef<number | null>(null);
 
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 1. Scroll Tracking Hook
-  const { scrollProgress, scrollVelocity, handleScroll } = useScrollTracking(activeTab, navMode, scrollContainerRef);
-
-  // Synchronize scroll container position before paint when switching to scroll mode
-  useLayoutEffect(() => {
-    if (navMode === 'scroll') {
-      const container = scrollContainerRef.current;
-      if (container) {
-        const index = activeTab === 'search' ? 0 : activeTab === 'discover' ? 1 : 2;
-        const height = container.clientHeight || window.innerHeight;
-        container.scrollTop = index * height;
-      }
-    }
-  }, [navMode]);
-
-  const isAutoScrollingRef = useRef(false);
-  const autoScrollTimeoutRef = useRef<any>(null);
+  // 1. Scroll Tracking Hook: drives the background colour / velocity when the page changes
+  const { scrollProgress, scrollVelocity } = useScrollTracking(activeTab);
 
   const setActiveTab = (tab: ShellTab) => {
     setNowPlayingOpen(false);
     setSelectedPlaylist(null);
     setActiveTabState(tab);
-    const shellActive = appState === 'landing' || appState === 'processing' || appState === 'ready';
-    if (navMode === 'scroll' && !shellActive) {
-      const container = scrollContainerRef.current;
-      if (container) {
-        isAutoScrollingRef.current = true;
-        if (autoScrollTimeoutRef.current) clearTimeout(autoScrollTimeoutRef.current);
-        
-        const index = tab === 'search' ? 0 : tab === 'discover' ? 1 : 2;
-        container.scrollTo({
-          top: index * container.clientHeight,
-          behavior: 'smooth',
-        });
-        
-        autoScrollTimeoutRef.current = setTimeout(() => {
-          isAutoScrollingRef.current = false;
-        }, 800);
-      }
-    }
   };
-
-  // Scroll spy for scroll-snap mode (legacy landing only — shell uses sidebar tabs)
-  useEffect(() => {
-    if (navMode !== 'scroll') return;
-    if (appState === 'landing' || appState === 'processing') return;
-    if (isAutoScrollingRef.current) return;
-
-    let targetTab: 'search' | 'discover' | 'myhub' = 'search';
-    if (scrollProgress < 0.25) {
-      targetTab = 'search';
-    } else if (scrollProgress >= 0.25 && scrollProgress <= 0.75) {
-      targetTab = 'discover';
-    } else {
-      targetTab = 'myhub';
-    }
-
-    if (activeTab !== targetTab) {
-      setActiveTabState(targetTab);
-    }
-  }, [scrollProgress, navMode, activeTab, appState]);
 
   const [favorites, setFavorites] = useState<SearchResult[]>(() => {
     try {
@@ -449,96 +364,9 @@ export default function App() {
   };
 
   // Lifted Settings States
-  const [accentColor, setAccentColor] = useState<AccentColor>(() => {
+  const [accentColor] = useState<AccentColor>(() => {
     return (localStorage.getItem('noir_accent_color') as AccentColor) || 'emerald';
   });
-
-  const [textureStyle, setTextureStyle] = useState<'paper' | 'dots' | 'none'>(() => {
-    return (localStorage.getItem('noir_texture_style') as 'paper' | 'dots' | 'none') || 'paper';
-  });
-
-  const [backgroundStyle, setBackgroundStyle] = useState<'default' | 'particles' | 'liquid' | 'mesh'>(() => {
-    return (localStorage.getItem('noir_bg_style') as 'default' | 'particles' | 'liquid' | 'mesh') || 'mesh';
-  });
-
-  const [zenMode, setZenMode] = useState(() => {
-    return localStorage.getItem('noir_zen_mode') === 'true';
-  });
-
-  const [showVolumeSlider, setShowVolumeSlider] = useState(() => {
-    return localStorage.getItem('noir_volume_slider') === 'true';
-  });
-
-  const [enable3DTilt, setEnable3DTilt] = useState(() => {
-    return localStorage.getItem('noir_3d_tilt') !== 'false';
-  });
-
-  const [showSettingsButton, setShowSettingsButton] = useState(() => {
-    return localStorage.getItem('noir_show_settings_btn') === 'true';
-  });
-
-  const [enableCustomLyrics, setEnableCustomLyrics] = useState(() => {
-    return localStorage.getItem('noir_enable_custom_lyrics') === 'true';
-  });
-
-  const [showVisualizer, setShowVisualizer] = useState(() => {
-    return localStorage.getItem('noir_show_visualizer') === 'true';
-  });
-
-  const [peekProgressStyle, setPeekProgressStyle] = useState<'none' | 'line' | 'border'>(() => {
-    return (localStorage.getItem('noir_peek_progress_style') as 'none' | 'line' | 'border') || 'border';
-  });
-
-
-  // Sync settings to localStorage on change
-  useEffect(() => {
-    localStorage.setItem('noir_accent_color', accentColor);
-  }, [accentColor]);
-
-  useEffect(() => {
-    localStorage.setItem('noir_texture_style', textureStyle);
-  }, [textureStyle]);
-
-  useEffect(() => {
-    localStorage.setItem('noir_bg_style', backgroundStyle);
-  }, [backgroundStyle]);
-
-  useEffect(() => {
-    localStorage.setItem('noir_zen_mode', zenMode ? 'true' : 'false');
-  }, [zenMode]);
-
-  useEffect(() => {
-    localStorage.setItem('noir_volume_slider', showVolumeSlider ? 'true' : 'false');
-  }, [showVolumeSlider]);
-
-  useEffect(() => {
-    localStorage.setItem('noir_3d_tilt', enable3DTilt ? 'true' : 'false');
-  }, [enable3DTilt]);
-
-  useEffect(() => {
-    localStorage.setItem('noir_show_settings_btn', showSettingsButton ? 'true' : 'false');
-  }, [showSettingsButton]);
-
-  useEffect(() => {
-    localStorage.setItem('noir_enable_custom_lyrics', enableCustomLyrics ? 'true' : 'false');
-  }, [enableCustomLyrics]);
-
-  useEffect(() => {
-    localStorage.setItem('noir_show_visualizer', showVisualizer ? 'true' : 'false');
-  }, [showVisualizer]);
-
-  useEffect(() => {
-    localStorage.setItem('noir_peek_progress_style', peekProgressStyle);
-  }, [peekProgressStyle]);
-
-  useEffect(() => {
-    localStorage.setItem('noir_nav_mode', navMode);
-  }, [navMode]);
-
-  useEffect(() => {
-    localStorage.setItem('noir_nav_position', navPosition);
-  }, [navPosition]);
-
 
   const [showShortcutMap, setShowShortcutMap] = useState(false);
   const [searchPaletteOpen, setSearchPaletteOpen] = useState(false);
@@ -1705,7 +1533,7 @@ export default function App() {
           color3={bgColors.c3} 
           transitionDuration={colorTransitionDuration}
           speedMultiplier={
-            (backgroundStyle === 'liquid' ? 1.4 : backgroundStyle === 'mesh' ? 0.8 : backgroundStyle === 'particles' ? 1.1 : 0.5) +
+            0.8 +
             Math.min(2.0, scrollVelocity * 15.0)
           }
         />
@@ -1958,7 +1786,6 @@ export default function App() {
               appState="landing"
               accentColor={accentColor}
               songColors={songColors}
-              onAccentColorChange={setAccentColor}
               onRemoveFromQueue={handleRemoveFromQueue}
               onClearQueue={handleClearQueue}
               onShuffleQueue={handleShuffleQueue}
@@ -1974,26 +1801,8 @@ export default function App() {
               onSearch={executeSearchAPI}
               onFetchChannelUploads={executeChannelUploadsAPI}
               onViewArtist={openArtistByName}
-              textureStyle={textureStyle}
-              onTextureStyleChange={setTextureStyle}
-              backgroundStyle={backgroundStyle}
-              onBackgroundStyleChange={setBackgroundStyle}
-              showVisualizer={showVisualizer}
-              onShowVisualizerChange={setShowVisualizer}
-              zenMode={zenMode}
-              onZenModeChange={setZenMode}
-              showVolumeSlider={showVolumeSlider}
-              onShowVolumeSliderChange={setShowVolumeSlider}
-              enable3DTilt={enable3DTilt}
-              onEnable3DTiltChange={setEnable3DTilt}
-              showSettingsButton={showSettingsButton}
-              onShowSettingsButtonChange={setShowSettingsButton}
-              enableCustomLyrics={enableCustomLyrics}
-              onEnableCustomLyricsChange={setEnableCustomLyrics}
               onPlayingStateChange={setIsMiniPlaying}
               onShellPlaybackState={setShellPlayback}
-              peekProgressStyle={peekProgressStyle}
-              onPeekProgressStyleChange={setPeekProgressStyle}
               onFileSelect={(file) => {
                 void playLocalFile(file);
               }}
@@ -2055,35 +1864,13 @@ export default function App() {
       />
 
 
-      {/* Premium Global Matte-Paper/Dots Texture Overlay */}
-      {textureStyle === 'paper' && (
-        <div 
-          className="fixed inset-0 w-full h-full opacity-[0.08] mix-blend-overlay pointer-events-none z-[150]" 
-          style={{ 
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
-          }} 
-        />
-      )}
-      
-      {textureStyle === 'dots' && (
-        <>
-          <div 
-            className="fixed inset-0 opacity-[0.022] pointer-events-none z-[150]"
-            style={{
-              backgroundImage: 'radial-gradient(circle, rgba(255, 255, 255, 0.4) 0.8px, transparent 0.8px)',
-              backgroundSize: '5px 5px',
-              transform: 'rotate(15deg) scale(1.35)',
-              transformOrigin: 'center center'
-            }}
-          />
-          <div 
-            className="fixed inset-0 pointer-events-none opacity-[0.008] mix-blend-overlay z-[150]" 
-            style={{ 
-              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
-            }} 
-          />
-        </>
-      )}
+      {/* Global matte-paper grain */}
+      <div
+        className="fixed inset-0 w-full h-full opacity-[0.08] mix-blend-overlay pointer-events-none z-[150]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+        }}
+      />
     </div>
   );
 }
