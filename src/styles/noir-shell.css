@@ -417,11 +417,6 @@
   padding-inline: var(--noir-gutter);
 }
 
-.noir-content--settings {
-  max-width: 720px;
-  margin-inline: 0;
-}
-
 .noir-page-title {
   font: var(--noir-type-page);
   letter-spacing: -0.02em;
@@ -2034,6 +2029,76 @@ button.noir-now-playing-source:hover {
   gap: 16px;
 }
 
+/* Playback on the left, the rest stacked on the right; one column when the window is narrow. */
+.noir-settings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.noir-settings-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+@media (max-width: 899px) {
+  .noir-settings {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.noir-settings-select-wrap--inline {
+  width: 168px;
+}
+
+/* Graphics choice: two real pictures from your own music; the chosen one is ringed. */
+.noir-graphics-choice {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.noir-graphics-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  border-radius: 16px;
+}
+.noir-graphics-tile-art {
+  position: relative;
+  display: block;
+  height: 112px;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 14px;
+  background: #0b0b0b;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color 0.18s ease, opacity 0.18s ease;
+}
+.noir-graphics-tile[data-active='false'] .noir-graphics-tile-art {
+  opacity: 0.55;
+}
+.noir-graphics-tile[data-active='false']:hover .noir-graphics-tile-art {
+  opacity: 0.85;
+}
+.noir-graphics-tile[data-active='true'] .noir-graphics-tile-art {
+  outline-color: rgba(255, 255, 255, 0.85);
+}
+.noir-graphics-tile-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--noir-text-secondary);
+}
+.noir-graphics-tile[data-active='true'] .noir-graphics-tile-label {
+  color: var(--noir-text-primary);
+}
+.noir-graphics-tile .noir-grain-field {
+  /* In a small tile the grain fills the whole picture, not just the right side. */
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
 .noir-settings-card {
   border-radius: var(--noir-radius-lg);
   border: 1px solid var(--noir-rule-faint);
@@ -2089,7 +2154,7 @@ button.noir-now-playing-source:hover {
   align-items: center;
   gap: 12px;
   /* A real width: a % inside a shrink-wrapped control resolved to ~0 and hid the slider. */
-  width: 260px;
+  width: 200px;
   max-width: 100%;
 }
 

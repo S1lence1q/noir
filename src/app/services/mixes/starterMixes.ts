@@ -1,6 +1,6 @@
 import type { SearchResult } from '../../types';
 import { worldForTag } from '../../utils/ditherCover';
-import { getCachedChartTracks } from '../../utils/chartFeeds';
+import { getCachedChartTracks, readProfileCountry } from '../../utils/chartFeeds';
 import { normalizeName } from '../musicGraph/normalize';
 import type { DailyMix } from './dailyMixes';
 
@@ -22,7 +22,7 @@ function genreName(genre: string): string {
 
 function home(): string {
   try {
-    return localStorage.getItem('noir_profile_country') || 'dk';
+    return readProfileCountry();
   } catch {
     return 'dk';
   }

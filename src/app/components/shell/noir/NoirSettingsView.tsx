@@ -1,14 +1,18 @@
 import { useMemo, useState } from 'react';
-import { ChevronRight, Globe, Info, Keyboard, Volume1, Volume2, VolumeX, Waves, Palette } from 'lucide-react';
+import { ChevronRight, Globe, Info, Volume1, Volume2, VolumeX, Waves, Palette } from 'lucide-react';
 import { setGraphicsTheme, useGraphicsTheme, type GraphicsTheme } from '../../../utils/graphicsTheme';
 import { readLyricsTimingControls, setLyricsTimingControls } from '../../../utils/lyricsTiming';
 import { readExtraLyricsSource, setExtraLyricsSource } from '../../../utils/lyricsSources';
 import * as Slider from '@radix-ui/react-slider';
-import { STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
+import { readProfileCountry, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { showMiniHUD } from '../../../utils/hudUtils';
 import { clearListeningEvents } from '../../../services/listening/eventsStore';
 import { strings } from '../../../constants/strings';
 import type { AutoplayPreference } from '../../../hooks/useQueueEndPrompt';
+import type { SearchResult } from '../../../types';
+import { NoirGrainField } from './NoirGrainField';
+import { NoirHistoryHeat } from './NoirHistoryHeat';
+import { heroField, heroInk, heroWorld } from './NoirHomeHero';
 
 const APP_VERSION = '1.0.0';
 const GAPLESS_STASH_KEY = 'noir_crossfade_before_gapless';
@@ -99,6 +103,55 @@ function ActionLink({
   );
 }
 
+const PREVIEW_FALLBACK: SearchResult = { id: 'noir-preview', title: '', artist: 'NOIR', thumbnail: '', videoId: '' };
+
+/** A song you played, so the previews show your own covers. Read once when Settings opens. */
+function readPreviewTrack(): SearchResult {
+  try {
+    const list = JSON.parse(localStorage.getItem('noir_recently_played') || '[]');
+    const hit = Array.isArray(list) ? list.find((t: SearchResult) => t?.thumbnail) : null;
+    return hit ?? PREVIEW_FALLBACK;
+  } catch {
+    return PREVIEW_FALLBACK;
+  }
+}
+
+/** The graphics choice as two real pictures from the same song: pick the one you like. */
+function GraphicsChoice({ value, track }: { value: GraphicsTheme; track: SearchResult }) {
+  const world = heroWorld(track);
+  const tiles: { theme: GraphicsTheme; label: string }[] = [
+    { theme: 'heat', label: strings.settings.graphicsHeat },
+    { theme: 'grain', label: strings.settings.graphicsGrain },
+  ];
+  return (
+    <div className="noir-graphics-choice" role="radiogroup" aria-label={strings.settings.graphics}>
+      {tiles.map(({ theme, label }) => (
+        <button
+          key={theme}
+          type="button"
+          role="radio"
+          aria-checked={value === theme}
+          data-active={value === theme ? 'true' : 'false'}
+          className="noir-graphics-tile noir-focus-ring"
+          onClick={() => setGraphicsTheme(theme)}
+        >
+          <span
+            className="noir-graphics-tile-art"
+            style={theme === 'heat' ? { background: heroField(world), color: heroInk(world) } : undefined}
+          >
+            {theme === 'heat' ? (
+              <NoirHistoryHeat world={world} seed={`settings|${track.id}`} plays={6} />
+            ) : (
+              <NoirGrainField track={track} />
+            )}
+          </span>
+          <span className="noir-graphics-tile-label">{label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function clearCachedData() {
   const keysToRemove: string[] = [];
   for (let i = 0; i < localStorage.length; i++) {
@@ -128,9 +181,8 @@ export function NoirSettingsView() {
     return saved !== null ? parseFloat(saved) : 3.0;
   });
 
-  const [country, setCountry] = useState(
-    () => localStorage.getItem('noir_profile_country') || 'dk'
-  );
+  const [country, setCountry] = useState(readProfileCountry);
+  const [previewTrack] = useState(readPreviewTrack);
   const [autoplay, setAutoplay] = useState<AutoplayPreference>(() => readAutoplayPreference());
   const graphics = useGraphicsTheme();
   const [lyricsTiming, setLyricsTiming] = useState(readLyricsTimingControls);
@@ -193,25 +245,26 @@ export function NoirSettingsView() {
     void clearListeningEvents().catch((error) => {
       console.warn('Failed to clear listening events:', error);
     });
-    showMiniHUD('Play history cleared');
+    showMiniHUD(strings.settings.historyCleared);
   };
 
   const handleClearCache = () => {
     const count = clearCachedData();
-    showMiniHUD(count > 0 ? `Cleared ${count} cached items` : 'Cache already empty');
+    showMiniHUD(count > 0 ? strings.settings.cacheCleared(count) : strings.settings.cacheEmpty);
   };
 
+  const t = strings.settings;
   return (
-    <div className="noir-settle-group noir-settings noir-content--settings pb-10">
-      <SettingsCard title="Playback" icon={Volume2}>
-        <SettingsRow label="Volume">
+    <div className="noir-settle-group noir-settings pb-10">
+      <SettingsCard title={t.playback} icon={Volume2}>
+        <SettingsRow label={t.volume}>
           <div className="noir-settings-slider-wrap">
             <button
               type="button"
               onClick={toggleMute}
               className="text-[color:var(--noir-text-tertiary)] hover:text-white transition-colors shrink-0"
-              aria-label={volume === 0 ? 'Unmute' : 'Mute'}
-              data-tip={volume === 0 ? 'Unmute' : 'Mute'}
+              aria-label={volume === 0 ? t.unmute : t.mute}
+              data-tip={volume === 0 ? t.unmute : t.mute}
             >
               {volume === 0 ? (
                 <VolumeX className="h-4 w-4" />
@@ -239,7 +292,7 @@ export function NoirSettingsView() {
 
         <div className="noir-settings-divider" />
 
-        <SettingsRow label="Crossfade" description="Blend between tracks">
+        <SettingsRow label={t.crossfade} description={t.crossfadeDesc}>
           <div className={`noir-settings-slider-wrap ${gapless ? 'opacity-40 pointer-events-none' : ''}`}>
             <Waves className="h-4 w-4 shrink-0 text-[color:var(--noir-text-tertiary)]" strokeWidth={1.75} />
             <Slider.Root
@@ -256,46 +309,48 @@ export function NoirSettingsView() {
               </Slider.Track>
               <Slider.Thumb className="noir-settings-slider-thumb" />
             </Slider.Root>
-            <span className="noir-settings-slider-value">{gapless ? 'Off' : `${crossfade}s`}</span>
+            <span className="noir-settings-slider-value">{gapless ? t.crossfadeOff : `${crossfade}s`}</span>
           </div>
         </SettingsRow>
 
         <div className="noir-settings-divider" />
 
-        <SettingsRow label="Gapless playback" description="Instant transitions, no crossfade">
+        <SettingsRow label={t.gapless} description={t.gaplessDesc}>
           <NoirSwitch checked={gapless} onChange={handleGaplessChange} />
         </SettingsRow>
 
         <div className="noir-settings-divider" />
 
-        <SettingsRow label={strings.settings.autoplay} description={strings.settings.autoplayDesc} stacked>
-          <div className="noir-settings-select-wrap">
-            <select
-              value={autoplay}
-              onChange={(e) => {
-                const next = e.target.value as AutoplayPreference;
-                setAutoplay(next);
-                localStorage.setItem(AUTOPLAY_STORAGE_KEY, next);
-              }}
-              className="noir-settings-select"
-              aria-label={strings.settings.autoplay}
-            >
-              <option value="ask">{strings.settings.autoplayAsk}</option>
-              <option value="on">{strings.settings.autoplayOn}</option>
-              <option value="off">{strings.settings.autoplayOff}</option>
-            </select>
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--noir-text-tertiary)]">
-              ▾
-            </span>
+        <SettingsRow label={t.autoplay} description={t.autoplayDesc}>
+          <div className="noir-segmented" role="radiogroup" aria-label={t.autoplay}>
+            {(
+              [
+                ['ask', t.autoplayAsk],
+                ['on', t.autoplayOn],
+                ['off', t.autoplayOff],
+              ] as [AutoplayPreference, string][]
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={autoplay === value}
+                data-active={autoplay === value ? 'true' : 'false'}
+                className="noir-segmented-item noir-focus-ring"
+                onClick={() => {
+                  setAutoplay(value);
+                  localStorage.setItem(AUTOPLAY_STORAGE_KEY, value);
+                }}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </SettingsRow>
 
         <div className="noir-settings-divider" />
 
-        <SettingsRow
-          label="Lyrics timing controls"
-          description="Show buttons to nudge lyrics earlier or later when they are slightly off"
-        >
+        <SettingsRow label={t.lyricsTiming} description={t.lyricsTimingDesc}>
           <NoirSwitch
             checked={lyricsTiming}
             onChange={(on) => {
@@ -307,10 +362,7 @@ export function NoirSettingsView() {
 
         <div className="noir-settings-divider" />
 
-        <SettingsRow
-          label="Extra lyrics source"
-          description="Looks for synced lyrics on Apple Music when the main source has none. Third party: may stop working"
-        >
+        <SettingsRow label={t.extraLyrics} description={t.extraLyricsDesc}>
           <NoirSwitch
             checked={extraLyrics}
             onChange={(on) => {
@@ -321,72 +373,57 @@ export function NoirSettingsView() {
         </SettingsRow>
       </SettingsCard>
 
-      <SettingsCard title="Appearance" icon={Palette}>
-        <SettingsRow label="Graphics" description="Grain: the cover's colours as dither. Heat: soft colour and glow">
-          <div className="noir-segmented" role="radiogroup" aria-label="Graphics">
-            {(['heat', 'grain'] as GraphicsTheme[]).map((theme) => (
-              <button
-                key={theme}
-                type="button"
-                role="radio"
-                aria-checked={graphics === theme}
-                data-active={graphics === theme ? 'true' : 'false'}
-                className="noir-segmented-item noir-focus-ring"
-                onClick={() => setGraphicsTheme(theme)}
+      <div className="noir-settings-side">
+        <SettingsCard title={t.appearance} icon={Palette}>
+          <SettingsRow label={t.graphics} description={t.graphicsDesc} stacked>
+            <GraphicsChoice value={graphics} track={previewTrack} />
+          </SettingsRow>
+        </SettingsCard>
+
+        <SettingsCard title={t.library} icon={Globe}>
+          <SettingsRow label={t.chartsRegion} description={t.chartsRegionDesc}>
+            <div className="noir-settings-select-wrap noir-settings-select-wrap--inline">
+              <select
+                value={country}
+                onChange={(e) => handleCountryChange(e.target.value)}
+                className="noir-settings-select"
+                aria-label={t.chartsRegion}
               >
-                {theme === 'heat' ? 'Heat' : 'Grain'}
-              </button>
-            ))}
+                {STOREFRONT_COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.flag} {c.name}
+                  </option>
+                ))}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--noir-text-tertiary)]">
+                ▾
+              </span>
+            </div>
+          </SettingsRow>
+
+          <div className="noir-settings-divider" />
+
+          <ActionLink label={t.clearHistory} onClick={handleClearHistory} destructive />
+          <div className="noir-settings-divider" />
+          <ActionLink label={t.clearCache} onClick={handleClearCache} />
+        </SettingsCard>
+
+        <SettingsCard title={t.about} icon={Info}>
+          <div className="noir-settings-about-brand">
+            <span className="text-[12px] font-bold tracking-[0.34em] text-[color:var(--noir-text-primary)]">NOIR</span>
+            <span className="text-[13px] tabular-nums text-[color:var(--noir-text-tertiary)]">v{APP_VERSION}</span>
           </div>
-        </SettingsRow>
-      </SettingsCard>
 
-      <SettingsCard title="Library" icon={Globe}>
-        <SettingsRow label="Charts region" description="Local chart on Discover" stacked>
-          <div className="noir-settings-select-wrap">
-            <select
-              value={country}
-              onChange={(e) => handleCountryChange(e.target.value)}
-              className="noir-settings-select"
-              aria-label="Charts region"
-            >
-              {STOREFRONT_COUNTRIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.flag} {c.name}
-                </option>
-              ))}
-            </select>
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--noir-text-tertiary)]">
-              ▾
-            </span>
-          </div>
-          <p className="mt-2 text-[12px] text-[color:var(--noir-text-tertiary)]">
-            Currently {activeCountry.flag} {activeCountry.name}
-          </p>
-        </SettingsRow>
+          <div className="noir-settings-divider" />
 
-        <div className="noir-settings-divider" />
-
-        <ActionLink label="Clear play history" onClick={handleClearHistory} destructive />
-        <div className="noir-settings-divider" />
-        <ActionLink label="Clear cached data" onClick={handleClearCache} />
-      </SettingsCard>
-
-      <SettingsCard title="About" icon={Info}>
-        <div className="noir-settings-about-brand">
-          <span className="text-[12px] font-bold tracking-[0.34em] text-[color:var(--noir-text-primary)]">NOIR</span>
-          <span className="text-[13px] tabular-nums text-[color:var(--noir-text-tertiary)]">v{APP_VERSION}</span>
-        </div>
-
-        <div className="noir-settings-divider" />
-
-        <ActionLink
-          label="Keyboard shortcuts"
-          onClick={() => {
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: '?' }));
-          }}
-        />
-      </SettingsCard>
+          <ActionLink
+            label={t.shortcuts}
+            onClick={() => {
+              window.dispatchEvent(new KeyboardEvent('keydown', { key: '?' }));
+            }}
+          />
+        </SettingsCard>
+      </div>
     </div>
   );
 }

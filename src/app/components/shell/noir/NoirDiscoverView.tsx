@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { ChevronRight, Play } from 'lucide-react';
 import { SearchResult } from '../../../types';
 import type { Playlist } from '../../../types';
-import { fetchAppleMusicChart, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
+import { fetchAppleMusicChart, readProfileCountry, STOREFRONT_COUNTRIES } from '../../../utils/chartFeeds';
 import { NoirMixCover } from './NoirMixCover';
 import { NoirArtwork } from './NoirArtwork';
 import { NoirHomeShelf } from './NoirHomeShelf';
@@ -58,7 +58,7 @@ export function NoirDiscoverView({
   onViewArtist,
 }: NoirDiscoverViewProps) {
   const [activeCountry, setActiveCountry] = useState(
-    () => localStorage.getItem('noir_profile_country') || 'dk'
+    () => readProfileCountry()
   );
   const [localHits, setLocalHits] = useState<SearchResult[]>(() => readCacheSync(activeCountry));
   const [globalHits, setGlobalHits] = useState<SearchResult[]>(() => readCacheSync('us'));
@@ -94,7 +94,7 @@ export function NoirDiscoverView({
 
   useEffect(() => {
     const handleProfileUpdate = () => {
-      setActiveCountry(localStorage.getItem('noir_profile_country') || 'dk');
+      setActiveCountry(readProfileCountry());
     };
     window.addEventListener('noir-profile-updated', handleProfileUpdate);
     return () => window.removeEventListener('noir-profile-updated', handleProfileUpdate);

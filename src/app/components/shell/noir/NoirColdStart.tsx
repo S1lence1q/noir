@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Check, X } from 'lucide-react';
 import { strings } from '../../../constants/strings';
-import { fetchAppleMusicChart, getCachedChartTracks } from '../../../utils/chartFeeds';
+import { fetchAppleMusicChart, getCachedChartTracks, readProfileCountry } from '../../../utils/chartFeeds';
 import { executeSearchAPI } from '../../../utils/api/pipedSearch';
 import { worldForCollection } from '../../../utils/ditherCover';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion, withReducedMotion } from '../../../utils/motionPresets';
@@ -69,7 +69,7 @@ function alternate<T>(...lists: T[][]): T[] {
 function chartStores(): string[] {
   let home = 'dk';
   try {
-    home = localStorage.getItem('noir_profile_country') || 'dk';
+    home = readProfileCountry();
   } catch {
     /* private mode */
   }

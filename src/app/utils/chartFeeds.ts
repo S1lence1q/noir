@@ -15,6 +15,19 @@ export const STOREFRONT_COUNTRIES = [
   { code: 'au', name: 'Australia', flag: '🇦🇺' },
 ] as const;
 
+/** The chosen chart country, else the one in the browser's language (en-US -> us), else Denmark. */
+export function readProfileCountry(): string {
+  try {
+    const saved = localStorage.getItem('noir_profile_country');
+    if (saved) return saved;
+    const region = navigator.language.split('-')[1]?.toLowerCase();
+    if (STOREFRONT_COUNTRIES.some((c) => c.code === region)) return region!;
+  } catch {
+    /* fall through */
+  }
+  return 'dk';
+}
+
 type ChartStorefront = string;
 
 type ChartCacheEntry = {
