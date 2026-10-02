@@ -1,8 +1,8 @@
 import React from 'react';
 
-type ElvaEmptyStateVariant = 'panel' | 'inline';
+type NoirEmptyStateVariant = 'panel' | 'inline';
 
-interface ElvaEmptyStateProps {
+interface NoirEmptyStateProps {
   icon?: React.ReactNode;
   title: string;
   description?: string;
@@ -11,17 +11,17 @@ interface ElvaEmptyStateProps {
     onClick: () => void;
   };
   className?: string;
-  variant?: ElvaEmptyStateVariant;
+  variant?: NoirEmptyStateVariant;
 }
 
-export function ElvaEmptyState({
+export function NoirEmptyState({
   icon,
   title,
   description,
   action,
   className = '',
   variant = 'panel',
-}: ElvaEmptyStateProps) {
+}: NoirEmptyStateProps) {
   if (variant === 'inline') {
     return (
       <div className={`py-4 px-1 text-left select-none ${className}`}>

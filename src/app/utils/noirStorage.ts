@@ -1,5 +1,5 @@
-/** Central localStorage keys for Elva — single place to find and migrate persisted data. */
-export const ELVA_STORAGE_KEYS = {
+/** Central localStorage keys for NOIR (values keep their old elva_ prefix so saved data survives) — single place to find and migrate persisted data. */
+export const NOIR_STORAGE_KEYS = {
   favorites: 'elva_favorites',
   playlists: 'elva_playlists',
   recentlyPlayed: 'elva_recently_played',

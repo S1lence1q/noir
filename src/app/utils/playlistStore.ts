@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SearchResult } from '../types';
-import { ELVA_STORAGE_KEYS, readJsonStorage, writeJsonStorage } from './elvaStorage';
+import { NOIR_STORAGE_KEYS, readJsonStorage, writeJsonStorage } from './noirStorage';
 import { getPlaybackSongKey } from './playbackSongKey';
 
 export type UserPlaylist = {
@@ -40,11 +40,11 @@ const UPDATED_EVENT = 'elva-playlists-updated';
 let pendingRenameId: string | null = null;
 
 export function readPlaylists(): UserPlaylist[] {
-  return readJsonStorage<UserPlaylist[]>(ELVA_STORAGE_KEYS.playlists, []);
+  return readJsonStorage<UserPlaylist[]>(NOIR_STORAGE_KEYS.playlists, []);
 }
 
 function writePlaylists(next: UserPlaylist[]) {
-  writeJsonStorage(ELVA_STORAGE_KEYS.playlists, next);
+  writeJsonStorage(NOIR_STORAGE_KEYS.playlists, next);
   window.dispatchEvent(new CustomEvent(UPDATED_EVENT));
 }
 

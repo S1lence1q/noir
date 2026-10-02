@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { ELVA_STORAGE_KEYS, readJsonStorage } from '../../utils/elvaStorage';
+import { NOIR_STORAGE_KEYS, readJsonStorage } from '../../utils/noirStorage';
 import { getPrimaryArtist } from '../../utils/stringUtils';
 import type { Playlist, SearchResult } from './types';
 
@@ -9,9 +9,9 @@ export function useQueueLocalData(searchQuery: string, viewMode: 'session' | 'li
   const [localHistory, setLocalHistory] = useState<SearchResult[]>([]);
 
   const loadLocalStorageItems = () => {
-    setLocalFavorites(readJsonStorage<SearchResult[]>(ELVA_STORAGE_KEYS.favorites, []));
-    setLocalPlaylists(readJsonStorage<Playlist[]>(ELVA_STORAGE_KEYS.playlists, []));
-    setLocalHistory(readJsonStorage<SearchResult[]>(ELVA_STORAGE_KEYS.recentlyPlayed, []));
+    setLocalFavorites(readJsonStorage<SearchResult[]>(NOIR_STORAGE_KEYS.favorites, []));
+    setLocalPlaylists(readJsonStorage<Playlist[]>(NOIR_STORAGE_KEYS.playlists, []));
+    setLocalHistory(readJsonStorage<SearchResult[]>(NOIR_STORAGE_KEYS.recentlyPlayed, []));
   };
 
   useEffect(() => {

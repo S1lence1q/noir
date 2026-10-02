@@ -3,7 +3,7 @@ import type { Playlist, SearchResult } from './types';
 import { ArtistAvatar } from './ArtistAvatar';
 import { QueueSongRow } from './QueueSongRow';
 import { CAROUSEL_END_SPACER_CLASS, CAROUSEL_MASK_STYLE } from './carouselStyles';
-import { ElvaEmptyState } from '../ElvaEmptyState';
+import { NoirEmptyState } from '../NoirEmptyState';
 import { strings } from '../../constants/strings';
 
 interface QueueLibraryViewProps {
@@ -37,7 +37,7 @@ export function QueueLibraryView({
           <h3 className="text-[10px] uppercase tracking-[0.25em] font-bold text-white/40">Playlists</h3>
         </div>
         {localPlaylists.length === 0 ? (
-          <ElvaEmptyState variant="inline" title={strings.queue.library.playlists} />
+          <NoirEmptyState variant="inline" title={strings.queue.library.playlists} />
         ) : (
           <div className="flex flex-col gap-3">
             {localPlaylists.map((playlist) => (
@@ -75,7 +75,7 @@ export function QueueLibraryView({
           <h3 className="text-[10px] uppercase tracking-[0.25em] font-bold text-white/40">Favorite Artists</h3>
         </div>
         {artistBubbles.length === 0 ? (
-          <ElvaEmptyState variant="inline" title={strings.queue.library.artists} />
+          <NoirEmptyState variant="inline" title={strings.queue.library.artists} />
         ) : (
           <div
             className="flex overflow-x-auto gap-4.5 pb-2 scrollbar-none snap-x snap-mandatory"
@@ -107,7 +107,7 @@ export function QueueLibraryView({
           <h3 className="text-[10px] uppercase tracking-[0.25em] font-bold text-white/40">All Likes</h3>
         </div>
         {localFavorites.length === 0 ? (
-          <ElvaEmptyState variant="inline" title={strings.queue.library.likes} />
+          <NoirEmptyState variant="inline" title={strings.queue.library.likes} />
         ) : (
           <div className="space-y-3">
             {localFavorites.map((song) => (

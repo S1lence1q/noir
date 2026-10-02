@@ -4,7 +4,7 @@ import { X, ArrowLeft, Loader2, Keyboard } from 'lucide-react';
 import { QueuePanelLayer } from './queue/QueuePanelLayer';
 import { toast } from '../utils/toast';
 import { AccentColor } from './themeUtils';
-import { ELVA_STORAGE_KEYS, readJsonStorage } from '../utils/elvaStorage';
+import { NOIR_STORAGE_KEYS, readJsonStorage } from '../utils/noirStorage';
 import type { QueueItem, Playlist, SearchResult, VerifiedArtist } from './queue/types';
 import { useQueueLocalData } from './queue/useQueueLocalData';
 import { useQueueDragReorder } from './queue/useQueueDragReorder';
@@ -256,7 +256,7 @@ export function Queue({
 
   const syncPlaylistFromStorage = (prev: Playlist | null) => {
     if (!prev) return null;
-    const lists = readJsonStorage<Playlist[]>(ELVA_STORAGE_KEYS.playlists, []);
+    const lists = readJsonStorage<Playlist[]>(NOIR_STORAGE_KEYS.playlists, []);
     return lists.find((p) => p.id === prev.id) || null;
   };
 

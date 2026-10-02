@@ -6,7 +6,7 @@ import { strings } from '../../../constants/strings';
 import { isTrackFavorite } from '../../../utils/favoriteUtils';
 import { EASE_PREMIUM, MOTION, prefersReducedMotion, withReducedMotion } from '../../../utils/motionPresets';
 import { executeSearchAPI } from '../../../utils/api/pipedSearch';
-import { ELVA_STORAGE_KEYS, readJsonStorage } from '../../../utils/elvaStorage';
+import { NOIR_STORAGE_KEYS, readJsonStorage } from '../../../utils/noirStorage';
 import {
   UserPlaylist,
   addTrackToPlaylist,
@@ -472,7 +472,7 @@ export function NoirAddSongsPanel({
   const [source, setSource] = useState<PanelSource>(
     sources.includes('favorites') && favorites.length > 0 ? 'favorites' : 'recents'
   );
-  const [recents] = useState<SearchResult[]>(() => readJsonStorage<SearchResult[]>(ELVA_STORAGE_KEYS.recentlyPlayed, []));
+  const [recents] = useState<SearchResult[]>(() => readJsonStorage<SearchResult[]>(NOIR_STORAGE_KEYS.recentlyPlayed, []));
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
